@@ -1432,12 +1432,14 @@ function onSmartSearch(){
       champNotItems.slice(0,6).forEach(item=>{
         if(item.type==='pokemon'){
           const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+item.id+'.png';
-          h+='<div class="usearch-item" style="padding:8px 16px;opacity:0.45;cursor:default"><img src="'+spr+'" style="width:28px;height:28px;filter:grayscale(0.7)" loading="lazy"><span style="text-transform:capitalize">'+pokeName(item.name)+'</span> <span style="font-size:11px;color:#6a6a7a;font-family:\'JetBrains Mono\',monospace">#'+item.id+'</span><span class="usearch-cat" style="color:#F08030">Champions</span></div>';
+          h+='<div class="usearch-item" data-idx="'+idx+'" onclick="switchGenAndSelect(9,'+idx+')" style="padding:8px 16px;opacity:0.6"><img src="'+spr+'" style="width:28px;height:28px;filter:grayscale(0.5)" loading="lazy"><span style="text-transform:capitalize">'+pokeName(item.name)+'</span> <span style="font-size:11px;color:#6a6a7a;font-family:\'JetBrains Mono\',monospace">#'+item.id+'</span><span class="usearch-cat" style="color:#F08030">&#x2B95; Gen IX</span></div>';
         }else if(item.type==='move'){
-          h+='<div class="usearch-item" style="text-transform:capitalize;padding:8px 16px;opacity:0.45;cursor:default">&#x2694;&#xFE0F; '+item.name.replace(/-/g,' ')+'<span class="usearch-cat" style="color:#F08030">Champions</span></div>';
+          h+='<div class="usearch-item" data-idx="'+idx+'" onclick="switchGenAndSelect(9,'+idx+')" style="text-transform:capitalize;padding:8px 16px;opacity:0.6">&#x2694;&#xFE0F; '+item.name.replace(/-/g,' ')+'<span class="usearch-cat" style="color:#F08030">&#x2B95; Gen IX</span></div>';
         }else if(item.type==='item'){
-          h+='<div class="usearch-item" style="text-transform:capitalize;padding:8px 16px;opacity:0.45;cursor:default">'+itemSpriteHtml(item.name,24)+' '+item.name.replace(/-/g,' ')+'<span class="usearch-cat" style="color:#F08030">Champions</span></div>';
+          h+='<div class="usearch-item" data-idx="'+idx+'" onclick="switchGenAndSelect(9,'+idx+')" style="text-transform:capitalize;padding:8px 16px;opacity:0.6">'+itemSpriteHtml(item.name,24)+' '+item.name.replace(/-/g,' ')+'<span class="usearch-cat" style="color:#F08030">&#x2B95; Gen IX</span></div>';
         }
+        limited.push(item);
+        idx++;
       });
     }
     suggest.innerHTML=h;
@@ -1490,6 +1492,11 @@ function smartSelect(idx){
   else if(item.type==='item'){goToItem(item.name);afterNav()}
 }
 
+function tmSwitchGenAndAdd(gen,moveName){
+  document.getElementById('data-gen-num').value=gen;
+  onGenNumChange();
+  selectTMSuggestion(moveName);
+}
 function switchToGen(gen){
   document.getElementById('data-gen-num').value=gen;
   onGenNumChange();
@@ -1509,6 +1516,7 @@ function switchGenAndSelect(gen,idx){
   if(item.type==='pokemon'){switchTab('pokedex');showDetail(item.id)}
   else if(item.type==='ability'){showAbilityPage(item.name)}
   else if(item.type==='move'){goToMove(item.name)}
+  else if(item.type==='item'){goToItem(item.name)}
 }
 
 // Close smart suggest on click outside
@@ -3457,7 +3465,7 @@ async function showTMSuggestions(q){
   }).join('');
   if(notChamp.length){
     el.innerHTML+='<div style="padding:6px 12px;font-size:10px;color:#F08030;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.08)">Not in Pok\u00e9mon Champions</div>'
-      +notChamp.map(m=>'<div class="tm-suggest-item" style="opacity:0.4;cursor:default">'+m.replace(/-/g,' ')+'</div>').join('');
+      +notChamp.map(m=>'<div class="tm-suggest-item" style="opacity:0.6" onclick="tmSwitchGenAndAdd(9,\''+m+'\')">'+m.replace(/-/g,' ')+'<span style="font-size:9px;color:#F08030;margin-left:auto;font-weight:700">&#x2B95; GEN IX</span></div>').join('');
   }
   el.style.display='';
 }
