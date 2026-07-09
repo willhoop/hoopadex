@@ -1129,6 +1129,13 @@ const REG_MB_NEW=[45,211,254,257,260,303,376,398,518,545,560,604,668,687,689,691
 const CHAMPIONS_IDS_MB=new Set([...CHAMPIONS_IDS_MA,...REG_MB_NEW]);
 let championsReg='m-b';
 let CHAMPIONS_IDS=CHAMPIONS_IDS_MB;
+// Pokemon Champions useable moves & items (Serebii, Reg M-B) - stored flattened (a-z0-9 only)
+const CHAMPIONS_MOVES=new Set('accelerock,acidarmor,acidspray,acrobatics,acupressure,aerialace,afteryou,agility,aircutter,airslash,alluringvoice,allyswitch,amnesia,ancientpower,appleacid,aquacutter,aquajet,aquaring,aquastep,aquatail,armorcannon,aromaticmist,assurance,attract,aurasphere,aurawheel,auroraveil,avalanche,axekick,babydolleyes,banefulbunker,barbbarrage,batonpass,beakblast,beatup,belch,bellydrum,bind,bite,bitterblade,bittermalice,blastburn,blazekick,blizzard,block,bodypress,bodyslam,bonerush,boomburst,bounce,bravebird,breakingswipe,brickbreak,brutalswing,bugbite,bugbuzz,bulkup,bulldoze,bulletpunch,bulletseed,burningjealousy,burnup,calmmind,ceaselessedge,charge,chargebeam,charm,chillingwater,chillyreception,circlethrow,clangingscales,clangoroussoul,clearsmog,closecombat,coaching,coil,comeuppance,confuseray,copycat,corrosivegas,cosmicpower,cottonguard,cottonspore,counter,covet,crabhammer,crosschop,crosspoison,crunch,crushclaw,curse,darkestlariat,darkpulse,dazzlinggleam,decorate,defog,destinybond,detect,dig,direclaw,disable,discharge,dive,doubleedge,doublehit,doubleteam,dracometeor,dragoncheer,dragonclaw,dragondance,dragondarts,dragonpulse,dragonrush,dragontail,drainingkiss,drainpunch,drillpeck,drillrun,dualwingbeat,dynamicpunch,earthpower,earthquake,eerieimpulse,eeriespell,electricterrain,electrify,electroball,electroshot,electroweb,encore,endeavor,endure,energyball,entrainment,eruption,expandingforce,explosion,extrasensory,extremespeed,facade,fairylock,fakeout,faketears,featherdance,feint,fellstinger,ficklebeam,fierydance,finalgambit,fireblast,firefang,firelash,firepunch,firespin,firstimpression,fissure,flail,flamecharge,flamethrower,flareblitz,flashcannon,flatter,fling,flipturn,flowertrick,fly,flyingpress,focusblast,focusenergy,focuspunch,followme,forestscurse,foulplay,freezedry,frenzyplant,frostbreath,futuresight,gastroacid,gigadrain,gigaimpact,gigatonhammer,glare,grassknot,grassyglide,grassyterrain,gravapple,gravity,growth,guardsplit,guardswap,guillotine,gunkshot,gyroball,hammerarm,hardpress,haze,headlongrush,headsmash,healbell,healingwish,healpulse,heatcrash,heatwave,heavyslam,helpinghand,hex,highhorsepower,highjumpkick,horndrill,hornleech,howl,hurricane,hydrocannon,hydropump,hyperbeam,hypervoice,hypnosis,icebeam,icefang,icehammer,icepunch,iceshard,icespinner,iciclecrash,iciclespear,icywind,imprison,infernalparade,inferno,infestation,ingrain,instruct,irondefense,ironhead,irontail,jetpunch,kingsshield,knockoff,kowtowcleave,lashout,lastresort,lastrespects,lavaplume,leafblade,leafstorm,leechlife,leechseed,lifedew,lightofruin,lightscreen,liquidation,lockon,lowkick,lowsweep,luminacrash,lunge,machpunch,magicpowder,magicroom,magneticflux,magnetrise,makeitrain,matchagotcha,meanlook,megahorn,megakick,memento,metalburst,metalsound,meteorbeam,meteormash,milkdrink,minimize,mirrorcoat,mistyexplosion,mistyterrain,moonblast,moonlight,morningsun,mortalspin,mountaingale,muddywater,mudshot,mudslap,mysticalfire,nastyplot,nightdaze,nightshade,nightslash,nobleroar,noretreat,nuzzle,outrage,overheat,painsplit,paraboliccharge,partingshot,payback,perishsong,petalblizzard,petaldance,phantomforce,pinmissile,playrough,pluck,poisonfang,poisonjab,poisonpowder,pollenpuff,poltergeist,populationbomb,pounce,powergem,powershift,powersplit,powerswap,powertrick,powertrip,powerwhip,protect,psychic,psychicfangs,psychicnoise,psychicterrain,psychocut,psychup,psyshieldbash,psyshock,quash,quickattack,quickguard,quiverdance,ragefist,ragepowder,ragingbull,ragingfury,raindance,rapidspin,razorshell,recover,recycle,reflect,reflecttype,rest,reversal,risingvoltage,roar,rockblast,rockpolish,rockslide,rocktomb,rockwrecker,roleplay,roost,round,sacredsword,safeguard,saltcure,sandstorm,sandtomb,scald,scaleshot,scaryface,scorchingsands,screech,seedbomb,seismictoss,selfdestruct,shadowball,shadowclaw,shadowpunch,shadowsneak,shedtail,sheercold,shellsidearm,shellsmash,shelter,simplebeam,sing,skillswap,skittersmack,skyattack,slackoff,sleeppowder,sleeptalk,sludgebomb,sludgewave,smackdown,smartstrike,snaptrap,snarl,snore,snowscape,soak,softboiled,solarbeam,solarblade,sparklingaria,speedswap,spicyextract,spikes,spikyshield,spiritbreak,spiritshackle,spite,spitup,spore,stealthrock,steelbeam,steelroller,steelwing,stickyweb,stockpile,stompingtantrum,stoneaxe,stoneedge,storedpower,stormthrow,strengthsap,stringshot,struggle,strugglebug,stuffcheeks,stunspore,substitute,suckerpunch,sunnyday,supercellslam,superfang,superpower,surf,swagger,swallow,sweetkiss,sweetscent,switcheroo,swordsdance,synthesis,syrupbomb,tailslap,tailwind,taunt,tearfullook,teatime,teeterdance,temperflare,terrainpulse,thief,thrash,throatchop,thunder,thunderbolt,thunderfang,thunderpunch,thunderwave,tickle,tidyup,topsyturvy,torchsong,torment,toxic,toxicspikes,toxicthread,trailblaze,transform,triattack,trick,trickortreat,trickroom,triplearrows,tripleaxel,tropkick,twinbeam,upperhand,uproar,uturn,vacuumwave,venoshock,voltswitch,volttackle,waterfall,waterpulse,watershuriken,waterspout,wavecrash,weatherball,whirlpool,whirlwind,wideguard,wildcharge,willowisp,wish,wonderroom,woodhammer,worryseed,wrap,xscissor,yawn,zapcannon,zenheadbutt'.split(','));
+const CHAMPIONS_ITEMS=new Set('abomasite,absolite,aerodactylite,aggronite,alakazite,altarianite,ampharosite,aspearberry,audinite,babiriberry,banettite,barbaracite,beedrillite,bigroot,blackbelt,blackglasses,blastoisinite,blazikenite,brightpowder,cameruptite,chandelurite,charcoal,charizarditex,charizarditey,chartiberry,cheriberry,chesnaughtite,chestoberry,chilanberry,chimechite,choicescarf,chopleberry,clefablite,cobaberry,colburberry,crabominite,damprock,delphoxite,dragalgite,dragonfang,dragoninite,drampanite,eelektrossite,emboarite,excadrite,expertbelt,fairyfeather,falinksite,feraligite,floettite,focusband,focussash,froslassite,galladite,garchompite,gardevoirite,gengarite,glalitite,glimmoranite,golurkite,greninjite,gyaradosite,habanberry,hardstone,hawluchanite,heatrock,heracronite,houndoominite,icyrock,ironball,kangaskhanite,kasibberry,kebiaberry,kingsrock,leftovers,leppaberry,lifeorb,lightball,lightclay,lopunnite,lucarionite,lumberry,magnet,malamarite,manectite,mawilite,medichamite,meganiumite,mentalherb,meowsticite,metagrossite,metalcoat,metronome,miracleseed,muscleband,mysticwater,nevermeltice,occaberry,oranberry,passhoberry,payapaberry,pechaberry,persimberry,pidgeotite,pinsirite,poisonbarb,pyroarite,quickclaw,raichunitex,raichunitey,rawstberry,rindoberry,roseliberry,sablenite,sceptilite,scizorite,scolipite,scopelens,scovillainite,scraftinite,sharpbeak,sharpedonite,shedshell,shellbell,shucaberry,silkscarf,silverpowder,sitrusberry,skarmorite,slowbronite,smoothrock,softsand,spelltag,staraptite,starminite,steelixite,swampertite,tangaberry,twistedspoon,tyranitarite,venusaurite,victreebelite,wacanberry,whiteherb,widelens,wiseglasses,yacheberry,zoomlens'.split(','));
+function champFlat(n){return String(n).toLowerCase().replace(/[^a-z0-9]/g,'')}
+function champHasMove(n){return CHAMPIONS_MOVES.has(champFlat(n))}
+function champHasItem(n){return CHAMPIONS_ITEMS.has(champFlat(n))}
+function tmScope(ids){const g=getGenMaxId();let r=(ids||[]).filter(id=>id<=g);if(isChampionsMode)r=r.filter(id=>CHAMPIONS_IDS.has(id));return r}
 function applyFilters(){
   const s=document.getElementById('search-input').value.toLowerCase().trim();
   const g=document.getElementById('gen-filter').value;
@@ -1218,6 +1225,7 @@ function onSmartSearch(){
     const qH=q.replace(/ /g,'-');
     const items=[];
     const otherGenItems=[];
+    const champNotItems=[];
     
     // Helper: find which gen a pokemon ID belongs to
     function getGenForId(id){for(const[g,[s,e]] of Object.entries(GR)){if(id>=s&&id<=e)return parseInt(g)}return 9}
@@ -1233,7 +1241,8 @@ function onSmartSearch(){
     master.forEach(p=>{
       if(p.name.includes(qH)||p.name.replace(/-/g,'').includes(qFlat)||String(p.id)===q||String(p.id).padStart(4,'0').includes(q)){
         if(p.id<=genMax){
-          items.push({type:'pokemon',name:p.name,id:p.id,_exact:true});
+          if(isChampionsMode&&!CHAMPIONS_IDS.has(p.id))champNotItems.push({type:'pokemon',name:p.name,id:p.id});
+          else items.push({type:'pokemon',name:p.name,id:p.id,_exact:true});
         }else{
           const pGen=getGenForId(p.id);
           otherGenItems.push({type:'pokemon',name:p.name,id:p.id,gen:pGen,_exact:true});
@@ -1267,6 +1276,8 @@ function onSmartSearch(){
           const mGen=getMoveIntroGen(name);
           if(mGen>curGen){
             otherGenItems.push({type:'move',name:name,gen:mGen,_exact:true});
+          }else if(isChampionsMode&&!champHasMove(name)){
+            champNotItems.push({type:'move',name:name});
           }else{
             items.push({type:'move',name:name,_exact:true});
           }
@@ -1292,7 +1303,8 @@ function onSmartSearch(){
       const searchGenNum=getDataGenNum();
       itemsCache.forEach(item=>{
         if(isItemInGen(item,searchGenNum)&&(item.name.replace(/-/g,' ').includes(q)||item.name.includes(q.replace(/ /g,'-')))){
-          items.push({type:'item',name:item.name,category:item.category,_exact:true});
+          if(isChampionsMode&&!champHasItem(item.name))champNotItems.push({type:'item',name:item.name});
+          else items.push({type:'item',name:item.name,category:item.category,_exact:true});
         }
       });
     }
@@ -1304,7 +1316,7 @@ function onSmartSearch(){
         master.forEach(p=>{
           const s=fuzzyScore(qFlat,p.name.replace(/-/g,''));
           if(s>0.3){
-            if(p.id<=genMax)fuzzyPokemon.push({type:'pokemon',name:p.name,id:p.id,_fs:s});
+            if(p.id<=genMax){if(!isChampionsMode||CHAMPIONS_IDS.has(p.id))fuzzyPokemon.push({type:'pokemon',name:p.name,id:p.id,_fs:s})}
             else{const pGen=getGenForId(p.id);fuzzyPokemon.push({type:'pokemon',name:p.name,id:p.id,gen:pGen,_fs:s})}
           }
         });
@@ -1314,7 +1326,7 @@ function onSmartSearch(){
         fuzzyAbilities.sort((a,b)=>b._fs-a._fs).slice(0,3).forEach(a=>items.push(a));
         fuzzyMoves.sort((a,b)=>b._fs-a._fs).slice(0,3).forEach(m=>items.push(m));
       }
-      if(!items.length&&!otherGenItems.length){suggest.style.display='none';return}
+      if(!items.length&&!otherGenItems.length&&!champNotItems.length){suggest.style.display='none';return}
     }else if(q.length>=3){
       // Also add fuzzy results after exact matches for better suggestions
       const exactPokemonIds=new Set(items.filter(i=>i.type==='pokemon').map(i=>i.id));
@@ -1324,7 +1336,7 @@ function onSmartSearch(){
       master.forEach(p=>{
         if(exactPokemonIds.has(p.id))return;
         const s=fuzzyScore(qFlat,p.name.replace(/-/g,''));
-        if(s>0.35&&p.id<=genMax)fuzzyPokemon.push({type:'pokemon',name:p.name,id:p.id,_fs:s});
+        if(s>0.35&&p.id<=genMax&&(!isChampionsMode||CHAMPIONS_IDS.has(p.id)))fuzzyPokemon.push({type:'pokemon',name:p.name,id:p.id,_fs:s});
       });
       fuzzyPokemon.sort((a,b)=>b._fs-a._fs).slice(0,3).forEach(p=>items.push(p));
       if(window._abilityIndex){const fa=[];window._abilityIndex.forEach(a=>{if(exactAbilityNames.has(a))return;const s=fuzzyScore(q,a);if(s>0.35)fa.push({type:'ability',name:a,desc:abilityCache[a]?.desc||null,_fs:s})});fa.sort((a,b)=>b._fs-a._fs).slice(0,2).forEach(a=>items.push(a))}
@@ -1413,6 +1425,19 @@ function onSmartSearch(){
         const remaining=byGen[gen].length-genItems.length;
         const moreText=remaining>0?' (+'+remaining+' more)':'';
         h+='<div onclick="switchToGen('+gen+')" style="padding:6px 16px;font-size:12px;color:#6890F0;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(104,144,240,0.08)\'" onmouseout="this.style.background=\'none\'">&#x2B95; Switch to Gen '+genRomans[gen]+moreText+'</div>';
+      });
+    }
+    if(isChampionsMode&&champNotItems.length){
+      h+='<div style="padding:8px 12px;font-size:10px;color:#F08030;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;border-top:2px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.015)">Not in Pok\u00e9mon Champions</div>';
+      champNotItems.slice(0,6).forEach(item=>{
+        if(item.type==='pokemon'){
+          const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+item.id+'.png';
+          h+='<div class="usearch-item" style="padding:8px 16px;opacity:0.45;cursor:default"><img src="'+spr+'" style="width:28px;height:28px;filter:grayscale(0.7)" loading="lazy"><span style="text-transform:capitalize">'+pokeName(item.name)+'</span> <span style="font-size:11px;color:#6a6a7a;font-family:\'JetBrains Mono\',monospace">#'+item.id+'</span><span class="usearch-cat" style="color:#F08030">Champions</span></div>';
+        }else if(item.type==='move'){
+          h+='<div class="usearch-item" style="text-transform:capitalize;padding:8px 16px;opacity:0.45;cursor:default">&#x2694;&#xFE0F; '+item.name.replace(/-/g,' ')+'<span class="usearch-cat" style="color:#F08030">Champions</span></div>';
+        }else if(item.type==='item'){
+          h+='<div class="usearch-item" style="text-transform:capitalize;padding:8px 16px;opacity:0.45;cursor:default">'+itemSpriteHtml(item.name,24)+' '+item.name.replace(/-/g,' ')+'<span class="usearch-cat" style="color:#F08030">Champions</span></div>';
+        }
       });
     }
     suggest.innerHTML=h;
@@ -1915,6 +1940,7 @@ function getMovesForGen(p){
   const vg=dataGen;
   const moves={levelup:[],tm:[],egg:[],tutor:[]};
   (p.moves||[]).forEach(m=>{
+    if(isChampionsMode&&!champHasMove(m.move.name))return;
     let vds=m.version_group_details.filter(v=>v.version_group.name===vg);
     if(!vds.length&&!specificGame){
       // Fall back to same-gen alternatives only when no specific game chosen
@@ -3413,10 +3439,13 @@ async function showTMSuggestions(q){
   const {vg,altVgs}=getTMMovesForGen();
   // Filter moves matching query
   const genNum=getDataGenNum();
-  const matches=tmMoveIndex.filter(m=>m.includes(q.replace(/ /g,'-'))&&getMoveIntroGen(m)<=genNum&&!tmCriteria.some(c=>c.name===m)).slice(0,15);
+  let pool=tmMoveIndex.filter(m=>m.includes(q.replace(/ /g,'-'))&&getMoveIntroGen(m)<=genNum&&!tmCriteria.some(c=>c.name===m));
+  let notChamp=[];
+  if(isChampionsMode){notChamp=pool.filter(m=>!champHasMove(m)).slice(0,5);pool=pool.filter(m=>champHasMove(m))}
+  const matches=pool.slice(0,15);
   const el=document.getElementById('tm-suggest');
   if(!el){return}
-  if(matches.length===0){hideTMSuggest();return}
+  if(matches.length===0&&notChamp.length===0){hideTMSuggest();return}
   tmSuggestIdx=-1;
   el.innerHTML=matches.map(m=>{
     const md=moveCache[m];
@@ -3426,6 +3455,10 @@ async function showTMSuggestions(q){
       +(type?'<span class="tm-sg-type" style="background:'+TC[type]+'">'+type+'</span>':'')
       +'</div>';
   }).join('');
+  if(notChamp.length){
+    el.innerHTML+='<div style="padding:6px 12px;font-size:10px;color:#F08030;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.08)">Not in Pok\u00e9mon Champions</div>'
+      +notChamp.map(m=>'<div class="tm-suggest-item" style="opacity:0.4;cursor:default">'+m.replace(/-/g,' ')+'</div>').join('');
+  }
   el.style.display='';
 }
 
@@ -3651,6 +3684,7 @@ async function renderOtherMovesList(){
   // Filter out moves from later gens using hardcoded map
   const filteredMoves=allMoves.filter(name=>{
     const introGen=getMoveIntroGen(name);
+    if(isChampionsMode&&!champHasMove(name))return false;
     return introGen<=genNum;
   });
 
@@ -3722,9 +3756,10 @@ async function renderTMFullList(){
   }
 
   // Group into rows of 5, with a divider every 10
+  const filteredC=isChampionsMode?filtered.filter(([name])=>champHasMove(name)):filtered;
   let h='';
-  for(let i=0;i<filtered.length;i+=5){
-    const chunk=filtered.slice(i,i+5);
+  for(let i=0;i<filteredC.length;i+=5){
+    const chunk=filteredC.slice(i,i+5);
     // Add spacing every 10 TMs
     if(i>0&&i%10===0){
       h+='<div style="height:5px"></div>';
@@ -3957,11 +3992,10 @@ function renderTMResults(){
     h+='</div></div>';
   });
 
-  const genMaxR=getGenMaxId();
-  const validCriteria=tmCriteria.filter(c=>c.pokemon&&c.pokemon.filter(id=>id<=genMaxR).length>0);
+  const validCriteria=tmCriteria.filter(c=>c.pokemon&&(!isChampionsMode||champHasMove(c.name))&&tmScope(c.pokemon).length>0);
   if(validCriteria.length===0){
-    tmCriteria.filter(c=>c.pokemon&&c.pokemon.filter(id=>id<=genMaxR).length===0).forEach(c=>{
-      const label=c.isTM===false?'No Pok&#233;mon learn "'+c.name.replace(/-/g,' ')+'" in this generation':'No Pok&#233;mon learn "'+c.name.replace(/-/g,' ')+'" in '+getGenLabel();
+    tmCriteria.filter(c=>c.pokemon&&(isChampionsMode&&!champHasMove(c.name)||tmScope(c.pokemon).length===0)).forEach(c=>{
+      const label=(isChampionsMode&&!champHasMove(c.name))?'"'+c.name.replace(/-/g,' ')+'" is not useable in Pok\u00e9mon Champions':c.isTM===false?'No Pok&#233;mon learn "'+c.name.replace(/-/g,' ')+'" in this generation':'No Pok&#233;mon learn "'+c.name.replace(/-/g,' ')+'" in '+getGenLabel();
       h+='<div style="color:#F85888;font-size:13px;margin-bottom:8px">&#x26A0; '+label+'</div>';
     });
     h+='<div style="color:#6a6a7a;font-size:13px;padding:8px 0;font-style:italic">No results.</div>';
@@ -3969,9 +4003,9 @@ function renderTMResults(){
   }
 
   // Intersection
-  let result=new Set(validCriteria[0].pokemon.filter(id=>id<=genMaxR));
+  let result=new Set(tmScope(validCriteria[0].pokemon));
   for(let i=1;i<validCriteria.length;i++){
-    const s=new Set(validCriteria[i].pokemon.filter(id=>id<=genMaxR));
+    const s=new Set(tmScope(validCriteria[i].pokemon));
     result=new Set([...result].filter(id=>s.has(id)));
   }
   const ids=[...result].sort((a,b)=>a-b).filter(id=>id<=getGenMaxId());
@@ -6391,7 +6425,8 @@ async function renderItemsTab(force){
   const genNum=getDataGenNum();
   
   // Filter items by gen (instant - no API calls needed)
-  const genItems=items.filter(item=>isItemInGen(item,genNum));
+  let genItems=items.filter(item=>isItemInGen(item,genNum));
+  if(isChampionsMode)genItems=genItems.filter(item=>champHasItem(item.name));
   const groups={};
   genItems.forEach(item=>{
     if(!groups[item.category])groups[item.category]=[];
