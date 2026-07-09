@@ -452,6 +452,61 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .loc-subtab{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#8a8a9a;cursor:pointer;transition:all 0.15s}
 .loc-subtab:hover{background:rgba(255,255,255,0.06);color:#c8c8d8}
 .loc-subtab.active{background:rgba(104,144,240,0.15);border-color:rgba(104,144,240,0.3);color:#6890F0}
+
+/* ===== Mobile optimizations ===== */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,select,input{touch-action:manipulation}
+*{-webkit-tap-highlight-color:transparent}
+@media(max-width:640px){
+  .header{padding:10px 12px 8px}
+  .header-top{gap:8px;margin-bottom:8px}
+  .logo-icon{width:30px;height:30px;font-size:15px}
+  .logo-text{font-size:18px}
+  .theme-toggle{width:38px;height:38px}
+  .gen-selector{gap:6px}
+  .gen-selector label{display:none}
+  .gen-selector select{padding:8px 10px;font-size:13px}
+  .tabs{justify-content:flex-start;margin:0 -12px;padding:0 12px}
+  .tab-btn{padding:10px 14px;font-size:12px;white-space:nowrap}
+  .content{padding:12px 12px 60px}
+  .filters{gap:6px}
+  .filter-input{flex:1 1 100%;padding:12px 14px;font-size:16px}
+  .filter-select{flex:1 1 calc(50% - 3px);padding:12px 10px;font-size:14px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:8px}
+  .card{padding:10px;border-radius:12px}
+  .card-img img{width:76px;height:76px}
+  .card-name{font-size:12.5px}
+  .card:hover{transform:none}
+  .type-badge{padding:3px 10px;font-size:11px;letter-spacing:0.5px}
+  .detail-panel{padding:14px;border-radius:14px;scroll-margin-top:100px}
+  .modal-header{gap:12px;margin-bottom:16px}
+  .modal-header img{width:96px;height:96px}
+  .modal-name{font-size:22px}
+  .modal-dims{font-size:12px}
+  .team-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .team-slot img{width:52px;height:52px}
+  .team-slot .team-remove{opacity:1}
+  .team-coverage-grid{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
+  .usearch-overlay{padding:6vh 10px 0}
+  .usearch-input{font-size:16px}
+  .usearch-results{max-height:55vh}
+  .pinned-bar{position:static;padding:8px 10px}
+  .moves-table{font-size:12px}
+  .ev-table,.natures-table,.loc-enc-table{font-size:12px}
+  .ability-grid{grid-template-columns:1fr}
+  .stat-label{width:32px;font-size:11px}
+  .stat-value{width:32px;font-size:13px}
+  .load-more-btn{width:100%;padding:14px}
+}
+@media(max-width:380px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .card-img img{width:68px;height:68px}
+}
+@media(hover:none){
+  .card:hover{transform:none}
+  .team-slot .team-remove{opacity:1}
+  .pinned-tab-close{width:22px;height:22px}
+}
 </style>
 </head>
 <body>
@@ -470,7 +525,7 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
       <option value="7">Gen VII</option>
       <option value="8">Gen VIII</option>
       <option value="9">Gen IX</option>
-      <option value="champions" selected>Champions</option>
+      <option value="champions" selected>Champions (Reg M-B)</option>
     </select>
     <select id="data-game" onchange="onGameChange()" style="min-width:120px">
     </select>
@@ -881,7 +936,7 @@ function getGenLabel(){
 function populateGameDropdown(){
   const sel=document.getElementById('data-game');
   if(isChampionsMode){
-    sel.innerHTML='<option value="">Pokémon Champions</option>';
+    sel.innerHTML='<option value="">Pokémon Champions — Reg M-B</option>';
     sel.style.display='none';
     dataGen='scarlet-violet';
     return;
@@ -1060,7 +1115,7 @@ async function init(){
 }
 
 // === FILTERING ===
-const CHAMPIONS_IDS=new Set([3,6,9,15,18,24,25,26,36,38,59,65,68,71,80,94,115,121,127,128,130,132,134,135,136,142,143,149,154,157,160,168,181,184,186,196,197,199,205,208,212,214,227,229,248,279,282,302,306,308,310,319,323,324,334,350,351,354,358,359,362,389,392,395,405,407,409,411,428,442,445,448,450,454,460,461,464,470,471,472,473,475,478,479,497,500,503,505,510,512,514,516,530,531,534,547,553,563,569,571,579,584,587,609,614,618,623,635,637,652,655,658,660,663,666,670,671,675,676,678,681,683,685,693,695,697,699,700,701,702,706,707,709,711,713,715,724,727,730,733,740,745,748,750,752,758,763,765,766,778,780,784,823,841,842,844,855,858,866,867,869,877,887,899,900,902,903,908,911,914,925,934,936,937,939,952,956,959,964,968,970,981,983,1013,1018,1019]);
+const CHAMPIONS_IDS=new Set([3,6,9,15,18,24,25,26,36,38,45,59,65,68,71,80,94,115,121,127,128,130,132,134,135,136,142,143,149,154,157,160,168,181,184,186,196,197,199,205,208,211,212,214,227,229,248,254,257,260,279,282,302,303,306,308,310,319,323,324,334,350,351,354,358,359,362,376,389,392,395,398,405,407,409,411,428,442,445,448,450,454,460,461,464,470,471,472,473,475,478,479,497,500,503,505,510,512,514,516,518,530,531,534,545,547,553,560,563,569,571,579,584,587,604,609,614,618,623,635,637,652,655,658,660,663,666,668,670,671,675,676,678,681,683,685,687,689,691,693,695,697,699,700,701,702,706,707,709,711,713,715,724,727,730,733,740,745,748,750,752,758,763,765,766,778,780,784,823,841,842,844,855,858,861,866,867,869,870,877,887,899,900,902,903,904,908,911,914,925,934,936,937,939,952,956,959,964,968,970,972,979,981,983,1000,1013,1018,1019]); // Regulation M-B (June 17 - Sept 2, 2026)
 function applyFilters(){
   const s=document.getElementById('search-input').value.toLowerCase().trim();
   const g=document.getElementById('gen-filter').value;
