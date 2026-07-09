@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HoopaDex — Logo Options</title>
+<style>
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,#0e0e1a 0%,#14142a 50%,#0e0e1a 100%);color:#e0e0e8;font-family:'Nunito','Segoe UI',system-ui,sans-serif;padding:40px 20px}
+h1{text-align:center;font-size:26px;font-weight:900;background:linear-gradient(135deg,#f0f0f8,#a8a8c0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.sub{text-align:center;color:#8a8a9a;font-size:13px;margin-bottom:36px}
+.option{max-width:760px;margin:0 auto 28px;border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;background:rgba(255,255,255,0.02)}
+.opt-label{padding:10px 18px;font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#F8A060;background:rgba(240,128,48,0.08);border-bottom:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center}
+.opt-label span.desc{color:#8a8a9a;font-weight:600;letter-spacing:0;text-transform:none}
+.mock-header{background:linear-gradient(135deg,#1a1a2e,#16162a);padding:18px 24px;display:flex;align-items:center;gap:12px}
+.logo-text{font-size:24px;font-weight:900;letter-spacing:-0.5px;background:linear-gradient(135deg,#f0f0f8,#a8a8c0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-text .dex{background:linear-gradient(135deg,#F08030,#F8D030);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+/* Option A: Hoopa in golden ring */
+.logoA{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3a2a5e,#1c1436 70%);border:3px solid #F8C030;box-shadow:0 0 18px rgba(248,192,48,0.45),inset 0 0 12px rgba(168,80,200,0.35);display:flex;align-items:center;justify-content:center;overflow:visible}
+.logoA img{width:40px;height:40px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))}
+/* Option B: ring portal, hoopa bursting out */
+.logoB{position:relative;width:52px;height:52px;display:flex;align-items:center;justify-content:center}
+.logoB .ring{position:absolute;inset:4px;border-radius:50%;border:4px solid #F8C030;box-shadow:0 0 16px rgba(248,192,48,0.55),inset 0 0 16px rgba(248,88,136,0.35);background:radial-gradient(circle,rgba(120,60,180,0.55),rgba(30,20,60,0.9))}
+.logoB img{position:relative;width:52px;height:52px;filter:drop-shadow(0 0 6px rgba(248,88,136,0.5))}
+/* Option C: Unbound */
+.logoC{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#2a1a4e,#4e1a3a);border:1px solid rgba(248,88,136,0.5);box-shadow:0 0 18px rgba(168,80,200,0.5);display:flex;align-items:center;justify-content:center}
+.logoC img{width:44px;height:44px;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.6))}
+.logo-textC{font-size:24px;font-weight:900;letter-spacing:-0.5px;background:linear-gradient(135deg,#f0f0f8,#F85888);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.note{max-width:760px;margin:30px auto 0;text-align:center;color:#6a6a7a;font-size:13px}
+</style>
+</head>
+<body>
+<h1>HoopaDex Logo Options</h1>
+<div class="sub">Each shows the header as it would appear in the app</div>
+
+<div class="option">
+  <div class="opt-label">Option A — Golden Ring<span class="desc">Hoopa Confined inside its golden ring, purple portal glow</span></div>
+  <div class="mock-header">
+    <div class="logoA"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/720.png" alt="Hoopa"></div>
+    <div class="logo-text">Hoopa<span class="dex">Dex</span></div>
+  </div>
+</div>
+
+<div class="option">
+  <div class="opt-label">Option B — Ring Portal<span class="desc">Hoopa bursting out of the ring, pink mischief glow</span></div>
+  <div class="mock-header">
+    <div class="logoB"><div class="ring"></div><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/720.png" alt="Hoopa"></div>
+    <div class="logo-text">Hoopa<span class="dex">Dex</span></div>
+  </div>
+</div>
+
+<div class="option">
+  <div class="opt-label">Option C — Unbound<span class="desc">Hoopa Unbound, darker card badge, pink gradient wordmark</span></div>
+  <div class="mock-header">
+    <div class="logoC"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10086.png" alt="Hoopa Unbound"></div>
+    <div class="logo-textC">HoopaDex</div>
+  </div>
+</div>
+
+<div class="note">Whichever you pick also becomes the browser tab favicon. Mix-and-match is fine too (e.g. Option B icon with Option C wordmark).</div>
+</body>
+</html>
