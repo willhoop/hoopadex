@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/720.png">
 <title>HoopaDex</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -232,7 +233,10 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .header-inner{max-width:1200px;margin:0 auto}
 .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:12px}
 .logo-row{display:flex;align-items:center;gap:12px}
-.logo-icon{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#F08030,#F8D030);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 20px rgba(240,128,48,0.3)}
+.logo-icon{position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.logo-icon .logo-ring{position:absolute;inset:3px;border-radius:50%;border:3px solid #F8C030;box-shadow:0 0 14px rgba(248,192,48,0.55),inset 0 0 14px rgba(248,88,136,0.35);background:radial-gradient(circle,rgba(120,60,180,0.55),rgba(30,20,60,0.9))}
+.logo-icon img{position:relative;width:44px;height:44px;filter:drop-shadow(0 0 5px rgba(248,88,136,0.5))}
+.logo-text .logo-dex{background:linear-gradient(135deg,#F08030,#F8D030);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .logo-text{font-size:22px;font-weight:900;letter-spacing:-0.5px;background:linear-gradient(135deg,#f0f0f8,#a8a8c0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .gen-selector{display:flex;align-items:center;gap:8px}
 .gen-selector label{font-size:11px;font-weight:700;color:#5a5a6a;letter-spacing:1px;text-transform:uppercase}
@@ -460,7 +464,9 @@ button,select,input{touch-action:manipulation}
 @media(max-width:640px){
   .header{padding:10px 12px 8px}
   .header-top{gap:8px;margin-bottom:8px}
-  .logo-icon{width:30px;height:30px;font-size:15px}
+  .logo-icon{width:34px;height:34px}
+  .logo-icon img{width:34px;height:34px}
+  .logo-icon .logo-ring{inset:2px;border-width:2px}
   .logo-text{font-size:18px}
   .theme-toggle{width:38px;height:38px}
   .gen-selector{gap:6px}
@@ -512,7 +518,7 @@ button,select,input{touch-action:manipulation}
 <body>
 <div class="header"><div class="header-inner">
 <div class="header-top">
-  <div class="logo-row" style="flex:1;cursor:pointer" onclick="switchTab('pokedex');backToList()"><div class="logo-icon">&#x1F52E;</div><div class="logo-text">HoopaDex</div></div>
+  <div class="logo-row" style="flex:1;cursor:pointer" onclick="switchTab('pokedex');backToList()"><div class="logo-icon"><div class="logo-ring"></div><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/720.png" alt="Hoopa"></div><div class="logo-text">Hoopa<span class="logo-dex">Dex</span></div></div>
   <div class="gen-selector">
     <label>Gen:</label>
     <select id="data-gen-num" onchange="onGenNumChange()">
