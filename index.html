@@ -457,6 +457,16 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .loc-subtab:hover{background:rgba(255,255,255,0.06);color:#c8c8d8}
 .loc-subtab.active{background:rgba(104,144,240,0.15);border-color:rgba(104,144,240,0.3);color:#6890F0}
 
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.calc-grid{grid-template-columns:1fr}}
+.calc-panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px}
+.calc-title{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.calc-sprite{width:56px;height:56px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4))}
+.calc-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.calc-row label{font-size:12px;color:#8a8a9a;font-weight:700;min-width:86px;display:flex;align-items:center;gap:5px}
+.calc-row .filter-select{padding:7px 10px;font-size:12px}
+.calc-bar{height:14px;border-radius:7px;background:rgba(255,255,255,0.07);overflow:hidden;margin:8px 0}
+.calc-bar div{height:100%;border-radius:7px}
 /* ===== Mobile optimizations ===== */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 button,select,input{touch-action:manipulation}
@@ -549,6 +559,7 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn" onclick="switchTab('types')" id="tab-types">Type Chart</button>
 <button class="tab-btn" onclick="switchTab('natures')" id="tab-natures">Natures</button>
 <button class="tab-btn" onclick="switchTab('team')" id="tab-team">Team Builder</button>
+<button class="tab-btn" onclick="switchTab('calc')" id="tab-calc">Dmg Calc</button>
 <button class="tab-btn" onclick="switchTab('evs')" id="tab-evs">EV Training</button>
 <button class="tab-btn" onclick="switchTab('other')" id="tab-other">Other</button>
 <button class="tab-btn" onclick="openUSearch()" id="tab-search" title="Search" style="padding:8px 14px;line-height:1;display:flex;align-items:center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
@@ -626,6 +637,51 @@ button,select,input{touch-action:manipulation}
 <div id="other-split-sub" style="display:none">
 <div id="split-container"></div>
 </div>
+</div>
+<div id="calc-tab" style="display:none">
+<p style="font-size:13px;color:#8a8a9a;margin-bottom:14px">Damage calculator &#8212; Gen 9 formula. Abilities aren't factored in yet. In Champions mode, Pok&#233;mon and moves are limited to the Champions roster and battles are level 50.</p>
+<div class="calc-grid">
+  <div class="calc-panel">
+    <div class="calc-title" style="color:#F8A060">Attacker</div>
+    <div style="display:flex;gap:10px;align-items:center"><img id="calc-atk-img" class="calc-sprite" src="" alt="" style="display:none"><input class="filter-input" id="calc-atk" list="calc-dexlist" placeholder="Pok&#233;mon..." onchange="calcPickPoke('atk')" style="flex:1"></div>
+    <input class="filter-input" id="calc-move" list="calc-movelist" placeholder="Move..." onchange="calcRun()" style="margin-top:6px;width:100%;box-sizing:border-box">
+    <div id="calc-move-info" style="font-size:11px;color:#8a8a9a;margin-top:4px;min-height:14px"></div>
+    <div class="calc-row"><label>Level</label><input class="filter-input" id="calc-level" type="number" value="50" min="1" max="100" onchange="calcRun()" style="width:70px;padding:6px 10px;flex:none"></div>
+    <div class="calc-row"><label>Offense EVs</label><select class="filter-select" id="calc-atk-ev" onchange="calcRun()"><option value="252">252</option><option value="0">0</option></select>
+    <select class="filter-select" id="calc-atk-nat" onchange="calcRun()"><option value="1">Neutral</option><option value="1.1">+Nature</option><option value="0.9">-Nature</option></select></div>
+    <div class="calc-row"><label>Stat stage</label><select class="filter-select" id="calc-atk-stage" onchange="calcRun()"><option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option><option value="4">+4</option><option value="6">+6</option><option value="-1">-1</option><option value="-2">-2</option></select></div>
+    <div class="calc-row"><label>Item</label><select class="filter-select" id="calc-atk-item" onchange="calcRun()">
+      <option value="1|any">None</option>
+      <option value="1.5|physical">Choice Band (1.5&#215; Phys)</option>
+      <option value="1.5|special">Choice Specs (1.5&#215; Spec)</option>
+      <option value="1.3|any">Life Orb (1.3&#215;)</option>
+      <option value="1.2|se">Expert Belt (1.2&#215; if SE)</option>
+      <option value="1.1|physical">Muscle Band (1.1&#215; Phys)</option>
+      <option value="1.1|special">Wise Glasses (1.1&#215; Spec)</option>
+      <option value="1.2|any">Type booster (1.2&#215;)</option>
+    </select></div>
+    <div class="calc-row"><label><input type="checkbox" id="calc-burn" onchange="calcRun()"> Burned</label><label><input type="checkbox" id="calc-crit" onchange="calcRun()"> Crit</label>
+    <label><input type="checkbox" id="calc-spread" onchange="calcRun()"> Spread</label></div>
+    <div class="calc-row"><label>Weather</label><select class="filter-select" id="calc-weather" onchange="calcRun()"><option value="none">None</option><option value="sun">Sun</option><option value="rain">Rain</option></select></div>
+  </div>
+  <div class="calc-panel">
+    <div class="calc-title" style="color:#6890F0">Defender</div>
+    <div style="display:flex;gap:10px;align-items:center"><img id="calc-def-img" class="calc-sprite" src="" alt="" style="display:none"><input class="filter-input" id="calc-def" list="calc-dexlist" placeholder="Pok&#233;mon..." onchange="calcPickPoke('def')" style="flex:1"></div>
+    <div class="calc-row"><label>HP EVs</label><select class="filter-select" id="calc-def-hpev" onchange="calcRun()"><option value="252">252</option><option value="0">0</option></select></div>
+    <div class="calc-row"><label>Defense EVs</label><select class="filter-select" id="calc-def-ev" onchange="calcRun()"><option value="0">0</option><option value="252">252</option></select>
+    <select class="filter-select" id="calc-def-nat" onchange="calcRun()"><option value="1">Neutral</option><option value="1.1">+Nature</option><option value="0.9">-Nature</option></select></div>
+    <div class="calc-row"><label>Stat stage</label><select class="filter-select" id="calc-def-stage" onchange="calcRun()"><option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="-1">-1</option><option value="-2">-2</option></select></div>
+    <div class="calc-row"><label>Item</label><select class="filter-select" id="calc-def-item" onchange="calcRun()">
+      <option value="none">None</option>
+      <option value="av">Assault Vest (1.5&#215; SpD)</option>
+      <option value="evio">Eviolite (1.5&#215; Def/SpD)</option>
+    </select></div>
+    <div class="calc-row"><label><input type="checkbox" id="calc-screen" onchange="calcRun()"> Reflect / Light Screen</label></div>
+  </div>
+</div>
+<div id="calc-result" class="calc-panel" style="margin-top:14px;display:none"></div>
+<datalist id="calc-dexlist"></datalist>
+<datalist id="calc-movelist"></datalist>
 </div>
 <div id="team-tab" style="display:none">
 <div style="display:flex;gap:6px;margin-bottom:16px;align-items:center">
@@ -2781,12 +2837,12 @@ function switchTab(tab){
   if(suggest)suggest.style.display='none';
   const tmSug=document.getElementById('tm-suggest');
   if(tmSug)tmSug.style.display='none';
-  ['pokedex','types','abilities','items','tms','locations','evs','natures','other','team'].forEach(t=>{
+  ['pokedex','types','abilities','items','tms','locations','evs','natures','other','team','calc'].forEach(t=>{
     document.getElementById(t+'-tab').style.display=t===tab?'':'none';
     document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active':'');
   });
   // Hide search bar for reference tabs that don't need it
-  const noSearchTabs=['types','natures','evs','other','team'];
+  const noSearchTabs=['types','natures','evs','other','team','calc'];
   const sb=document.getElementById('universal-search-bar');
   sb.style.display=noSearchTabs.includes(tab)?'none':'';
   // Show/hide pokedex-only filters and update universal search placeholder
@@ -2805,6 +2861,7 @@ function switchTab(tab){
   if(tab==='evs')renderEVTable();
   if(tab==='natures')renderNatures();
   if(tab==='team')renderTeamBuilder();
+  if(tab==='calc')renderCalcTab();
   if(tab==='abilities'){if(!currentAbilityPage)renderAbilitiesTab();else{renderAbilityPins();showAbilityPage(currentAbilityPage)}}
   if(tab==='items')renderItemsTab();
   if(tab==='pokedex')applyFilters();
@@ -2858,7 +2915,7 @@ function saveHash(){
   updateTitle();
 }
 function updateTitle(){
-  const tabNames={pokedex:'Pok\u00e9dex',tms:'Moves',abilities:'Abilities',items:'Items',locations:'Locations',types:'Type Chart',natures:'Natures',team:'Team Builder',evs:'EV Training',other:'Other'};
+  const tabNames={pokedex:'Pok\u00e9dex',tms:'Moves',abilities:'Abilities',items:'Items',locations:'Locations',types:'Type Chart',natures:'Natures',team:'Team Builder',evs:'EV Training',other:'Other',calc:'Damage Calc'};
   let t='HoopaDex';
   const tabLabel=tabNames[currentTab]||'';
   if(currentTab==='pokedex'&&vm==='detail'&&adId&&dc[adId]){
@@ -2919,7 +2976,7 @@ async function restoreHash(){
   let resolvedTab=tab;
   if(tab==='priority'){resolvedTab='other';currentOtherSub='priority'}
   if(tab==='split'){resolvedTab='other';currentOtherSub='split'}
-  if(['pokedex','types','tms','locations','evs','natures','other','abilities','items','team'].includes(resolvedTab)){
+  if(['pokedex','types','tms','locations','evs','natures','other','abilities','items','team','calc'].includes(resolvedTab)){
     switchTab(resolvedTab);
     if(resolvedTab==='other')switchOtherSub(currentOtherSub);
     if(tab==='pokedex'&&parts.find(p=>p.startsWith('p'))){
@@ -5102,7 +5159,7 @@ async function showAbilityPage(abilityName){
   if(currentTab!=='abilities'){
     tabScrollPositions[currentTab]=window.scrollY;
     currentTab='abilities';
-    ['pokedex','types','abilities','items','tms','locations','evs','natures','other','team'].forEach(t=>{
+    ['pokedex','types','abilities','items','tms','locations','evs','natures','other','team','calc'].forEach(t=>{
       document.getElementById(t+'-tab').style.display=t==='abilities'?'':'none';
       document.getElementById('tab-'+t).className='tab-btn'+(t==='abilities'?' active':'');
     });
@@ -6907,6 +6964,128 @@ function getTypeEffect(atk,def,gen){
   return cd.chart[atk]?.[def]??1;
 }
 
+
+// === DAMAGE CALCULATOR ===
+const calcSel={atk:null,def:null};
+function calcRoster(){
+  if(isChampionsMode)return master.filter(p=>CHAMPIONS_IDS.has(p.id));
+  const g=getGenMaxId();return master.filter(p=>p.id<=g);
+}
+function renderCalcTab(){
+  const dl=document.getElementById('calc-dexlist');
+  if(dl)dl.innerHTML=calcRoster().map(p=>'<option value="'+pokeName(p.name)+'">').join('');
+  const lv=document.getElementById('calc-level');
+  if(isChampionsMode){lv.value=50;lv.disabled=true}else{lv.disabled=false}
+  calcRun();
+}
+function calcFindPoke(q){
+  q=String(q).toLowerCase().trim();if(!q)return null;
+  const qs=q.replace(/ /g,'-');
+  const list=calcRoster();
+  return list.find(p=>pokeName(p.name).toLowerCase()===q)||list.find(p=>p.name===qs)||list.find(p=>p.name.startsWith(qs))||list.find(p=>p.name.includes(qs))||null;
+}
+async function calcPickPoke(side){
+  const inp=document.getElementById('calc-'+side);
+  const m=calcFindPoke(inp.value);
+  const img=document.getElementById('calc-'+side+'-img');
+  if(!m){calcSel[side]=null;img.style.display='none';calcRun();return}
+  calcSel[side]=m.id;
+  inp.value=pokeName(m.name);
+  if(!dc[m.id]){
+    try{const r=await fetch('https://pokeapi.co/api/v2/pokemon/'+m.id);if(r.ok)dc[m.id]=await r.json()}catch(e){}
+  }
+  img.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+m.id+'.png';
+  img.style.display='';
+  if(side==='atk'&&dc[m.id]){
+    const mv=getMovesForGen(dc[m.id]);
+    const all=[...new Set([...mv.levelup,...mv.tm,...mv.egg,...mv.tutor].map(x=>x.name))].sort();
+    document.getElementById('calc-movelist').innerHTML=all.map(x=>'<option value="'+x.replace(/-/g,' ')+'">').join('');
+  }
+  calcRun();
+}
+function calcBase(p,name){const s=(p.stats||[]).find(x=>x.stat.name===name);return s?s.base_stat:80}
+function calcStatVal(base,lv,ev,natMult){return Math.floor((Math.floor((2*base+31+Math.floor(ev/4))*lv/100)+5)*natMult)}
+function calcHPStat(base,lv,ev){return Math.floor((2*base+31+Math.floor(ev/4))*lv/100)+lv+10}
+function calcStage(s){s=parseInt(s);return s>=0?(2+s)/2:2/(2-s)}
+async function calcRun(){
+  const res=document.getElementById('calc-result');
+  if(!res)return;
+  const a=calcSel.atk?dc[calcSel.atk]:null,d=calcSel.def?dc[calcSel.def]:null;
+  const mvRaw=normalizeMoveName(document.getElementById('calc-move').value.toLowerCase().trim().replace(/ /g,'-'));
+  const info=document.getElementById('calc-move-info');
+  if(!a||!d||!mvRaw){res.style.display='none';return}
+  if(isChampionsMode&&!champHasMove(mvRaw)){info.innerHTML='<span style="color:#F85888">Not useable in Pok\u00e9mon Champions</span>';res.style.display='none';return}
+  if(!moveCache[mvRaw])await fetchTMMoveDetail(mvRaw);
+  const md=moveCache[mvRaw];
+  if(!md){info.textContent='Move not found';res.style.display='none';return}
+  const type=getMoveTypeForGen(md),cat=getMoveCatForGen(md);
+  if(cat==='status'||!md.power){info.innerHTML=md.name.replace(/-/g,' ')+' \u2014 status move / variable power, not supported';res.style.display='none';return}
+  info.innerHTML='<span style="color:'+(TC[type]||'#888')+';font-weight:800;text-transform:uppercase">'+type+'</span> \u00b7 '+cat+' \u00b7 '+md.power+' BP';
+  const lv=Math.max(1,Math.min(100,parseInt(document.getElementById('calc-level').value)||50));
+  const offName=cat==='physical'?'attack':'special-attack';
+  const defName=cat==='physical'?'defense':'special-defense';
+  const crit=document.getElementById('calc-crit').checked;
+  let aStage=calcStage(document.getElementById('calc-atk-stage').value);
+  let dStage=calcStage(document.getElementById('calc-def-stage').value);
+  if(crit){if(aStage<1)aStage=1;if(dStage>1)dStage=1}
+  let atkStat=Math.floor(calcStatVal(calcBase(a,offName),lv,parseInt(document.getElementById('calc-atk-ev').value),parseFloat(document.getElementById('calc-atk-nat').value))*aStage);
+  let defStat=Math.floor(calcStatVal(calcBase(d,defName),lv,parseInt(document.getElementById('calc-def-ev').value),parseFloat(document.getElementById('calc-def-nat').value))*dStage);
+  const dItem=document.getElementById('calc-def-item').value;
+  if(dItem==='av'&&cat==='special')defStat=Math.floor(defStat*1.5);
+  if(dItem==='evio')defStat=Math.floor(defStat*1.5);
+  const hp=calcHPStat(calcBase(d,'hp'),lv,parseInt(document.getElementById('calc-def-hpev').value));
+  const chart=getChartForGen(getDataGenNum()).chart;
+  let effMult=1;(d.types||[]).forEach(t=>{effMult*=eff(type,t.type.name,chart)});
+  const stab=(a.types||[]).some(t=>t.type.name===type)?1.5:1;
+  const parts=document.getElementById('calc-atk-item').value.split('|');
+  const iM=parseFloat(parts[0]),iCond=parts[1];
+  let itemMult=1;
+  if(iCond==='any')itemMult=iM;
+  else if(iCond===cat)itemMult=iM;
+  else if(iCond==='se'&&effMult>1)itemMult=iM;
+  const w=document.getElementById('calc-weather').value;
+  let wMult=1;
+  if(w==='sun'){if(type==='fire')wMult=1.5;else if(type==='water')wMult=0.5}
+  if(w==='rain'){if(type==='water')wMult=1.5;else if(type==='fire')wMult=0.5}
+  const spread=document.getElementById('calc-spread').checked?0.75:1;
+  const burn=(document.getElementById('calc-burn').checked&&cat==='physical')?0.5:1;
+  const screen=(document.getElementById('calc-screen').checked&&!crit)?0.5:1;
+  const critM=crit?1.5:1;
+  const base=Math.floor(Math.floor(Math.floor(2*lv/5+2)*md.power*atkStat/defStat)/50)+2;
+  const rolls=[];
+  for(let r=85;r<=100;r++){
+    let dm=Math.floor(base*spread);
+    dm=Math.floor(dm*wMult);
+    dm=Math.floor(dm*critM);
+    dm=Math.floor(dm*r/100);
+    dm=Math.floor(dm*stab);
+    dm=Math.floor(dm*effMult);
+    dm=Math.floor(dm*burn);
+    dm=Math.floor(dm*screen);
+    dm=Math.floor(dm*itemMult);
+    if(effMult>0)dm=Math.max(1,dm);
+    rolls.push(dm);
+  }
+  const mn=rolls[0],mx=rolls[15];
+  const mnP=mn/hp*100,mxP=mx/hp*100;
+  let ko;
+  if(effMult===0)ko='Immune \u2014 no damage';
+  else if(mn>=hp)ko='Guaranteed OHKO';
+  else if(mx>=hp){ko=(rolls.filter(x=>x>=hp).length/16*100).toFixed(1)+'% chance to OHKO'}
+  else if(mn*2>=hp)ko='Guaranteed 2HKO';
+  else if(mx*2>=hp)ko='Possible 2HKO';
+  else if(mn*3>=hp)ko='Guaranteed 3HKO';
+  else if(mx*3>=hp)ko='Possible 3HKO';
+  else ko=Math.ceil(hp/mx)+'\u2013'+Math.ceil(hp/mn)+'HKO';
+  const effTxt=effMult===1?'':' \u00b7 '+(effMult>1?'<span style="color:#78C850">'+effMult+'\u00d7 super effective</span>':effMult===0?'<span style="color:#F85888">immune</span>':'<span style="color:#F85888">'+effMult+'\u00d7 resisted</span>');
+  res.style.display='';
+  res.innerHTML='<div class="calc-title" style="color:#78C850">Result</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--text);text-transform:capitalize">'+pokeName(a.name)+' '+md.name.replace(/-/g,' ')+' vs. '+pokeName(d.name)+'</div>'
+    +'<div style="font-size:13px;color:var(--text2);margin-top:6px">'+mn+' \u2013 '+mx+' damage ('+mnP.toFixed(1)+'% \u2013 '+mxP.toFixed(1)+'% of '+hp+' HP)'+effTxt+'</div>'
+    +'<div class="calc-bar"><div style="width:'+Math.min(100,mxP).toFixed(1)+'%;background:linear-gradient(90deg,#78C850,#F8D030 60%,#F85888)"></div></div>'
+    +'<div style="font-size:14px;font-weight:800;color:#F8A060">'+ko+'</div>'
+    +'<div style="font-size:10px;color:#6a6a7a;margin-top:6px">Rolls: '+rolls.join(', ')+'</div>';
+}
 </script>
 <div class="usearch-overlay" id="usearch-overlay" onclick="if(event.target===this)closeUSearch()">
 <div class="usearch-box">
