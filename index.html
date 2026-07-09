@@ -3939,8 +3939,7 @@ function renderTMCriteria(){
     let badge='';
     if(!c.loading&&c.isTM===false)badge=' <span style="font-size:9px;color:#A890F0;font-weight:600">(Move)</span>';
     else if(!c.loading&&c.isTM)badge=' <span style="font-size:9px;color:#6890F0;font-weight:600">(TM)</span>';
-    const genMaxPill=getGenMaxId();
-    const count=c.pokemon?'<span style="font-size:10px;color:#8a8a9a;margin-left:2px">('+c.pokemon.filter(id=>id<=genMaxPill).length+')</span>':'';
+    const count=c.pokemon?'<span style="font-size:10px;color:#8a8a9a;margin-left:2px">('+tmScope(c.pokemon).length+')</span>':'';
     return '<div class="tm-criteria-pill" style="border-color:'+typeColor+'40;background:'+typeColor+'12" onmouseenter="showMoveTip(event,\''+c.name+'\')" onmouseleave="hideTooltip()">'
       +c.name.replace(/-/g,' ')+count+badge+loading
       +' <button class="tm-pill-x" onclick="removeTMCriteria(\''+c.name+'\')">&#x2715;</button></div>';
