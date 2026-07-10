@@ -7090,12 +7090,21 @@ async function calcRunSmogon(){
   const rolls=Array.isArray(r.damage)?r.damage:[r.damage];
   const mn=rolls[0],mx=rolls[rolls.length-1];
   const hp=defP.maxHP();
+  if(mx===0){
+    res.style.display='';
+    res.innerHTML='<div class="calc-title" style="color:#78C850">Result</div>'
+      +'<div style="font-size:14px;font-weight:700;color:var(--text);text-transform:capitalize">'+pokeName(a.name)+' '+mvName+' vs. '+pokeName(d.name)+'</div>'
+      +'<div style="font-size:14px;font-weight:800;color:#F85888;margin-top:6px">No damage \u2014 the target is immune</div>';
+    return;
+  }
   const mnP=mn/hp*100,mxP=mx/hp*100;
   let ko='';
-  try{ko=r.kochance().text}catch(e){ko=mx===0?'no damage':''}
+  try{ko=r.kochance().text}catch(e){ko=''}
+  let descTxt;
+  try{descTxt=r.desc()}catch(e){descTxt=pokeName(a.name)+' '+mvName+' vs. '+pokeName(d.name)}
   res.style.display='';
   res.innerHTML='<div class="calc-title" style="color:#78C850">Result</div>'
-    +'<div style="font-size:14px;font-weight:700;color:var(--text)">'+r.desc()+'</div>'
+    +'<div style="font-size:14px;font-weight:700;color:var(--text)">'+descTxt+'</div>'
     +'<div class="calc-bar"><div style="width:'+Math.min(100,mxP).toFixed(1)+'%;background:linear-gradient(90deg,#78C850,#F8D030 60%,#F85888)"></div></div>'
     +'<div style="font-size:13px;color:var(--text2)">'+mn+' \u2013 '+mx+' damage \u00b7 '+mnP.toFixed(1)+'% \u2013 '+mxP.toFixed(1)+'% of '+hp+' HP'+(ko?' \u00b7 <span style="font-weight:800;color:#F8A060">'+ko+'</span>':'')+'</div>'
     +'<div style="font-size:10px;color:#6a6a7a;margin-top:6px">Rolls: '+rolls.join(', ')+'</div>';
