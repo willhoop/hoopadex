@@ -639,7 +639,7 @@ button,select,input{touch-action:manipulation}
 </div>
 </div>
 <div id="calc-tab" style="display:none">
-<p style="font-size:13px;color:#8a8a9a;margin-bottom:14px">Damage calculator &#8212; Gen 9 formula. Abilities aren't factored in yet. In Champions mode, Pok&#233;mon and moves are limited to the Champions roster and battles are level 50.</p>
+<p style="font-size:13px;color:#8a8a9a;margin-bottom:14px">Damage calculator powered by the official Smogon damage calc engine (@smogon/calc) &#8212; abilities, items, weather, and terrain all supported. In Champions mode, Pok&#233;mon and moves are limited to the Champions roster and battles are level 50.</p>
 <div class="calc-grid">
   <div class="calc-panel">
     <div class="calc-title" style="color:#F8A060">Attacker</div>
@@ -650,19 +650,12 @@ button,select,input{touch-action:manipulation}
     <div class="calc-row"><label>Offense EVs</label><select class="filter-select" id="calc-atk-ev" onchange="calcRun()"><option value="252">252</option><option value="0">0</option></select>
     <select class="filter-select" id="calc-atk-nat" onchange="calcRun()"><option value="1">Neutral</option><option value="1.1">+Nature</option><option value="0.9">-Nature</option></select></div>
     <div class="calc-row"><label>Stat stage</label><select class="filter-select" id="calc-atk-stage" onchange="calcRun()"><option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option><option value="4">+4</option><option value="6">+6</option><option value="-1">-1</option><option value="-2">-2</option></select></div>
-    <div class="calc-row"><label>Item</label><select class="filter-select" id="calc-atk-item" onchange="calcRun()">
-      <option value="1|any">None</option>
-      <option value="1.5|physical">Choice Band (1.5&#215; Phys)</option>
-      <option value="1.5|special">Choice Specs (1.5&#215; Spec)</option>
-      <option value="1.3|any">Life Orb (1.3&#215;)</option>
-      <option value="1.2|se">Expert Belt (1.2&#215; if SE)</option>
-      <option value="1.1|physical">Muscle Band (1.1&#215; Phys)</option>
-      <option value="1.1|special">Wise Glasses (1.1&#215; Spec)</option>
-      <option value="1.2|any">Type booster (1.2&#215;)</option>
-    </select></div>
+    <div class="calc-row"><label>Item</label><input class="filter-input" id="calc-atk-item" list="calc-itemlist" placeholder="None" onchange="calcRun()" style="flex:1;padding:7px 10px;font-size:12px"></div>
+    <div class="calc-row"><label>Ability</label><input class="filter-input" id="calc-atk-abil" list="calc-abillist" placeholder="None" onchange="calcRun()" style="flex:1;padding:7px 10px;font-size:12px"></div>
     <div class="calc-row"><label><input type="checkbox" id="calc-burn" onchange="calcRun()"> Burned</label><label><input type="checkbox" id="calc-crit" onchange="calcRun()"> Crit</label>
     <label><input type="checkbox" id="calc-spread" onchange="calcRun()"> Spread</label></div>
-    <div class="calc-row"><label>Weather</label><select class="filter-select" id="calc-weather" onchange="calcRun()"><option value="none">None</option><option value="sun">Sun</option><option value="rain">Rain</option></select></div>
+    <div class="calc-row"><label>Weather</label><select class="filter-select" id="calc-weather" onchange="calcRun()"><option value="none">None</option><option value="sun">Sun</option><option value="rain">Rain</option><option value="sand">Sand</option><option value="snow">Snow</option></select>
+    <select class="filter-select" id="calc-terrain" onchange="calcRun()"><option value="none">No Terrain</option><option value="Electric">Electric</option><option value="Grassy">Grassy</option><option value="Psychic">Psychic</option><option value="Misty">Misty</option></select></div>
   </div>
   <div class="calc-panel">
     <div class="calc-title" style="color:#6890F0">Defender</div>
@@ -671,17 +664,16 @@ button,select,input{touch-action:manipulation}
     <div class="calc-row"><label>Defense EVs</label><select class="filter-select" id="calc-def-ev" onchange="calcRun()"><option value="0">0</option><option value="252">252</option></select>
     <select class="filter-select" id="calc-def-nat" onchange="calcRun()"><option value="1">Neutral</option><option value="1.1">+Nature</option><option value="0.9">-Nature</option></select></div>
     <div class="calc-row"><label>Stat stage</label><select class="filter-select" id="calc-def-stage" onchange="calcRun()"><option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="-1">-1</option><option value="-2">-2</option></select></div>
-    <div class="calc-row"><label>Item</label><select class="filter-select" id="calc-def-item" onchange="calcRun()">
-      <option value="none">None</option>
-      <option value="av">Assault Vest (1.5&#215; SpD)</option>
-      <option value="evio">Eviolite (1.5&#215; Def/SpD)</option>
-    </select></div>
+    <div class="calc-row"><label>Item</label><input class="filter-input" id="calc-def-item" list="calc-itemlist" placeholder="None" onchange="calcRun()" style="flex:1;padding:7px 10px;font-size:12px"></div>
+    <div class="calc-row"><label>Ability</label><input class="filter-input" id="calc-def-abil" list="calc-abillist" placeholder="None" onchange="calcRun()" style="flex:1;padding:7px 10px;font-size:12px"></div>
     <div class="calc-row"><label><input type="checkbox" id="calc-screen" onchange="calcRun()"> Reflect / Light Screen</label></div>
   </div>
 </div>
 <div id="calc-result" class="calc-panel" style="margin-top:14px;display:none"></div>
 <datalist id="calc-dexlist"></datalist>
 <datalist id="calc-movelist"></datalist>
+<datalist id="calc-itemlist"></datalist>
+<datalist id="calc-abillist"></datalist>
 </div>
 <div id="team-tab" style="display:none">
 <div style="display:flex;gap:6px;margin-bottom:16px;align-items:center">
@@ -740,6 +732,7 @@ button,select,input{touch-action:manipulation}
 <div id="natures-tab" style="display:none">
 <div id="natures-container"></div>
 </div></div>
+<script src="calc-engine.js"></script>
 <script>
 // === CONSTANTS ===
 const TC={normal:"#A8A878",fire:"#F08030",water:"#6890F0",electric:"#F8D030",grass:"#8BC34A",ice:"#98D8D8",fighting:"#C03028",poison:"#A040A0",ground:"#E0C068",flying:"#A890F0",psychic:"#F85888",bug:"#A8B820",rock:"#B8A038",ghost:"#705898",dragon:"#7038F8",dark:"#705848",steel:"#B8B8D0",fairy:"#EE99AC"};
@@ -6976,6 +6969,7 @@ function renderCalcTab(){
   if(dl)dl.innerHTML=calcRoster().map(p=>'<option value="'+pokeName(p.name)+'">').join('');
   const lv=document.getElementById('calc-level');
   if(isChampionsMode){lv.value=50;lv.disabled=true}else{lv.disabled=false}
+  calcPopulateItemList();
   calcRun();
 }
 function calcFindPoke(q){
@@ -6996,6 +6990,11 @@ async function calcPickPoke(side){
   }
   img.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+m.id+'.png';
   img.style.display='';
+  if(dc[m.id]){
+    const ab=(dc[m.id].abilities||[])[0]?.ability?.name||'';
+    const abInp=document.getElementById('calc-'+side+'-abil');
+    if(abInp)abInp.value=ab.split('-').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+  }
   if(side==='atk'&&dc[m.id]){
     const mv=getMovesForGen(dc[m.id]);
     const all=[...new Set([...mv.levelup,...mv.tm,...mv.egg,...mv.tutor].map(x=>x.name))].sort();
@@ -7007,7 +7006,101 @@ function calcBase(p,name){const s=(p.stats||[]).find(x=>x.stat.name===name);retu
 function calcStatVal(base,lv,ev,natMult){return Math.floor((Math.floor((2*base+31+Math.floor(ev/4))*lv/100)+5)*natMult)}
 function calcHPStat(base,lv,ev){return Math.floor((2*base+31+Math.floor(ev/4))*lv/100)+lv+10}
 function calcStage(s){s=parseInt(s);return s>=0?(2+s)/2:2/(2-s)}
+let CalcMaps=null;
+function calcFlat(s){return String(s).toLowerCase().replace(/[^a-z0-9]/g,'')}
+function calcEnsureMaps(){
+  if(CalcMaps||typeof SmogonCalc==='undefined')return;
+  const gen=SmogonCalc.Generations.get(9);
+  CalcMaps={gen,species:{},moves:{},items:{},abilities:{},itemNames:[],abilNames:[]};
+  for(const s of gen.species)CalcMaps.species[calcFlat(s.name)]=s.name;
+  for(const mv of gen.moves)CalcMaps.moves[calcFlat(mv.name)]=mv.name;
+  for(const i of gen.items){CalcMaps.items[calcFlat(i.name)]=i.name;CalcMaps.itemNames.push(i.name)}
+  for(const a of gen.abilities){CalcMaps.abilities[calcFlat(a.name)]=a.name;CalcMaps.abilNames.push(a.name)}
+}
+function calcPopulateItemList(){
+  calcEnsureMaps();if(!CalcMaps)return;
+  const il=document.getElementById('calc-itemlist');
+  if(il){
+    let items=CalcMaps.itemNames;
+    if(isChampionsMode)items=items.filter(x=>champHasItem(x));
+    il.innerHTML=items.sort().map(x=>'<option value="'+x+'">').join('');
+  }
+  const al=document.getElementById('calc-abillist');
+  if(al&&!al.innerHTML)al.innerHTML=CalcMaps.abilNames.sort().map(x=>'<option value="'+x+'">').join('');
+}
 async function calcRun(){
+  const res=document.getElementById('calc-result');
+  if(!res)return;
+  if(typeof SmogonCalc!=='undefined'){
+    try{await calcRunSmogon();return}catch(e){console.warn('smogon calc failed, falling back',e)}
+  }
+  return calcRunLocal();
+}
+async function calcRunSmogon(){
+  calcEnsureMaps();
+  const res=document.getElementById('calc-result');
+  const a=calcSel.atk?dc[calcSel.atk]:null,d=calcSel.def?dc[calcSel.def]:null;
+  const mvRaw=normalizeMoveName(document.getElementById('calc-move').value.toLowerCase().trim().replace(/ /g,'-'));
+  const info=document.getElementById('calc-move-info');
+  if(!a||!d||!mvRaw){res.style.display='none';return}
+  if(isChampionsMode&&!champHasMove(mvRaw)){info.innerHTML='<span style="color:#F85888">Not useable in Pok\u00e9mon Champions</span>';res.style.display='none';return}
+  const M=SmogonCalc,gen=CalcMaps.gen;
+  const spName=CalcMaps.species[calcFlat(a.name)],dName=CalcMaps.species[calcFlat(d.name)];
+  const mvName=CalcMaps.moves[calcFlat(mvRaw)];
+  if(!spName||!dName||!mvName)throw new Error('name lookup failed');
+  const lv=Math.max(1,Math.min(100,parseInt(document.getElementById('calc-level').value)||50));
+  // move meta for category-aware natures/EVs
+  const probe=new M.Move(gen,mvName);
+  const isPhys=probe.category==='Physical';
+  if(probe.category==='Status'){info.innerHTML=mvName+' \u2014 status move';res.style.display='none';return}
+  info.innerHTML='<span style="color:'+(TC[probe.type.toLowerCase()]||'#888')+';font-weight:800;text-transform:uppercase">'+probe.type+'</span> \u00b7 '+probe.category.toLowerCase()+' \u00b7 '+(probe.bp||'\u2014')+' BP';
+  const aEv=parseInt(document.getElementById('calc-atk-ev').value)||0;
+  const aNatV=document.getElementById('calc-atk-nat').value;
+  const aNat=aNatV==='1'?'Hardy':(aNatV==='1.1'?(isPhys?'Adamant':'Modest'):(isPhys?'Modest':'Adamant'));
+  const dNatV=document.getElementById('calc-def-nat').value;
+  const dNat=dNatV==='1'?'Hardy':(dNatV==='1.1'?(isPhys?'Bold':'Calm'):(isPhys?'Lonely':'Naive'));
+  const aItem=CalcMaps.items[calcFlat(document.getElementById('calc-atk-item').value)]||undefined;
+  const dItem=CalcMaps.items[calcFlat(document.getElementById('calc-def-item').value)]||undefined;
+  const aAbil=CalcMaps.abilities[calcFlat(document.getElementById('calc-atk-abil').value)]||undefined;
+  const dAbil=CalcMaps.abilities[calcFlat(document.getElementById('calc-def-abil').value)]||undefined;
+  const aStage=parseInt(document.getElementById('calc-atk-stage').value)||0;
+  const dStage=parseInt(document.getElementById('calc-def-stage').value)||0;
+  const atkP=new M.Pokemon(gen,spName,{
+    level:lv,nature:aNat,item:aItem,ability:aAbil,
+    evs:isPhys?{atk:aEv}:{spa:aEv},
+    boosts:isPhys?{atk:aStage}:{spa:aStage},
+    status:document.getElementById('calc-burn').checked?'brn':''
+  });
+  const defP=new M.Pokemon(gen,dName,{
+    level:lv,nature:dNat,item:dItem,ability:dAbil,
+    evs:Object.assign({hp:parseInt(document.getElementById('calc-def-hpev').value)||0},isPhys?{def:parseInt(document.getElementById('calc-def-ev').value)||0}:{spd:parseInt(document.getElementById('calc-def-ev').value)||0}),
+    boosts:isPhys?{def:dStage}:{spd:dStage}
+  });
+  const mv=new M.Move(gen,mvName,{isCrit:document.getElementById('calc-crit').checked});
+  const wSel=document.getElementById('calc-weather').value;
+  const weather=wSel==='sun'?'Sun':wSel==='rain'?'Rain':wSel==='sand'?'Sand':wSel==='snow'?'Snow':undefined;
+  const tSel=document.getElementById('calc-terrain').value;
+  const scr=document.getElementById('calc-screen').checked;
+  const field=new M.Field({
+    gameType:document.getElementById('calc-spread').checked?'Doubles':'Singles',
+    weather:weather,terrain:tSel==='none'?undefined:tSel,
+    defenderSide:{isReflect:scr&&isPhys,isLightScreen:scr&&!isPhys}
+  });
+  const r=M.calculate(gen,atkP,defP,mv,field);
+  const rolls=Array.isArray(r.damage)?r.damage:[r.damage];
+  const mn=rolls[0],mx=rolls[rolls.length-1];
+  const hp=defP.maxHP();
+  const mnP=mn/hp*100,mxP=mx/hp*100;
+  let ko='';
+  try{ko=r.kochance().text}catch(e){ko=mx===0?'no damage':''}
+  res.style.display='';
+  res.innerHTML='<div class="calc-title" style="color:#78C850">Result</div>'
+    +'<div style="font-size:14px;font-weight:700;color:var(--text)">'+r.desc()+'</div>'
+    +'<div class="calc-bar"><div style="width:'+Math.min(100,mxP).toFixed(1)+'%;background:linear-gradient(90deg,#78C850,#F8D030 60%,#F85888)"></div></div>'
+    +'<div style="font-size:13px;color:var(--text2)">'+mn+' \u2013 '+mx+' damage \u00b7 '+mnP.toFixed(1)+'% \u2013 '+mxP.toFixed(1)+'% of '+hp+' HP'+(ko?' \u00b7 <span style="font-weight:800;color:#F8A060">'+ko+'</span>':'')+'</div>'
+    +'<div style="font-size:10px;color:#6a6a7a;margin-top:6px">Rolls: '+rolls.join(', ')+'</div>';
+}
+async function calcRunLocal(){
   const res=document.getElementById('calc-result');
   if(!res)return;
   const a=calcSel.atk?dc[calcSel.atk]:null,d=calcSel.def?dc[calcSel.def]:null;
@@ -7030,19 +7123,12 @@ async function calcRun(){
   if(crit){if(aStage<1)aStage=1;if(dStage>1)dStage=1}
   let atkStat=Math.floor(calcStatVal(calcBase(a,offName),lv,parseInt(document.getElementById('calc-atk-ev').value),parseFloat(document.getElementById('calc-atk-nat').value))*aStage);
   let defStat=Math.floor(calcStatVal(calcBase(d,defName),lv,parseInt(document.getElementById('calc-def-ev').value),parseFloat(document.getElementById('calc-def-nat').value))*dStage);
-  const dItem=document.getElementById('calc-def-item').value;
-  if(dItem==='av'&&cat==='special')defStat=Math.floor(defStat*1.5);
-  if(dItem==='evio')defStat=Math.floor(defStat*1.5);
+
   const hp=calcHPStat(calcBase(d,'hp'),lv,parseInt(document.getElementById('calc-def-hpev').value));
   const chart=getChartForGen(getDataGenNum()).chart;
   let effMult=1;(d.types||[]).forEach(t=>{effMult*=eff(type,t.type.name,chart)});
   const stab=(a.types||[]).some(t=>t.type.name===type)?1.5:1;
-  const parts=document.getElementById('calc-atk-item').value.split('|');
-  const iM=parseFloat(parts[0]),iCond=parts[1];
-  let itemMult=1;
-  if(iCond==='any')itemMult=iM;
-  else if(iCond===cat)itemMult=iM;
-  else if(iCond==='se'&&effMult>1)itemMult=iM;
+  let itemMult=1; // items handled by Smogon engine; local fallback ignores them
   const w=document.getElementById('calc-weather').value;
   let wMult=1;
   if(w==='sun'){if(type==='fire')wMult=1.5;else if(type==='water')wMult=0.5}
