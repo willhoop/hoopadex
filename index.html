@@ -639,7 +639,7 @@ button,select,input{touch-action:manipulation}
 </div>
 </div>
 <div id="calc-tab" style="display:none">
-<p style="font-size:13px;color:#8a8a9a;margin-bottom:14px">Damage calculator powered by the official Smogon damage calc engine (@smogon/calc) &#8212; abilities, items, weather, and terrain all supported. In Champions mode, Pok&#233;mon and moves are limited to the Champions roster and battles are level 50.</p>
+<p style="font-size:13px;color:#8a8a9a;margin-bottom:14px">Damage calculator powered by the official Smogon damage calc engine (@smogon/calc) &#8212; abilities, items, weather, and terrain all supported. In Champions mode it uses the new Stat Point system (0&#8211;32 SP per stat, +1 stat each, 66 total budget) with fixed 31 IVs and level 50; other generations use classic EVs/IVs. In Champions mode, Pok&#233;mon and moves are limited to the Champions roster and battles are level 50.</p>
 <div class="calc-grid">
   <div class="calc-panel">
     <div class="calc-title" style="color:#F8A060">Attacker</div>
@@ -647,7 +647,7 @@ button,select,input{touch-action:manipulation}
     <input class="filter-input" id="calc-move" list="calc-movelist" placeholder="Move..." onchange="calcRun()" style="margin-top:6px;width:100%;box-sizing:border-box">
     <div id="calc-move-info" style="font-size:11px;color:#8a8a9a;margin-top:4px;min-height:14px"></div>
     <div class="calc-row"><label>Level</label><input class="filter-input" id="calc-level" type="number" value="50" min="1" max="100" onchange="calcRun()" style="width:70px;padding:6px 10px;flex:none"></div>
-    <div class="calc-row"><label>Offense EVs</label><select class="filter-select" id="calc-atk-ev" onchange="calcRun()"><option value="252">252</option><option value="0">0</option></select>
+    <div class="calc-row"><label id="calc-atk-ev-label">Offense EVs</label><input type="number" class="filter-input" id="calc-atk-ev" min="0" max="252" value="252" onchange="calcRun()" style="width:74px;padding:6px 10px;flex:none">
     <select class="filter-select" id="calc-atk-nat" onchange="calcRun()"><option value="1">Neutral</option><option value="1.1">+Nature</option><option value="0.9">-Nature</option></select></div>
     <div class="calc-row"><label>Stat stage</label><select class="filter-select" id="calc-atk-stage" onchange="calcRun()"><option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option><option value="4">+4</option><option value="6">+6</option><option value="-1">-1</option><option value="-2">-2</option></select></div>
     <div class="calc-row"><label>Item</label><input class="filter-input" id="calc-atk-item" list="calc-itemlist" placeholder="None" onchange="calcRun()" style="flex:1;padding:7px 10px;font-size:12px"></div>
@@ -660,8 +660,8 @@ button,select,input{touch-action:manipulation}
   <div class="calc-panel">
     <div class="calc-title" style="color:#6890F0">Defender</div>
     <div style="display:flex;gap:10px;align-items:center"><img id="calc-def-img" class="calc-sprite" src="" alt="" style="display:none"><input class="filter-input" id="calc-def" list="calc-dexlist" placeholder="Pok&#233;mon..." onchange="calcPickPoke('def')" style="flex:1"></div>
-    <div class="calc-row"><label>HP EVs</label><select class="filter-select" id="calc-def-hpev" onchange="calcRun()"><option value="252">252</option><option value="0">0</option></select></div>
-    <div class="calc-row"><label>Defense EVs</label><select class="filter-select" id="calc-def-ev" onchange="calcRun()"><option value="0">0</option><option value="252">252</option></select>
+    <div class="calc-row"><label id="calc-def-hpev-label">HP EVs</label><input type="number" class="filter-input" id="calc-def-hpev" min="0" max="252" value="252" onchange="calcRun()" style="width:74px;padding:6px 10px;flex:none"></div>
+    <div class="calc-row"><label id="calc-def-ev-label">Defense EVs</label><input type="number" class="filter-input" id="calc-def-ev" min="0" max="252" value="0" onchange="calcRun()" style="width:74px;padding:6px 10px;flex:none">
     <select class="filter-select" id="calc-def-nat" onchange="calcRun()"><option value="1">Neutral</option><option value="1.1">+Nature</option><option value="0.9">-Nature</option></select></div>
     <div class="calc-row"><label>Stat stage</label><select class="filter-select" id="calc-def-stage" onchange="calcRun()"><option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="-1">-1</option><option value="-2">-2</option></select></div>
     <div class="calc-row"><label>Item</label><input class="filter-input" id="calc-def-item" list="calc-itemlist" placeholder="None" onchange="calcRun()" style="flex:1;padding:7px 10px;font-size:12px"></div>
@@ -6969,6 +6969,16 @@ function renderCalcTab(){
   if(dl)dl.innerHTML=calcRoster().map(p=>'<option value="'+pokeName(p.name)+'">').join('');
   const lv=document.getElementById('calc-level');
   if(isChampionsMode){lv.value=50;lv.disabled=true}else{lv.disabled=false}
+  // Champions uses Stat Points (0-32, +1 stat each, no IVs); other gens use EVs
+  if(window._calcMode!==(isChampionsMode?'sp':'ev')){
+    window._calcMode=isChampionsMode?'sp':'ev';
+    const cfg=isChampionsMode?{max:32,off:32,hp:32,def:0,lbl:'SP'}:{max:252,off:252,hp:252,def:0,lbl:'EVs'};
+    [['calc-atk-ev','Offense '],['calc-def-hpev','HP '],['calc-def-ev','Defense ']].forEach(function(x,i){
+      const inp=document.getElementById(x[0]);const lb=document.getElementById(x[0]+'-label');
+      if(inp){inp.max=cfg.max;inp.value=i===0?cfg.off:(i===1?cfg.hp:cfg.def)}
+      if(lb)lb.textContent=x[1]+cfg.lbl;
+    });
+  }
   calcPopulateItemList();
   calcRun();
 }
@@ -7065,17 +7075,43 @@ async function calcRunSmogon(){
   const dAbil=CalcMaps.abilities[calcFlat(document.getElementById('calc-def-abil').value)]||undefined;
   const aStage=parseInt(document.getElementById('calc-atk-stage').value)||0;
   const dStage=parseInt(document.getElementById('calc-def-stage').value)||0;
-  const atkP=new M.Pokemon(gen,spName,{
-    level:lv,nature:aNat,item:aItem,ability:aAbil,
-    evs:isPhys?{atk:aEv}:{spa:aEv},
-    boosts:isPhys?{atk:aStage}:{spa:aStage},
-    status:document.getElementById('calc-burn').checked?'brn':''
-  });
-  const defP=new M.Pokemon(gen,dName,{
-    level:lv,nature:dNat,item:dItem,ability:dAbil,
-    evs:Object.assign({hp:parseInt(document.getElementById('calc-def-hpev').value)||0},isPhys?{def:parseInt(document.getElementById('calc-def-ev').value)||0}:{spd:parseInt(document.getElementById('calc-def-ev').value)||0}),
-    boosts:isPhys?{def:dStage}:{spd:dStage}
-  });
+  const hpIn=parseInt(document.getElementById('calc-def-hpev').value)||0;
+  const dEvIn=parseInt(document.getElementById('calc-def-ev').value)||0;
+  let atkP,defP;
+  const burnSt=document.getElementById('calc-burn').checked?'brn':'';
+  if(isChampionsMode){
+    // Champions: no IVs (fixed 31), Stat Points add +1 per point at L50, applied after nature.
+    // Reproduce exact stats via base-stat overrides: raw = base+20 (non-HP) / base+75 (HP) at L50/31IV/0EV.
+    const clampSP=v=>Math.max(0,Math.min(32,v));
+    const aSp=clampSP(aEv),hpSp=clampSP(hpIn),dSp=clampSP(dEvIn);
+    const aNatM=parseFloat(aNatV),dNatM=parseFloat(dNatV);
+    const bs=p=>({hp:calcBase(p,'hp'),atk:calcBase(p,'attack'),def:calcBase(p,'defense'),spa:calcBase(p,'special-attack'),spd:calcBase(p,'special-defense'),spe:calcBase(p,'speed')});
+    const ab=bs(a),db=bs(d);
+    const offKey=isPhys?'atk':'spa',defKey=isPhys?'def':'spd';
+    const aOver=Object.assign({},ab);
+    aOver[offKey]=Math.floor((ab[offKey]+20)*aNatM)+aSp-20;
+    const dOver=Object.assign({},db);
+    dOver.hp=db.hp+hpSp;
+    dOver[defKey]=Math.floor((db[defKey]+20)*dNatM)+dSp-20;
+    atkP=new M.Pokemon(gen,spName,{level:50,nature:'Hardy',item:aItem,ability:aAbil,
+      overrides:{baseStats:aOver},
+      boosts:isPhys?{atk:aStage}:{spa:aStage},status:burnSt});
+    defP=new M.Pokemon(gen,dName,{level:50,nature:'Hardy',item:dItem,ability:dAbil,
+      overrides:{baseStats:dOver},
+      boosts:isPhys?{def:dStage}:{spd:dStage}});
+  }else{
+    atkP=new M.Pokemon(gen,spName,{
+      level:lv,nature:aNat,item:aItem,ability:aAbil,
+      evs:isPhys?{atk:Math.min(252,aEv)}:{spa:Math.min(252,aEv)},
+      boosts:isPhys?{atk:aStage}:{spa:aStage},
+      status:burnSt
+    });
+    defP=new M.Pokemon(gen,dName,{
+      level:lv,nature:dNat,item:dItem,ability:dAbil,
+      evs:Object.assign({hp:Math.min(252,hpIn)},isPhys?{def:Math.min(252,dEvIn)}:{spd:Math.min(252,dEvIn)}),
+      boosts:isPhys?{def:dStage}:{spd:dStage}
+    });
+  }
   const mv=new M.Move(gen,mvName,{isCrit:document.getElementById('calc-crit').checked});
   const wSel=document.getElementById('calc-weather').value;
   const weather=wSel==='sun'?'Sun':wSel==='rain'?'Rain':wSel==='sand'?'Sand':wSel==='snow'?'Snow':undefined;
@@ -7102,6 +7138,11 @@ async function calcRunSmogon(){
   try{ko=r.kochance().text}catch(e){ko=''}
   let descTxt;
   try{descTxt=r.desc()}catch(e){descTxt=pokeName(a.name)+' '+mvName+' vs. '+pokeName(d.name)}
+  if(isChampionsMode){
+    const aSpV=Math.max(0,Math.min(32,aEv)),hpSpV=Math.max(0,Math.min(32,hpIn)),dSpV=Math.max(0,Math.min(32,dEvIn));
+    const natTag=v=>v==='1.1'?'+':(v==='0.9'?'-':'');
+    descTxt=aSpV+natTag(aNatV)+' SP '+(isPhys?'Atk':'SpA')+(aItem?' '+aItem:'')+' '+spName+' '+mvName+' vs. '+hpSpV+' SP HP / '+dSpV+natTag(dNatV)+' SP '+(isPhys?'Def':'SpD')+' '+dName+': '+mn+'-'+mx+' ('+mnP.toFixed(1)+' - '+mxP.toFixed(1)+'%)';
+  }
   res.style.display='';
   res.innerHTML='<div class="calc-title" style="color:#78C850">Result</div>'
     +'<div style="font-size:14px;font-weight:700;color:var(--text)">'+descTxt+'</div>'
