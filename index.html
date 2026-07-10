@@ -646,8 +646,8 @@ button,select,input{touch-action:manipulation}
     <div style="display:flex;gap:10px;align-items:center"><img id="calc-atk-img" class="calc-sprite" src="" alt="" style="display:none"><input class="filter-input" id="calc-atk" list="calc-dexlist" placeholder="Pok&#233;mon..." onchange="calcPickPoke('atk')" style="flex:1"></div>
     <input class="filter-input" id="calc-move" list="calc-movelist" placeholder="Move..." onchange="calcRun()" style="margin-top:6px;width:100%;box-sizing:border-box">
     <div id="calc-move-info" style="font-size:11px;color:#8a8a9a;margin-top:4px;min-height:14px"></div>
-    <div class="calc-row"><label>Level</label><input class="filter-input" id="calc-level" type="number" value="50" min="1" max="100" onchange="calcRun()" style="width:70px;padding:6px 10px;flex:none"></div>
-    <div class="calc-row"><label id="calc-atk-ev-label">Offense EVs</label><input type="number" class="filter-input" id="calc-atk-ev" min="0" max="252" value="252" onchange="calcRun()" style="width:74px;padding:6px 10px;flex:none">
+    <div class="calc-row"><label>Level</label><input class="filter-input" id="calc-level" type="number" value="50" min="1" max="100" oninput="calcClamp(this)" onchange="calcClamp(this);calcRun()" style="width:70px;padding:6px 10px;flex:none"></div>
+    <div class="calc-row"><label id="calc-atk-ev-label">Offense EVs</label><input type="number" class="filter-input" id="calc-atk-ev" min="0" max="252" value="252" oninput="calcClamp(this)" onchange="calcClamp(this);calcRun()" style="width:74px;padding:6px 10px;flex:none">
     <select class="filter-select" id="calc-atk-nat" onchange="calcRun()"><option value="1">Neutral</option><option value="1.1">+Nature</option><option value="0.9">-Nature</option></select></div>
     <div class="calc-row"><label>Stat stage</label><select class="filter-select" id="calc-atk-stage" onchange="calcRun()"><option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option><option value="4">+4</option><option value="6">+6</option><option value="-1">-1</option><option value="-2">-2</option></select></div>
     <div class="calc-row"><label>Item</label><input class="filter-input" id="calc-atk-item" list="calc-itemlist" placeholder="None" onchange="calcRun()" style="flex:1;padding:7px 10px;font-size:12px"></div>
@@ -660,8 +660,8 @@ button,select,input{touch-action:manipulation}
   <div class="calc-panel">
     <div class="calc-title" style="color:#6890F0">Defender</div>
     <div style="display:flex;gap:10px;align-items:center"><img id="calc-def-img" class="calc-sprite" src="" alt="" style="display:none"><input class="filter-input" id="calc-def" list="calc-dexlist" placeholder="Pok&#233;mon..." onchange="calcPickPoke('def')" style="flex:1"></div>
-    <div class="calc-row"><label id="calc-def-hpev-label">HP EVs</label><input type="number" class="filter-input" id="calc-def-hpev" min="0" max="252" value="252" onchange="calcRun()" style="width:74px;padding:6px 10px;flex:none"></div>
-    <div class="calc-row"><label id="calc-def-ev-label">Defense EVs</label><input type="number" class="filter-input" id="calc-def-ev" min="0" max="252" value="0" onchange="calcRun()" style="width:74px;padding:6px 10px;flex:none">
+    <div class="calc-row"><label id="calc-def-hpev-label">HP EVs</label><input type="number" class="filter-input" id="calc-def-hpev" min="0" max="252" value="252" oninput="calcClamp(this)" onchange="calcClamp(this);calcRun()" style="width:74px;padding:6px 10px;flex:none"></div>
+    <div class="calc-row"><label id="calc-def-ev-label">Defense EVs</label><input type="number" class="filter-input" id="calc-def-ev" min="0" max="252" value="0" oninput="calcClamp(this)" onchange="calcClamp(this);calcRun()" style="width:74px;padding:6px 10px;flex:none">
     <select class="filter-select" id="calc-def-nat" onchange="calcRun()"><option value="1">Neutral</option><option value="1.1">+Nature</option><option value="0.9">-Nature</option></select></div>
     <div class="calc-row"><label>Stat stage</label><select class="filter-select" id="calc-def-stage" onchange="calcRun()"><option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="-1">-1</option><option value="-2">-2</option></select></div>
     <div class="calc-row"><label>Item</label><input class="filter-input" id="calc-def-item" list="calc-itemlist" placeholder="None" onchange="calcRun()" style="flex:1;padding:7px 10px;font-size:12px"></div>
@@ -6960,6 +6960,12 @@ function getTypeEffect(atk,def,gen){
 
 // === DAMAGE CALCULATOR ===
 const calcSel={atk:null,def:null};
+function calcClamp(el){
+  let v=parseInt(el.value);
+  const mn=parseInt(el.min)||0,mx=parseInt(el.max)||999;
+  if(isNaN(v))v=mn;
+  el.value=Math.max(mn,Math.min(mx,v));
+}
 function calcRoster(){
   if(isChampionsMode)return master.filter(p=>CHAMPIONS_IDS.has(p.id));
   const g=getGenMaxId();return master.filter(p=>p.id<=g);
