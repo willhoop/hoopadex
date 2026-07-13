@@ -1995,7 +1995,26 @@ function scrollToDetail(){
   }
 }
 
+function champUseableFor(p){
+  if(!champLS||!p||p.id>10000)return null;
+  const reg=champRegKey();
+  const out=[];
+  for(const k in champLS){
+    const rec=champLS[k];
+    if(rec.learnedBy.some(x=>x.num===p.id&&x.legalIn.includes(reg))){
+      const slug=rec.name.toLowerCase().replace(/[^a-z0-9\- ]/g,'').replace(/ /g,'-');
+      out.push({name:slug,level:0});
+    }
+  }
+  if(!out.length)return null;
+  out.sort((a,b)=>a.name.localeCompare(b.name));
+  return {useable:out,levelup:[],tm:[],egg:[],tutor:[]};
+}
 function getMovesForGen(p){
+  if(isChampionsMode&&champLS){
+    const u=champUseableFor(p);
+    if(u)return u;
+  }
   const vg=dataGen;
   const moves={levelup:[],tm:[],egg:[],tutor:[]};
   (p.moves||[]).forEach(m=>{
@@ -2081,17 +2100,20 @@ async function getMissedMoves(pokemonId){
 }
 
 function renderMovesSection(moves,missed){
-  const cats=[
+  const cats=moves.useable?[
+    {key:'useable',label:'Useable Moves',data:moves.useable}
+  ]:[
     {key:'levelup',label:'Level Up',data:moves.levelup},
     {key:'tm',label:'TM/HM',data:moves.tm},
     {key:'egg',label:'Egg',data:moves.egg},
     {key:'tutor',label:'Tutor',data:moves.tutor}
   ].filter(c=>c.data.length>0);
   if(!cats.length)return '<div class="no-moves">No moves found for this generation.</div>';
+  const champNote=moves.useable?'<div style="font-size:11px;color:#8a8a9a;margin:2px 0 8px">No level-up movesets in Pok\u00e9mon Champions \u2014 any of these can be taught (100 VP each). Legality per '+(championsReg==='m-a'?'Regulation M-A':'Regulation M-B')+'.</div>':'';
 
   // Missed moves toggle
   let missedHTML='';
-  if(missed&&missed.moves.length>0){
+  if(!moves.useable&&missed&&missed.moves.length>0){
     const reason=missed.isItemEvo?'evolving via '+missed.evoLabel:'evolving at Lv '+missed.evoLevel;
     missedHTML='<div class="missed-toggle'+(showMissed?' active':'')+'" onclick="toggleMissed()">'+
       '<input type="checkbox" '+(showMissed?'checked':'')+' onclick="event.stopPropagation();toggleMissed()">'+
@@ -2136,7 +2158,7 @@ function renderMovesSection(moves,missed){
     }
     tables+='</tbody></table></div>';
   });
-  return missedHTML+tabs+tables;
+  return champNote+missedHTML+tabs+tables;
 }
 
 function toggleMissed(){
@@ -2146,8 +2168,9 @@ function toggleMissed(){
 
 async function refreshMovesSection(){
   const p=dc[adId];if(!p)return;
+  if(isChampionsMode){try{await ensureChampLS()}catch(e){}}
   const moves=getMovesForGen(p);
-  const allMoveNames=[...moves.levelup,...moves.tm,...moves.egg,...moves.tutor].map(m=>m.name);
+  const allMoveNames=[...(moves.useable||[]),...moves.levelup,...moves.tm,...moves.egg,...moves.tutor].map(m=>m.name);
   if(missedMovesData)allMoveNames.push(...missedMovesData.moves.map(m=>m.name));
   const toLoad=allMoveNames.filter(n=>!moveCache[n]);
   if(toLoad.length>0)for(let i=0;i<toLoad.length;i+=15){await Promise.all(toLoad.slice(i,i+15).map(n=>ensureMoveData(n)))}
@@ -2327,8 +2350,9 @@ async function renderDetail(p){
   const tbs=filterTypesForGen(p.types.map(t=>t.type.name),genNum).map(t=>typeBadge(t,false)).join(' ');
 
   // Get moves for selected gen - preload move data
+  if(isChampionsMode){try{await ensureChampLS()}catch(e){}}
   const moves=getMovesForGen(p);
-  const allMoveNames=[...moves.levelup,...moves.tm,...moves.egg,...moves.tutor].map(m=>m.name);
+  const allMoveNames=[...(moves.useable||[]),...moves.levelup,...moves.tm,...moves.egg,...moves.tutor].map(m=>m.name);
 
   // Show detail immediately, then load move data
   const detailEl=document.getElementById('detail-view');
@@ -7061,8 +7085,9 @@ async function calcPickPoke(side){
     if(abInp)abInp.value=ab.split('-').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
   }
   if(side==='atk'&&dc[m.id]){
+    if(isChampionsMode){try{await ensureChampLS()}catch(e){}}
     const mv=getMovesForGen(dc[m.id]);
-    window._calcMoves=[...new Set([...mv.levelup,...mv.tm,...mv.egg,...mv.tutor].map(x=>x.name))].sort();
+    window._calcMoves=[...new Set([...(mv.useable||[]),...mv.levelup,...mv.tm,...mv.egg,...mv.tutor].map(x=>x.name))].sort();
   }
   calcRun();
 }
