@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 1.92 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html -->
+<!-- HOOPADEX VERSION: 1.93 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+     EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -987,8 +988,8 @@ function getGenLabel(){
 function populateGameDropdown(){
   const sel=document.getElementById('data-game');
   if(isChampionsMode){
-    sel.innerHTML='<option value="reg-mb">Regulation M-B</option><option value="reg-ma">Regulation M-A</option>';
-    sel.value=championsReg==='m-a'?'reg-ma':'reg-mb';
+    sel.innerHTML=CHAMPIONS_REGS.map(r=>'<option value="'+r.key+'">'+r.label+'</option>').join('');
+    sel.value=regByShort(championsReg).key;
     sel.style.display='';
     dataGen='scarlet-violet';
     return;
@@ -1021,7 +1022,7 @@ function onGenNumChange(){
   specificGame=false;
   document.getElementById('data-game').value='';
   populateGameDropdown();
-  if(isChampionsMode){CHAMPIONS_IDS=championsReg==='m-a'?CHAMPIONS_IDS_MA:CHAMPIONS_IDS_MB}
+  if(isChampionsMode){CHAMPIONS_IDS=regByShort(championsReg).ids()}
   triggerDataRefresh();
 }
 
@@ -1029,8 +1030,7 @@ function onGameChange(){
   const sel=document.getElementById('data-game');
   const val=sel.value;
   if(isChampionsMode){
-    championsReg=(val==='reg-ma')?'m-a':'m-b';
-    CHAMPIONS_IDS=(championsReg==='m-a')?CHAMPIONS_IDS_MA:CHAMPIONS_IDS_MB;
+    applyReg(val);
     triggerDataRefresh();
     return;
   }
@@ -1141,15 +1141,25 @@ async function init(){
   // Restore gen/game state from hash BEFORE first applyFilters
   const _initHash=(location.hash||'').replace(/^#/,'');
   if(_initHash){
+    // Legacy links wrote "g9/gm:reg-mb" while in Champions mode. Detect the
+    // regulation token first so the stale gen number cannot override it.
+    const _hasRegToken=_initHash.split('/').some(p=>p.startsWith('gm:')&&isRegKey(decodeURIComponent(p.slice(3))));
     _initHash.split('/').forEach(p=>{
-      if(p.match(/^g\d+$/)){
+      if(p==='gchampions'){
+        isChampionsMode=true;selectedGenNum=9;
+        document.getElementById('data-gen-num').value='champions';populateGameDropdown();
+      }
+      else if(p.match(/^g\d+$/)){
         const gn=parseInt(p.slice(1));
-        if(gn>=1&&gn<=9){selectedGenNum=gn;isChampionsMode=false;document.getElementById('data-gen-num').value=gn;populateGameDropdown()}
+        // A regulation token later in the hash means Champions, not a plain gen.
+        if(gn>=1&&gn<=9&&!_hasRegToken){selectedGenNum=gn;isChampionsMode=false;document.getElementById('data-gen-num').value=gn;populateGameDropdown()}
       }
       if(p.startsWith('gm:')){
         const gv=decodeURIComponent(p.slice(3));
         const gameSel=document.getElementById('data-game');
-        if(isChampionsMode){championsReg=(gv==='reg-ma')?'m-a':'m-b';CHAMPIONS_IDS=(championsReg==='m-a')?CHAMPIONS_IDS_MA:CHAMPIONS_IDS_MB;gameSel.value=gv}
+        if(isChampionsMode||isRegKey(gv)){isChampionsMode=true;selectedGenNum=9;
+          document.getElementById('data-gen-num').value='champions';populateGameDropdown();
+          applyReg(gv);gameSel.value=regByShort(championsReg).key}
         else{gameSel.value=gv;
         if(gameSel.value===gv){const gparts=gv.split('|');dataGen=gparts[0];selectedVersion=gparts[1]||gparts[0];specificGame=true}}
       }
@@ -1178,8 +1188,20 @@ async function init(){
 const CHAMPIONS_IDS_MA=new Set([3,6,9,15,18,24,25,26,36,38,59,65,68,71,80,94,115,121,127,128,130,132,134,135,136,142,143,149,154,157,160,168,181,184,186,196,197,199,205,208,212,214,227,229,248,279,282,302,306,308,310,319,323,324,334,350,351,354,358,359,362,389,392,395,405,407,409,411,428,442,445,448,450,454,460,461,464,470,471,472,473,475,478,479,497,500,503,505,510,512,514,516,530,531,534,547,553,563,569,571,579,584,587,609,614,618,623,635,637,652,655,658,660,663,666,670,671,675,676,678,681,683,685,693,695,697,699,700,701,702,706,707,709,711,713,715,724,727,730,733,740,745,748,750,752,758,763,765,766,778,780,784,823,841,842,844,855,858,866,867,869,877,887,899,900,902,903,908,911,914,925,934,936,937,939,952,956,959,964,968,970,981,983,1013,1018,1019]); // Regulation M-A
 const REG_MB_NEW=[45,211,254,257,260,303,376,398,518,545,560,604,668,687,689,691,861,870,904,972,979,1000]; // Added in Regulation M-B (June 17 - Sept 2, 2026)
 const CHAMPIONS_IDS_MB=new Set([...CHAMPIONS_IDS_MA,...REG_MB_NEW]);
-let championsReg='m-b';
-let CHAMPIONS_IDS=CHAMPIONS_IDS_MB;
+/* ═══ CHAMPIONS REGULATIONS — newest FIRST ═══════════════════════════════
+   To add a new regulation: add its ID set above, then unshift one row here.
+   The app defaults to CHAMPIONS_REGS[0] on open. Nothing else needs editing. */
+const CHAMPIONS_REGS=[
+  {key:'reg-mb', short:'m-b', label:'Regulation M-B', ids:()=>CHAMPIONS_IDS_MB},
+  {key:'reg-ma', short:'m-a', label:'Regulation M-A', ids:()=>CHAMPIONS_IDS_MA}
+];
+const LATEST_REG=CHAMPIONS_REGS[0];
+function regByKey(k){return CHAMPIONS_REGS.find(r=>r.key===k)||LATEST_REG}
+function regByShort(v){return CHAMPIONS_REGS.find(r=>r.short===v)||LATEST_REG}
+function isRegKey(k){return /^reg-m/i.test(k||'')}
+function applyReg(key){const r=regByKey(key);championsReg=r.short;CHAMPIONS_IDS=r.ids();return r}
+let championsReg=LATEST_REG.short;
+let CHAMPIONS_IDS=LATEST_REG.ids();
 // Pokemon Champions useable moves & items (Serebii, Reg M-B) - stored flattened (a-z0-9 only)
 const CHAMPIONS_MOVES=new Set('accelerock,acidarmor,acidspray,acrobatics,acupressure,aerialace,afteryou,agility,aircutter,airslash,alluringvoice,allyswitch,amnesia,ancientpower,appleacid,aquacutter,aquajet,aquaring,aquastep,aquatail,armorcannon,aromaticmist,assurance,attract,aurasphere,aurawheel,auroraveil,avalanche,axekick,babydolleyes,banefulbunker,barbbarrage,batonpass,beakblast,beatup,belch,bellydrum,bind,bite,bitterblade,bittermalice,blastburn,blazekick,blizzard,block,bodypress,bodyslam,bonerush,boomburst,bounce,bravebird,breakingswipe,brickbreak,brutalswing,bugbite,bugbuzz,bulkup,bulldoze,bulletpunch,bulletseed,burningjealousy,burnup,calmmind,ceaselessedge,charge,chargebeam,charm,chillingwater,chillyreception,circlethrow,clangingscales,clangoroussoul,clearsmog,closecombat,coaching,coil,comeuppance,confuseray,copycat,corrosivegas,cosmicpower,cottonguard,cottonspore,counter,covet,crabhammer,crosschop,crosspoison,crunch,crushclaw,curse,darkestlariat,darkpulse,dazzlinggleam,decorate,defog,destinybond,detect,dig,direclaw,disable,discharge,dive,doubleedge,doublehit,doubleteam,dracometeor,dragoncheer,dragonclaw,dragondance,dragondarts,dragonpulse,dragonrush,dragontail,drainingkiss,drainpunch,drillpeck,drillrun,dualwingbeat,dynamicpunch,earthpower,earthquake,eerieimpulse,eeriespell,electricterrain,electrify,electroball,electroshot,electroweb,encore,endeavor,endure,energyball,entrainment,eruption,expandingforce,explosion,extrasensory,extremespeed,facade,fairylock,fakeout,faketears,featherdance,feint,fellstinger,ficklebeam,fierydance,finalgambit,fireblast,firefang,firelash,firepunch,firespin,firstimpression,fissure,flail,flamecharge,flamethrower,flareblitz,flashcannon,flatter,fling,flipturn,flowertrick,fly,flyingpress,focusblast,focusenergy,focuspunch,followme,forestscurse,foulplay,freezedry,frenzyplant,frostbreath,futuresight,gastroacid,gigadrain,gigaimpact,gigatonhammer,glare,grassknot,grassyglide,grassyterrain,gravapple,gravity,growth,guardsplit,guardswap,guillotine,gunkshot,gyroball,hammerarm,hardpress,haze,headlongrush,headsmash,healbell,healingwish,healpulse,heatcrash,heatwave,heavyslam,helpinghand,hex,highhorsepower,highjumpkick,horndrill,hornleech,howl,hurricane,hydrocannon,hydropump,hyperbeam,hypervoice,hypnosis,icebeam,icefang,icehammer,icepunch,iceshard,icespinner,iciclecrash,iciclespear,icywind,imprison,infernalparade,inferno,infestation,ingrain,instruct,irondefense,ironhead,irontail,jetpunch,kingsshield,knockoff,kowtowcleave,lashout,lastresort,lastrespects,lavaplume,leafblade,leafstorm,leechlife,leechseed,lifedew,lightofruin,lightscreen,liquidation,lockon,lowkick,lowsweep,luminacrash,lunge,machpunch,magicpowder,magicroom,magneticflux,magnetrise,makeitrain,matchagotcha,meanlook,megahorn,megakick,memento,metalburst,metalsound,meteorbeam,meteormash,milkdrink,minimize,mirrorcoat,mistyexplosion,mistyterrain,moonblast,moonlight,morningsun,mortalspin,mountaingale,muddywater,mudshot,mudslap,mysticalfire,nastyplot,nightdaze,nightshade,nightslash,nobleroar,noretreat,nuzzle,outrage,overheat,painsplit,paraboliccharge,partingshot,payback,perishsong,petalblizzard,petaldance,phantomforce,pinmissile,playrough,pluck,poisonfang,poisonjab,poisonpowder,pollenpuff,poltergeist,populationbomb,pounce,powergem,powershift,powersplit,powerswap,powertrick,powertrip,powerwhip,protect,psychic,psychicfangs,psychicnoise,psychicterrain,psychocut,psychup,psyshieldbash,psyshock,quash,quickattack,quickguard,quiverdance,ragefist,ragepowder,ragingbull,ragingfury,raindance,rapidspin,razorshell,recover,recycle,reflect,reflecttype,rest,reversal,risingvoltage,roar,rockblast,rockpolish,rockslide,rocktomb,rockwrecker,roleplay,roost,round,sacredsword,safeguard,saltcure,sandstorm,sandtomb,scald,scaleshot,scaryface,scorchingsands,screech,seedbomb,seismictoss,selfdestruct,shadowball,shadowclaw,shadowpunch,shadowsneak,shedtail,sheercold,shellsidearm,shellsmash,shelter,simplebeam,sing,skillswap,skittersmack,skyattack,slackoff,sleeppowder,sleeptalk,sludgebomb,sludgewave,smackdown,smartstrike,snaptrap,snarl,snore,snowscape,soak,softboiled,solarbeam,solarblade,sparklingaria,speedswap,spicyextract,spikes,spikyshield,spiritbreak,spiritshackle,spite,spitup,spore,stealthrock,steelbeam,steelroller,steelwing,stickyweb,stockpile,stompingtantrum,stoneaxe,stoneedge,storedpower,stormthrow,strengthsap,stringshot,struggle,strugglebug,stuffcheeks,stunspore,substitute,suckerpunch,sunnyday,supercellslam,superfang,superpower,surf,swagger,swallow,sweetkiss,sweetscent,switcheroo,swordsdance,synthesis,syrupbomb,tailslap,tailwind,taunt,tearfullook,teatime,teeterdance,temperflare,terrainpulse,thief,thrash,throatchop,thunder,thunderbolt,thunderfang,thunderpunch,thunderwave,tickle,tidyup,topsyturvy,torchsong,torment,toxic,toxicspikes,toxicthread,trailblaze,transform,triattack,trick,trickortreat,trickroom,triplearrows,tripleaxel,tropkick,twinbeam,upperhand,uproar,uturn,vacuumwave,venoshock,voltswitch,volttackle,waterfall,waterpulse,watershuriken,waterspout,wavecrash,weatherball,whirlpool,whirlwind,wideguard,wildcharge,willowisp,wish,wonderroom,woodhammer,worryseed,wrap,xscissor,yawn,zapcannon,zenheadbutt'.split(','));
 const CHAMPIONS_ITEMS=new Set('abomasite,absolite,aerodactylite,aggronite,alakazite,altarianite,ampharosite,aspearberry,audinite,babiriberry,banettite,barbaracite,beedrillite,bigroot,blackbelt,blackglasses,blastoisinite,blazikenite,brightpowder,cameruptite,chandelurite,charcoal,charizarditex,charizarditey,chartiberry,cheriberry,chesnaughtite,chestoberry,chilanberry,chimechite,choicescarf,chopleberry,clefablite,cobaberry,colburberry,crabominite,damprock,delphoxite,dragalgite,dragonfang,dragoninite,drampanite,eelektrossite,emboarite,excadrite,expertbelt,fairyfeather,falinksite,feraligite,floettite,focusband,focussash,froslassite,galladite,garchompite,gardevoirite,gengarite,glalitite,glimmoranite,golurkite,greninjite,gyaradosite,habanberry,hardstone,hawluchanite,heatrock,heracronite,houndoominite,icyrock,ironball,kangaskhanite,kasibberry,kebiaberry,kingsrock,leftovers,leppaberry,lifeorb,lightball,lightclay,lopunnite,lucarionite,lumberry,magnet,malamarite,manectite,mawilite,medichamite,meganiumite,mentalherb,meowsticite,metagrossite,metalcoat,metronome,miracleseed,muscleband,mysticwater,nevermeltice,occaberry,oranberry,passhoberry,payapaberry,pechaberry,persimberry,pidgeotite,pinsirite,poisonbarb,pyroarite,quickclaw,raichunitex,raichunitey,rawstberry,rindoberry,roseliberry,sablenite,sceptilite,scizorite,scolipite,scopelens,scovillainite,scraftinite,sharpbeak,sharpedonite,shedshell,shellbell,shucaberry,silkscarf,silverpowder,sitrusberry,skarmorite,slowbronite,smoothrock,softsand,spelltag,staraptite,starminite,steelixite,swampertite,tangaberry,twistedspoon,tyranitarite,venusaurite,victreebelite,wacanberry,whiteherb,widelens,wiseglasses,yacheberry,zoomlens'.split(','));
@@ -2109,7 +2131,7 @@ function renderMovesSection(moves,missed){
     {key:'tutor',label:'Tutor',data:moves.tutor}
   ].filter(c=>c.data.length>0);
   if(!cats.length)return '<div class="no-moves">No moves found for this generation.</div>';
-  const champNote=moves.useable?'<div style="font-size:11px;color:#8a8a9a;margin:2px 0 8px">No level-up movesets in Pok\u00e9mon Champions \u2014 any of these can be taught (100 VP each). Legality per '+(championsReg==='m-a'?'Regulation M-A':'Regulation M-B')+'.</div>':'';
+  const champNote=moves.useable?'<div style="font-size:11px;color:#8a8a9a;margin:2px 0 8px">No level-up movesets in Pok\u00e9mon Champions \u2014 any of these can be taught (100 VP each). Legality per '+regByShort(championsReg).label+'.</div>':'';
 
   // Missed moves toggle
   let missedHTML='';
@@ -2912,7 +2934,7 @@ document.addEventListener('click',function(e){
   let m;
   if((m=oc.match(/showDetail\((\d+)/))){{e.preventDefault();e.stopPropagation();window.open(location.pathname+pokemonHref(parseInt(m[1])),'_blank')}}
   else if((m=oc.match(/loadLocGroup\(&quot;([^&]+)&quot;/))){{e.preventDefault();e.stopPropagation();window.open(location.pathname+locHref(decodeURIComponent(m[1])),'_blank')}}
-  else if((m=oc.match(/switchTab\('(\w+)'\)/))){{e.preventDefault();e.stopPropagation();window.open(location.pathname+'#'+m[1]+'/g'+selectedGenNum,'_blank')}}
+  else if((m=oc.match(/switchTab\('(\w+)'\)/))){{e.preventDefault();e.stopPropagation();window.open(location.pathname+'#'+m[1]+'/'+(isChampionsMode?'gchampions':'g'+selectedGenNum),'_blank')}}
 },true);
 
 function saveHash(){
@@ -2920,7 +2942,7 @@ function saveHash(){
   if(currentTab==='pokedex'&&vm==='detail'&&adId)parts.push('p'+adId);
   if(currentTab==='locations'&&locActiveGroup)parts.push('loc:'+encodeURIComponent(locActiveGroup));
   // Save gen+game state
-  parts.push('g'+selectedGenNum);
+  parts.push(isChampionsMode?'gchampions':'g'+selectedGenNum);
   const gameSel=document.getElementById('data-game');
   if(gameSel.value)parts.push('gm:'+encodeURIComponent(gameSel.value));
   if(locVersion)parts.push('lv:'+encodeURIComponent(locVersion));
@@ -2954,13 +2976,20 @@ async function restoreHash(){
   _restoring=true;
   const parts=h.split('/');
   const tab=parts[0];
+  const hasRegToken=parts.some(p=>p.startsWith('gm:')&&isRegKey(decodeURIComponent(p.slice(3))));
 
   // Restore gen+game first
   parts.forEach(p=>{
-    if(p.match(/^g\d+$/)){
+    if(p==='gchampions'){
+      isChampionsMode=true;selectedGenNum=9;
+      document.getElementById('data-gen-num').value='champions';
+      populateGameDropdown();
+    }
+    else if(p.match(/^g\d+$/)){
       const gn=parseInt(p.slice(1));
-      if(gn>=1&&gn<=9){
+      if(gn>=1&&gn<=9&&!hasRegToken){
         selectedGenNum=gn;
+        isChampionsMode=false;
         document.getElementById('data-gen-num').value=gn;
         populateGameDropdown();
       }
@@ -2968,10 +2997,12 @@ async function restoreHash(){
     if(p.startsWith('gm:')){
       const gv=decodeURIComponent(p.slice(3));
       const gameSel=document.getElementById('data-game');
-      if(isChampionsMode){
-        championsReg=(gv==='reg-ma')?'m-a':'m-b';
-        CHAMPIONS_IDS=(championsReg==='m-a')?CHAMPIONS_IDS_MA:CHAMPIONS_IDS_MB;
-        gameSel.value=gv;
+      if(isChampionsMode||isRegKey(gv)){
+        isChampionsMode=true;selectedGenNum=9;
+        document.getElementById('data-gen-num').value='champions';
+        populateGameDropdown();
+        applyReg(gv);
+        gameSel.value=regByShort(championsReg).key;
       }else{
       gameSel.value=gv;
       if(gameSel.value===gv){
@@ -3434,7 +3465,7 @@ function ensureChampLS(){
   _champLSLoading=fetch('champions-learnsets.json').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(j=>{champLS=j;return j});
   return _champLSLoading;
 }
-function champRegKey(){return championsReg==='m-a'?'reg-ma':'reg-mb'}
+function champRegKey(){return regByShort(championsReg).key}
 // Hardcoded intro-gen map for all moves (from PokeAPI generation endpoints)
 const MOVE_INTRO_GEN={'10-000-000-volt-thunderbolt':7,'absorb':1,'accelerock':7,'acid':1,'acid-armor':1,'acid-downpour--physical':7,'acid-downpour--special':7,'acid-spray':5,'acrobatics':5,'acupressure':4,'aerial-ace':3,'aeroblast':2,'after-you':5,'agility':1,'air-cutter':3,'air-slash':4,'all-out-pummeling--physical':7,'all-out-pummeling--special':7,'alluring-voice':9,'ally-switch':5,'amnesia':1,'anchor-shot':7,'ancient-power':2,'apple-acid':8,'aqua-cutter':9,'aqua-jet':4,'aqua-ring':4,'aqua-step':9,'aqua-tail':4,'arm-thrust':3,'armor-cannon':9,'aromatherapy':3,'aromatic-mist':6,'assist':3,'assurance':4,'astonish':3,'astral-barrage':8,'attack-order':4,'attract':2,'aura-sphere':4,'aura-wheel':8,'aurora-beam':1,'aurora-veil':7,'autotomize':5,'avalanche':4,'axe-kick':9,'baby-doll-eyes':6,'baddy-bad':7,'baneful-bunker':7,'barb-barrage':8,'barrage':1,'barrier':1,'baton-pass':2,'beak-blast':7,'beat-up':2,'behemoth-bash':8,'behemoth-blade':8,'belch':6,'belly-drum':2,'bestow':5,'bide':1,'bind':1,'bite':1,'bitter-blade':9,'bitter-malice':8,'black-hole-eclipse--physical':7,'black-hole-eclipse--special':7,'blast-burn':3,'blaze-kick':3,'blazing-torque':9,'bleakwind-storm':8,'blizzard':1,'block':3,'blood-moon':9,'bloom-doom--physical':7,'bloom-doom--special':7,'blue-flare':5,'body-press':8,'body-slam':1,'bolt-beak':8,'bolt-strike':5,'bone-club':1,'bone-rush':2,'bonemerang':1,'boomburst':6,'bounce':3,'bouncy-bubble':7,'branch-poke':8,'brave-bird':4,'breaking-swipe':8,'breakneck-blitz--physical':7,'breakneck-blitz--special':7,'brick-break':3,'brine':4,'brutal-swing':7,'bubble':1,'bubble-beam':1,'bug-bite':4,'bug-buzz':4,'bulk-up':3,'bulldoze':5,'bullet-punch':4,'bullet-seed':3,'burn-up':7,'burning-bulwark':9,'burning-jealousy':8,'buzzy-buzz':7,'calm-mind':3,'camouflage':3,'captivate':4,'catastropika':7,'ceaseless-edge':8,'celebrate':6,'charge':3,'charge-beam':4,'charm':2,'chatter':4,'chilling-water':9,'chilly-reception':9,'chip-away':5,'chloroblast':8,'circle-throw':5,'clamp':1,'clanging-scales':7,'clangorous-soul':8,'clangorous-soulblaze':7,'clear-smog':5,'close-combat':4,'coaching':8,'coil':5,'collision-course':9,'combat-torque':9,'comet-punch':1,'comeuppance':9,'confide':6,'confuse-ray':1,'confusion':1,'constrict':1,'continental-crush--physical':7,'continental-crush--special':7,'conversion':1,'conversion-2':2,'copycat':4,'core-enforcer':7,'corkscrew-crash--physical':7,'corkscrew-crash--special':7,'corrosive-gas':8,'cosmic-power':3,'cotton-guard':5,'cotton-spore':2,'counter':1,'court-change':8,'covet':3,'crabhammer':1,'crafty-shield':6,'cross-chop':2,'cross-poison':4,'crunch':2,'crush-claw':3,'crush-grip':4,'curse':2,'cut':1,'dark-pulse':4,'dark-void':4,'darkest-lariat':7,'dazzling-gleam':6,'decorate':8,'defend-order':4,'defense-curl':1,'defog':4,'destiny-bond':2,'detect':2,'devastating-drake--physical':7,'devastating-drake--special':7,'diamond-storm':6,'dig':1,'dire-claw':8,'disable':1,'disarming-voice':6,'discharge':4,'dive':3,'dizzy-punch':1,'doodle':9,'doom-desire':3,'double-edge':1,'double-hit':4,'double-iron-bash':7,'double-kick':1,'double-shock':9,'double-slap':1,'double-team':1,'draco-meteor':4,'dragon-ascent':6,'dragon-breath':2,'dragon-cheer':9,'dragon-claw':3,'dragon-dance':3,'dragon-darts':8,'dragon-energy':8,'dragon-hammer':7,'dragon-pulse':4,'dragon-rage':1,'dragon-rush':4,'dragon-tail':5,'drain-punch':4,'draining-kiss':6,'dream-eater':1,'drill-peck':1,'drill-run':5,'drum-beating':8,'dual-chop':5,'dual-wingbeat':8,'dynamax-cannon':8,'dynamic-punch':2,'earth-power':4,'earthquake':1,'echoed-voice':5,'eerie-impulse':6,'eerie-spell':8,'egg-bomb':1,'electric-terrain':6,'electrify':6,'electro-ball':5,'electro-drift':9,'electro-shot':9,'electroweb':5,'embargo':4,'ember':1,'encore':2,'endeavor':3,'endure':2,'energy-ball':4,'entrainment':5,'eruption':3,'esper-wing':8,'eternabeam':8,'expanding-force':8,'explosion':1,'extrasensory':3,'extreme-evoboost':7,'extreme-speed':2,'facade':3,'fairy-lock':6,'fairy-wind':6,'fake-out':3,'fake-tears':3,'false-surrender':8,'false-swipe':2,'feather-dance':3,'feint':4,'feint-attack':2,'fell-stinger':6,'fickle-beam':9,'fiery-dance':5,'fiery-wrath':8,'fillet-away':9,'final-gambit':5,'fire-blast':1,'fire-fang':4,'fire-lash':7,'fire-pledge':5,'fire-punch':1,'fire-spin':1,'first-impression':7,'fishious-rend':8,'fissure':1,'flail':2,'flame-burst':5,'flame-charge':5,'flame-wheel':2,'flamethrower':1,'flare-blitz':4,'flash':1,'flash-cannon':4,'flatter':3,'fleur-cannon':7,'fling':4,'flip-turn':8,'floaty-fall':7,'floral-healing':7,'flower-shield':6,'flower-trick':9,'fly':1,'flying-press':6,'focus-blast':4,'focus-energy':1,'focus-punch':3,'follow-me':3,'force-palm':4,'foresight':2,'forests-curse':6,'foul-play':5,'freeze-dry':6,'freeze-shock':5,'freezing-glare':8,'freezy-frost':7,'frenzy-plant':3,'frost-breath':5,'frustration':2,'fury-attack':1,'fury-cutter':2,'fury-swipes':1,'fusion-bolt':5,'fusion-flare':5,'future-sight':2,'gastro-acid':4,'gear-grind':5,'gear-up':7,'genesis-supernova':7,'geomancy':6,'giga-drain':2,'giga-impact':4,'gigaton-hammer':9,'gigavolt-havoc--physical':7,'gigavolt-havoc--special':7,'glacial-lance':8,'glaciate':5,'glaive-rush':9,'glare':1,'glitzy-glow':7,'grass-knot':4,'grass-pledge':5,'grass-whistle':3,'grassy-glide':8,'grassy-terrain':6,'grav-apple':8,'gravity':4,'growl':1,'growth':1,'grudge':3,'guard-split':5,'guard-swap':4,'guardian-of-alola':7,'guillotine':1,'gunk-shot':4,'gust':1,'gyro-ball':4,'hail':3,'hammer-arm':4,'happy-hour':6,'hard-press':9,'harden':1,'haze':1,'head-charge':5,'head-smash':4,'headbutt':1,'headlong-rush':8,'heal-bell':2,'heal-block':4,'heal-order':4,'heal-pulse':5,'healing-wish':4,'heart-stamp':5,'heart-swap':4,'heat-crash':5,'heat-wave':3,'heavy-slam':5,'helping-hand':3,'hex':5,'hidden-power':2,'high-horsepower':7,'high-jump-kick':1,'hold-back':6,'hold-hands':6,'hone-claws':5,'horn-attack':1,'horn-drill':1,'horn-leech':5,'howl':3,'hurricane':5,'hydro-cannon':3,'hydro-pump':1,'hydro-steam':9,'hydro-vortex--physical':7,'hydro-vortex--special':7,'hyper-beam':1,'hyper-drill':9,'hyper-fang':1,'hyper-voice':3,'hyperspace-fury':6,'hyperspace-hole':6,'hypnosis':1,'ice-ball':3,'ice-beam':1,'ice-burn':5,'ice-fang':4,'ice-hammer':7,'ice-punch':1,'ice-shard':4,'ice-spinner':9,'icicle-crash':5,'icicle-spear':3,'icy-wind':2,'imprison':3,'incinerate':5,'infernal-parade':8,'inferno':5,'inferno-overdrive--physical':7,'inferno-overdrive--special':7,'infestation':6,'ingrain':3,'instruct':7,'ion-deluge':6,'iron-defense':3,'iron-head':4,'iron-tail':2,'ivy-cudgel':9,'jaw-lock':8,'jet-punch':9,'judgment':4,'jump-kick':1,'jungle-healing':8,'karate-chop':1,'kinesis':1,'kings-shield':6,'knock-off':3,'kowtow-cleave':9,'lands-wrath':6,'laser-focus':7,'lash-out':8,'last-resort':4,'last-respects':9,'lava-plume':4,'leaf-blade':3,'leaf-storm':4,'leaf-tornado':5,'leafage':7,'leech-life':1,'leech-seed':1,'leer':1,'lets-snuggle-forever':7,'lick':1,'life-dew':8,'light-of-ruin':6,'light-screen':1,'light-that-burns-the-sky':7,'liquidation':7,'lock-on':2,'lovely-kiss':1,'low-kick':1,'low-sweep':5,'lucky-chant':4,'lumina-crash':9,'lunar-blessing':8,'lunar-dance':4,'lunge':7,'luster-purge':3,'mach-punch':2,'magic-coat':3,'magic-powder':8,'magic-room':5,'magical-leaf':3,'magical-torque':9,'magma-storm':4,'magnet-bomb':4,'magnet-rise':4,'magnetic-flux':6,'magnitude':2,'make-it-rain':9,'malicious-moonsault':7,'malignant-chain':9,'mat-block':6,'matcha-gotcha':9,'max-airstream':8,'max-darkness':8,'max-flare':8,'max-flutterby':8,'max-geyser':8,'max-guard':8,'max-hailstorm':8,'max-knuckle':8,'max-lightning':8,'max-mindstorm':8,'max-ooze':8,'max-overgrowth':8,'max-phantasm':8,'max-quake':8,'max-rockfall':8,'max-starfall':8,'max-steelspike':8,'max-strike':8,'max-wyrmwind':8,'me-first':4,'mean-look':2,'meditate':1,'mega-drain':1,'mega-kick':1,'mega-punch':1,'megahorn':2,'memento':3,'menacing-moonraze-maelstrom':7,'metal-burst':4,'metal-claw':2,'metal-sound':3,'meteor-assault':8,'meteor-beam':8,'meteor-mash':3,'metronome':1,'mighty-cleave':9,'milk-drink':2,'mimic':1,'mind-blown':7,'mind-reader':2,'minimize':1,'miracle-eye':4,'mirror-coat':2,'mirror-move':1,'mirror-shot':4,'mist':1,'mist-ball':3,'misty-explosion':8,'misty-terrain':6,'moonblast':6,'moongeist-beam':7,'moonlight':2,'morning-sun':2,'mortal-spin':9,'mountain-gale':8,'mud-bomb':4,'mud-shot':3,'mud-slap':2,'mud-sport':3,'muddy-water':3,'multi-attack':7,'mystical-fire':6,'mystical-power':8,'nasty-plot':4,'natural-gift':4,'nature-power':3,'natures-madness':7,'needle-arm':3,'never-ending-nightmare--physical':7,'never-ending-nightmare--special':7,'night-daze':5,'night-shade':1,'night-slash':4,'nightmare':2,'no-retreat':8,'noble-roar':6,'noxious-torque':9,'nuzzle':6,'oblivion-wing':6,'obstruct':8,'oceanic-operetta':7,'octazooka':2,'octolock':8,'odor-sleuth':3,'ominous-wind':4,'order-up':9,'origin-pulse':6,'outrage':2,'overdrive':8,'overheat':3,'pain-split':2,'parabolic-charge':6,'parting-shot':6,'pay-day':1,'payback':4,'peck':1,'perish-song':2,'petal-blizzard':6,'petal-dance':1,'phantom-force':6,'photon-geyser':7,'pika-papow':7,'pin-missile':1,'plasma-fists':7,'play-nice':6,'play-rough':6,'pluck':4,'poison-fang':3,'poison-gas':1,'poison-jab':4,'poison-powder':1,'poison-sting':1,'poison-tail':3,'pollen-puff':7,'poltergeist':8,'population-bomb':9,'pounce':9,'pound':1,'powder':6,'powder-snow':2,'power-gem':4,'power-shift':8,'power-split':5,'power-swap':4,'power-trick':4,'power-trip':7,'power-up-punch':6,'power-whip':4,'precipice-blades':6,'present':2,'prismatic-laser':7,'protect':2,'psybeam':1,'psyblade':9,'psych-up':2,'psychic':1,'psychic-fangs':7,'psychic-noise':9,'psychic-terrain':7,'psycho-boost':3,'psycho-cut':4,'psycho-shift':4,'psyshield-bash':8,'psyshock':5,'psystrike':5,'psywave':1,'pulverizing-pancake':7,'punishment':4,'purify':7,'pursuit':2,'pyro-ball':8,'quash':5,'quick-attack':1,'quick-guard':5,'quiver-dance':5,'rage':1,'rage-fist':9,'rage-powder':5,'raging-bull':9,'raging-fury':8,'rain-dance':2,'rapid-spin':2,'razor-leaf':1,'razor-shell':5,'razor-wind':1,'recover':1,'recycle':3,'reflect':1,'reflect-type':5,'refresh':3,'relic-song':5,'rest':1,'retaliate':5,'return':2,'revelation-dance':7,'revenge':3,'reversal':2,'revival-blessing':9,'rising-voltage':8,'roar':1,'roar-of-time':4,'rock-blast':3,'rock-climb':4,'rock-polish':4,'rock-slide':1,'rock-smash':2,'rock-throw':1,'rock-tomb':3,'rock-wrecker':4,'role-play':3,'rolling-kick':1,'rollout':2,'roost':4,'rototiller':6,'round':5,'ruination':9,'sacred-fire':2,'sacred-sword':5,'safeguard':2,'salt-cure':9,'sand-attack':1,'sand-tomb':3,'sandsear-storm':8,'sandstorm':2,'sappy-seed':7,'savage-spin-out--physical':7,'savage-spin-out--special':7,'scald':5,'scale-shot':8,'scary-face':2,'scorching-sands':8,'scratch':1,'screech':1,'searing-shot':5,'searing-sunraze-smash':7,'secret-power':3,'secret-sword':5,'seed-bomb':4,'seed-flare':4,'seismic-toss':1,'self-destruct':1,'shadow-ball':2,'shadow-blast':3,'shadow-blitz':3,'shadow-bolt':3,'shadow-bone':7,'shadow-break':3,'shadow-chill':3,'shadow-claw':4,'shadow-down':3,'shadow-end':3,'shadow-fire':3,'shadow-force':4,'shadow-half':3,'shadow-hold':3,'shadow-mist':3,'shadow-panic':3,'shadow-punch':3,'shadow-rave':3,'shadow-rush':3,'shadow-shed':3,'shadow-sky':3,'shadow-sneak':4,'shadow-storm':3,'shadow-wave':3,'sharpen':1,'shattered-psyche--physical':7,'shattered-psyche--special':7,'shed-tail':9,'sheer-cold':3,'shell-side-arm':8,'shell-smash':5,'shell-trap':7,'shelter':8,'shift-gear':5,'shock-wave':3,'shore-up':7,'signal-beam':3,'silk-trap':9,'silver-wind':3,'simple-beam':5,'sing':1,'sinister-arrow-raid':7,'sizzly-slide':7,'sketch':2,'skill-swap':3,'skitter-smack':8,'skull-bash':1,'sky-attack':1,'sky-drop':5,'sky-uppercut':3,'slack-off':3,'slam':1,'slash':1,'sleep-powder':1,'sleep-talk':2,'sludge':1,'sludge-bomb':2,'sludge-wave':5,'smack-down':5,'smart-strike':7,'smelling-salts':3,'smog':1,'smokescreen':1,'snap-trap':8,'snarl':5,'snatch':3,'snipe-shot':8,'snore':2,'snowscape':9,'soak':5,'soft-boiled':1,'solar-beam':1,'solar-blade':7,'sonic-boom':1,'soul-stealing-7-star-strike':7,'spacial-rend':4,'spark':2,'sparkling-aria':7,'sparkly-swirl':7,'spectral-thief':7,'speed-swap':7,'spicy-extract':9,'spider-web':2,'spike-cannon':1,'spikes':2,'spiky-shield':6,'spin-out':9,'spirit-break':8,'spirit-shackle':7,'spit-up':3,'spite':2,'splash':1,'splintered-stormshards':7,'splishy-splash':7,'spore':1,'spotlight':7,'springtide-storm':8,'stealth-rock':4,'steam-eruption':6,'steamroller':5,'steel-beam':8,'steel-roller':8,'steel-wing':2,'sticky-web':6,'stockpile':3,'stoked-sparksurfer':7,'stomp':1,'stomping-tantrum':7,'stone-axe':8,'stone-edge':4,'stored-power':5,'storm-throw':5,'strange-steam':8,'strength':1,'strength-sap':7,'string-shot':1,'struggle':1,'struggle-bug':5,'stuff-cheeks':8,'stun-spore':1,'submission':1,'substitute':1,'subzero-slammer--physical':7,'subzero-slammer--special':7,'sucker-punch':4,'sunny-day':2,'sunsteel-strike':7,'super-fang':1,'supercell-slam':9,'superpower':3,'supersonic':1,'supersonic-skystrike--physical':7,'supersonic-skystrike--special':7,'surf':1,'surging-strikes':8,'swagger':2,'swallow':3,'sweet-kiss':2,'sweet-scent':2,'swift':1,'switcheroo':4,'swords-dance':1,'synchronoise':5,'synthesis':2,'syrup-bomb':9,'tachyon-cutter':9,'tackle':1,'tail-glow':3,'tail-slap':5,'tail-whip':1,'tailwind':4,'take-down':1,'take-heart':8,'tar-shot':8,'taunt':3,'tearful-look':7,'teatime':8,'techno-blast':5,'tectonic-rage--physical':7,'tectonic-rage--special':7,'teeter-dance':3,'telekinesis':5,'teleport':1,'temper-flare':9,'tera-blast':9,'tera-starstorm':9,'terrain-pulse':8,'thief':2,'thousand-arrows':6,'thousand-waves':6,'thrash':1,'throat-chop':7,'thunder':1,'thunder-cage':8,'thunder-fang':4,'thunder-punch':1,'thunder-shock':1,'thunder-wave':1,'thunderbolt':1,'thunderclap':9,'thunderous-kick':8,'tickle':3,'tidy-up':9,'topsy-turvy':6,'torch-song':9,'torment':3,'toxic':1,'toxic-spikes':4,'toxic-thread':7,'trailblaze':9,'transform':1,'tri-attack':1,'trick':3,'trick-or-treat':6,'trick-room':4,'triple-arrows':8,'triple-axel':8,'triple-dive':9,'triple-kick':2,'trop-kick':7,'trump-card':4,'twin-beam':9,'twineedle':1,'twinkle-tackle--physical':7,'twinkle-tackle--special':7,'twister':2,'u-turn':4,'upper-hand':9,'uproar':3,'v-create':5,'vacuum-wave':4,'veevee-volley':7,'venom-drench':6,'venoshock':5,'vice-grip':1,'victory-dance':8,'vine-whip':1,'vital-throw':2,'volt-switch':5,'volt-tackle':3,'wake-up-slap':4,'water-gun':1,'water-pledge':5,'water-pulse':3,'water-shuriken':6,'water-sport':3,'water-spout':3,'waterfall':1,'wave-crash':8,'weather-ball':3,'whirlpool':2,'whirlwind':1,'wicked-blow':8,'wicked-torque':9,'wide-guard':5,'wild-charge':5,'wildbolt-storm':8,'will-o-wisp':3,'wing-attack':1,'wish':3,'withdraw':1,'wonder-room':5,'wood-hammer':4,'work-up':5,'worry-seed':4,'wrap':1,'wring-out':4,'x-scissor':4,'yawn':3,'zap-cannon':2,'zen-headbutt':4,'zing-zap':7,'zippy-zap':7};
 function getMoveIntroGen(name){return MOVE_INTRO_GEN[name]||9;}
