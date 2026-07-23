@@ -75,3 +75,39 @@ against every artefact and exits non-zero on a gap.
 This check exists because the standard was written down and then followed unevenly: HoopaDex
 shipped without a white paper or a deck and nothing caught it. A standard that is not checked
 is a preference. Do not rely on remembering it.
+
+
+## Rule: one changelog format for every project
+
+Every project keeps a `CHANGELOG.md` in this exact shape. It is the standard; do not invent a
+per-project variant.
+
+```
+# Changelog — <Project>
+
+All notable changes to <project> are recorded here, newest first.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+**Rule.** Every change is logged here in the same pass as the code, together with the matching
+updates to the white paper, the deck, and the technical documentation. A prior conclusion is
+never silently rewritten; what changed and why is stated.
+
+---
+
+## [MAJOR.MINOR.PATCH] — YYYY-MM-DD
+### Added
+### Changed
+### Fixed
+### Removed
+### Notes
+- Use only the sections that apply. Newest release on top.
+```
+
+Rules:
+- Newest release first. One `## [version] — date` heading per release.
+- ISO dates (YYYY-MM-DD). Sentence case. State the reason, not just the change.
+- The top version MUST equal the version stamped on the projects primary artifact
+  (a file header, an `@version` line, or a document version block).
+- `portfolio/build/check_projects.py` verifies the file exists AND that its newest version
+  matches the artifact stamp. Run it before publishing.
