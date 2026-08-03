@@ -60,7 +60,7 @@ body.light .stat-value{color:#1a1a2a}
 body.light .stat-bar-bg{background:rgba(0,0,0,0.08)}
 body.light .matchup-label{color:#3a3a4a}
 body.light .ability-tag{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1);color:#2a2a3a}
-body.light .ability-tag.hidden{background:transparent;border-color:rgba(168,80,160,0.2)}
+body.light .ability-tag.hidden{background:#f0e2f7;border-color:#a862c4;color:#4d2160}
 body.light .detail-panel{background:#fff !important;border-color:rgba(0,0,0,0.1) !important}
 body.light .loc-area-name{color:#1a1a2a}
 body.light .loc-chance-high{color:#2a8a20}
@@ -327,7 +327,9 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .modal-dims{font-size:14px;color:#8a8a9a;margin-top:8px}
 .section-label{font-size:13px;font-weight:700;color:#6a6a7a;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
 .ability-tag{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);padding:6px 14px;border-radius:8px;font-size:14px;color:#c8c8d8;text-transform:capitalize;display:inline-block;margin:0 6px 6px 0;cursor:help;position:relative}
-.ability-tag.hidden{background:transparent;border-color:rgba(168,80,160,0.3)}
+/* Solid, not a tinted outline. A hidden ability is a different encounter, not a variant of the
+   same one, so it reads as its own colour rather than as a normal pill with a faint purple edge. */
+.ability-tag.hidden{background:#4a2359;border-color:#a862c4;color:#f2ddfb}
 .ability-tag:hover{border-color:rgba(255,255,255,0.25)}
 .stat-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .stat-label{width:36px;font-size:12px;font-weight:700;color:#8a8a9a;letter-spacing:1px}
@@ -535,6 +537,30 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .dl-mon:hover{border-color:var(--eff-up);color:var(--text)}
 .dl-mon img{width:30px;height:30px;flex-shrink:0;image-rendering:pixelated}
 .dl-mon-note{font-size:11.5px;color:var(--text4);font-style:italic;margin-top:8px}
+
+/* Ability page. It had a name, a meta line, two descriptions and a species grid across five
+   different font sizes plus an empty 28px spacer div. One scale now: 22 / 12.5 / 14.5 / 13. */
+.ap-head{margin-bottom:14px}
+.ap-name{font-size:22px;font-weight:800;text-transform:capitalize;color:var(--text)}
+.ap-meta{font-size:12.5px;color:var(--text4);margin-top:3px}
+.ap-desc{font-size:14.5px;color:var(--text2);line-height:1.55;margin-bottom:14px;max-width:70ch}
+.ap-detail{font-size:14.5px;color:var(--text3);line-height:1.55;padding:11px 15px;background:var(--card-bg);
+  border:1px solid var(--border);border-radius:9px;margin-bottom:16px;max-width:70ch}
+.ap-mon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;margin-top:9px}
+.ap-mon{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:9px;background:var(--card-bg);
+  border:1px solid var(--border2);cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);
+  text-transform:capitalize;transition:border-color .15s,color .15s}
+.ap-mon:hover{border-color:var(--eff-up);color:var(--text)}
+.ap-mon img{width:28px;height:28px;flex-shrink:0;image-rendering:pixelated}
+
+/* Hidden-ability marker. This was background:transparent in both themes, so the one thing that
+   distinguishes a hidden ability from a normal one was carried by a faint border alone. It is a
+   binary, consequential fact - a hidden ability needs a different encounter entirely - so it gets
+   a solid fill that survives being glanced at. */
+.hidden-pill{display:inline-block;margin-left:auto;flex-shrink:0;font-size:9px;font-weight:800;
+  letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;
+  background:#7b3f96;color:#fff;border:1px solid #7b3f96}
+body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
 .pri-tools{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .pri-tools #pri-filter{max-width:280px}
 .pri-count{font-size:12px;color:var(--text4)}
@@ -2858,7 +2884,7 @@ async function renderDetail(p){
       return true;
     });
     if(abilityList.length>0){
-      abs=abilityList.map(a=>'<span class="ability-tag'+(a.is_hidden?' hidden':'')+'" style="cursor:pointer" onclick="showAbilityPage(\''+a.ability.name+'\')" onmouseenter="showAbilityTip(event,\''+a.ability.name+'\','+a.is_hidden+')" onmouseleave="hideTooltip()">'+a.ability.name.replace(/-/g,' ')+(a.is_hidden?' <span style="font-size:9px;color:#a040a0">(H)</span>':'')+'</span>').join('');
+      abs=abilityList.map(a=>'<span class="ability-tag'+(a.is_hidden?' hidden':'')+'" style="cursor:pointer" onclick="showAbilityPage(\''+a.ability.name+'\')" onmouseenter="showAbilityTip(event,\''+a.ability.name+'\','+a.is_hidden+')" onmouseleave="hideTooltip()">'+a.ability.name.replace(/-/g,' ')+(a.is_hidden?' <span style="font-size:9px;opacity:.75">(H)</span>':'')+'</span>').join('');
     }else{
       abs='<span style="color:#5a5a6a;font-size:12px;font-style:italic">No abilities in this generation</span>';
     }
@@ -6122,6 +6148,23 @@ function renderAbilityPins(){
     return '<div class="pinned-tab'+(act?' active':'')+'" onclick="showAbilityPage(\''+p.name+'\')" style="border-color:'+(act?'rgba(104,144,240,0.4)':'rgba(255,255,255,0.08)')+';'+(act?'background:transparent':'')+'"><span style="font-size:14px;margin-right:2px"></span><span>'+p.name.replace(/-/g,' ')+'</span><span class="pinned-tab-close" onclick="event.stopPropagation();removeAbilityPin(\''+p.name+'\')">&#x2715;</span></div>';
   }).join('')+'<button class="pinned-clear" onclick="clearAllAbilityPins()">Clear All</button>';
 }
+/* Is `b` just `a` said again? PokeAPI's short and long effect texts are near-always paraphrases of
+   each other, and comparing them for exact inequality never spots that. Significant words of the
+   shorter text are matched into the longer one on a four-character prefix, so damages/damage and
+   max/maximum count as the same word; at 70% overlap the second block is a restatement and is not
+   worth a second paragraph at a second size. Pure and side-effect free so it can be tested. */
+const RESTATE_STOP=new Set(['the','a','an','and','or','of','to','in','is','it','its','this','that',
+  'for','by','on','at','with','when','if','be','are','was','has','have','from','as','into','out',
+  'up','down','all','any','not','no','than','then','also','will','can','may','other','each','one']);
+function isRestatement(a,b,threshold){
+  const words=s=>String(s).toLowerCase().replace(/[^a-z0-9/ ]+/g,' ').split(/\s+/)
+    .filter(w=>w.length>1&&!RESTATE_STOP.has(w));
+  const short=words(a), long=words(b);
+  if(!short.length||!long.length)return false;
+  const hit=short.filter(w=>{const k=w.slice(0,4);return long.some(x=>x.slice(0,4)===k)});
+  return hit.length/short.length>=(threshold===undefined?0.7:threshold);
+}
+
 async function showAbilityPage(abilityName){
   currentAbilityPage=abilityName;
   addAbilityPin(abilityName);
@@ -6177,17 +6220,24 @@ async function showAbilityPage(abilityName){
     
     let h='<button class="detail-back-btn" onclick="currentAbilityPage=null;renderAbilityPins();renderAbilityList()">&#x2190; Back to list</button>';
     h+='<div class="detail-panel" style="background:transparent;border-color:rgba(104,144,240,0.15)">';
-    h+='<div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap">';
-    h+='<div style="font-size:28px"></div>';
-    h+='<div><div style="font-size:24px;font-weight:800;text-transform:capitalize;color:#e0e0e8">'+abilityName.replace(/-/g,' ')+'</div>';
-    h+='<div style="font-size:12px;color:#6a6a7a;margin-top:2px">Ability · Introduced in Gen '+introGen+' · Showing Gen '+genRoman+' Pok&#233;mon</div></div>';
+    h+='<div class="ap-head">';
+    h+='<div class="ap-name">'+abilityName.replace(/-/g,' ')+'</div>';
+    h+='<div class="ap-meta">Ability · Introduced in Gen '+introGen+' · Showing Gen '+genRoman+' Pok&#233;mon</div>';
     h+='</div>';
-    
-    h+='<div style="font-size:14px;color:#c8c8d8;line-height:1.6;margin-bottom:12px">'+shortDesc+'</div>';
-    if(longDesc&&longDesc!==shortDesc){
-      h+='<div style="font-size:13px;color:#8a8a9a;line-height:1.5;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:16px">'+longDesc.replace(/\n/g,' ')+'</div>';
+
+    /* One description, not two. PokeAPI ships a short effect line and a long one, and for most
+       abilities the long one is the short one reworded - Aftermath said "damages the attacker for
+       1/4 its max HP when knocked out by a contact move" and then, in a second box at a second
+       size, "when this Pokemon is knocked out by a move that makes contact, the move's user takes
+       1/4 its maximum HP in damage". Comparing the two strings for exact inequality never caught
+       that, so every ability page carried the same sentence twice. The extra block is now shown
+       only when it is genuinely additional text rather than a restatement. */
+    const detail=(longDesc||'').replace(/\n/g,' ').trim();
+    h+='<div class="ap-desc">'+(shortDesc||detail)+'</div>';
+    if(shortDesc&&detail&&!isRestatement(shortDesc,detail)){
+      h+='<div class="ap-detail">'+detail+'</div>';
     }
-    
+
     // Show Pok&#233;mon with this ability (filtered by current gen)
     const genMax=getGenMaxId();
     const pokemonList=(d.pokemon||[]).filter(p=>{
@@ -6203,15 +6253,15 @@ async function showAbilityPage(abilityName){
       return true;
     });
     h+='<div class="section-label" style="margin-top:16px">POK&#xC9;MON WITH THIS ABILITY ('+pokemonList.length+')</div>';
-    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:8px">';
+    h+='<div class="ap-mon-grid">';
     pokemonList.forEach(p=>{
       const name=p.pokemon.name;
       const idMatch=p.pokemon.url.match(/\/(\d+)\//);
       const id=parseInt(idMatch[1]);
       const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png';
-      const hidden=(p.is_hidden&&genNum>=5)?' <span style="font-size:9px;background:transparent;color:#c888c0;padding:1px 6px;border-radius:4px">Hidden</span>':'';
-      h+='<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);cursor:pointer;font-size:13px;font-weight:600;color:#c8c8d8;text-transform:capitalize" onclick="switchTab(\'pokedex\');showDetail('+id+')">';
-      h+='<img src="'+spr+'" style="width:28px;height:28px" loading="lazy">'+name.replace(/-/g,' ')+hidden+'</div>';
+      const hidden=(p.is_hidden&&genNum>=5)?'<span class="hidden-pill">Hidden</span>':'';
+      h+='<div class="ap-mon" onclick="switchTab(\'pokedex\');showDetail('+id+')">';
+      h+='<img src="'+spr+'" loading="lazy" alt="">'+name.replace(/-/g,' ')+hidden+'</div>';
     });
     h+='</div></div>';
     
