@@ -12,6 +12,33 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.8] — 2026-08-03
+
+### Added
+- **Item changes in the regulation diff — there was a data source after all.** 5.3 said item
+  legality was "not tracked", which was true of the app and not of the world. Pokémon Showdown
+  carries the two Champions regulations as **separate mods**: `data/mods/champions` is Regulation
+  M-B, and `data/mods/championsregma` is M-A *inheriting from it*. Because it inherits, the M-A mod
+  contains only the differences — every item it marks non-standard is one that is legal in M-B and
+  was not legal in M-A. That file **is** the change list, so this needs no hand-maintained table.
+
+  **31 items became legal in Regulation M-B; none were removed.** Twelve are the mega stones of
+  species M-B added, which track the roster change. The rest are a real shift in the format:
+  **Life Orb, Expert Belt, Muscle Band, Wise Glasses, Wide Lens, Zoom Lens, Metronome, Big Root,
+  Shed Shell, Iron Ball, Light Clay** — and all four weather rocks, Damp, Heat, Icy and Smooth,
+  arriving together.
+
+### Notes
+- **The absence is evidence too.** `championsregma` has no `moves.ts`, `abilities.ts` or
+  `learnsets.ts` — nothing but items differs between the regulations. That independently confirms
+  5.3's move diff, which reached the same conclusion from the app's own learnset export by a
+  completely separate route. Two sources, one answer, no shared assumption.
+- Display names come from Showdown's base `items.ts`. The mods inherit the name, so all they carry
+  is the flattened key; a first attempt guessed the name back from the slug and produced
+  "Raichunitex" where the base file simply says "Raichunite X". The guessing helper is gone.
+
+---
+
 ## [5.7] — 2026-08-03
 
 ### Added

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.7 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.8 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1671,7 +1671,7 @@ const CHAMPIONS_IDS_MB=new Set([...CHAMPIONS_IDS_MA,...REG_MB_NEW]);
    build/generate-regulation-items.js from Showdown, which carries the two regulations as
    separate mods - championsregma inherits from champions, so its items.ts IS the change list.
    Do not edit by hand; rerun the generator. */
-const REG_ITEM_CHANGES={"reg-ma->reg-mb":{added:['Barbaracite','Big Root','Blazikenite','Damp Rock','Dragalgite','Eelektrossite','Expert Belt','Falinksite','Heat Rock','Icy Rock','Iron Ball','Life Orb','Light Clay','Malamarite','Mawilite','Metagrossite','Metronome','Muscle Band','Pyroarite','Raichunite X','Raichunite Y','Sceptilite','Scolipite','Scraftinite','Shed Shell','Smooth Rock','Staraptite','Swampertite','Wide Lens','Wise Glasses','Zoom Lens'],removed:[]}};
+const REG_ITEM_CHANGES={"reg-ma->reg-mb":{added:["Barbaracite","Big Root","Blazikenite","Damp Rock","Dragalgite","Eelektrossite","Expert Belt","Falinksite","Heat Rock","Icy Rock","Iron Ball","Life Orb","Light Clay","Malamarite","Mawilite","Metagrossite","Metronome","Muscle Band","Pyroarite","Raichunite X","Raichunite Y","Sceptilite","Scolipite","Scraftinite","Shed Shell","Smooth Rock","Staraptite","Swampertite","Wide Lens","Wise Glasses","Zoom Lens"],removed:[]}};
 const CHAMPIONS_REGS=[
   {key:'reg-mb', short:'m-b', label:'Regulation M-B', ids:()=>CHAMPIONS_IDS_MB},
   {key:'reg-ma', short:'m-a', label:'Regulation M-A', ids:()=>CHAMPIONS_IDS_MA}
@@ -3927,22 +3927,6 @@ function regulationMoveDiff(fromKey,toKey){
   return {shared:both.size,gained:gained.sort(byName),lost:lost.sort(byName)};
 }
 
-/* Showdown flattens item names to lowercase alphanumerics ("lifeorb", "raichunitex"), which is
-   unreadable in a list. The app's own ITEM_INTRO_GEN keys are PokeAPI slugs, so a flattened key is
-   matched back against those; anything with no match falls back to the raw key rather than being
-   dropped, because a missing row is worse than an ugly one. */
-let _itemSlugByFlat=null;
-function itemDisplayName(flatKey){
-  if(!_itemSlugByFlat){
-    _itemSlugByFlat={};
-    Object.keys(ITEM_INTRO_GEN).forEach(function(slug){
-      _itemSlugByFlat[slug.replace(/[^a-z0-9]/g,'')]=slug;
-    });
-  }
-  const slug=_itemSlugByFlat[flatKey];
-  return slug?slug.replace(/-/g,' '):flatKey;
-}
-
 function renderRegulationChanges(){
   const el=document.getElementById('regs-container');
   if(!el)return;
@@ -3995,8 +3979,8 @@ function renderRegulationChanges(){
       h+='<div class="regs-same">No change. The same items are legal in both regulations.</div>';
     else{
       h+='<div class="regs-names">'
-        +idiff.added.map(function(k){return '<span class="regs-move regs-move-up">+ '+capName(itemDisplayName(k))+'</span>'}).join('')
-        +idiff.removed.map(function(k){return '<span class="regs-move regs-move-down">− '+capName(itemDisplayName(k))+'</span>'}).join('')
+        +idiff.added.map(function(n){return '<span class="regs-move regs-move-up">+ '+n+'</span>'}).join('')
+        +idiff.removed.map(function(n){return '<span class="regs-move regs-move-down">− '+n+'</span>'}).join('')
         +'</div>';
     }
     h+='</div>';

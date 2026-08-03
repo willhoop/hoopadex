@@ -118,7 +118,9 @@ function slugOf(key, names) { return names[key] || key; }
 })().catch(e => { console.error(e.message); process.exit(1); });
 
 function embed(rec) {
-  const q = t => "'" + String(t).replace(/'/g, "\'") + "'";
+  // JSON.stringify, not hand-rolled quoting: an item with an apostrophe (King's Rock) would
+  // otherwise emit a broken string literal into a 500 KB file and fail only at parse time.
+  const q = t => JSON.stringify(String(t));
   const literal = '{"reg-ma->reg-mb":{added:[' + rec.added.map(a => q(a.name)).join(',') +
     '],removed:[' + rec.removed.map(r => q(r.name)).join(',') + ']}}';
   const src = fs.readFileSync(APP, 'utf8');
