@@ -12,6 +12,34 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.5] — 2026-08-03
+
+### Added
+- **Move descriptor tags.** Every move now shows the flags that decide which abilities and items
+  interact with it — Contact, Punch, Bite, Pulse/Aura, Slicing, Sound, Ballistic, Wind — with the
+  consequence on the tag itself. Aura Sphere is both **Ballistic** and **Pulse ×1.5**: Mega
+  Launcher boosts it and Bulletproof blocks it outright. That decides games and is invisible in a
+  plain move description.
+  - A tag whose flag has a boosting ability is tinted with the "up" colour and carries the
+    multiplier; a flag that can be blocked entirely (Bulletproof, Soundproof) is tinted with the
+    "down" colour. Hovering gives the full consequence, including the defensive punishers on
+    contact moves and what negates them.
+  - Two findings from wiring it up: **Surging Strikes is a punch move**, so Iron Fist boosts it on
+    top of its guaranteed critical hits; and Aura Sphere carries both flags at once, which is why
+    it is the clearest example of the feature.
+
+### Notes
+- The flags are **derived at runtime** from the bundled calc engine (`gen.moves.get(id).flags`),
+  not transcribed, so they cannot drift from what the damage calculator actually uses. Only the
+  ability and item consequences are hand-written, because that is domain knowledge rather than data
+  the engine holds — and that hand-written half is what `tests/test-move-tags.js` (34 assertions)
+  checks: every flag the engine can emit has an entry, the six boosting abilities are recorded with
+  correctly formatted multipliers, and the two abilities that block a move outright say so in the
+  words the renderer keys its styling off.
+- Without the calc engine loaded, `moveDescriptors()` returns nothing and no tags render. Degrading
+  to silence rather than to a confident wrong answer is the contract, and it is tested.
+
+
 ## [2.4] — 2026-08-03
 
 ### Added
