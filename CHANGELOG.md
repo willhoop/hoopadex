@@ -12,6 +12,29 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [4.6] — 2026-08-03
+
+### Fixed
+- **The selected form survives navigating away and back.** Choosing Rotom-Wash, opening something
+  else and returning handed you plain Rotom again, with nothing to indicate a choice had been
+  discarded. `showForm` renders a form but deliberately does not move `adId` — a form is a view of
+  the species, not a separate entry, and both the pins and the URL hash track the species — so
+  returning re-rendered the default.
+
+  The choice is now remembered per species for the session. It is restored only when the form is
+  still loaded, so the panel never blocks on a refetch. Verified in the browser against Rotom, the
+  case the backlog named: pick Wash, open Charizard, return, and Rotom-Wash is still there.
+
+### Notes
+- Backlog item 8 (period-accurate sprites) was researched and **not** shipped. PokéAPI does serve
+  per-generation sprites at predictable paths, and the item's open question is answerable — the dex
+  already filters by generation, so nothing out of era is listed, and a missing sprite 404s into the
+  modern one. But two things stopped it: generations VII and VIII expose only 68×56 menu *icons*
+  under `icons/` alongside real sprites, and generations VIII–IX are large 3D renders that would sit
+  badly beside the pixel sprites of I–VII. It is a dex-wide visual change, and screenshots do not
+  composite in this environment. The findings are recorded on the item so the design call can be
+  made by someone who can see it.
+
 ## [4.5] — 2026-08-03
 
 ### Fixed

@@ -69,13 +69,30 @@ Clicking a team member opens its detail page.
 The defensive matchup rows currently stop at ×½ and ×2. Dual types produce ×0.25 and ×4, which are
 the ones that decide games.
 
-## 8. Sprite matches selected generation — `open`
+## 8. Sprite matches selected generation — `open` (researched 2026-08-03)
 
-Show the sprite from the selected generation rather than current artwork. PokéAPI serves these
-under `sprites.versions.generation-*`.
+Show the sprite from the selected generation rather than current artwork.
 
-**Open question.** What renders for a Pokémon that did not exist in the selected generation — the
-modern sprite, a placeholder, or is it filtered out of the list already?
+**The open question is answered.** Nothing needs a placeholder: the dex already filters by
+generation, so a Pokémon that did not exist then is not listed at all, and a Pokémon that exists but
+has no sprite for that game 404s, which an `onerror` handler can fall back to the modern sprite.
+
+**Two things found while researching it, both of which affect the design call:**
+
+1. Generations VII and VIII expose an `icons/` set alongside real sprites — 382 and 731 bytes, which
+   are 68×56 menu icons, not box sprites. Any implementation must avoid those paths. Use
+   `generation-vii/ultra-sun-ultra-moon` and `generation-viii/brilliant-diamond-shining-pearl`.
+2. Generations I–VII are pixel sprites (roughly 1–9 KB). Generation VIII (BDSP) and IX
+   (scarlet-violet) are large 3D renders, 33–42 KB. Mixing them in one list will look inconsistent.
+   The natural cut is period sprites for I–VII and the existing default for VIII, IX and Champions —
+   and for Generation IX the default *is* the Scarlet/Violet sprite, so nothing is lost.
+
+Verified paths, all HTTP 200:
+`…/sprites/pokemon/versions/generation-{i…ix}/{red-blue|crystal|emerald|platinum|black-white|x-y|ultra-sun-ultra-moon|brilliant-diamond-shining-pearl|scarlet-violet}/{id}.png`
+
+**Not shipped deliberately.** This is a dex-wide visual change and screenshots do not composite in
+this environment, so it cannot be checked by the person writing it. The research is here so the call
+takes one look rather than an evening.
 
 ## 9. Gen I type chart: Fire does not resist Ice — `done` (1.97)
 
@@ -93,10 +110,15 @@ Wicked Blow and Surging Strikes always critically hit: 1.5× damage, and the cri
 target's defensive stat boosts. Note that Unseen Fist lets contact moves bypass Protect and Detect.
 Check whether the damage calculator models the guaranteed crit, or only the description is wrong.
 
-## 12. Remember the selected form tab — `open`
+## 12. Remember the selected form tab — `done` (4.6)
 
-Navigating away from a multi-form Pokémon and back resets to the first form. Rotom is the case to
-test.
+Choosing Rotom-Wash, navigating away and returning handed you plain Rotom, with nothing to show a
+choice had been discarded. `showForm` renders a form without moving `adId` — correctly, since a form
+is a view of the species and both the pins and the hash track the species — so returning re-rendered
+the default.
+
+Remembered per species for the session, restored only when the form is still loaded so the panel
+never blocks on a refetch. Verified in the browser against Rotom.
 
 ## 13. Coverage calculator — `open`
 
