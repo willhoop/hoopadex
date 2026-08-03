@@ -977,6 +977,7 @@ button,select,input{touch-action:manipulation}
 <div class="calc-grid">
   <div class="calc-panel">
     <div class="calc-title" style="color:#F8A060">Attacker</div>
+    <div class="calc-team-row"><select id="calc-team-atk" class="filter-select" onchange="calcLoadTeamMember('atk')"><option value="">Load from my team…</option></select></div>
     <div style="display:flex;gap:10px;align-items:center"><img id="calc-atk-img" class="calc-sprite" src="" alt="" style="display:none"><div style="flex:1;position:relative"><input class="filter-input" id="calc-atk" placeholder="Pok&#233;mon..." autocomplete="off" style="width:100%;box-sizing:border-box"></div></div>
     <div style="position:relative;margin-top:6px"><input class="filter-input" id="calc-move" placeholder="Move..." autocomplete="off" style="width:100%;box-sizing:border-box"></div>
     <div id="calc-move-info" style="font-size:11px;color:#8a8a9a;margin-top:4px;min-height:14px"></div>
@@ -994,6 +995,7 @@ button,select,input{touch-action:manipulation}
   </div>
   <div class="calc-panel">
     <div class="calc-title" style="color:#6890F0">Defender</div>
+    <div class="calc-team-row"><select id="calc-team-def" class="filter-select" onchange="calcLoadTeamMember('def')"><option value="">Load from my team…</option></select></div>
     <div style="display:flex;gap:10px;align-items:center"><img id="calc-def-img" class="calc-sprite" src="" alt="" style="display:none"><div style="flex:1;position:relative"><input class="filter-input" id="calc-def" placeholder="Pok&#233;mon..." autocomplete="off" style="width:100%;box-sizing:border-box"></div></div>
     <div class="calc-row"><label id="calc-def-hpev-label">HP EVs</label><input type="number" class="filter-input" id="calc-def-hpev" min="0" max="252" value="252" oninput="calcClamp(this)" onchange="calcClamp(this);calcRun()" style="width:74px;padding:6px 10px;flex:none"></div>
     <div class="calc-row"><label id="calc-def-ev-label">Defense EVs</label><input type="number" class="filter-input" id="calc-def-ev" min="0" max="252" value="0" oninput="calcClamp(this)" onchange="calcClamp(this);calcRun()" style="width:74px;padding:6px 10px;flex:none">
@@ -1199,7 +1201,7 @@ async function showAbilityTip(e,name,isHidden){
   }
   const a=abilityCache[key];
   const _hiddenBadge=isHidden?'<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:transparent;border:1px solid var(--border2);color:#c070c0;margin-left:6px">Hidden Ability</span>':'';
-  showTooltip(e,'<div class="tooltip-title">'+a.name.replace(/-/g,' ')+_hiddenBadge+'</div><div class="tooltip-desc">'+a.desc+'</div>');
+  showTooltip(e,'<div class="tooltip-title">'+a.name.replace(/-/g,' ')+_hiddenBadge+'</div><div class="tooltip-desc">'+abilityDescForGen(a.name,a.desc)+'</div>');
 }
 
 // Check if an ability existed in the selected gen
@@ -2910,6 +2912,38 @@ function baseSpeciesId(formName){
     if(hit)return hit.id;
   }
   return 0;
+}
+
+/* PokeAPI's ability text for the four weather abilities is Generation V wording and has never been
+   updated: "Summons a sandstorm that lasts INDEFINITELY upon entering battle". That was true
+   through Gen V. From Gen VI onward ability weather runs 5 turns, or 8 holding the matching rock.
+   Snow Warning has a second staleness on top - it has summoned Snow rather than Hail since Gen IX.
+
+   So the app was stating, in Champions and in every modern generation, a duration that has been
+   wrong for three generations. It is the same class of error as the item generations: nothing in
+   the product looks broken, the sentence just is not true.
+
+   This table is HAND-MAINTAINED, which this project otherwise avoids, and the reason is worth
+   stating: neither source can supply it. PokeAPI carries one description with no generation
+   dimension, and Showdown's text is duration-neutral ("On switch-in, this Pokemon summons
+   Sandstorm") so it cannot be diffed for this either. Four entries about one documented mechanic
+   change, pinned by tests/test-weather-duration.js.
+
+   The Gen VI primal abilities are deliberately absent: Primordial Sea, Desolate Land and Delta
+   Stream really are indefinite, and PokeAPI already says so correctly. */
+const WEATHER_ABILITY_TEXT={
+  'sand-stream':  {weather:'a sandstorm', rock:'Smooth Rock'},
+  'drought':      {weather:'strong sunlight', rock:'Heat Rock'},
+  'drizzle':      {weather:'rain', rock:'Damp Rock'},
+  'snow-warning': {weather:'hail', rock:'Icy Rock', fromGen9:'snow'},
+};
+function abilityDescForGen(name,desc,genNum){
+  const w=WEATHER_ABILITY_TEXT[String(name||'').toLowerCase()];
+  if(!w)return desc;
+  const g=genNum||getDataGenNum();
+  const what=(w.fromGen9&&g>=9)?w.fromGen9:w.weather;
+  if(g<=5)return 'Summons '+what+' that lasts until it is replaced, upon entering battle.';
+  return 'Summons '+what+' for 5 turns upon entering battle, or 8 while holding a '+w.rock+'.';
 }
 
 /* One rule for whether a Pokemon - base species or alternate form - belongs in the current
@@ -6635,7 +6669,7 @@ async function showAbilityPage(abilityName){
        that, so every ability page carried the same sentence twice. The extra block is now shown
        only when it is genuinely additional text rather than a restatement. */
     const detail=(longDesc||'').replace(/\n/g,' ').trim();
-    h+='<div class="ap-desc">'+(shortDesc||detail)+'</div>';
+    h+='<div class="ap-desc">'+abilityDescForGen(abilityName,(shortDesc||detail))+'</div>';
     if(shortDesc&&detail&&!isRestatement(shortDesc,detail)){
       h+='<div class="ap-detail">'+detail+'</div>';
     }
