@@ -436,6 +436,18 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 /* Team analysis matrices. Rows are the eighteen types, columns are your team, so a hole is a
    visibly empty column rather than a sentence you have to parse. Cell colours are the type
    chart's, so the app speaks one visual language. */
+/* Search criteria tokens. Bordered, monochrome, with the criterion KIND spelled out - a reader
+   should never have to infer from colour whether "prankster" is an ability or a move. */
+#dex-filter-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
+.df-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 4px 3px 9px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);text-transform:capitalize}
+.df-chip b{font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text4)}
+.df-chip i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.df-chip button{border:none;background:none;color:var(--text4);cursor:pointer;font-size:14px;line-height:1;padding:0 4px}
+.df-chip button:hover{color:var(--eff-dn)}
+.df-wait{color:var(--text5)}
+.df-dead{color:var(--eff-dn);font-size:11px}
+.df-clear{border:none;background:none;color:var(--text4);cursor:pointer;font-size:11px;text-decoration:underline}
+body.light .df-chip{background:rgba(0,0,0,0.03)}
 .team-matrix{border-collapse:collapse;width:100%;font-size:12px;margin-top:6px}
 .team-matrix th,.team-matrix td{border:1px solid var(--border2);padding:0}
 .team-matrix th.tm-corner{width:64px;padding:6px 8px;text-align:left;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text4)}
@@ -651,10 +663,12 @@ button,select,input{touch-action:manipulation}
 <div id="smart-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);border-top:none;border-radius:0 0 12px 12px;max-height:320px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.4)"></div>
 </div>
 <select class="filter-select pokedex-only-filter" id="type-filter" onchange="onFilterChange()"><option value="">All Types</option></select>
+<select class="filter-select pokedex-only-filter" id="dex-sort" onchange="onDexSortChange()" title="Sort results"><option value="dex">Sort: Dex no.</option><option value="new">Sort: Recently added</option><option value="name">Sort: Name</option><option value="bst">Sort: BST</option><option value="hp">Sort: HP</option><option value="attack">Sort: Attack</option><option value="defense">Sort: Defense</option><option value="spa">Sort: Sp. Atk</option><option value="spd">Sort: Sp. Def</option><option value="speed">Sort: Speed</option></select>
 <select class="filter-select pokedex-only-filter" id="gen-filter" onchange="onFilterChange()">
 <option value="">All Gens</option><option value="1">Gen 1</option><option value="2">Gen 2</option><option value="3">Gen 3</option><option value="4">Gen 4</option><option value="5">Gen 5</option><option value="6">Gen 6</option><option value="7">Gen 7</option><option value="8">Gen 8</option><option value="9">Gen 9</option>
 </select></div>
 <div id="pokedex-tab">
+<div id="dex-filter-chips" style="display:none"></div>
 <div class="pinned-bar" id="pinned-bar"></div>
 <div id="detail-view" style="display:none"></div>
 <div id="list-view">
@@ -1345,6 +1359,113 @@ function champFlat(n){return String(n).toLowerCase().replace(/[^a-z0-9]/g,'')}
 function champHasMove(n){return CHAMPIONS_MOVES.has(champFlat(n))}
 function champHasItem(n){return CHAMPIONS_ITEMS.has(champFlat(n))}
 function tmScope(ids){const g=getGenMaxId();let r=(ids||[]).filter(id=>id<=g);if(isChampionsMode)r=r.filter(id=>CHAMPIONS_IDS.has(id));return r}
+/* ── Multi-criteria Pokedex search ──────────────────────────────────────────────────────
+   "A Dark type with Prankster that gets Rain Dance" is three criteria intersected, not one
+   substring match. Each criterion resolves to a SET of dex numbers with ONE request:
+   /type/{t}, /ability/{a} and /move/{m} each return their own member list, so the cost is one
+   fetch per criterion rather than loading all 1025 Pokemon to filter locally.
+   Criteria are ANDed. Results stay in whatever sort the Sort control is set to.              */
+const DEX_TYPES=['normal','fire','water','electric','grass','ice','fighting','poison','ground',
+  'flying','psychic','bug','rock','ghost','dragon','dark','steel','fairy'];
+let dexFilters=[];            // [{kind:'type'|'ability'|'move', name, label, ids:Set|null}]
+const dexIdSetCache={};       // "kind:name" -> Set of dex ids
+let dexSort='dex';
+
+const idFromUrl=u=>{const p=String(u).split('/').filter(Boolean);return parseInt(p[p.length-1])};
+
+async function resolveDexIds(kind,name){
+  const key=kind+':'+name;
+  if(dexIdSetCache[key])return dexIdSetCache[key];
+  const ep=kind==='type'?'type/':kind==='ability'?'ability/':'move/';
+  try{
+    const r=await fetch('https://pokeapi.co/api/v2/'+ep+name);
+    if(!r.ok)throw new Error('not found');
+    const d=await r.json();
+    const list=kind==='type'?(d.pokemon||[]).map(x=>idFromUrl(x.pokemon.url))
+              :kind==='ability'?(d.pokemon||[]).map(x=>idFromUrl(x.pokemon.url))
+              :(d.learned_by_pokemon||[]).map(x=>idFromUrl(x.url));
+    // Forme entries live above 10000 and are not rows in this list, so drop them.
+    const set=new Set(list.filter(n=>n>0&&n<=10000));
+    dexIdSetCache[key]=set;
+    return set;
+  }catch{ dexIdSetCache[key]=null; return null; }
+}
+
+// What kind of thing did the user type? Types are known up front; ability and move are checked
+// against the indexes the app already preloads, so a term is never guessed wrong silently.
+function classifyDexTerm(raw){
+  const t=String(raw).toLowerCase().trim().replace(/\s+/g,'-');
+  if(!t)return null;
+  if(DEX_TYPES.includes(t))return {kind:'type',name:t,label:t};
+  const abils=window._abilityIndex||[];
+  if(abils.includes(t))return {kind:'ability',name:t,label:t.replace(/-/g,' ')};
+  const moves=tmMoveIndex||[];
+  if(moves.includes(t))return {kind:'move',name:t,label:t.replace(/-/g,' ')};
+  return null;
+}
+
+async function addDexFilter(raw){
+  const c=classifyDexTerm(raw);
+  if(!c)return false;
+  if(dexFilters.some(f=>f.kind===c.kind&&f.name===c.name))return true;
+  dexFilters.push(c);
+  renderDexFilters();
+  c.ids=await resolveDexIds(c.kind,c.name);
+  renderDexFilters();
+  applyFilters();
+  return true;
+}
+function removeDexFilter(kind,name){
+  dexFilters=dexFilters.filter(f=>!(f.kind===kind&&f.name===name));
+  renderDexFilters();applyFilters();
+}
+function clearDexFilters(){dexFilters=[];renderDexFilters();applyFilters()}
+
+function renderDexFilters(){
+  const wrap=document.getElementById('dex-filter-chips');
+  if(!wrap)return;
+  if(!dexFilters.length){wrap.innerHTML='';wrap.style.display='none';return}
+  wrap.style.display='flex';
+  wrap.innerHTML=dexFilters.map(f=>{
+    const pending=f.ids===undefined?' <span class="df-wait">…</span>':'';
+    const dead=f.ids===null?' <span class="df-dead">not found</span>':'';
+    const sw=f.kind==='type'?'<i style="background:'+TC[f.name]+'"></i>':'';
+    return '<span class="df-chip df-'+f.kind+'">'+sw+'<b>'+f.kind+'</b>'+f.label+pending+dead
+      +'<button onclick="removeDexFilter(\''+f.kind+'\',\''+f.name+'\')" aria-label="Remove">&#215;</button></span>';
+  }).join('')+'<button class="df-clear" onclick="clearDexFilters()">Clear</button>';
+}
+
+// Sort comparators. "Recently added" is derived from the regulation registry rather than a
+// hand-kept list, so it stays right when a regulation is added.
+function dexSortComparator(){
+  const bst=p=>{const d=dc[p.id];return d?d.stats.reduce((a,x)=>a+x.base_stat,0):-1};
+  const stat=(p,n)=>{const d=dc[p.id];if(!d)return -1;const st=getStatsForGen(d).find(x=>x.stat.name===n);return st?st.base_stat:-1};
+  switch(dexSort){
+    case 'name':   return (a,b)=>a.name.localeCompare(b.name);
+    case 'bst':    return (a,b)=>bst(b)-bst(a);
+    case 'hp':     return (a,b)=>stat(b,'hp')-stat(a,'hp');
+    case 'attack': return (a,b)=>stat(b,'attack')-stat(a,'attack');
+    case 'defense':return (a,b)=>stat(b,'defense')-stat(a,'defense');
+    case 'spa':    return (a,b)=>stat(b,'special-attack')-stat(a,'special-attack');
+    case 'spd':    return (a,b)=>stat(b,'special-defense')-stat(a,'special-defense');
+    case 'speed':  return (a,b)=>stat(b,'speed')-stat(a,'speed');
+    case 'new':    return (a,b)=>(newestRegRank(a.id)-newestRegRank(b.id))||(a.id-b.id);
+    default:       return (a,b)=>a.id-b.id;
+  }
+}
+// 0 = added in the current regulation, 1 = present before it. Derived from the registry.
+function newestRegRank(id){
+  if(!isChampionsMode||CHAMPIONS_REGS.length<2)return 1;
+  const cur=regByShort(championsReg), idx=CHAMPIONS_REGS.indexOf(cur);
+  const prev=CHAMPIONS_REGS[idx+1];
+  if(!prev)return 1;
+  return prev.ids().has(id)?1:0;
+}
+function onDexSortChange(){
+  dexSort=document.getElementById('dex-sort').value;
+  applyFilters();
+}
+
 function applyFilters(){
   const s=document.getElementById('search-input').value.toLowerCase().trim();
   const g=document.getElementById('gen-filter').value;
@@ -1355,6 +1476,14 @@ function applyFilters(){
   else if(g){const[a,b]=GR[g];f=f.filter(p=>p.id>=a&&p.id<=b)}
   if(s){const sH=s.replace(/ /g,'-');const sFlat=s.replace(/[\s-]/g,'');f=f.filter(p=>p.name.includes(sH)||p.name.replace(/-/g,'').includes(sFlat)||String(p.id)===s||String(p.id).padStart(4,'0').includes(s)||(s.length>=3&&fuzzyScore(sFlat,p.name)>0.4))}
   if(t)f=f.filter(p=>{const d=dc[p.id];return d?d.types.some(x=>x.type.name===t):false});
+  // Every resolved criterion is ANDed. A criterion still loading (ids undefined) does not filter
+  // yet; one that failed to resolve (null) matches nothing, so a typo never silently widens.
+  dexFilters.forEach(fl=>{
+    if(fl.ids===undefined)return;
+    if(fl.ids===null){f=[];return}
+    f=f.filter(p=>fl.ids.has(p.id));
+  });
+  f=f.slice().sort(dexSortComparator());
   cf=f;vp=0;renderList();
 }
 // Fuzzy match: handles typos, transpositions, extra/missing chars
