@@ -12,6 +12,38 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.4] — 2026-08-03
+
+### Added
+- **Multi-criteria Pokédex search.** "A Dark type with Prankster that gets Rain Dance" is three
+  criteria intersected, not one substring match. Type a term on the Pokédex tab and press Enter and
+  it becomes a filter token; they stack and are ANDed. That query returns Murkrow, Sableye,
+  Purrloin and Liepard.
+  - Each criterion resolves to a **set of dex numbers with one request**: `/type/{t}`,
+    `/ability/{a}` and `/move/{m}` each return their own member list. Loading all 1025 Pokémon to
+    filter locally is what makes this kind of search feel impossible in a client-only app; it is
+    never done. Sets are cached, so re-adding a criterion is free.
+  - A term is classified against the type list and the ability and move indexes the app already
+    preloads. An unrecognised term is **never guessed at** — it falls through to the ordinary
+    substring search rather than silently changing what you are looking at. A criterion that fails
+    to resolve matches nothing rather than quietly widening the results.
+  - Tokens name their own kind ("ABILITY Prankster"), so a reader never has to infer from colour
+    whether a term was read as an ability or a move.
+- **A sort control**, covering dex number, name, BST, each of the six stats, and **recently added**.
+  Recently-added is derived from the regulation registry — the set difference between the current
+  regulation and the one before it — so it stays correct when a regulation is added and needs no
+  hand-kept list. In Champions it currently surfaces exactly the 22 Pokémon added in Regulation M-B.
+
+### Notes
+- This makes the hand-written "New in Pokémon Champions" banner redundant; removing it is queued
+  rather than done here, so the sort can be checked against the banner it replaces first.
+- `tests/test-dex-search.js` (19 assertions). Worth recording: its first draft **passed its sort
+  assertions without ever changing the sort** — `let dexSort` inside the sliced code is scoped to
+  the eval, so the outer stub assignment did nothing. The suite now exports a setter that closes
+  over the real binding, and a mutation reversing the comparator fails it. The tautological
+  "recently added" assertion in that draft was replaced with a real one.
+
+
 ## [2.3] — 2026-08-03
 
 ### Fixed
