@@ -12,6 +12,53 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [1.96] — 2026-08-02
+
+### Changed
+- **`PAST_STATS` is now generated, not hand-typed.** The Krookodile bug fixed in 1.95 was one
+  symptom of a table that was largely wrong. Auditing all 43 entries against Pokémon Showdown's
+  per-generation mod data found only 10 correct. The table is now derived by diffing
+  `data/mods/gen{5,6,7,8}/pokedex.ts` against Showdown's current Pokédex, and covers 58 Pokémon
+  across four cutoffs. The two independent spot checks used to validate the derivation — Serebii's
+  Black/White and X/Y dex entries for Krookodile and Dodrio — both agree with it.
+
+### Fixed
+- **Ten species showed Sun/Moon stats one generation early.** Arbok, Dugtrio, Farfetch'd, Dodrio,
+  Electrode, Exeggutor, Noctowl, Ariados, Qwilfish, Magcargo and Corsola had their Generation VII
+  revision filed under a Generation VI cutoff, so the Gen VI view served Gen VII values. Dugtrio is
+  the clearest case: its Attack went 80 → 100 in Sun/Moon, but Gen VI displayed 100.
+- **Eleven entries asserted values that were never real.** Alongside the mis-filed revisions sat
+  invented figures — Dugtrio at 100 Speed (it has been 120 in every generation), Venomoth at 65
+  Sp. Atk (always 90), and similar for Starmie, Quagsire, Magcargo and Corsola. A further 15
+  entries were no-ops that rewrote the present-day value over itself.
+- **41 revisions were missing entirely**, including every Generation VIII and IX change (Aegislash's
+  150 → 140 defences, Cresselia, Zacian and Zamazenta) and 18 Generation VI changes.
+- **`getStatsForGen()` layered revisions in the wrong order.** It walked the cutoffs with
+  `Object.entries()`, which visits integer-like keys in ascending order, so for a species revised
+  more than once the *newest* revision was applied last and won. Revisions are now applied newest
+  first, leaving the era closest to the selected generation to win. No shipping species had two
+  revisions at the time, so this was latent rather than visible — the new table introduces the
+  possibility, so the bug is fixed ahead of it.
+
+### Added
+- **`tests/test-past-stats.js`** (29 assertions), which slices the real table and the real
+  `getStatsForGen()` out of `app/index.html` so it cannot drift from shipped code. It pins
+  Krookodile, the Dugtrio mis-filing, the Pikachu/Raichu duplicate-key regression, Aegislash and
+  Cresselia, and asserts the structural invariants: no duplicate ids in the literal, every cutoff
+  in 6..9, every stat name a valid PokéAPI name. Verified to have teeth by mutation: removing the
+  Krookodile entry, re-filing Dugtrio under Gen VI, reintroducing a duplicate id, and reversing the
+  layering order each fail the suite.
+
+### Notes
+- Base stats were stable from Generation II through Generation V — Showdown carries no stat
+  overrides for gens 2, 3 or 4 — so cutoff 6 is the earliest that can exist.
+- Generation I is still not modelled. It used a single Special stat rather than the Sp. Atk /
+  Sp. Def split, which is a display question (one Special bar versus two identical ones) rather
+  than a value substitution. Recorded as open; see `docs/BACKLOG.md`.
+- CI now discovers `tests/test-*.js` by glob instead of naming one file, so a new suite cannot be
+  added without being run.
+
+
 ## [1.95] — 2026-08-02
 
 ### Fixed

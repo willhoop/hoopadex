@@ -1,0 +1,100 @@
+# Backlog — HoopaDex
+
+Planned work, newest thinking at the top of each entry. This file is the single list; anything
+picked up moves to `CHANGELOG.md` when it ships. Items are not in priority order — the number is
+an identifier, not a rank.
+
+Status values: `open`, `in progress`, `blocked`, `done`.
+
+---
+
+## 1. Nuzlocke tracker — `open`
+
+Track a Nuzlocke run inside the dex: first-encounter per route, which encounters are used, and
+deaths.
+
+**Open questions.** Which ruleset is the default (species clause, dupes clause, shiny clause)? Does
+it persist in `localStorage` or export to a file? Is it per-game, or one run at a time?
+
+## 2. ROM save upload for boss calc — `open`
+
+Upload a save file and load the player's actual party into the damage calculator, so boss fights
+are computed against real EVs, IVs, levels and items rather than assumptions.
+
+**Open questions.** Which save formats — Gen III `.sav`, Gen IV/V DS saves, all of them? Does the
+save stay in the browser (it should: parsing client-side keeps a personal file off any server)?
+Does it import the party only, or the box too?
+
+## 3. Fix dungeon labels — `open`
+
+**Blocked on detail.** No string matching `dungeon` exists anywhere in `app/index.html`, so this
+needs the specific labels that are wrong, or a screenshot. Likely refers to location names in the
+Locations tab.
+
+## 4. Regional dex filter toggle — `open`
+
+Toggle the Pokédex between national numbering and the selected game's regional dex.
+
+## 5. Strip Fairy type Gen I–V — `open`
+
+Fairy did not exist before Gen VI. `getMoveTypeForGen()` already reverts Fairy *moves* to Normal
+for gens < 6 (`app/index.html`, in the move-type resolver), but Pokémon typing is not covered —
+Clefable should read Normal in Gen V, and the type chart and matchups should follow. Check the
+Team Builder and Dmg Calc paths too, not just the detail panel.
+
+## 6. Team Builder: click through to Pokédex page — `open`
+
+Clicking a team member opens its detail page.
+
+## 7. Team Builder: show ×0.25 and ×4 matchups — `open`
+
+The defensive matchup rows currently stop at ×½ and ×2. Dual types produce ×0.25 and ×4, which are
+the ones that decide games.
+
+## 8. Sprite matches selected generation — `open`
+
+Show the sprite from the selected generation rather than current artwork. PokéAPI serves these
+under `sprites.versions.generation-*`.
+
+**Open question.** What renders for a Pokémon that did not exist in the selected generation — the
+modern sprite, a placeholder, or is it filtered out of the list already?
+
+## 9. Gen I type chart: Fire does not resist Ice — `open`
+
+In Gen I, Fire did not resist Ice; that resistance was added in Gen II. Verify the rest of the Gen I
+chart in the same pass — Bug/Poison and Ghost/Psychic also differ from the modern chart.
+
+## 10. Verify stat bar colours — `open`
+
+**Needs a definition of correct.** Are the bars coloured by absolute thresholds, by percentile
+against all Pokémon, or by a fixed scale to 255? Say which, and the check becomes mechanical.
+
+## 11. Fix Urshifu move descriptions — `open`
+
+Wicked Blow and Surging Strikes always critically hit: 1.5× damage, and the crit ignores the
+target's defensive stat boosts. Note that Unseen Fist lets contact moves bypass Protect and Detect.
+Check whether the damage calculator models the guaranteed crit, or only the description is wrong.
+
+## 12. Remember the selected form tab — `open`
+
+Navigating away from a multi-form Pokémon and back resets to the first form. Rotom is the case to
+test.
+
+## 13. Coverage calculator — `open`
+
+Enter a set of move types; see which types are hit super effectively, neutrally, resisted and
+immune.
+
+**Open question.** Where does it live — its own tab, or inside Team Builder next to the defensive
+matchups?
+
+---
+
+## 14. Generation I Special stat — `open`
+
+*Added 2026-08-02 while fixing the historical base stat table (see CHANGELOG 1.96).*
+
+Gen I had a single Special stat rather than the Sp. Atk / Sp. Def split. `PAST_STATS` deliberately
+does not model this, because it is a display question rather than a value substitution: the dex
+would need to show one Special bar for Gen I, not two identical ones. Showdown's `gen1` mod carries
+the values (152 species) whenever the display side is decided.

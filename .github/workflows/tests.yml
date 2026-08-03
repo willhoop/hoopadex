@@ -11,4 +11,12 @@ jobs:
         with:
           node-version: '20'
       - name: Run test suite
-        run: node tests/test-hash-routing.js
+        # Discover the suites rather than listing them, so a new tests/test-*.js
+        # file cannot be added without CI picking it up.
+        run: |
+          status=0
+          for f in tests/test-*.js; do
+            echo "== $f =="
+            node "$f" || status=1
+          done
+          exit $status

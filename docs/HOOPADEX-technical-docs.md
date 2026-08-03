@@ -145,7 +145,7 @@ The application holds these tables. They let it show historical data correctly.
 |---|---|
 | `GEN_GAMES`, `VG_GEN` | Map a game or a version group to a generation number. |
 | `pastTypes` | The types that a Pokemon had in earlier generations. |
-| `PAST_STATS` | The base stats that a Pokemon had in earlier generations. |
+| `PAST_STATS` | The base stats that a Pokemon had in earlier generations. Generated, not hand-typed — see 3.4. |
 | `ITEM_INTRO_GEN` | The generation that introduced each item. |
 | `EVO_OVERRIDES` | Corrections to evolution chains. |
 | `REGIONAL` | Regional forms and the generation that introduced them. |
