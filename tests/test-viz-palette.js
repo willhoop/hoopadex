@@ -80,5 +80,25 @@ check(/\.type-table td\.cell\{[^}]*background:transparent/.test(src),
 check(/function tcCross\(/.test(src), 'type chart has a row/column crosshair', '');
 check(/tcCross\(this\)/.test(src), 'cells are wired to the crosshair', '');
 
+// --- PokéAPI encounter-data block list: one declaration, and Sword/Shield not on it ----
+// This list existed twice — in loadLocations() and in renderEVSpots() — and the copies drifted:
+// the Locations tab got fixed in 1.99 while EV Training carried on hiding Galar. Assert there is
+// exactly one declaration and that both readers share it.
+const decls = [...src.matchAll(/const\s+NO_ENCOUNTER_DATA\s*=/g)].length;
+check(decls === 1, 'the no-encounter-data list is declared exactly once', `${decls} declaration(s)`);
+check(!/UNSUPPORTED_VERSIONS/.test(src), 'the old duplicated constant is gone', '');
+const listMatch = src.match(/const NO_ENCOUNTER_DATA=\[([^\]]*)\]/);
+check(!!listMatch, 'the list is readable', '');
+if (listMatch) {
+  const list = listMatch[1];
+  check(!/'sword'/.test(list), 'Sword is not blocked — PokéAPI serves Galar encounters', list);
+  check(!/'shield'/.test(list), 'Shield is not blocked — PokéAPI serves Galar encounters', list);
+  for (const g of ['scarlet', 'violet', 'legends-arceus']) {
+    check(list.includes(`'${g}'`), `${g} is still blocked — PokéAPI genuinely has no data`, list);
+  }
+}
+const users = [...src.matchAll(/NO_ENCOUNTER_DATA\.includes/g)].length;
+check(users === 2, 'both the Locations tab and the EV spots read the same list', `${users} use(s)`);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

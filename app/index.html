@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 2.0 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 2.1 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -3374,10 +3374,9 @@ async function renderEVSpots(){
   // For each yielder, find locations where it appears in this game
   // Auto-load region + location area data if not cached
   const regionId=VER_REGION[game];
-  const UNSUPPORTED_VERSIONS=['sword','shield','brilliant-diamond','shining-pearl','legends-arceus','scarlet','violet'];
   const locKey=regionId+'_'+game;
   
-  if(regionId&&!UNSUPPORTED_VERSIONS.includes(game)&&!locCache[locKey]){
+  if(regionId&&!NO_ENCOUNTER_DATA.includes(game)&&!locCache[locKey]){
     container.innerHTML='<div style="text-align:center;padding:20px;color:#6a6a7a"><div class="spinner"></div> Loading location data...</div>';
     try{
       const r=await fetch('https://pokeapi.co/api/v2/region/'+regionId);
@@ -4318,6 +4317,12 @@ function renderTMResults(){
 }
 
 // === LOCATIONS ===
+// Games PokeAPI carries no encounter data for. Verified against the API on 2026-08-02: Sword and
+// Shield DO have encounters (Galar is region 8, 92 locations, plus the Isle of Armor and Crown
+// Tundra version entries) and were wrongly listed here, so both the Locations tab and the EV
+// Training spots were hiding real data. Re-check the API before adding a game; never assume by
+// generation. Declared once - this list previously existed in two places and they drifted apart.
+const NO_ENCOUNTER_DATA=['brilliant-diamond','shining-pearl','legends-arceus','scarlet','violet'];
 const VER_REGION={
   'red':1,'blue':1,'yellow':1,
   'gold':2,'silver':2,'crystal':2,
@@ -4455,8 +4460,7 @@ async function loadLocations(){
   // Sword and Shield DO have encounters (Galar is region 8, 92 locations, plus the Isle of Armor
   // and Crown Tundra version entries), and were wrongly listed here - the app was hiding real data.
   // Re-check before adding to this list; do not assume by generation.
-  const UNSUPPORTED_VERSIONS=['brilliant-diamond','shining-pearl','legends-arceus','scarlet','violet'];
-  if(UNSUPPORTED_VERSIONS.includes(locVersion)){
+  if(NO_ENCOUNTER_DATA.includes(locVersion)){
     document.getElementById('loc-list').innerHTML='<div style="color:#8a8a9a;font-size:13px;padding:16px;line-height:1.5">&#x26A0; Location encounter data is not available for <b style="color:#c8c8d8">'+capName(locVersion)+'</b>.<br><br><span style="font-size:11px;color:#5a5a6a">Pok&#233;API has no encounter data for Brilliant Diamond, Shining Pearl, Legends: Arceus, Scarlet or Violet. Sword and Shield are supported.</span></div>';
     document.getElementById('loc-detail').innerHTML='';
     return;

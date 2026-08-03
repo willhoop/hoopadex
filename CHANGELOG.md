@@ -12,6 +12,24 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.1] — 2026-08-02
+
+### Fixed
+- **EV Training was still hiding Sword and Shield.** The list of games PokéAPI has no encounter data
+  for existed in **two** places — `loadLocations()` and `renderEVSpots()` — and 1.99 only fixed one.
+  The Locations tab started serving Galar while EV Training carried on reporting that the data did
+  not exist. This is exactly how the two drifted in the first place, so the list is now declared once
+  as `NO_ENCOUNTER_DATA` and both readers share it. Verified: EV training spots for Sword now list
+  Clefable and the rest with their location counts.
+
+### Notes
+- Found by checking the deployed file rather than the diff — `grep` on the live page returned two
+  `UNSUPPORTED_VERSIONS` declarations where there should have been one. Shipping 1.99 as "fixed" was
+  wrong; it was half fixed.
+- `tests/test-viz-palette.js` now also asserts the list is declared exactly once, that Sword and
+  Shield are absent from it, that the genuinely-empty games are still present, and that both call
+  sites read the same constant.
+
 ## [2.0] — 2026-08-02
 
 ### Added
