@@ -12,6 +12,22 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [4.3] — 2026-08-03
+
+### Fixed
+- **Dismissing the team editor no longer saves.** Clicking the backdrop and clicking the ✕ both
+  called `saveTeamEdit`, so every gesture that reads as "dismiss this" silently wrote the form's
+  current state to the slot — no undo, and no cancel anywhere in the dialog.
+
+  This is what turned the 3.9 stat-key bug into actual data loss rather than a display annoyance:
+  you never had to press Done to lose an imported spread, only click outside the dialog. The read
+  path was fixed in 3.9, but a destructive modal whose only exit is "save" is still the wrong
+  default, and the next bug in that dialog would have done the same thing.
+
+  Backdrop, ✕ and Escape all discard now; there is an explicit Cancel; Done is the only thing that
+  commits. Guarded in `tests/test-team-edit-stats.js`, which fails on six assertions against the
+  real 3.9 source.
+
 ## [4.2] — 2026-08-03
 
 ### Added

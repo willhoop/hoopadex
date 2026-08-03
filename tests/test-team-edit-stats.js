@@ -111,5 +111,34 @@ check(JSON.stringify(roundTrip({ hp: 4, atk: 32, spe: 30 })) === JSON.stringify(
 check(JSON.stringify(roundTrip({})) === '{}', 'an empty spread stays empty');
 check(JSON.stringify(roundTrip(undefined)) === '{}', 'a missing spread does not throw');
 
+/* --- dismissal must not commit -------------------------------------------------------------
+   The read bug above destroyed spreads without anyone pressing Done, because the backdrop and the X
+   both called saveTeamEdit. Every gesture that reads as "dismiss this" wrote the form's current
+   state to the slot, with no undo and no cancel anywhere in the dialog. Fixing the read path
+   removes the corruption, but a destructive modal whose only exit is "save" is still wrong, and the
+   next bug in that dialog would do exactly the same thing. These assert on the shipped markup. */
+const overlayLine = lines.find(l => l.includes('id="team-edit-overlay"'));
+check(!!overlayLine, 'found the editor overlay');
+if (overlayLine) {
+  check(/if\(event\.target===this\)closeTeamEdit\(\)/.test(overlayLine),
+    'clicking the backdrop discards rather than saving', overlayLine.slice(0, 140));
+  check(!/if\(event\.target===this\)saveTeamEdit/.test(overlayLine),
+    'the backdrop no longer commits the form', overlayLine.slice(0, 140));
+}
+const closeBtn = lines.find(l => l.includes('&#x2715;</button>') && l.includes('align-self:flex-start'));
+check(!!closeBtn, 'found the X button');
+if (closeBtn) check(/onclick="closeTeamEdit\(\)"/.test(closeBtn),
+  'the X discards rather than saving', closeBtn.slice(0, 120));
+
+check(lines.some(l => />Cancel<\/button>/.test(l)), 'the dialog offers an explicit Cancel');
+check(lines.some(l => /saveTeamEdit\('\+idx\+'\)"[^>]*>Done<\/button>/.test(l)),
+  'Done is still the thing that commits');
+check(lines.some(l => /function teamEditEscape\(e\)\{ if\(e\.key==='Escape'\)closeTeamEdit\(\); \}/.test(l)),
+  'Escape discards too');
+check(lines.some(l => /document\.addEventListener\('keydown',teamEditEscape\)/.test(l)),
+  'the Escape handler is bound when the dialog opens');
+check(lines.some(l => /document\.removeEventListener\('keydown',teamEditEscape\)/.test(l)),
+  'and unbound when it closes, so it does not leak across opens');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

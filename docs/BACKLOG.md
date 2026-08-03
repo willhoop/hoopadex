@@ -262,16 +262,18 @@ and Champions-legality questions only want answering once.
 Articles on the move classes, plus item changes surfaced in the regulation diff with a link to the
 patch notes.
 
-## 27. Team editor: clicking the backdrop silently saves — `open`
+## 27. Team editor: clicking the backdrop silently saves — `done` (4.3)
 
-*Found 2026-08-03 while fixing the stat-spread bug (3.9).* The overlay is
-`onclick="if(event.target===this)saveTeamEdit(idx)"` — there is no cancel. Clicking outside the
-dialog commits whatever state the fields are in, and there is no undo.
+*Found 2026-08-03 while fixing the stat-spread bug; fixed in 4.3.*
 
-That is what turned the 3.9 read bug from an annoyance into data loss: you did not have to press
-Done to lose a spread. The write path is correct now, but a modal whose only dismissal is "save"
-is still the wrong default for a destructive edit. Consider a real Cancel, or making backdrop
-dismissal discard.
+The overlay was `onclick="if(event.target===this)saveTeamEdit(idx)"`, and the ✕ called
+`saveTeamEdit` too. Both gestures read as "dismiss this" and both committed, with no undo and no
+cancel in the dialog at all.
+
+That is what made the 3.9 read bug destructive rather than cosmetic — losing a spread needed nothing
+more than clicking outside the dialog. Backdrop, ✕ and Escape now discard, there is an explicit
+Cancel, and Done is the only thing that commits. `tests/test-team-edit-stats.js` asserts all of it
+against the shipped markup and fails six ways against the real 3.9 file.
 
 ## 28. Hidden-ability pill needs a solid colour — `done` (3.8)
 
