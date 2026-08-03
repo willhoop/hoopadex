@@ -12,6 +12,40 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.1] — 2026-08-03
+
+### Fixed
+- **The weather abilities claimed a duration that has been wrong for three generations.** PokéAPI's
+  text is Generation V wording and has never been updated — "Summons a sandstorm that lasts
+  **indefinitely** upon entering battle". True through Gen V; from Gen VI ability weather runs 5
+  turns, or 8 holding the matching rock. All four are affected: Sand Stream, Drought, Drizzle and
+  Snow Warning. Snow Warning carried a second staleness — it has summoned **Snow**, not Hail, since
+  Gen IX.
+
+  Corrected per generation, so Gen V still reads "lasts until it is replaced" and Champions reads
+  "for 5 turns … or 8 while holding a Smooth Rock". Reported by Will.
+
+  This adds a **hand-maintained table**, which this project otherwise avoids, and the reason is
+  worth recording: neither source can supply the fact. PokéAPI carries one description with no
+  generation dimension, and Showdown's wording is duration-neutral, so there is nothing to diff
+  against. Four entries about one documented mechanic change, pinned by
+  `tests/test-weather-duration.js`. Primordial Sea, Desolate Land and Delta Stream are deliberately
+  *not* overridden — those genuinely are indefinite and PokéAPI already says so.
+
+### Added
+- **Load a saved team member into either side of the damage calculator.** The only route before was
+  the Calc button on a Team Builder slot, which loaded the **attacker** only and carried species,
+  moves, item and ability but **not the stat spread or the nature** — so the calculator ran your set
+  against a default 32/Neutral and quietly answered a different question from the one you asked.
+  There was no way at all to put a team member on the defending side, which is the half you usually
+  want: *does this survive that*.
+
+  Both panels now have a "Load from my team" picker that applies the spread and translates the
+  saved nature into the multiplier that side uses. A Careful Tyranitar with 20 HP / 32 SpD loads as
+  a defender with HP SP 20, Defence SP 32 and a boosting nature, not as a default.
+
+---
+
 ## [5.0] — 2026-08-03
 
 ### Fixed

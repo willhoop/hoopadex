@@ -82,5 +82,11 @@ check(desc('desolate-land', 'x', 9) === 'x', 'nor is Desolate Land');
 check(desc('delta-stream', 'x', 9) === 'x', 'nor is Delta Stream');
 check(desc(undefined, 'x', 9) === 'x', 'a missing name does not throw');
 
+// Grammar, because a wrong article reads as a bug in a page about accuracy.
+check(/holding an Icy Rock/.test(desc('snow-warning','',9)),
+  'Icy Rock takes "an"', desc('snow-warning','',9));
+check(/holding a Smooth Rock/.test(desc('sand-stream','',9)),
+  'Smooth Rock takes "a"', desc('sand-stream','',9));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

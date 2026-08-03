@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.0 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.1 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -776,6 +776,9 @@ body.light .nature-matrix tr.nm-hi td.nm-cell,body.light .nature-matrix td.nm-ce
 .calc-panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px}
 .calc-title{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
 .calc-sprite{width:56px;height:56px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4))}
+.calc-team-row{margin:0 0 10px}
+.calc-team-row select{width:100%;font-size:12.5px;padding:7px 10px}
+.calc-team-row select:disabled{opacity:.5;cursor:not-allowed}
 .calc-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
 .calc-row label{font-size:12px;color:#8a8a9a;font-weight:700;min-width:86px;display:flex;align-items:center;gap:5px}
 .calc-row .filter-select{padding:7px 10px;font-size:12px}
@@ -2943,7 +2946,9 @@ function abilityDescForGen(name,desc,genNum){
   const g=genNum||getDataGenNum();
   const what=(w.fromGen9&&g>=9)?w.fromGen9:w.weather;
   if(g<=5)return 'Summons '+what+' that lasts until it is replaced, upon entering battle.';
-  return 'Summons '+what+' for 5 turns upon entering battle, or 8 while holding a '+w.rock+'.';
+  // "an Icy Rock", not "a Icy Rock" - the only vowel-initial one, but a wrong article reads as a bug.
+  const article=/^[AEIOU]/.test(w.rock)?'an':'a';
+  return 'Summons '+what+' for 5 turns upon entering battle, or 8 while holding '+article+' '+w.rock+'.';
 }
 
 /* One rule for whether a Pokemon - base species or alternate form - belongs in the current
@@ -8837,6 +8842,7 @@ function calcRoster(){
 }
 function renderCalcTab(){
   calcInitAC();
+  calcRefreshTeamPickers();   // the team can change between visits
   const lv=document.getElementById('calc-level');
   if(isChampionsMode){lv.value=50;lv.disabled=true}else{lv.disabled=false}
   // Champions uses Stat Points (0-32, +1 stat each, no IVs); other gens use EVs
@@ -8894,6 +8900,76 @@ async function calcPickPoke(side){
   }
   calcRun();
 }
+/* Load a saved team member into either side of the calculator.
+   The only route before this was the Calc button on a Team Builder slot, which loaded the ATTACKER
+   only and carried species, moves, item and ability but NOT the stat spread or the nature - so the
+   calculator ran your set against a default 32/Neutral and quietly answered a different question
+   from the one you asked. There was no way at all to put a team member on the defending side, which
+   is the half you usually want: "does this survive that". The spread is the point of saving a set,
+   so it is applied here. */
+const CALC_STAT_LABEL={hp:'HP',attack:'Atk',defense:'Def','special-attack':'SpA','special-defense':'SpD',speed:'Spe'};
+/* A nature is stored by name; each side of the calculator takes a single multiplier for the one
+   stat it uses. Anything that neither raises nor lowers a relevant stat is neutral here. */
+const CALC_NATURE={Adamant:['attack','special-attack'],Modest:['special-attack','attack'],
+  Jolly:['speed','special-attack'],Timid:['speed','attack'],Bold:['defense','attack'],
+  Impish:['defense','special-attack'],Calm:['special-defense','attack'],Careful:['special-defense','special-attack'],
+  Brave:['attack','speed'],Quiet:['special-attack','speed'],Relaxed:['defense','speed'],Sassy:['special-defense','speed'],
+  Lonely:['attack','defense'],Mild:['special-attack','defense'],Gentle:['special-defense','defense'],Hasty:['speed','defense'],
+  Naughty:['attack','special-defense'],Rash:['special-attack','special-defense'],Lax:['defense','special-defense'],Naive:['speed','special-defense']};
+function calcNatureMultiplier(natureName,side){
+  const n=CALC_NATURE[natureName];
+  if(!n)return 1;
+  const relevant=side==='atk'?['attack','special-attack']:['defense','special-defense'];
+  if(relevant.indexOf(n[0])>=0)return 1.1;
+  if(relevant.indexOf(n[1])>=0)return 0.9;
+  return 1;
+}
+function calcRefreshTeamPickers(){
+  ['atk','def'].forEach(function(side){
+    const sel=document.getElementById('calc-team-'+side);
+    if(!sel)return;
+    const filled=teamSlots.map(function(p,i){return {p:p,i:i}}).filter(function(x){return x.p});
+    const keep=sel.value;
+    sel.innerHTML='<option value="">'+(filled.length?'Load from my team…':'No team saved yet')+'</option>'
+      +filled.map(function(x){return '<option value="'+x.i+'">'+formDisplayName(x.p.name)+'</option>'}).join('');
+    if(keep&&sel.querySelector('option[value="'+keep+'"]'))sel.value=keep;
+    sel.disabled=!filled.length;
+  });
+}
+async function calcLoadTeamMember(side){
+  const sel=document.getElementById('calc-team-'+side);
+  if(!sel||sel.value==='')return;
+  const p=teamSlots[parseInt(sel.value)];
+  if(!p)return;
+  const inp=document.getElementById('calc-'+side);
+  if(inp)inp.value=formDisplayName(p.name);
+  await calcPickPoke(side);          // species, sprite, ability and - for the attacker - the moves
+  const set=p.smogonSet||{};
+  const put=function(id,v){const el=document.getElementById(id);if(el&&v!==undefined&&v!=='')el.value=v};
+  put('calc-'+side+'-item',set.item);
+  put('calc-'+side+'-abil',set.ability);
+  const evs=readStatObj(set.evs||{});
+  const nat=calcNatureMultiplier(set.nature,side);
+  if(side==='atk'){
+    put('calc-atk-ev',String(Math.max(evs['attack']||0,evs['special-attack']||0)));
+    const ns=document.getElementById('calc-atk-nat'); if(ns)ns.value=String(nat);
+  }else{
+    put('calc-def-hpev',String(evs['hp']||0));
+    put('calc-def-ev',String(Math.max(evs['defense']||0,evs['special-defense']||0)));
+    const ns=document.getElementById('calc-def-nat'); if(ns)ns.value=String(nat);
+  }
+  const banner=document.getElementById('calc-set-banner');
+  if(banner){
+    banner.style.display='';
+    const spread=Object.keys(evs).length
+      ? Object.entries(evs).map(function(e){return e[1]+' '+(CALC_STAT_LABEL[e[0]]||e[0])}).join(' / ')
+      : 'no stat points set';
+    banner.innerHTML='<b style="text-transform:capitalize">'+formDisplayName(p.name)+'</b> loaded as '
+      +(side==='atk'?'attacker':'defender')+' · '+spread+(set.nature?' · '+set.nature:'');
+  }
+  calcRun();
+}
+
 function calcBase(p,name){const s=(p.stats||[]).find(x=>x.stat.name===name);return s?s.base_stat:80}
 function calcStatVal(base,lv,ev,natMult){return Math.floor((Math.floor((2*base+31+Math.floor(ev/4))*lv/100)+5)*natMult)}
 function calcHPStat(base,lv,ev){return Math.floor((2*base+31+Math.floor(ev/4))*lv/100)+lv+10}

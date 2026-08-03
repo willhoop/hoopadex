@@ -281,13 +281,16 @@ assertions.
 It also documents the floored nature multiplier: a hindering nature makes the first Stat Point worth
 zero, which is the mechanism behind item 22's finding.
 
-## 24. Damage calculator: team selector and paste both sides — `open`
+## 24. Damage calculator: team selector and paste both sides — `done` (5.1, partly)
 
-Pick attacker and defender from the built team; paste a full set for either side; auto-populate all
-four moves; report Showdown-style damage ranges.
+**Done:** both panels have a "Load from my team" picker. It applies the saved stat spread and
+translates the nature into the multiplier that side uses — the previous route (the Calc button on a
+Team Builder slot) loaded the attacker only, and carried moves, item and ability but *not* the
+spread, so the calculator silently answered a different question. There was no way to load a
+defender at all, which is the half you usually want: does this survive that.
 
-Overlaps the "still open" half of item 19 — the calc does not yet apply imported EVs, IVs, level or
-nature.
+**Still open:** pasting a full Showdown set directly into either side of the calculator, without
+going through the Team Builder first.
 
 ## 25. Megas, regionals and alt forms in Team Builder and calc pickers — `done` (4.4)
 
