@@ -27,8 +27,8 @@ const lines = fs.readFileSync(SRC, 'utf8').split(/\r?\n/);
 const start = lines.findIndex(l => l.startsWith('function bulkStat('));
 const end = lines.findIndex((l, i) => i > start && l.startsWith('function renderBulk('));
 if (start < 0 || end < 0) throw new Error('could not locate the bulk helpers');
-const app = eval(lines.slice(start, end).join('\n') + '\n;({bulkStat,optimalBulkSplit})');
-const { bulkStat: stat, optimalBulkSplit: split } = app;
+const app = eval(lines.slice(start, end).join('\n') + '\n;({bulkStat,optimalBulkSplit,optimalBulkSpread})');
+const { bulkStat: stat, optimalBulkSplit: split, optimalBulkSpread: spread } = app;
 
 let pass = 0, fail = 0;
 function check(ok, l, d) {
@@ -161,6 +161,63 @@ check(blissey.hpSP === CAP, 'and still fills HP with what the cap allows rather 
 const blisseyTight = split(255, 10, 20, 1);
 check(blisseyTight.defSP === 20 && blisseyTight.hpSP === 0,
   'with a tight budget Blissey puts every point into Defence', blisseyTight);
+
+/* --- the three-way spread: HP helps BOTH defences ------------------------------------------
+   optimalBulkSplit answers "HP or Def?" in isolation, and balance wins on that objective. But a
+   point of HP multiplies both defences while a point of Defence only helps against physical, so
+   against a mixed attacker the isolated answer is actively misleading — it told Garchomp to put
+   everything into Defence when the right answer is everything into HP.
+
+   Total hits survived scales with HP*(Def+SpD). One HP point gains (Def+SpD); one defence point
+   gains HP. So the target is HP = Def + SpD — NOT HP = 2*Def. The two coincide only when the
+   defences are equal, which is exactly why the folk rule survives and exactly where it fails. */
+function bruteSpread(bh, bd, bs, budget, nat) {
+  let best = -1;
+  for (let h = 0; h <= Math.min(CAP, budget); h++)
+    for (let d = 0; d <= Math.min(CAP, budget - h); d++) {
+      const s2 = Math.min(CAP, budget - h - d);
+      const v = hp(bh, h) * (df(bd, d, nat) + df(bs, s2, nat));
+      if (v > best) best = v;
+    }
+  return best;
+}
+check(typeof spread === 'function', 'optimalBulkSpread was sliced out of the app', typeof spread);
+
+let sChecked = 0, sMiss = 0;
+for (const nat of [1, 1.1, 0.9])
+  for (let bh = 20; bh <= 200; bh += 20)
+    for (let bd = 20; bd <= 200; bd += 20)
+      for (let bs = 20; bs <= 200; bs += 40)
+        for (const budget of [48, 30, 16]) {
+          const got = spread(bh, bd, bs, budget, nat);
+          if (got.value !== bruteSpread(bh, bd, bs, budget, nat)) sMiss++;
+          sChecked++;
+        }
+check(sChecked > 2000, 'the three-way sweep ran', sChecked);
+check(sMiss === 0, 'optimalBulkSpread equals brute force everywhere swept', { sChecked, sMiss });
+
+// The case that proves the objective changed. Garchomp 108/95/85.
+const chompOneSided = split(108, 95, 32, 1);
+const chompMixed = spread(108, 95, 85, 48, 1);
+check(chompOneSided.hpSP === 0,
+  'the one-sided answer for Garchomp is all Defence — this is what was wrong', chompOneSided);
+check(chompMixed.hpSP > chompMixed.defSP,
+  'the mixed answer puts more into HP than Defence, which is the correction', chompMixed);
+
+// Where balance is reachable the optimum lands on HP = Def + SpD.
+const snorlax = spread(160, 65, 110, 40, 1);
+check(Math.abs(snorlax.hp - (snorlax.def + snorlax.spd)) <= 12,
+  'Snorlax, where balance is reachable, lands with HP close to Def + SpD',
+  { hp: snorlax.hp, defPlusSpd: snorlax.def + snorlax.spd });
+
+// And the folk rule visibly fails on a lopsided defender.
+const skarm = spread(65, 140, 70, 40, 1);
+check(skarm.hp < 2 * skarm.def,
+  'Skarmory shows "HP = 2x Def" failing — its defences are lopsided, so the sum is the rule',
+  { hp: skarm.hp, twiceDef: 2 * skarm.def, defPlusSpd: skarm.def + skarm.spd });
+
+check(spread(100, 100, 100, 0, 1).spent === 0, 'a zero budget spends nothing');
+check(spread(100, 100, 100, 200, 1).spent === 3 * CAP, 'a huge budget caps all three stats');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

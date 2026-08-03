@@ -12,6 +12,44 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.0] — 2026-08-03
+
+### Fixed
+- **The Bulk tab was answering the wrong question, and its advice was wrong because of it.** 4.2
+  maximised HP × Def in isolation, and on that objective balance wins — which is why it told you to
+  put everything into the defence. But a point of HP multiplies **both** defences while a point of
+  Defence only helps against physical, so against a mixed attacker HP is worth about twice as much.
+  For Garchomp, Dragonite and Charizard the old answer was "0 HP / 32 Def" and the right answer is
+  the opposite: everything into HP.
+
+  **The rule, derived rather than assumed.** Total hits survived scales with HP × Def + HP × SpD =
+  HP × (Def + SpD). One HP point gains (Def + SpD); one defence point gains HP. So the target is:
+
+  > **HP = Def + SpD** — not "HP = 2 × Def"
+
+  "Double the defence" is the *same statement* whenever the two defences are close, which is common
+  enough that it survives as folklore. It fails on lopsided defenders: Skarmory at 140/70 wants HP
+  near 210, not 280. Measured at the exact optimum across the roster, HP/(Def+SpD) averages 0.90;
+  HP/(2×Def) averages 1.30 and ranges from 0.43 to 5.50.
+
+  The tab now shows the three-way spread as the primary answer, with the one-sided columns kept for
+  when you already know what you are facing. Still an exact search, now over HP/Def/SpD.
+
+### Added
+- **`tests/test-syntax.js` — the app must actually parse.** Added after a near miss: a scripted edit
+  ate the escaping in `switchTab('pokedex')`, leaving a syntax error in the single inline script.
+  The page was dead — no tabs, no data — and **all eighteen existing suites stayed green**, because
+  every one of them slices a function out of the file and evaluates it alone. Verified: against that
+  broken file, 0 of 18 suites fail and this one does. It also guards the escape corruption that
+  produced the literal "95" sort arrows in 4.7, by rejecting stray control characters outright.
+
+### Notes
+- The near miss was caught by opening the page, not by any test — the same way the last three bugs
+  were found. An auto-commit hook pushes this repository on a timer, so the window between breaking
+  the file and shipping it is about a minute. That is the argument for the new suite.
+
+---
+
 ## [4.9] — 2026-08-03
 
 ### Fixed

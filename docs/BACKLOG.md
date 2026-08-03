@@ -240,30 +240,28 @@ all eighteen, so no option can match nothing. Filtering is done in the DOM like 
 because re-rendering would discard the current sort. The filter persists across tab switches and the
 count is per-tab.
 
-## 22. Bulk calculator — when to invest Def/SpD over HP — `done` (4.2)
+## 22. Bulk calculator — when to invest Def/SpD over HP — `done` (4.2, corrected in 5.0)
 
-*Shipped 2026-08-03 as the Bulk tab under Other.*
+**Shipped wrong in 4.2 and corrected in 5.0. Both halves are worth keeping.**
 
-**The rule specified here was wrong, and the brute force is what said so.** The entry said
-"maximise HP × Def; spend each point on whichever CURRENT stat is lower", with the instruction
-"VERIFY AGAINST BRUTE FORCE BEFORE SHIPPING — I did not." Verified before writing any of it:
+**4.2** brute-forced the stated rule — "spend each point on whichever current stat is lower" — and
+found it exactly optimal on a neutral nature (260,100 combinations, zero misses) but off by up to
+1.3% once a nature applies, because the floored multiplier means a hindering nature wastes the first
+point. The obvious repair, highest marginal gain, is up to 41% worse. Shipped as an exact search.
 
-- **Neutral nature: the rule is exactly optimal.** 260,100 combinations, zero misses. A neutral stat
-  gains exactly +1 per point, so comparing current levels and comparing marginal gains are the same
-  comparison.
-- **With a nature: not optimal** — wrong in 13–26% of cases, by up to 1.3%.
-  `Math.floor((base+20+sp)*nature)` does not step by 1. A hindering nature wastes the first point
-  outright and a boosting one occasionally pays 2.
-- **"Spend where the marginal gain is highest" is much worse** — up to 41% off — because a zero-gain
-  first point stops it ever starting on a defence. Kept as a test so it is not reintroduced.
+**5.0** fixed the real error: it was optimising HP × Def **in isolation**, which ignores that a point
+of HP multiplies *both* defences. Against a mixed attacker HP is worth about twice as much, so the
+old advice — everything into the defence — was backwards for most of the roster.
 
-Shipped as an exact search over all ≤33 splits instead. `tests/test-bulk-split.js` re-derives every
-one of those claims and confirms the shipped function equals brute force across 294,912
-combinations; swapped for the greedy rule it fails with 32,298 misses.
+Derived: total hits survived scales with HP × (Def + SpD), so one HP point gains (Def+SpD) and one
+defence point gains HP. **The target is HP = Def + SpD, not HP = 2 × Def.** The two coincide when
+the defences are close, which is why the folk rule survives; it fails on lopsided defenders like
+Skarmory (140/70 wants HP near 210, not 280). At the exact optimum HP/(Def+SpD) averages 0.90 while
+HP/(2×Def) averages 1.30 and ranges 0.43–5.50.
 
-**The substantive finding.** For most of the roster the optimum is to put *everything* into the
-defence, because HP starts 55 points higher (`base+75` vs `base+20`) and the two are nowhere near
-balanced to begin with. The interesting cases are the already-lopsided ones.
+**The lesson is the objective, not the arithmetic.** 4.2 was rigorous about solving the wrong
+problem — brute-forced, tested against 294,912 combinations, and confidently wrong. Checking the
+maths does not check that you asked the right question.
 
 ## 23. Stat formula article — `done` (4.2)
 

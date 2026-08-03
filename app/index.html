@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 4.9 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.0 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -384,6 +384,7 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .bulk-mon a:hover{color:var(--eff-up)}
 .bulk-base{display:block;font-size:10.5px;color:var(--text5);font-family:'JetBrains Mono',monospace;margin-top:2px}
 .bulk-split{font-weight:700;color:var(--text2);white-space:nowrap}
+.bulk-split.bulk-alt{font-weight:600;color:var(--text4)}
 .bulk-res{font-family:'JetBrains Mono',monospace;color:var(--text4);white-space:nowrap}
 .bulk-count{font-size:11.5px;color:var(--text5);margin-bottom:10px}
 .bulk-foot{font-size:11.5px;color:var(--text5);margin-top:14px;max-width:78ch;line-height:1.55}
@@ -4225,8 +4226,8 @@ function renderBulk(){
      one setting it opens on. The real question is how to divide the portion of the budget you can
      spare for bulk after Attack and Speed have taken theirs. */
   const budEl=document.getElementById('bulk-budget'), budVal=budEl?parseInt(budEl.value):32;
-  let h='<p class="bulk-intro">Damage taken scales with HP &times; defence, so a point is worth the same in either only when the two are balanced. '
-    +'Every split below is the exact optimum for that budget.</p>';
+  let h='<p class="bulk-intro">Damage taken scales with HP &times; defence. A point of HP multiplies <i>both</i> defences, '
+    +'so it is worth about twice what a single defence point is &mdash; every spread below is the exact optimum, searched rather than guessed.</p>';
   h+='<div class="bulk-controls">'
     +'<input id="bulk-search" class="filter-input" placeholder="Find a Pokémon…" value="'+(window._bulkQuery||'')+'" oninput="onBulkSearch()" autocomplete="off">'
     +'<select id="bulk-nature" class="filter-select" onchange="renderBulk()">'
@@ -4252,25 +4253,29 @@ function renderBulk(){
       :'Nothing loaded yet — open the Pokédex tab once and come back.')+'</div>';
     el.innerHTML=h;return;
   }
-  h+='<table class="bulk-table"><thead><tr><th>Pokémon</th><th>Physical</th><th>HP × Def</th>'
-    +'<th>Special</th><th>HP × SpD</th></tr></thead><tbody>';
+  h+='<table class="bulk-table"><thead><tr><th>Pokémon</th><th>Best spread</th><th>Resulting HP/Def/SpD</th>'
+    +'<th>vs physical only</th><th>vs special only</th></tr></thead><tbody>';
   rows.forEach(id=>{
     const p=dc[id], st=getStatsForGen(p);
     const g=n=>((st.find(x=>x.stat.name===n)||{}).base_stat)||0;
     const bh=g('hp'), bd=g('defense'), bs=g('special-defense');
+    const mix=optimalBulkSpread(bh,bd,bs,budVal,natVal);
     const phys=optimalBulkSplit(bh,bd,budVal,natVal), spec=optimalBulkSplit(bh,bs,budVal,natVal);
     h+='<tr><td class="bulk-mon"><a href="#" onclick="event.preventDefault();switchTab(\'pokedex\');showDetail('+id+')">'+capName(p.name)+'</a>'
       +'<span class="bulk-base">'+bh+'/'+bd+'/'+bs+'</span></td>'
-      +'<td class="bulk-split">'+phys.hpSP+' HP / '+phys.defSP+' Def</td>'
-      +'<td class="bulk-res">'+phys.hp+' × '+phys.def+'</td>'
-      +'<td class="bulk-split">'+spec.hpSP+' HP / '+spec.defSP+' SpD</td>'
-      +'<td class="bulk-res">'+spec.hp+' × '+spec.def+'</td></tr>';
+      +'<td class="bulk-split">'+mix.hpSP+' HP / '+mix.defSP+' Def / '+mix.spdSP+' SpD</td>'
+      +'<td class="bulk-res">'+mix.hp+' / '+mix.def+' / '+mix.spd+'</td>'
+      +'<td class="bulk-split bulk-alt">'+phys.hpSP+' HP / '+phys.defSP+' Def</td>'
+      +'<td class="bulk-split bulk-alt">'+spec.hpSP+' HP / '+spec.defSP+' SpD</td></tr>';
   });
   h+='</tbody></table>';
-  if(budVal>=64)h+='<p class="bulk-note">At 64 or more every row reads 32 / 32: the per-stat cap is 32, so both defences simply fill up and there is no decision left to make. Lower the budget to see the trade-off.</p>';
-  h+='<p class="bulk-foot">The balancing rule most people use — add to whichever stat is currently lower — is exactly right on a '
-    +'neutral nature and drifts up to 1.3% off once a nature applies, because the nature multiplier is floored and so does not buy '
-    +'a clean point per Stat Point. These splits are searched rather than reasoned, so they do not inherit that.</p>';
+  if(budVal>=96)h+='<p class="bulk-note">At this budget all three stats simply cap at 32 and there is no decision left to make. Lower it to see the trade-off.</p>';
+  h+='<p class="bulk-foot"><b>Best spread</b> assumes you take physical and special damage about equally, which is the '
+    +'case worth planning for. It matters because a point of HP multiplies <i>both</i> defences while a point of Defence '
+    +'only helps against physical — so HP is worth roughly twice as much, and the target is '
+    +'<b>HP = Def + SpD</b>. That is where "HP should be double the defence" comes from: it is the same statement '
+    +'whenever the two defences are close. It is wrong when they are not — Skarmory at 140/70 wants HP near 210, not 280. '
+    +'The last two columns are for when you already know what you are facing.</p>';
   el.innerHTML=h;
 }
 function onBulkSearch(){
