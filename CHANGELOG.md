@@ -12,6 +12,28 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.3] — 2026-08-03
+
+### Added
+- **Regulation Changes now reports moves and items, not just the roster.** Reported as "still rough
+  — where are the items and move changes".
+
+  **The answer for moves turned out to be "none", and that is worth saying out loud.** Every one of
+  the 186 Pokémon present in both M-A and M-B learns exactly the same moves. The 1,376 extra move
+  entries in M-B all belong to the 22 newly added species, which the roster rows already list. The
+  page now states that instead of staying silent — silence read as an unfinished page when it was
+  actually a complete answer.
+
+  Derived from the same learnset export the Pokédex filters by, so it cannot drift. Species present
+  in only one regulation are excluded on purpose: listing a new arrival's entire movepool as
+  "gained" would restate the roster change as though it were a second, much larger one.
+
+- **Items say plainly that they are not tracked.** Nothing in the app records item legality per
+  regulation, so the page says so rather than leaving a gap that reads as an oversight. Making that
+  real needs a source — it is not derivable from anything bundled.
+
+---
+
 ## [5.2] — 2026-08-03
 
 ### Fixed

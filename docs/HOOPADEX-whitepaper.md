@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 1.3 · Last updated 2026-08-03 · HoopaDex v5.2**
+**Version 1.3 · Last updated 2026-08-03 · HoopaDex v5.3**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.

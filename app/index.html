@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.2 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.3 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -660,6 +660,12 @@ body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
 .regs-name{display:inline-flex;align-items:baseline;gap:6px;font-size:13px;color:var(--text2);text-decoration:none;text-transform:capitalize}
 .regs-name:hover{color:var(--text)}
 .regs-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text5)}
+.regs-moves{color:var(--eff-up)}
+.regs-items{color:var(--text4)}
+.regs-same{font-size:12.5px;color:var(--text3);line-height:1.5;max-width:74ch}
+.regs-move{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:99px;margin:0 4px 4px 0;border:1px solid var(--border2)}
+.regs-move-up{color:var(--eff-up)}
+.regs-move-down{color:var(--eff-dn)}
 .regs-empty{font-size:13px;color:var(--text5);font-style:italic}
 #dex-search-hint{font-size:12px;color:var(--text4);margin-bottom:10px}
 #dex-search-hint b{color:var(--text3);font-weight:700}
@@ -3874,12 +3880,41 @@ function regRosterName(id){
   const m=master.find(function(p){return p.id===id});
   return m?pokeName(m.name):('#'+String(id).padStart(4,'0'));
 }
+/* What changed between two regulations BESIDES the roster.
+   The page only ever listed Pokemon added and removed and said nothing about anything else, which
+   reads as an unfinished page rather than as an answer. It is not unfinished: from M-A to M-B the
+   move legality of every Pokemon present in both regulations is identical. All 1,376 extra move
+   entries belong to the 22 newly added species, which the roster rows already report.
+
+   Derived from the same learnset export the Pokedex filters by, so it cannot drift. Species present
+   in only one regulation are excluded deliberately - listing a new arrival's whole movepool as
+   "gained" would restate the roster change as if it were a second, larger one. */
+function regulationMoveDiff(fromKey,toKey){
+  if(!champLS)return null;
+  const inFrom=new Map(), inTo=new Map(), sFrom=new Set(), sTo=new Set();
+  for(const move in champLS){
+    for(const e of (champLS[move].learnedBy||[])){
+      const legal=e.legalIn||[], key=e.num+'|'+move;
+      if(legal.indexOf(fromKey)>=0){inFrom.set(key,{move:move,species:e.species,num:e.num});sFrom.add(e.num)}
+      if(legal.indexOf(toKey)>=0){inTo.set(key,{move:move,species:e.species,num:e.num});sTo.add(e.num)}
+    }
+  }
+  const both=new Set([...sFrom].filter(function(n){return sTo.has(n)}));
+  const gained=[],lost=[];
+  inTo.forEach(function(v,k){if(!inFrom.has(k)&&both.has(v.num))gained.push(v)});
+  inFrom.forEach(function(v,k){if(!inTo.has(k)&&both.has(v.num))lost.push(v)});
+  const byName=function(a,b){return a.species.localeCompare(b.species)||a.move.localeCompare(b.move)};
+  return {shared:both.size,gained:gained.sort(byName),lost:lost.sort(byName)};
+}
+
 function renderRegulationChanges(){
   const el=document.getElementById('regs-container');
   if(!el)return;
   const diffs=regulationDiffs();
-  let h='<p class="regs-intro">What changed between Pokémon Champions regulations. Derived from the '
-   +'roster itself, so it cannot drift from what the Pokédex actually filters.</p>';
+  // The move comparison needs the learnset export; ask once and re-render when it lands.
+  if(!champLS)ensureChampLS().then(function(){renderRegulationChanges()}).catch(function(){});
+  let h='<p class="regs-intro">What changed between Pokémon Champions regulations. The roster and the '
+   +'move legality are both derived from the data the Pokédex filters by, so neither can drift.</p>';
   if(!diffs.length){
     el.innerHTML=h+'<p class="regs-none">Only one regulation is on record, so there is nothing to compare yet.</p>';
     return;
@@ -3900,6 +3935,24 @@ function renderRegulationChanges(){
         : '<div class="regs-empty">none</div>';
       h+='</div>';
     });
+    /* Moves. Reported even when nothing changed, because "nothing changed" is the answer people are
+       actually after, and silence is not the same statement. */
+    const md=regulationMoveDiff(d.from.key,d.to.key);
+    h+='<div class="regs-row"><div class="regs-label regs-moves">Moves</div>';
+    if(!md)h+='<div class="regs-empty">loading…</div>';
+    else if(!md.gained.length&&!md.lost.length)
+      h+='<div class="regs-same">No change. All '+md.shared+' Pokémon in both regulations learn exactly '
+        +'the same moves — the extra entries all belong to the Pokémon added above.</div>';
+    else h+='<div class="regs-names">'
+        +md.gained.map(function(x){return '<span class="regs-move regs-move-up">+ '+x.species+' · '+x.move.replace(/-/g,' ')+'</span>'}).join('')
+        +md.lost.map(function(x){return '<span class="regs-move regs-move-down">− '+x.species+' · '+x.move.replace(/-/g,' ')+'</span>'}).join('')
+        +'</div>';
+    h+='</div>';
+    /* Items. Nothing in the app records item legality, and saying so plainly beats an absence that
+       reads as an oversight - which is exactly how this page read before. */
+    h+='<div class="regs-row"><div class="regs-label regs-items">Items</div>'
+      +'<div class="regs-empty">Not tracked. No item legality data is bundled with the app, so this page '
+      +'cannot say whether any changed rather than guess at it.</div></div>';
     h+='</div>';
   });
   el.innerHTML=h;

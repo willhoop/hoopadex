@@ -297,10 +297,19 @@ answer "does this belong here?" for itself, and only the ability page ever learn
 which is precisely why the other two lagged. `@smogon/calc` needed no translation — it flattens
 species names the same way PokéAPI slugs do.
 
-## 26. Move-class articles; item changes and a patch-notes link — `open`
+## 26. Move-class articles; item changes and a patch-notes link — `open` (move diff done in 5.3)
 
-Articles on the move classes, plus item changes surfaced in the regulation diff with a link to the
-patch notes.
+**Done:** the regulation diff reports move legality changes, derived from the learnset export. For
+M-A → M-B the answer is *no change* — all 186 Pokémon in both regulations learn exactly the same
+moves, and the 1,376 extra entries belong to the 22 new species. The page now says that rather than
+staying silent, because silence read as an unfinished page when it was a complete answer.
+
+**Still open:**
+- **Item changes.** Nothing in the app records item legality per regulation. The page now states
+  that outright instead of leaving a gap, but making it real needs a source — it is not derivable
+  from anything bundled. Needs either a data file or a decision to drop it.
+- **A patch-notes link** for each regulation transition. Needs the URLs.
+- **Move-class articles** — the original half of this item, untouched.
 
 ## 27. Team editor: clicking the backdrop silently saves — `done` (4.3)
 
