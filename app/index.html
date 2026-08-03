@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 3.4 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 3.5 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -490,16 +490,16 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .dl-head{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text5);margin-right:2px}
 .dual-lookup select{max-width:150px;font-size:12px;padding:5px 8px}
 .dl-out{flex-basis:100%;margin-top:10px}
-.dl-title{display:flex;align-items:center;gap:6px;margin-bottom:8px}
-.dl-sub{font-size:11px;color:var(--text4);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
-.dl-grid{display:flex;flex-wrap:wrap;gap:5px}
-.dl-item{display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border-radius:6px;border:1px solid var(--border2);font-size:12px}
-.dl-item .dl-type{text-transform:capitalize;color:var(--text2)}
-.dl-item b{font-family:'JetBrains Mono',monospace;font-size:12px}
-.dl-item.eff-2{background:color-mix(in srgb,var(--eff-up-solid) 26%,transparent);border-color:var(--eff-up-solid)}
-.dl-item.eff-half{background:color-mix(in srgb,var(--eff-dn-solid) 24%,transparent);border-color:var(--eff-dn-solid)}
-.dl-item.eff-0{background:var(--eff-zero);color:var(--eff-zero-ink)}
-.dl-item.dl-extreme{box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);font-weight:800}
+.dl-for{display:flex;gap:5px;margin-bottom:12px}
+.dl-group{margin-bottom:10px}
+.dl-label{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+.dl-label span{font-family:'JetBrains Mono',monospace;opacity:.75}
+.dl-label.dm-immune{color:var(--text3)}
+.dl-label.dm-sres{color:#78C850}
+.dl-label.dm-res{color:#9fbf3f}
+.dl-label.dm-weak{color:#F8A060}
+.dl-label.dm-sweak{color:var(--eff-dn)}
+.dl-badges{display:flex;flex-wrap:wrap;gap:5px}
 .dl-none{font-size:12px;color:var(--text4);font-style:italic}
 .pri-tools{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .pri-tools #pri-filter{max-width:280px}
@@ -525,6 +525,16 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 /* Regulation changes: a diff, laid out as one. Added and removed are rows, not cards. */
 .abil-tag{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:1px 5px;margin-left:7px;border:1px solid var(--border2);color:var(--text4)}
 .abil-tag.abil-new{color:var(--eff-up);border-color:color-mix(in srgb,var(--eff-up) 40%,transparent)}
+.speed-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+.speed-table th{position:sticky;top:0;background:var(--bg2);padding:6px 8px;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text5);border-bottom:1px solid var(--border2);text-align:right;cursor:pointer;white-space:nowrap}
+.speed-table th.sp-mon{text-align:left;cursor:default}
+.speed-table th.sp-active{color:var(--eff-up)}
+.speed-table td{padding:4px 8px;border-top:1px solid var(--border);text-align:right;font-family:'JetBrains Mono',monospace;color:var(--text3)}
+.speed-table td.sp-mon{text-align:left;font-family:var(--font-sans);text-transform:capitalize}
+.speed-table td.sp-mon a{color:var(--text2);text-decoration:none}
+.speed-table td.sp-mon a:hover{color:var(--text)}
+.speed-table td.sp-active{color:var(--text);font-weight:800}
+.speed-table tbody tr:hover td{background:rgba(255,255,255,0.04)}
 .regs-intro{font-size:13px;color:var(--text3);margin-bottom:18px;max-width:60ch;line-height:1.55}
 .regs-none{font-size:13px;color:var(--text4);font-style:italic}
 .regs-block{border-top:1px solid var(--border2);padding-top:14px;margin-bottom:22px}
@@ -835,6 +845,7 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn active" id="other-sub-priority" onclick="switchOtherSub('priority')">Move Priority</button>
 <button class="tab-btn" id="other-sub-split" onclick="switchOtherSub('split')">Phys / Spec Split</button>
 <button class="tab-btn" id="other-sub-regs" onclick="switchOtherSub('regs')">Regulation Changes</button>
+<button class="tab-btn" id="other-sub-speed" onclick="switchOtherSub('speed')">Speed Tiers</button>
 </div>
 <div id="other-priority-sub">
 <p style="font-size:12px;color:var(--text4);margin-bottom:8px">Higher priority acts first regardless of Speed.</p>
@@ -845,6 +856,9 @@ button,select,input{touch-action:manipulation}
 </div>
 <div id="other-regs-sub" style="display:none">
 <div id="regs-container"></div>
+</div>
+<div id="other-speed-sub" style="display:none">
+<div id="speed-container"></div>
 </div>
 </div>
 <div id="calc-tab" style="display:none">
@@ -3418,7 +3432,7 @@ function switchTab(tab){
 let currentOtherSub='priority';
 function switchOtherSub(sub){
   currentOtherSub=sub;
-  ['priority','split','regs'].forEach(function(k){
+  ['priority','split','regs','speed'].forEach(function(k){
     const panel=document.getElementById('other-'+k+'-sub');
     if(panel)panel.style.display=sub===k?'':'none';
     const btn=document.getElementById('other-sub-'+(k==='regs'?'regs':k));
@@ -3427,12 +3441,68 @@ function switchOtherSub(sub){
   if(sub==='priority')renderPriorityTab();
   if(sub==='split')renderSplit();
   if(sub==='regs')renderRegulationChanges();
+  if(sub==='speed')renderSpeedTiers();
 }
 
 /* ── Regulation changes ─────────────────────────────────────────────────────────────────
    Derived from CHAMPIONS_REGS by set difference, never written out by hand. Adding a
    regulation to that registry is the only edit needed; this page and the "recently added"
    sort both follow from it, and neither can disagree with the roster they describe.        */
+/* Speed tiers for the Champions roster. Every column is derived from the same model the damage
+   calculator uses - at level 50 with fixed 31 IVs a stat is base+20, then +1 per Stat Point, then
+   the nature multiplier - so a number here cannot disagree with a number there.
+
+     Scarf      floor(floor((base+20+32) * 1.1) * 1.5)
+     Max +nat   floor((base+20+32) * 1.1)
+     Max SP     base+20+32
+     Neutral    base+20                 (no SP, no nature)
+     Base       the raw base stat
+     Min        floor((base+20) * 0.9)  (no SP, speed-reducing nature)
+*/
+const SPEED_COLS=[
+  {key:'scarf', label:'Scarf',    hint:'max SP, + nature, Choice Scarf', f:b=>Math.floor(Math.floor((b+20+32)*1.1)*1.5)},
+  {key:'maxnat',label:'Max +nat', hint:'32 SP and a speed-boosting nature', f:b=>Math.floor((b+20+32)*1.1)},
+  {key:'maxsp', label:'Max SP',   hint:'32 SP, neutral nature', f:b=>b+20+32},
+  {key:'neutral',label:'Neutral', hint:'no SP, neutral nature', f:b=>b+20},
+  {key:'base',  label:'Base',     hint:'the base stat itself', f:b=>b},
+  {key:'min',   label:'Min',      hint:'no SP, speed-reducing nature', f:b=>Math.floor((b+20)*0.9)},
+];
+let speedSortCol='maxnat';
+function renderSpeedTiers(){
+  const el=document.getElementById('speed-container');
+  if(!el)return;
+  if(!isChampionsMode){
+    el.innerHTML='<p class="regs-intro">Speed tiers are built for the Champions Stat Point system. Switch the generation selector to Champions to see them.</p>';
+    return;
+  }
+  const roster=master.filter(function(p){return CHAMPIONS_IDS.has(p.id)});
+  const rows=roster.map(function(p){
+    const d=dc[p.id];
+    if(!d)return null;
+    const b=(getStatsForGen(d).find(function(x){return x.stat.name==='speed'})||{}).base_stat;
+    if(b===undefined)return null;
+    const r={id:p.id,name:pokeName(p.name),base:b};
+    SPEED_COLS.forEach(function(c){r[c.key]=c.f(b)});
+    return r;
+  }).filter(Boolean).sort(function(x,y){return y[speedSortCol]-x[speedSortCol]||x.name.localeCompare(y.name)});
+
+  let h='<p class="regs-intro">Every column uses the same model as the damage calculator: at level 50 with fixed 31 IVs a stat is base+20, then +1 per Stat Point, then the nature multiplier. '
+   +roster.length+' Pok\u00e9mon in this regulation'+(rows.length<roster.length?', '+(roster.length-rows.length)+' still loading':'')+'.</p>';
+  h+='<table class="speed-table"><thead><tr><th class="sp-mon">Pok\u00e9mon</th>';
+  SPEED_COLS.forEach(function(c){
+    h+='<th class="sp-col'+(c.key===speedSortCol?' sp-active':'')+'" title="'+c.hint+'" onclick="setSpeedSort(\''+c.key+'\')">'+c.label+'</th>';
+  });
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr><td class="sp-mon"><a href="#" onclick="event.preventDefault();switchTab(\'pokedex\');showDetail('+r.id+')">'+r.name+'</a></td>';
+    SPEED_COLS.forEach(function(c){h+='<td class="sp-val'+(c.key===speedSortCol?' sp-active':'')+'">'+r[c.key]+'</td>'});
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  el.innerHTML=h;
+}
+function setSpeedSort(k){speedSortCol=k;renderSpeedTiers()}
+
 function regulationDiffs(){
   const out=[];
   for(let i=0;i<CHAMPIONS_REGS.length-1;i++){
@@ -3656,22 +3726,28 @@ function runDualLookup(){
   const t1=document.getElementById('dl-t1').value, t2=document.getElementById('dl-t2').value;
   if(!t1){out.innerHTML='';return}
   const genNum=getDataGenNum(), cd=getChartForGen(genNum);
-  const defs=[t1,t2].filter(Boolean);
-  const rows=cd.types.map(function(atk){
+  const defs=[t1,t2].filter(function(v,i,a){return v&&a.indexOf(v)===i});
+  const by={};
+  cd.types.forEach(function(atk){
     let m=1; defs.forEach(function(d){m*=eff(atk,d,cd.chart)});
-    return {atk:atk,m:m};
-  }).filter(function(r){return r.m!==1})
-    .sort(function(a,b){return b.m-a.m});
-  const label=function(m){return m===0?'\u00D70':(m===0.25?'\u00D7\u00BC':(m===0.5?'\u00D70.5':(m===2?'\u00D72':(m===4?'\u00D74':'\u00D7'+m))))};
-  const cls=function(m){return m===0?'eff-0':(m>=2?'eff-2':'eff-half')};
-  let h='<div class="dl-title">'+defs.map(function(d){return '<span class="type-badge small" style="background:'+TC[d]+'">'+d+'</span>'}).join('')
-   +'<span class="dl-sub">takes</span></div><div class="dl-grid">';
-  rows.forEach(function(r){
-    h+='<div class="dl-item '+cls(r.m)+(r.m>=4||r.m<=0.25?' dl-extreme':'')+'">'
-      +'<span class="dl-type">'+r.atk+'</span><b>'+label(r.m)+'</b></div>';
+    if(m===1)return;
+    (by[m]=by[m]||[]).push(atk);
   });
-  h+='</div>';
-  if(!rows.length)h='<div class="dl-none">Everything hits this typing neutrally.</div>';
+  // Same shape as the Pokedex detail panel: grouped by multiplier under a labelled heading, with
+  // type badges. Someone who has read one has read the other.
+  const GROUPS=[[0,'Immune','\u00D70','dm-immune'],[0.25,'Super resist','\u00D7\u00BC','dm-sres'],
+                [0.5,'Resists','\u00D7\u00BD','dm-res'],[2,'Weak to','\u00D72','dm-weak'],
+                [4,'Super weak','\u00D74','dm-sweak']];
+  let h='<div class="dl-for">'+defs.map(function(d){return '<span class="type-badge small" style="background:'+TC[d]+'">'+d+'</span>'}).join('')+'</div>';
+  let any=false;
+  GROUPS.forEach(function(g){
+    const list=by[g[0]];
+    if(!list||!list.length)return;
+    any=true;
+    h+='<div class="dl-group"><div class="dl-label '+g[3]+'">'+g[1]+' <span>('+g[2]+')</span></div>'
+      +'<div class="dl-badges">'+list.map(function(t){return '<span class="type-badge" style="background:'+TC[t]+'">'+t+'</span>'}).join('')+'</div></div>';
+  });
+  if(!any)h+='<div class="dl-none">Everything hits this typing neutrally.</div>';
   out.innerHTML=h;
 }
 

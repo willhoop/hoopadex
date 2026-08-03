@@ -12,6 +12,30 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [3.5] — 2026-08-03
+
+### Added
+- **Speed Tiers for the Champions roster**, under Other. Six columns, sortable by any of them:
+  Scarf, Max +nature, Max SP, Neutral, Base, and Min. Every one is derived from the same model the
+  damage calculator uses — at level 50 with fixed 31 IVs a stat is `base+20`, then +1 per Stat
+  Point, then the nature multiplier — so a number here cannot disagree with a number there.
+  Verified against Jolteon (base 130): 300 / 200 / 182 / 150 / 130 / 135.
+- **Min is no SP with a speed-reducing nature**, as specified. Note it can read *higher* than the
+  Base column: Base is the raw base stat, everything else is a level-50 stat.
+
+### Changed
+- **The dual-type lookup now matches the Pokédex defensive-matchup panel** — grouped under Immune /
+  Super resist / Resists / Weak to / Super weak headings with type badges, instead of a flat row of
+  chips. Someone who has read one has read the other. Water/Grass: super-resists Water, resists
+  Ground and Steel, weak to Poison, Flying and Bug.
+
+### Notes
+- The speed table only lists Pokémon already loaded into the species cache, and says how many are
+  still loading rather than silently showing a short list.
+- HP does not follow the same formula — it is `base+75`, not `base+20`. Speed tiers are unaffected,
+  but any stat-formula article has to say so.
+
+
 ## [3.4] — 2026-08-03
 
 ### Fixed
