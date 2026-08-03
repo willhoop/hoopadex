@@ -119,3 +119,20 @@ because someone looked.
 Not yet audited: `ITEM_INTRO_GEN`, `EVO_OVERRIDES`, `REGIONAL`, and the `C2`/`CM` type charts —
 only `C1` was checked, and only against `C2` over Gen I types. Same method applies: derive from a
 published source, diff against what the app believes, and pin the result with a test.
+
+## 17. Locations: Sword/Shield were wrongly blocked — `done` (1.99)
+
+*Added 2026-08-02.* `UNSUPPORTED_VERSIONS` claimed PokéAPI had no encounter data for Sword and
+Shield. It does. The app was hiding 92 Galar locations behind a message saying the data did not
+exist. Re-check the API before adding a game to that list; do not assume by generation.
+
+## 18. Type chart and natures readability — `done` (1.99)
+
+*Added 2026-08-02.* Both encoded two states as green vs red, which measured ΔE 4.2 for
+deuteranopia against a ≥8 target. Replaced with a validated blue/red diverging pair, plus glyphs
+and arrows so colour is never the only encoding, recessive neutrals, and a crosshair on the chart.
+
+**Still open from this thread.** The same audit has not been run on the other coloured signals —
+encounter rarity (`loc-chance-*`), EV totals, TM status and the damage-roll colours. They are
+single-state indicators rather than diverging pairs, so they do not have the same failure mode,
+but none has been checked for contrast against either surface.

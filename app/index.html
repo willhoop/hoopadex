@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 1.98 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 1.99 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -75,8 +75,7 @@ body.light .move-cat.status{background:rgba(168,168,120,0.15);color:#6a6a4a}
 body.light .natures-table td{border-bottom-color:rgba(0,0,0,0.06)}
 body.light .natures-table th{border-bottom-color:rgba(0,0,0,0.1);color:#4a4a5a}
 body.light .natures-table .nature-name{color:#1a1a2e}
-body.light .natures-table .stat-up{color:#2a8a20}
-body.light .natures-table .stat-down{color:#c03028}
+body.light .natures-table tbody tr:nth-child(odd){background:rgba(0,0,0,0.025)}
 body.light .natures-table .neutral{color:#7a7a8a}
 body.light .ev-table td{border-bottom-color:rgba(0,0,0,0.06)}
 body.light .ev-table th{border-bottom-color:rgba(0,0,0,0.1);color:#4a4a5a}
@@ -427,8 +426,13 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .natures-table td{padding:4px 10px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:13px;line-height:1.4}
 .natures-table tr:hover{background:rgba(255,255,255,0.03)}
 .natures-table .nature-name{font-weight:700;color:#e0e0e8;text-transform:capitalize}
-.natures-table .stat-up{color:#78C850;font-weight:700}
-.natures-table .stat-down{color:#F85888;font-weight:700}
+/* Same validated diverging pair as the type chart. The arrow carries the direction, so meaning
+   survives greyscale, printing and colour vision deficiency - colour only reinforces it. */
+.natures-table .stat-up{color:var(--eff-up);font-weight:700}
+.natures-table .stat-down{color:var(--eff-dn);font-weight:700}
+.natures-table .dir{font-size:11px;opacity:.9;margin-right:3px}
+/* Zebra rows: the eye tracks across three columns without drifting a line. */
+.natures-table tbody tr:nth-child(odd){background:rgba(255,255,255,0.022)}
 .natures-table .neutral{color:#5a5a6a;font-style:italic}
 .natures-table tr.neutral-row{background:rgba(255,255,255,0.02)}
 .natures-table tr.neutral-row td{color:#6a6a7a}
@@ -3129,22 +3133,37 @@ function renderTC(){
   const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
   const pill=(t)=>'<span class="tc-pill"><i style="background:'+TC[t]+'"></i>'+(abbr[t]||t.slice(0,3))+'</span>';
   const key=(sw,label)=>'<span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;'+sw+'"></span><span style="color:var(--text3)">'+label+'</span></span>';
-  let h='<div style="font-size:11px;margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="color:#5DBB3E;font-weight:700">'+genLabel+'</span><span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:12px;height:12px;background:#3BA53B;border-radius:2px"></span><span style="color:#8a8a9a">Super Effective (2&#xD7;)</span></span><span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:12px;height:12px;background:#c62828;border-radius:2px"></span><span style="color:#8a8a9a">Not Very Effective (½&#xD7;)</span></span><span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:12px;height:12px;background:#45456a;border-radius:2px"></span><span style="color:#8a8a9a">Immune (0&#xD7;)</span></span></div>';
+  let h='<div style="font-size:11px;margin-bottom:6px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+'<span style="color:#5DBB3E;font-weight:700">'+genLabel+'</span>'+key('background:color-mix(in srgb,var(--eff-up) 22%,transparent);border:1px solid var(--eff-up)','×2 super effective')+key('background:color-mix(in srgb,var(--eff-dn) 20%,transparent);border:1px solid var(--eff-dn)','×½ not very effective')+key('background:var(--eff-zero)','×0 immune')+'<span style="color:var(--text5)">blank = ×1 neutral</span></div>';
   h+='<table class="type-table"><thead><tr><th class="corner"><span style="font-size:8px;font-weight:800;color:#6890F0">DEF &#x2192;</span><br><span style="font-size:8px;font-weight:800;color:#F85888">ATK &#x2193;</span></th>';
-  cd.types.forEach(t=>{h+='<th class="col-header">'+pill(t)+'</th>'});
+  cd.types.forEach((t,ci)=>{h+='<th class="col-header" data-col="'+ci+'">'+pill(t)+'</th>'});
   h+='</tr></thead><tbody>';
   cd.types.forEach(a=>{
     h+='<tr><td class="row-header">'+pill(a)+'</td>';
-    cd.types.forEach(d=>{
+    cd.types.forEach((d,ci)=>{
       const e=eff(a,d,cd.chart);
       let cls='',tx='';
-      if(e===2){cls='eff-2';tx='2'}else if(e===.5){cls='eff-half';tx='½'}else if(e===0){cls='eff-0';tx='0'}
-      h+='<td class="cell '+cls+'" onmouseenter="showChartTip(event,\''+cap(a)+'\',\''+cap(d)+'\','+e+')" onmouseleave="hideChartTip()">'+tx+'</td>';
+      // The glyph carries the value, so the chart still reads with colour removed entirely.
+      if(e===2){cls='eff-2';tx='×2'}else if(e===.5){cls='eff-half';tx='×½'}else if(e===0){cls='eff-0';tx='×0'}
+      h+='<td class="cell '+cls+'" data-col="'+ci+'" onmouseenter="showChartTip(event,\''+cap(a)+'\',\''+cap(d)+'\','+e+');tcCross(this)" onmouseleave="hideChartTip()">'+tx+'</td>';
     });
     h+='</tr>';
   });
   h+='</tbody></table>';
-  document.getElementById('chart-container').innerHTML=h;
+  const cc=document.getElementById('chart-container');
+  cc.innerHTML=h;
+  cc.onmouseleave=()=>tcCross(null);
+}
+
+// Highlight the hovered cell's whole row and column, and both of its type headers. Tracing one
+// cell back to two labels across an 18x18 grid is the hardest part of reading a matrix by eye.
+function tcCross(td){
+  const tbl=document.querySelector('.type-table');
+  if(!tbl)return;
+  tbl.querySelectorAll('.tc-hi').forEach(x=>x.classList.remove('tc-hi'));
+  if(!td)return;
+  const col=td.dataset.col;
+  td.parentElement.classList.add('tc-hi');
+  tbl.querySelectorAll('td.cell[data-col="'+col+'"],th.col-header[data-col="'+col+'"]').forEach(x=>x.classList.add('tc-hi'));
 }
 
 // Chart hover tooltip
@@ -3493,23 +3512,22 @@ function renderNatures(){
   [0,1].forEach(col=>{
     const start=col*half;
     const end=Math.min(start+half,NATURES.length);
-    h+='<table class="natures-table" style="flex:1;min-width:280px"><thead><tr><th>Nature</th><th>+10%</th><th>&#x2212;10%</th></tr></thead><tbody>';
+    // "Raises / Lowers" says what the column does; the 10% is already stated in the line above.
+    h+='<table class="natures-table" style="flex:1;min-width:280px"><thead><tr><th>Nature</th><th>Raises</th><th>Lowers</th></tr></thead><tbody>';
     for(let i=start;i<end;i++){
       const n=NATURES[i];
-      const neutral=!n.up;
-      h+='<tr class="'+(neutral?'neutral-row':'')+'">';
+      if(!n.up)continue;  // neutral natures are summarised once, under both columns
+      h+='<tr>';
       h+='<td class="nature-name">'+n.name+'</td>';
-      if(neutral){
-        h+='<td class="neutral">\u2014</td><td class="neutral">\u2014</td>';
-      }else{
-        h+='<td class="stat-up">'+STAT_NAMES[n.up]+'</td>';
-        h+='<td class="stat-down">'+STAT_NAMES[n.down]+'</td>';
-      }
+      h+='<td class="stat-up"><span class="dir">&#x25B2;</span>'+STAT_NAMES[n.up]+'</td>';
+      h+='<td class="stat-down"><span class="dir">&#x25BC;</span>'+STAT_NAMES[n.down]+'</td>';
       h+='</tr>';
     }
     h+='</tbody></table>';
   });
   h+='</div>';
+  // Ten em-dashes read as missing data. One line reads as a fact.
+  h+='<p style="font-size:12px;color:var(--text4);margin-top:10px;font-style:italic">'+NATURES.filter(n=>!n.up).map(n=>n.name).join(', ')+' — no stat effect.</p>';
 
   // Flavor reference at bottom
   h+='<div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06)">';

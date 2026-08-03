@@ -12,6 +12,54 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [1.99] — 2026-08-02
+
+### Fixed
+- **Sword and Shield location data was being hidden.** `UNSUPPORTED_VERSIONS` listed both as having
+  no PokéAPI encounter data. They do have it — Galar is region 8 with 92 locations, and the API
+  returns encounters for `sword`, `shield`, and the Isle of Armor and Crown Tundra entries. The app
+  was suppressing real data and telling users it did not exist. Only Brilliant Diamond, Shining
+  Pearl, Legends: Arceus, Scarlet and Violet are genuinely empty; the on-screen message said
+  "Gen VIII–IX", which was wrong, and now names the games. Verified: Galar Route 1 returns Skwovet
+  at Lv 2–5 / 40% and Blipbug at 30%.
+- **The type chart and the natures table were unreadable for colourblind users.** Both encoded
+  their two states as saturated green against saturated red. Measured with the data-viz palette
+  validator against this app's own surfaces, that pair scores a CVD separation of **ΔE 4.2**
+  (deuteranopia) against a ≥8 target — a fail. Roughly 1 in 12 men could not distinguish "super
+  effective" from "not very effective", or "+10%" from "−10%". Replaced with the validated
+  diverging pair — dark `#3987e5`/`#e66767`, light `#2a78d6`/`#e34948` — which passes every check
+  in both themes (CVD ΔE 19.2 dark / 21.6 light, normal-vision 29.0 / 32.3, contrast ≥3:1).
+
+### Changed
+- **Type chart: the grid stops shouting.** Neutral ×1 cells now carry no fill, only a hairline.
+  Slightly over half the grid says nothing, and letting it recede is what makes the signal legible
+  without turning the signal up. Every non-neutral cell carries a glyph — ×2, ×½, ×0 — so the chart
+  still reads with colour removed entirely. Immunity gets the solid treatment rather than the
+  dullest one, because ×0 is categorically different from "less effective" and is the most
+  decision-relevant cell on the board. Type labels became a thin colour chip over neutral text, so
+  eighteen saturated pills stop competing with the layer that carries meaning.
+- **Type chart: hovering a cell lights its whole row and column** and outlines both type headers.
+  Tracing one cell back to two labels across an 18×18 grid was the hardest part of reading it. Row
+  headers are also sticky, so they survive horizontal scrolling.
+- **Natures: direction is no longer colour-only.** ▲ and ▼ carry the meaning, so it survives
+  greyscale, printing and colour vision deficiency. Columns are now "Raises" and "Lowers" rather
+  than "+10%" and "−10%" — the percentage is already stated in the line above, and the column's job
+  is what a first-time reader needs. Zebra rows let the eye cross three columns without drifting.
+  The five neutral natures collapse into one summary line instead of ten em-dashes that read as
+  missing data.
+
+### Added
+- **`tests/test-viz-palette.js`** (28 assertions), a guard rather than a rendering test: it fails if
+  the retired hexes reappear in the chart or natures rules, if either theme loses its `--eff-*`
+  variables, if any colour that *encodes* meaning goes back to a literal, or if the glyph and arrow
+  fallbacks are removed. Scoped to those two components deliberately — the same greens and reds are
+  legitimate elsewhere as single-state indicators, where there is no pair to confuse.
+
+### Notes
+- Colour is now reinforcement in both views, never the sole carrier. That is the actual fix; the
+  palette swap alone would have left a chart that fails in greyscale and in print.
+
+
 ## [1.98] — 2026-08-02
 
 ### Added
