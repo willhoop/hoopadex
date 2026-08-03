@@ -522,9 +522,9 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 /* Sortable headers: the affordance has to be visible or nobody discovers it. */
 .moves-table th.ms{cursor:pointer;user-select:none;white-space:nowrap}
 .moves-table th.ms:hover{color:var(--text)}
-.moves-table th.ms::after{content:'95';opacity:.28;margin-left:4px;font-size:9px}
-.moves-table th.ms.ms-asc::after{content:'91';opacity:.9}
-.moves-table th.ms.ms-desc::after{content:'93';opacity:.9}
+.moves-table th.ms::after{content:'\2195';opacity:.28;margin-left:4px;font-size:9px}
+.moves-table th.ms.ms-asc::after{content:'\2191';opacity:.9}
+.moves-table th.ms.ms-desc::after{content:'\2193';opacity:.9}
 /* Dual-type lookup */
 /* This sits under an 18x18 grid, so it was below the fold and styled like a footnote - a 10px grey
    label and two small selects. It is the tool that answers the question the grid only supplies the
@@ -5206,10 +5206,14 @@ function renderVariableMoveInfo(moveName){
   if(info.formula)h+='<div style="color:#a8a8b8;margin-bottom:4px;font-style:italic">'+info.formula+'</div>';
   if(info.note)h+='<div style="color:#c8c8d8">'+info.note+'</div>';
   if(info.table){
-    h+='<table style="border-collapse:collapse;width:100%">';
+    /* Not width:100%. The value column used to absorb every bit of slack in the panel, throwing the
+       numbers to the far side of the page with an arm's length of blank space between each one and
+       the condition it belongs to. A reading like "50% HP -> 75" only works if the two halves are
+       next to each other. */
+    h+='<table style="border-collapse:collapse;margin-top:2px">';
     info.table.forEach(([cond,val])=>{
-      h+='<tr><td style="color:#8a8a9a;padding:1px 8px 1px 0;white-space:nowrap">'+cond+'</td>'
-        +'<td style="color:#e0e0e8;font-weight:700;font-family:\'JetBrains Mono\',monospace">'+val+'</td></tr>';
+      h+='<tr><td style="color:#8a8a9a;padding:1px 14px 1px 0;white-space:nowrap">'+cond+'</td>'
+        +'<td style="color:#e0e0e8;font-weight:700;font-family:\'JetBrains Mono\',monospace;text-align:right;white-space:nowrap">'+val+'</td></tr>';
     });
     h+='</table>';
   }
