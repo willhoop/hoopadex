@@ -42,11 +42,11 @@ for gens < 6 (`app/index.html`, in the move-type resolver), but Pokémon typing 
 Clefable should read Normal in Gen V, and the type chart and matchups should follow. Check the
 Team Builder and Dmg Calc paths too, not just the detail panel.
 
-## 6. Team Builder: click through to Pokédex page — `open`
+## 6. Team Builder: click through to Pokédex page — `done` (1.97)
 
 Clicking a team member opens its detail page.
 
-## 7. Team Builder: show ×0.25 and ×4 matchups — `open`
+## 7. Team Builder: show ×0.25 and ×4 matchups — `done` (1.97)
 
 The defensive matchup rows currently stop at ×½ and ×2. Dual types produce ×0.25 and ×4, which are
 the ones that decide games.
@@ -59,17 +59,17 @@ under `sprites.versions.generation-*`.
 **Open question.** What renders for a Pokémon that did not exist in the selected generation — the
 modern sprite, a placeholder, or is it filtered out of the list already?
 
-## 9. Gen I type chart: Fire does not resist Ice — `open`
+## 9. Gen I type chart: Fire does not resist Ice — `done` (1.97)
 
 In Gen I, Fire did not resist Ice; that resistance was added in Gen II. Verify the rest of the Gen I
 chart in the same pass — Bug/Poison and Ghost/Psychic also differ from the modern chart.
 
-## 10. Verify stat bar colours — `open`
+## 10. Verify stat bar colours — `done` (1.97)
 
 **Needs a definition of correct.** Are the bars coloured by absolute thresholds, by percentile
 against all Pokémon, or by a fixed scale to 255? Say which, and the check becomes mechanical.
 
-## 11. Fix Urshifu move descriptions — `open`
+## 11. Fix Urshifu move descriptions — `done` (1.97)
 
 Wicked Blow and Surging Strikes always critically hit: 1.5× damage, and the crit ignores the
 target's defensive stat boosts. Note that Unseen Fist lets contact moves bypass Protect and Detect.
@@ -98,3 +98,13 @@ Gen I had a single Special stat rather than the Sp. Atk / Sp. Def split. `PAST_S
 does not model this, because it is a display question rather than a value substitution: the dex
 would need to show one Special bar for Gen I, not two identical ones. Showdown's `gen1` mod carries
 the values (152 species) whenever the display side is decided.
+
+## 15. Hide tabs that do not apply to the selection — `done` (1.97)
+
+*Added 2026-08-02.* Champions mode hides Locations and EV Training. The rule lives in
+`TAB_RELEVANCE` in `app/index.html`; a rule is one line, and `switchTab()` redirects saved links
+that name a hidden tab.
+
+**Open question.** Which tabs should Gen I hide? Gen I has no held items, and "EV Training" is the
+wrong name for stat experience, but Moves and the bag-item list are both real in Red/Blue. Needs a
+decision on Items and on EV Training for Gens I–II before more rules go in.

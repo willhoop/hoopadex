@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 1.96 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 1.97 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -222,6 +222,8 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .team-slot .team-name{font-size:15px;font-weight:800;color:#c8c8d8;text-transform:capitalize;margin-top:4px}
 .team-slot .team-remove{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:rgba(248,88,136,0.15);border:1px solid rgba(248,88,136,0.3);color:#F85888;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s}
 .team-slot:hover .team-remove{opacity:1}
+.team-slot .team-dex{position:absolute;top:6px;right:32px;height:20px;padding:0 8px;border-radius:10px;background:rgba(104,144,240,0.15);border:1px solid rgba(104,144,240,0.3);color:#6890F0;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s}
+.team-slot:hover .team-dex{opacity:1}
 .team-ac-dropdown{position:absolute;top:100%;left:0;right:0;z-index:1001;max-height:220px;overflow-y:auto;background:var(--bg3);border:1px solid var(--border3);border-radius:10px;margin-top:4px;box-shadow:0 12px 40px rgba(0,0,0,0.5);scrollbar-width:thin}
 .team-ac-item{display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:13px;color:var(--text);cursor:pointer;transition:background 0.1s}
 .team-ac-item:hover,.team-ac-item.active{background:var(--hover2)}
@@ -503,6 +505,7 @@ button,select,input{touch-action:manipulation}
   .team-grid{grid-template-columns:repeat(2,1fr);gap:8px}
   .team-slot img{width:52px;height:52px}
   .team-slot .team-remove{opacity:1}
+  .team-slot .team-dex{opacity:1}
   .team-coverage-grid{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
   .usearch-overlay{padding:6vh 10px 0}
   .usearch-input{font-size:16px}
@@ -522,6 +525,7 @@ button,select,input{touch-action:manipulation}
 @media(hover:none){
   .card:hover{transform:none}
   .team-slot .team-remove{opacity:1}
+  .team-slot .team-dex{opacity:1}
   .pinned-tab-close{width:22px;height:22px}
 }
 </style>
@@ -5747,6 +5751,8 @@ function renderTeamBuilder(){
       const tc=TC[p.types?.[0]]||'#888';
       h+='<div class="team-slot filled" onclick="teamSlotClick('+i+')" style="border-color:'+tc+'40;text-align:left;align-items:stretch;padding:14px 16px">';
       h+='<button class="team-remove" onclick="event.stopPropagation();removeTeamSlot('+i+')">&#x2715;</button>';
+      // The slot body opens the set editor, so the trip to the full dex entry needs its own control.
+      h+='<button class="team-dex" title="Open '+p.name.replace(/-/g,' ')+' in the Pokédex" onclick="event.stopPropagation();openTeamMemberInDex('+p.id+')">Dex</button>';
       
       // Top row: sprite + name/types/set info
       h+='<div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">';
@@ -5875,6 +5881,11 @@ async function assignSmogonSet(slotIdx){
 
 let teamSearchMode=false;
 let teamEditSlot=-1;// tracks which slot we're editing when adding a set from detail page
+function openTeamMemberInDex(id){
+  switchTab('pokedex');
+  showDetail(id);
+}
+
 function teamSlotClick(idx){
   const p=teamSlots[idx];
   if(p){
@@ -6942,8 +6953,12 @@ function renderTeamAnalysis(){
   const weakCount={};
   const resistCount={};
   const immuneCount={};
-  allTypes.forEach(t=>{weakCount[t]=0;resistCount[t]=0;immuneCount[t]=0});
-  
+  // Dual types produce x4 and x0.25, and those are the ones that decide games. Count them
+  // separately rather than folding them into the x2 / x0.5 buckets.
+  const quadWeakCount={};
+  const quadResistCount={};
+  allTypes.forEach(t=>{weakCount[t]=0;resistCount[t]=0;immuneCount[t]=0;quadWeakCount[t]=0;quadResistCount[t]=0});
+
   filled.forEach(p=>{
     allTypes.forEach(atk=>{
       let mult=1;
@@ -6951,8 +6966,8 @@ function renderTeamAnalysis(){
         const e=getTypeEffect(atk,def,genNum);
         mult*=e;
       });
-      if(mult>=2)weakCount[atk]++;
-      else if(mult>0&&mult<1)resistCount[atk]++;
+      if(mult>=2){weakCount[atk]++;if(mult>=4)quadWeakCount[atk]++}
+      else if(mult>0&&mult<1){resistCount[atk]++;if(mult<=0.25)quadResistCount[atk]++}
       else if(mult===0)immuneCount[atk]++;
     });
   });
@@ -6963,13 +6978,20 @@ function renderTeamAnalysis(){
   const someWeak=allTypes.filter(t=>weakCount[t]===1);
   if(weakTypes.length){
     weakTypes.forEach(t=>{
-      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="type-badge small" style="background:'+TC[t]+'">'+t+'</span><span style="font-size:12px;color:#F85888;font-weight:700">'+weakCount[t]+'/'+filled.length+' weak</span></div>';
+      const q=quadWeakCount[t]?'<span style="font-size:10px;color:#F85888;font-weight:800;background:rgba(248,88,136,0.15);border:1px solid rgba(248,88,136,0.35);border-radius:4px;padding:0 5px">&#215;4 on '+quadWeakCount[t]+'</span>':'';
+      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="type-badge small" style="background:'+TC[t]+'">'+t+'</span><span style="font-size:12px;color:#F85888;font-weight:700">'+weakCount[t]+'/'+filled.length+' weak</span>'+q+'</div>';
     });
   }else{
     h+='<div style="font-size:12px;color:#6a6a7a;padding:8px 0">No shared weaknesses \u2014 nice!</div>';
   }
   if(someWeak.length){
     h+='<div style="margin-top:8px;font-size:10px;color:#5a5a6a">Minor (1 weak): '+someWeak.map(t=>'<span class="type-badge small" style="background:'+TC[t]+';font-size:9px;padding:1px 6px">'+t+'</span>').join(' ')+'</div>';
+  }
+  // A single member taking x4 matters even when nobody else on the team is weak to it, so this
+  // line is independent of the 2-or-more filter above.
+  const quadWeak=allTypes.filter(t=>quadWeakCount[t]>0);
+  if(quadWeak.length){
+    h+='<div style="margin-top:8px;font-size:10px;color:#F85888;font-weight:700">Quad weak (&#215;4): '+quadWeak.map(t=>'<span class="type-badge small" style="background:'+TC[t]+';font-size:9px;padding:1px 6px">'+t+' &#215;'+quadWeakCount[t]+'</span>').join(' ')+'</div>';
   }
   h+='</div>';
   
@@ -6980,10 +7002,15 @@ function renderTeamAnalysis(){
       let label=[];
       if(resistCount[t])label.push(resistCount[t]+' resist');
       if(immuneCount[t])label.push(immuneCount[t]+' immune');
-      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="type-badge small" style="background:'+TC[t]+'">'+t+'</span><span style="font-size:12px;color:#78C850;font-weight:700">'+label.join(', ')+'</span></div>';
+      const q=quadResistCount[t]?'<span style="font-size:10px;color:#78C850;font-weight:800;background:rgba(120,200,80,0.15);border:1px solid rgba(120,200,80,0.35);border-radius:4px;padding:0 5px">&#215;¼ on '+quadResistCount[t]+'</span>':'';
+      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="type-badge small" style="background:'+TC[t]+'">'+t+'</span><span style="font-size:12px;color:#78C850;font-weight:700">'+label.join(', ')+'</span>'+q+'</div>';
     });
   }else{
     h+='<div style="font-size:12px;color:#6a6a7a;padding:8px 0">Add more Pok&#233;mon to see resistances.</div>';
+  }
+  const quadResist=allTypes.filter(t=>quadResistCount[t]>0&&!strongTypes.includes(t));
+  if(quadResist.length){
+    h+='<div style="margin-top:8px;font-size:10px;color:#78C850;font-weight:700">Quad resist (&#215;¼): '+quadResist.map(t=>'<span class="type-badge small" style="background:'+TC[t]+';font-size:9px;padding:1px 6px">'+t+' &#215;'+quadResistCount[t]+'</span>').join(' ')+'</div>';
   }
   h+='</div>';
   

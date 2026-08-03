@@ -12,6 +12,47 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [1.97] — 2026-08-02
+
+### Added
+- **Tabs now hide themselves when they do not apply.** Champions mode is a competitive format
+  rather than a playable world, so Locations and EV Training no longer appear while it is
+  selected — there are no routes to list and no in-game training spots to point at. The rule lives
+  in one `TAB_RELEVANCE` table rather than scattered `isChampionsMode` checks, and `switchTab()`
+  redirects to the Pokédex if a saved link names a tab the current selection has hidden.
+- **Team Builder: ×4 and ×¼ matchups.** The team analysis folded ×4 into "weak" and ×0.25 into
+  "resist", which hid the matchups that actually decide games. Quad weaknesses and quad resistances
+  are now counted separately and badged inline; quad weaknesses also get their own line, because a
+  single member taking ×4 matters even when nobody else on the team is weak to that type.
+- **Team Builder: a Dex button on each filled slot.** The slot body opens the set editor, so
+  reaching the full Pokédex entry needed its own control rather than a change to what clicking does.
+
+### Fixed
+- **Generation I: Fire no longer resists Ice.** Fire gained that resistance in Generation II; the
+  Gen I chart `C1` carried `ice → fire: ½`, so Ice moves read as resisted in Red/Blue/Yellow. The
+  chart's other Gen I quirks were already correct and were re-checked in the same pass: Bug → Poison
+  at 2×, Poison → Bug at 2×, and Ghost → Psychic at 0× (the Gen I programming bug) all verified
+  against the Gen I chart and against `C2`.
+- **Stat bar colours are now absolute thresholds.** The old `statColor()` interpolated a red → green
+  ramp over `value / 180` while the bar's *length* used `value / 255`, so colour and length
+  disagreed, everything above 180 looked identical, and the function's own comment described four
+  bands it did not implement. Colour now comes from fixed bands — under 60 poor, 60–89 average,
+  90–119 good, 120+ excellent — so a number means the same thing in every generation and does not
+  drift as new Pokémon are added. Length still carries magnitude; the band is exposed as a tooltip.
+- **Urshifu's signature moves describe their guaranteed critical hit.** Wicked Blow and Surging
+  Strikes take their text from PokéAPI, which does not explain that the crit ignores the target's
+  defensive boosts and the user's own offensive drops, nor that Battle Armor, Shell Armor and Lucky
+  Chant switch it off. Both now have `VARIABLE_MOVE_INFO` entries, including the Unseen Fist note
+  about hitting through Protect and Detect.
+
+### Notes
+- The damage calculator was **already correct** for both Urshifu moves — the bundled engine carries
+  `willCrit` for each and `multihit: 3` for Surging Strikes. Only the descriptions were wrong. This
+  closes the open question recorded against backlog item 11.
+- Still open from the same batch: regional dex filter toggle (4), stripping the Fairy type from
+  Pokémon typing in Gens I–V (5), and remembering the selected form tab (12).
+
+
 ## [1.96] — 2026-08-02
 
 ### Changed
