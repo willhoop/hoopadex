@@ -12,7 +12,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 /* Theme variables */
 :root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#35699f;--eff-dn-solid:#9e4a45;--eff-zero:#5f5f85;--eff-zero-ink:#ffffff;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
-body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#7fb0d8;--eff-dn-solid:#dc9086;--eff-zero:#c9c9d6;--eff-zero-ink:#2f2f45;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
+body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#8fadc6;--eff-dn-solid:#c9a096;--eff-zero:#c9c9d6;--eff-zero-ink:#2f2f45;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
 /* Colourblind mode. Declared AFTER body.light so it wins in dark mode by source order, with an
    explicit body.light.cvd rule that beats both on specificity - an earlier version sat above
    body.light and was silently overridden whenever the light theme was on. */
@@ -25,8 +25,8 @@ body.light.cvd .type-table td.cell.eff-half{color:#5c3a08}
 body.cvd .natures-table .stat-up,body.cvd .nature-matrix .nm-up{color:var(--eff-up)}
 body.cvd .natures-table .stat-down,body.cvd .nature-matrix .nm-dn{color:var(--eff-dn)}
 /* Light theme ink: dark text on a light fill, the inverse of dark mode. */
-body.light .type-table td.cell.eff-2{color:#10395e}
-body.light .type-table td.cell.eff-half{color:#6d2721}
+body.light .type-table td.cell.eff-2{color:#16344b}
+body.light .type-table td.cell.eff-half{color:#5e2a22}
 body{min-height:100vh;background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg1) 100%);color:var(--text);font-family:'Nunito','Segoe UI',system-ui,sans-serif}
 body.light .header{background:linear-gradient(135deg,#fff,#f8f8fc);border-bottom-color:rgba(0,0,0,0.1)}
 #universal-search-bar{background:#12121e}
@@ -365,7 +365,8 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .gen-btn.active{background:transparent;color:#6890F0;border-color:rgba(104,144,240,0.3)}
 .gen-btn small{font-size:9px;font-weight:600;opacity:0.6}
 .callout{border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11px;line-height:1.5}
-.type-table{border-collapse:collapse;table-layout:fixed;width:100%}
+/* separate borders + a hair of spacing so the rounded corners actually read as tiles */
+.type-table{border-collapse:separate;border-spacing:2px;table-layout:fixed;width:100%}
 .type-table thead th{position:sticky;top:68px;z-index:10;background:#151528}
 .type-table th{padding:0;text-align:center;vertical-align:middle}
 .type-table th.corner{font-size:8px;color:#5a5a6a;width:48px}
@@ -373,7 +374,7 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .type-table td.row-header{padding:0;width:48px;border:none}
 /* Neutral (1x) cells recede but still read as cells - a faint fill and a visible border. With no
    fill at all the matrix stopped reading as a matrix and rows became impossible to track. */
-.type-table td.cell{text-align:center;font-weight:800;font-size:12px;cursor:default;font-family:'JetBrains Mono',monospace;padding:0;height:24px;line-height:24px;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.03);color:var(--text5);transition:outline 0.1s}
+.type-table td.cell{text-align:center;font-weight:800;font-size:12px;cursor:default;font-family:'JetBrains Mono',monospace;padding:0;height:24px;line-height:24px;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.03);color:var(--text5);transition:outline 0.1s;border-radius:5px}
 .type-table td.cell:hover{outline:2px solid var(--text);z-index:20;position:relative}
 /* Crosshair - the single biggest readability win in an 18x18 matrix. */
 .type-table tr.tc-hi td.cell,.type-table td.cell.tc-hi{box-shadow:inset 0 0 0 9999px rgba(255,255,255,0.07)}
@@ -478,6 +479,28 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .sc-to{font-weight:700}
 .sc-to.sc-physical{color:var(--eff-dn)}
 .sc-to.sc-special{color:var(--eff-up)}
+/* Sortable headers: the affordance has to be visible or nobody discovers it. */
+.moves-table th.ms{cursor:pointer;user-select:none;white-space:nowrap}
+.moves-table th.ms:hover{color:var(--text)}
+.moves-table th.ms::after{content:'95';opacity:.28;margin-left:4px;font-size:9px}
+.moves-table th.ms.ms-asc::after{content:'91';opacity:.9}
+.moves-table th.ms.ms-desc::after{content:'93';opacity:.9}
+/* Dual-type lookup */
+.dual-lookup{margin-top:18px;padding-top:14px;border-top:1px solid var(--border2);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.dl-head{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text5);margin-right:2px}
+.dual-lookup select{max-width:150px;font-size:12px;padding:5px 8px}
+.dl-out{flex-basis:100%;margin-top:10px}
+.dl-title{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.dl-sub{font-size:11px;color:var(--text4);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.dl-grid{display:flex;flex-wrap:wrap;gap:5px}
+.dl-item{display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border-radius:6px;border:1px solid var(--border2);font-size:12px}
+.dl-item .dl-type{text-transform:capitalize;color:var(--text2)}
+.dl-item b{font-family:'JetBrains Mono',monospace;font-size:12px}
+.dl-item.eff-2{background:color-mix(in srgb,var(--eff-up-solid) 26%,transparent);border-color:var(--eff-up-solid)}
+.dl-item.eff-half{background:color-mix(in srgb,var(--eff-dn-solid) 24%,transparent);border-color:var(--eff-dn-solid)}
+.dl-item.eff-0{background:var(--eff-zero);color:var(--eff-zero-ink)}
+.dl-item.dl-extreme{box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35);font-weight:800}
+.dl-none{font-size:12px;color:var(--text4);font-style:italic}
 .pri-tools{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .pri-tools #pri-filter{max-width:280px}
 .pri-count{font-size:12px;color:var(--text4)}
@@ -2593,7 +2616,7 @@ function renderMovesSection(moves,missed){
   cats.forEach(c=>{
     const showLevel=c.key==='levelup';
     tables+='<div class="moves-list" data-cat="'+c.key+'" style="'+(c.key!==first?'display:none':'')+'">';
-    tables+='<table class="moves-table"><thead><tr>'+(showLevel?'<th style="width:42px">Lv</th>':'')+'<th>Move</th><th style="width:36px;text-align:center">Cat</th><th style="width:80px">Type</th><th style="width:44px;text-align:right">Pow</th><th style="width:48px;text-align:right">Acc</th></tr></thead><tbody>';
+    tables+='<table class="moves-table" data-cat="'+c.key+'"><thead><tr>'+(showLevel?'<th class="ms" data-k="lv" style="width:42px">Lv</th>':'')+'<th class="ms" data-k="name">Move</th>'+'<th class="ms" data-k="cat" style="width:36px;text-align:center">Cat</th>'+'<th class="ms" data-k="type" style="width:80px">Type</th>'+'<th class="ms" data-k="pow" style="width:44px;text-align:right">Pow</th><th class="ms" data-k="acc" style="width:48px;text-align:right">Acc</th></tr></thead><tbody>';
     c.data.forEach(m=>{
       const md=moveCache[m.name];
       const type=getMoveTypeForGen(md);
@@ -2640,6 +2663,44 @@ async function refreshMovesSection(){
   if(toLoad.length>0)for(let i=0;i<toLoad.length;i+=15){await Promise.all(toLoad.slice(i,i+15).map(n=>ensureMoveData(n)))}
   const mc=document.getElementById('moves-container');
   if(mc)mc.innerHTML=renderMovesSection(moves,missedMovesData);}
+
+/* Sortable move tables. Someone looking at a 73-move list wants it by category, or by power, and
+   there was no way to ask. Clicking a header sorts by that column; clicking it again reverses.
+   Category sorts Physical, Special, Status in that order rather than alphabetically, because that
+   is the order people think in - alphabetical would give Physical, Special, Status by accident and
+   break the moment a fourth category existed. */
+const MOVE_CAT_ORDER={physical:0,special:1,status:2};
+let moveSortKey='', moveSortDir=1;
+function sortMovesTable(th){
+  const table=th.closest('table');
+  if(!table)return;
+  const k=th.dataset.k;
+  moveSortDir = (moveSortKey===k) ? -moveSortDir : 1;
+  moveSortKey = k;
+  const rows=[...table.querySelectorAll('tbody tr')];
+  const num=v=>{const n=parseFloat(String(v).replace(/[^0-9.]/g,''));return isNaN(n)?-1:n};
+  const cellOf=(r,key)=>{
+    const c=r.querySelector('td[data-'+key+']');
+    return c?c.getAttribute('data-'+key):'';
+  };
+  rows.sort((a,b)=>{
+    let x,y;
+    if(k==='cat'){ x=MOVE_CAT_ORDER[cellOf(a,'cat')]??9; y=MOVE_CAT_ORDER[cellOf(b,'cat')]??9; }
+    else if(k==='pow'||k==='acc'||k==='lv'){ x=num(cellOf(a,k)); y=num(cellOf(b,k)); }
+    else { x=cellOf(a,k).toLowerCase(); y=cellOf(b,k).toLowerCase(); }
+    if(x<y)return -1*moveSortDir;
+    if(x>y)return 1*moveSortDir;
+    return 0;
+  });
+  const tb=table.querySelector('tbody');
+  rows.forEach(r=>tb.appendChild(r));
+  table.querySelectorAll('th.ms').forEach(h=>h.classList.remove('ms-asc','ms-desc'));
+  th.classList.add(moveSortDir>0?'ms-asc':'ms-desc');
+}
+document.addEventListener('click',function(e){
+  const th=e.target.closest('.moves-table th.ms');
+  if(th)sortMovesTable(th);
+});
 
 function switchMovesTab(btn,cat){
   btn.parentElement.querySelectorAll('.moves-tab').forEach(b=>b.classList.remove('active'));
@@ -2846,7 +2907,7 @@ async function renderDetail(p){
     '</div>'+
     '<div><div class="section-label" style="margin-bottom:8px">Moves</div><div id="moves-container"><div style="text-align:center;padding:12px;color:#6a6a7a"><div class="spinner" style="width:24px;height:24px;border-width:2px"></div>Loading moves...</div></div></div>'+
     '<div style="margin-top:14px"><div class="section-label" style="margin-bottom:8px">Wild Encounters</div><div id="encounter-locs-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
-    '<div style="margin-top:14px"><div class="section-label" style="margin-bottom:8px">Smogon Sets</div><div id="smogon-sets-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
+    '<div style="margin-top:14px"><div class="section-label" style="margin-bottom:8px">'+(isChampionsMode?'VGC Sets <span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--text5)">— closest published reference; Champions uses SP, not EVs</span>':'Smogon Sets')+'</div><div id="smogon-sets-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
   '</div>';
 
   // Load evo chain in background - pre-fetch all members for official artwork
@@ -2963,7 +3024,11 @@ async function loadSmogonSets(pokemonName,genNum){
   const el=document.getElementById('smogon-sets-container');
   if(!el)return;
   
-  const genKey='gen'+genNum;
+  // Champions is doubles. Loading gen9.json served singles and other-metagame sets - UU, Godly
+  // Gift and the rest - with 252 EV spreads, none of which is legal or even meaningful here. VGC
+  // is the closest published analogue, so Champions reads the VGC file and the section says so
+  // rather than presenting a singles set as if it were a Champions build.
+  const genKey=isChampionsMode?'gen9vgc2024':('gen'+genNum);
   if(!smogonCache[genKey]){
     try{
       const r=await fetch('https://data.pkmn.cc/sets/'+genKey+'.json');
@@ -3557,6 +3622,7 @@ function renderTC(){
     h+='</tr>';
   });
   h+='</tbody></table>';
+  h+=renderDualLookup(cd);
   const cc=document.getElementById('chart-container');
   cc.innerHTML=h;
   cc.onmouseleave=()=>tcCross(null);
@@ -3571,6 +3637,42 @@ function natCross(td){
   td.parentElement.classList.add('nm-hi');
   tbl.querySelectorAll('td.nm-cell[data-col="'+td.dataset.col+'"],th.nm-col:nth-child('+(+td.dataset.col+2)+')')
      .forEach(x=>x.classList.add('nm-hi'));
+}
+
+/* Dual-type lookup. Reading a x4 off the grid means finding two cells and multiplying them in your
+   head; this asks the question directly - pick a defender's typing and every attacking type is
+   resolved against it at once, x4 first. */
+function renderDualLookup(cd){
+  const opts=t=>cd.types.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
+  return '<div class="dual-lookup">'
+   +'<div class="dl-head">Defending typing</div>'
+   +'<select id="dl-t1" class="filter-select" onchange="runDualLookup()"><option value="">Type 1\u2026</option>'+opts()+'</select>'
+   +'<select id="dl-t2" class="filter-select" onchange="runDualLookup()"><option value="">Type 2 (optional)</option>'+opts()+'</select>'
+   +'<div id="dl-out" class="dl-out"></div></div>';
+}
+function runDualLookup(){
+  const out=document.getElementById('dl-out');
+  if(!out)return;
+  const t1=document.getElementById('dl-t1').value, t2=document.getElementById('dl-t2').value;
+  if(!t1){out.innerHTML='';return}
+  const genNum=getDataGenNum(), cd=getChartForGen(genNum);
+  const defs=[t1,t2].filter(Boolean);
+  const rows=cd.types.map(function(atk){
+    let m=1; defs.forEach(function(d){m*=eff(atk,d,cd.chart)});
+    return {atk:atk,m:m};
+  }).filter(function(r){return r.m!==1})
+    .sort(function(a,b){return b.m-a.m});
+  const label=function(m){return m===0?'\u00D70':(m===0.25?'\u00D7\u00BC':(m===0.5?'\u00D70.5':(m===2?'\u00D72':(m===4?'\u00D74':'\u00D7'+m))))};
+  const cls=function(m){return m===0?'eff-0':(m>=2?'eff-2':'eff-half')};
+  let h='<div class="dl-title">'+defs.map(function(d){return '<span class="type-badge small" style="background:'+TC[d]+'">'+d+'</span>'}).join('')
+   +'<span class="dl-sub">takes</span></div><div class="dl-grid">';
+  rows.forEach(function(r){
+    h+='<div class="dl-item '+cls(r.m)+(r.m>=4||r.m<=0.25?' dl-extreme':'')+'">'
+      +'<span class="dl-type">'+r.atk+'</span><b>'+label(r.m)+'</b></div>';
+  });
+  h+='</div>';
+  if(!rows.length)h='<div class="dl-none">Everything hits this typing neutrally.</div>';
+  out.innerHTML=h;
 }
 
 // Highlight the hovered cell's whole row and column, and both of its type headers. Tracing one
@@ -4600,7 +4702,12 @@ const MOVE_FLAG_INFO={
 // so the caller renders nothing rather than a confident empty answer.
 function moveDescriptors(moveName){
   try{
-    if(typeof SmogonCalc==='undefined'||!CalcMaps||!CalcMaps.gen)return [];
+    if(typeof SmogonCalc==='undefined')return [];
+    // The engine's lookup maps are built lazily by the damage calculator. Without this, move tags
+    // only appeared once you had visited that tab - Aura Sphere showed no Pulse or Ballistic tag
+    // on the Moves tab, which is where anyone would actually look for it.
+    if(!CalcMaps||!CalcMaps.gen)try{calcEnsureMaps()}catch{return []}
+    if(!CalcMaps||!CalcMaps.gen)return [];
     const id=String(moveName).toLowerCase().replace(/[^a-z0-9]/g,'');
     const m=CalcMaps.gen.moves.get(id);
     if(!m||!m.flags)return [];
@@ -7547,7 +7654,11 @@ function renderItemsList(groups,items,filter=''){
   const q=filter.toLowerCase().trim();
   
   let h='';
-  const categoryOrder=['Choice Items','Held Items','Type Enhancement','Negative Held Items','Species-Specific','Mega Stones','Z-Crystals','Memories','Status/Recovery Berries','In-a-Pinch Berries','Healing Berries','Battle Effect Berries','Type Protection','Plates'];
+  // Berries sit above the Mega Stones: they are the items actually chosen for a competitive set,
+  // while Mega Stones are a long species-locked list you scroll past rather than browse.
+  const categoryOrder=['Choice Items','Held Items','Type Enhancement','Negative Held Items',
+    'Status/Recovery Berries','In-a-Pinch Berries','Healing Berries','Battle Effect Berries','Type Protection',
+    'Species-Specific','Mega Stones','Z-Crystals','Memories','Plates'];
   const hiddenCats=new Set(['Nature Mints','EV-Reducing Berries','Scarves','Stat Boosts']);
   
   const sortedCats=Object.keys(groups).sort((a,b)=>{
