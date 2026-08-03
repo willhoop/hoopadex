@@ -42,13 +42,19 @@ const MASTER = [
   { id: 19, name: 'rattata' }, { id: 641, name: 'tornadus' },
 ];
 
+// formAllowed reads isChampionsMode and CHAMPIONS_IDS from module scope, so they are supplied here
+// as stubs the assertions can steer through the returned setChampions().
 const app = eval(
   'let master=' + JSON.stringify(MASTER) + ';\n' +
+  'let isChampionsMode=false;\n' +
+  'let CHAMPIONS_IDS=new Set([26,80,691]);\n' +
   nameHelpers + '\n' +
   lines.slice(start, end).join('\n') +
-  '\n;({baseSpeciesId,formDisplayName,getFormGenRange,DEFAULT_FORM_SUFFIXES})'
+  '\n;({baseSpeciesId,formDisplayName,getFormGenRange,formAllowed,' +
+  'setChampions:function(on,ids){isChampionsMode=on;if(ids)CHAMPIONS_IDS=ids}})'
 );
-const { baseSpeciesId: baseOf, formDisplayName: label, getFormGenRange: range } = app;
+const { baseSpeciesId: baseOf, formDisplayName: label, getFormGenRange: range,
+        formAllowed: allowed, setChampions } = app;
 
 let pass = 0, fail = 0;
 function check(ok, l, d) {
@@ -119,6 +125,43 @@ check(!!totem && totem.label === 'Gen VII', 'and it is labelled Gen VII, not Gen
 const plainAlolan = range('raticate-alola');
 check(!!plainAlolan && plainAlolan.available(8) === true,
   'non-Totem Alolan Raticate still exists in Gen VIII', plainAlolan && plainAlolan.label);
+
+/* --- formAllowed: the single gate all three surfaces share ---------------------------------
+   The ability page, the team builder search and the calculator picker each decided this for
+   themselves, and only the ability page ever learned about forms — which is exactly why a Mega
+   could not be added to a team or calculated against. One rule now. */
+check(typeof allowed === 'function', 'formAllowed was sliced out of the app', typeof allowed);
+
+const GEN_MAX_9 = 1025, GEN_MAX_1 = 151;
+
+// A base species is gated on its dex number and nothing else.
+check(allowed('charizard', 6, 9, GEN_MAX_9) === true, 'Charizard is allowed in Gen IX');
+check(allowed('charizard', 6, 1, GEN_MAX_1) === true, 'Charizard is allowed in Gen I');
+check(allowed('dragalge', 691, 1, GEN_MAX_1) === false, 'a Gen VI species is not allowed in Gen I');
+
+// A form is gated on BOTH its species and its own era. That pair is the whole point.
+check(allowed('dragalge-mega', 10299, 9, GEN_MAX_9) === true, 'Mega Dragalge is allowed in Gen IX');
+check(allowed('dragalge-mega', 10299, 6, GEN_MAX_9) === false,
+  'Mega Dragalge is NOT allowed in Gen VI — it is a Z-A mega');
+check(allowed('rattata-alola', 10091, 7, GEN_MAX_9) === true, 'Alolan Rattata is allowed in Gen VII');
+check(allowed('rattata-alola', 10091, 1, GEN_MAX_1) === false,
+  'Alolan Rattata is NOT allowed in Gen I even though Rattata is — the form is Gen VII');
+check(allowed('charizard-mega-x', 10034, 8, GEN_MAX_9) === false, 'no mega exists in Gen VIII');
+
+// An unresolvable form is refused rather than silently allowed.
+check(allowed('kubfu-supreme-mega', 10999, 9, GEN_MAX_9) === false,
+  'a form whose species cannot be resolved is refused, not guessed');
+
+// Champions: the roster names species, so a form is legal exactly when its base is.
+setChampions(true, new Set([691]));
+check(allowed('dragalge', 691, 9, GEN_MAX_9) === true, 'Champions: Dragalge is on the roster');
+check(allowed('dragalge-mega', 10299, 9, GEN_MAX_9) === true,
+  'Champions: Mega Dragalge is legal because Dragalge is');
+check(allowed('charizard', 6, 9, GEN_MAX_9) === false, 'Champions: Charizard is not on this roster');
+check(allowed('charizard-mega-x', 10034, 9, GEN_MAX_9) === false,
+  'Champions: nor is its mega — the form follows the species');
+setChampions(false);
+check(allowed('charizard', 6, 9, GEN_MAX_9) === true, 'leaving Champions mode restores the species');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

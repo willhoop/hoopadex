@@ -252,10 +252,19 @@ four moves; report Showdown-style damage ranges.
 Overlaps the "still open" half of item 19 — the calc does not yet apply imported EVs, IVs, level or
 nature.
 
-## 25. Megas, regionals and alt forms in Team Builder and calc pickers — `open`
+## 25. Megas, regionals and alt forms in Team Builder and calc pickers — `done` (4.4)
 
-Same underlying gap as item 20(a), different surfaces. Worth doing together; the form-availability
-and Champions-legality questions only want answering once.
+Same gap as item 20, different surfaces. Both consulted only `master`, which stops at 1025, so no
+Mega or regional form could be put on a team or calculated against — the forms whose stats and
+typing actually change a calculation were the ones you could not select.
+
+The 326 forms load once as a second page of the endpoint `master` already uses, and are kept out of
+`master` on purpose: it backs the Pokédex list, and a dex listing Charizard three times is not a dex.
+
+**The real fix was consolidation.** All three surfaces now share `formAllowed()`. Each used to
+answer "does this belong here?" for itself, and only the ability page ever learned about forms,
+which is precisely why the other two lagged. `@smogon/calc` needed no translation — it flattens
+species names the same way PokéAPI slugs do.
 
 ## 26. Move-class articles; item changes and a patch-notes link — `open`
 

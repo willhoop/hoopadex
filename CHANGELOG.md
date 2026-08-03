@@ -12,6 +12,38 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [4.4] — 2026-08-03
+
+### Added
+- **Alternate forms in the Team Builder search and the damage calculator.** 4.0 made the ability
+  page understand forms; these two still could not see them at all. The team search only ever
+  consulted `master`, which stops at 1025, so there was no way to put a Mega or a regional form on
+  a team — and the calculator's roster had the same limit, which meant you could not calculate
+  against precisely the forms whose stats and typing change the answer.
+
+  Searching "slowbro" in Champions now returns Slowbro, Mega Slowbro and Galarian Slowbro; "charizard"
+  in Gen IX returns the species and both megas; in Gen I it returns the species alone.
+- **The 326 alternate forms are loaded once**, as a second page of the endpoint `master` already
+  uses. They are deliberately kept *out* of `master`: that list backs the Pokédex, and a dex that
+  lists Charizard three times is not a dex. Search is where asking for "mega" should return megas.
+
+### Changed
+- **One rule decides what exists: `formAllowed()`.** The ability page, the team search and the
+  calculator picker each answered "does this belong in the current selection?" separately, and only
+  the ability page ever learned about forms — which is exactly why the other two were missing them.
+  A form is gated on two eras, its species' and its own, and Champions legality follows the species
+  because the roster names species rather than formes.
+- **Team slots use `formDisplayName()`**, so a slot reads "Dragalge (Mega)" rather than
+  "dragalge mega". A form's id is shown as an era pill rather than a dex number, because 10299 is
+  not a dex number and printing it as one would be a wrong fact.
+
+### Notes
+- The bundled `@smogon/calc` needed no translation layer: it keys species on a flattened name, and
+  PokéAPI's `dragalge-mega` flattens to the same string as Showdown's `Dragalge-Mega`. Confirmed in
+  the browser — the engine resolves both `Dragalge-Mega` and `Slowbro-Galar` directly.
+- `tests/test-form-names.js` is now 46 assertions and fails three ways when the form-era gate is
+  removed, which is the mutation that would let a Mega appear in Generation I.
+
 ## [4.3] — 2026-08-03
 
 ### Fixed

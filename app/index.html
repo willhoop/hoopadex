@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 4.3 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 4.4 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1137,6 +1137,7 @@ function eff(a,d,c){return c[a]?.[d]??1}
 
 // === STATE ===
 let master=[],dc={},moveCache={},abilityCache={},vm='list',adId=null,pins=[],vp=0,cf=[];
+let formsIndex=[];   // alternate forms (ids > 10000); kept out of master, see the loader
 const PS=60;
 let dataGen='scarlet-violet';
 
@@ -6770,7 +6771,7 @@ function renderCompare(){
     const tc=TC[s.types[0]]||'#888';
     sh+='<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid '+tc+'40;background:'+tc+'15;cursor:default">';
     sh+='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+s.id+'.png" style="width:28px;height:28px">';
-    sh+='<span style="font-weight:600;text-transform:capitalize">'+s.name.replace(/-/g,' ')+'</span>';
+    sh+='<span style="font-weight:600;text-transform:capitalize">'+formDisplayName(s.name)+'</span>';
     sh+='<span onclick="removeCompareSlot('+s.id+')" style="cursor:pointer;color:#8a8a9a;font-size:14px;margin-left:4px">&#x2715;</span>';
     sh+='</div>';
   });
@@ -6822,7 +6823,7 @@ function renderCompare(){
     // Header: sprite, name, types
     h+='<div style="text-align:center;margin-bottom:12px">';
     h+='<img src="'+s.sprite+'" onclick="switchTab(\'pokedex\');showDetail('+s.id+')" style="width:90px;height:90px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3));cursor:pointer">';
-    h+='<div onclick="switchTab(\'pokedex\');showDetail('+s.id+')" style="font-weight:700;font-size:15px;text-transform:capitalize;margin-top:4px;color:'+tc+';cursor:pointer">'+s.name.replace(/-/g,' ')+'</div>';
+    h+='<div onclick="switchTab(\'pokedex\');showDetail('+s.id+')" style="font-weight:700;font-size:15px;text-transform:capitalize;margin-top:4px;color:'+tc+';cursor:pointer">'+formDisplayName(s.name)+'</div>';
     h+='<div style="display:flex;gap:3px;justify-content:center;margin-top:4px">'+filterTypesForGen(s.types,genNum,s.id).map(t=>'<span class="type-badge small" style="--tc:'+TC[t]+'">'+t+'</span>').join('')+'</div>';
     h+='</div>';
     
@@ -8385,16 +8386,29 @@ async function getItemNamesForDatalist(){
   return itemsCache?itemsCache.map(i=>i.name):[];
 }
 
+/* Base species first, then alternate forms. Forms were unreachable here entirely: the search only
+   ever consulted `master`, which stops at 1025, so there was no way to put a Mega or a regional
+   form on a team. Both lists go through formAllowed - the same gate the ability page uses - so the
+   two cannot disagree about what exists in the current generation. */
 function onTeamSearch(){
   const q=document.getElementById('team-search').value.trim().toLowerCase();
   const res=document.getElementById('team-search-results');
   if(q.length<2){res.innerHTML='';return}
-  const genMax=getGenMaxId();
-  const matches=master.filter(p=>p.id<=genMax&&(p.name.includes(q)||(''+p.id)===q)).slice(0,12);
+  const genMax=getGenMaxId(), genNum=getDataGenNum();
+  const hit=p=>p.name.includes(q)||(''+p.id)===q;
+  const bases=master.filter(p=>hit(p)&&formAllowed(p.name,p.id,genNum,genMax));
+  const forms=formsIndex.filter(p=>hit(p)&&formAllowed(p.name,p.id,genNum,genMax));
+  const matches=bases.concat(forms).slice(0,14);
   let h='';
+  if(!matches.length)h='<div class="usearch-item" style="opacity:.6;cursor:default">Nothing matches in this generation.</div>';
   matches.forEach(p=>{
     const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+p.id+'.png';
-    h+='<div class="usearch-item" onclick="addToTeam('+p.id+',\''+p.name+'\')"><img src="'+spr+'" loading="lazy">'+capName(p.name)+' <span style="font-size:11px;color:#6a6a7a">#'+p.id+'</span></div>';
+    // A form's id (10299) is not a dex number, so showing it as "#10299" would be a wrong fact.
+    // The era pill carries the useful information instead.
+    const range=p.id>10000?getFormGenRange(p.name):null;
+    const pill=p.id>10000?'<span class="ap-form-pill">'+(range?range.label:'Form')+'</span>':'';
+    const num=p.id>10000?'':' <span style="font-size:11px;color:#6a6a7a">#'+p.id+'</span>';
+    h+='<div class="usearch-item" onclick="addToTeam('+p.id+',\''+p.name+'\')"><img src="'+spr+'" loading="lazy">'+formDisplayName(p.name)+num+pill+'</div>';
   });
   res.innerHTML=h;
 }
@@ -8621,9 +8635,17 @@ function calcClamp(el){
   if(isNaN(v))v=mn;
   el.value=Math.max(mn,Math.min(mx,v));
 }
+/* Base species plus alternate forms, gated by the same formAllowed the team builder search and the
+   ability page use. Without the forms half you could not calculate against a Mega or a regional
+   form at all - and those are exactly the ones whose stats and typing differ enough to change the
+   answer, which is the reason to open a calculator in the first place.
+   The bundled engine keys species on a flattened name, and PokeAPI's form slugs flatten to the
+   same string Showdown's do ("dragalge-mega" and "Dragalge-Mega" both give "dragalgemega"), so a
+   form resolves in the engine with no translation layer. */
 function calcRoster(){
-  if(isChampionsMode)return master.filter(p=>CHAMPIONS_IDS.has(p.id));
-  const g=getGenMaxId();return master.filter(p=>p.id<=g);
+  const genMax=getGenMaxId(), genNum=getDataGenNum();
+  const ok=p=>formAllowed(p.name,p.id,genNum,genMax);
+  return master.filter(ok).concat(formsIndex.filter(ok));
 }
 function renderCalcTab(){
   calcInitAC();
