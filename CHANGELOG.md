@@ -12,6 +12,31 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [1.95] — 2026-08-02
+
+### Fixed
+- **Krookodile's Defense now reads 70 in Generations V, not 80.** Krookodile debuted in Black/White
+  with 70 Defense (BST 509) and was raised to 80 in Generation VI (X/Y). It was absent from
+  `PAST_STATS`, so the Gen V view served the current PokéAPI value. Added `553:{6:{defense:70}}`.
+  Confirmed against Serebii's Black/White dex (70) and X/Y dex (80), and against Bulbapedia's
+  Krookodile page, which splits the stat block at "Generation V" / "Generation VI onward".
+  BST is derived from `getStatsForGen()`, so the header total corrects to 509 with it.
+- **Two duplicate keys in `PAST_STATS` were silently deleting correct data.** The table declared
+  `25` and `26` twice — once under a Gen 6 cutoff and again under a "Gen 7 changes (Sun/Moon)"
+  heading. In a JavaScript object literal the later duplicate key replaces the earlier one
+  outright, so the Gen VI entries for Pikachu and Raichu never existed at runtime. Effect:
+  Generations I–V showed Pikachu at 40 Defense / 50 Sp. Def (correct: 30 / 40) and Raichu at
+  110 Speed (correct: 100). Both stat changes happened in Generation VI, not Generation VII —
+  Bulbapedia's Generation VII list contains neither Pokémon — so the Gen 7 entries were wrong on
+  their own terms as well as destructive. Removed them; the Gen 6 entries now take effect.
+
+### Notes
+- The Generation VII cutoff is now unpopulated, and roughly 25 Pokémon changed stats in Sun/Moon.
+  Nine of them (Farfetch'd, Dodrio, Electrode, Exeggutor, Noctowl, Ariados, Qwilfish, Magcargo,
+  Corsola) are already in the table under a Gen 6 cutoff and may be mis-bucketed, which would make
+  the Generation VI view show Sun/Moon values. Not audited in this pass; recorded as open.
+
+
 ## [1.94] — 2026-07-22
 
 ### Added
