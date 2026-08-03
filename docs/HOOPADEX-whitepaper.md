@@ -2,8 +2,8 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 1.0 · Last updated 2026-07-22**
-**Will Hooper · HoopaDex v1.93**
+**Version 1.1 · Last updated 2026-08-03**
+**Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
 > New information is appended. A prior conclusion is not silently rewritten; what changed
@@ -88,14 +88,29 @@ space that a modern-only dex would not spend. The justification is section 1. A 
 answers depend on a hidden parameter must show that parameter, or the reader cannot tell a
 correct answer from a stale one.
 
-### 2.3 Data sources
+### 2.3 Data sources, and what is derived rather than typed
 
-Species, move and ability data come from PokéAPI at run time. The generation-dependent tables
-— type charts, the physical/special split, the Champions rosters — are held in the file
-itself, because they are small, they are historical, and they must not depend on a network
-call succeeding.
+Species, move and ability data come from PokéAPI at run time. Two kinds of data cannot come from
+there: values that changed between generations, which PokéAPI does not serve historically, and the
+Champions roster, which is not published in machine-readable form anywhere.
 
-*Source: PokéAPI v2, <https://pokeapi.co/>.*
+The first kind is **generated at build time from Pokémon Showdown's per-generation mod data**
+(`data/mods/gen{5,6,7,8}/pokedex.ts`), which encodes exactly how each generation differed from the
+one above it. Base stats and Pokémon typing are produced by diffing those files against Showdown's
+current Pokédex; move descriptors — contact, punch, slicing, pulse and the rest — are read at run
+time from the bundled `@smogon/calc` engine, the same engine the damage calculator uses, so the
+tags cannot disagree with the maths. The regulation-change article is a set difference over the
+roster the Pokédex itself filters by.
+
+The principle is worth stating plainly, because it is what the project learned the hard way
+(section 5): **if a value can be derived from a published artefact, derive it.** A hand-maintained
+historical table is wrong the moment the world changes and stays wrong, because nothing in the
+product surfaces the error — the page still renders, the filter still filters, and the number is
+simply false. Generation is not merely less work; it is the only form of correctness that survives
+neglect.
+
+*Sources: PokéAPI v2, <https://pokeapi.co/>. Pokémon Showdown, <https://github.com/smogon/pokemon-showdown>.*
+
 
 ---
 
@@ -215,30 +230,69 @@ configuration block.
 
 ## 5. Verification
 
-Nine tests cover URL routing and the regulation default. They assert that a bare address opens
-Champions mode on the newest regulation, that a legacy `g9` link no longer leaves Champions
-mode, that a real generation link still does, and that an unknown regulation key degrades to
-the newest rather than to an empty dex.
+Ten suites, 252 assertions, run on every push. They cover URL routing, historical base stats,
+historical typing, the visualisation palette, the Showdown paste format, move descriptors, the
+multi-criteria search, the regulation diff and the Champions roster.
 
-**What is not covered, stated plainly.** There is no automated test of the historical type
-charts, the base-stat revisions, or the ability introduction data against an authoritative
-source. Those tables were entered by hand and checked by inspection. Given that historical
-correctness is the entire premise of the project, this is the most significant gap in its
-verification, and it is the first thing that should be addressed. The nine tests should not be
-read as evidence that the historical data is right; they are evidence that the routing is.
+Every suite slices the **real** function out of `app/index.html` rather than copying it, so a test
+cannot pass against a stale duplicate of the code it claims to check.
 
----
+### 5.1 What the tests are worth
+
+A passing suite is not evidence on its own; a test that cannot fail proves nothing. Each suite here
+has been checked by mutation — deliberately breaking the code and confirming the suite goes red.
+That process caught three tests that were passing vacuously:
+
+- The sort tests never changed the sort. `let dexSort` inside the sliced code is scoped to the
+  `eval`, so assigning the outer stub did nothing; three assertions were green and meaningless.
+- Two mutation attempts silently did not apply, because the source stores `×` as an escape
+  rather than a literal character, so the assertions they were meant to prove remained unproven.
+- An assertion written as `x === 45 || true` could not fail at all.
+
+All three are fixed. The lesson is recorded because it generalises: **the question is never whether
+the suite is green, it is whether the suite can go red.**
+
+### 5.2 The gap this project was built to have, and no longer has
+
+Earlier versions of this paper named the unverified historical tables as the most significant gap in
+the project, on the grounds that historical correctness is its entire premise. That assessment was
+correct, and the gap turned out to be worse than suspected. Auditing `PAST_STATS` against Showdown's
+mod data found **10 of 43 entries correct**: ten species had a Generation VII revision filed under a
+Generation VI cutoff, eleven asserted values that were never real in any generation, fifteen were
+no-ops rewriting the present-day value over itself, and 41 revisions were missing outright. Pokémon
+typing had no historical record at all — it was approximated by *deleting* types that did not exist
+yet, which is only correct where a type was added and silently loses one where a type was replaced.
+
+That gap is now closed. Base stats and typing are generated, the type charts and move descriptors
+are tested, and the Champions roster — the last hand-maintained table — is audited on every run for
+duplicates, out-of-range numbers and regulation-superset violations, with its evolution-stage
+composition checked against PokéAPI.
+
+### 5.3 What is still not covered, stated plainly
+
+1. **No visual or responsive testing.** Layout, light theme and mobile are unverified. This is now
+   the largest gap, and it has already produced a shipped regression: a type chart that measured
+   correct on every colour metric and was unusable to look at.
+2. `ITEM_INTRO_GEN`, `EVO_OVERRIDES` and `REGIONAL` have not been audited against a source.
+3. The `C2` and `CM` type charts are tested only where they differ from `C1`.
+4. The Champions roster's *membership* cannot be validated — no machine-readable list is published.
+   Its structure is checked; its contents are taken on trust.
+
 
 ## 6. Known limitations
 
-1. The historical data tables are unverified by automated test (section 5).
+1. Layout, light theme and mobile rendering are untested (section 5.3).
 2. Run-time data depends on PokéAPI. If it is unavailable, species data degrades to
    placeholders while the local generation tables continue to work.
-3. Location and encounter data exists only for the generations PokéAPI covers well.
+3. Location and encounter data exists only for the games PokéAPI covers. Brilliant Diamond,
+   Shining Pearl, Legends: Arceus, Scarlet and Violet have none; Sword and Shield do, and were
+   wrongly listed as unsupported until this was checked against the API rather than assumed.
 4. The single-file architecture has no module boundaries (section 4.1).
 5. The learnset export omits five moves in the legal pool (section 3.3).
+6. Generation I is not modelled for base stats: it used a single Special stat rather than the
+   Sp. Atk / Sp. Def split, which is a display question rather than a value substitution.
+7. The Champions roster is hand-maintained and cannot be derived (section 5.3).
 
----
 
 ## 7. References
 

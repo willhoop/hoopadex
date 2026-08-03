@@ -11,8 +11,13 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 /* Theme variables */
-:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#2f5f96;--eff-dn-solid:#9e4a45;--eff-zero:#33334d;--eff-zero-ink:#c8c8d8;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
-body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#3d72ab;--eff-dn-solid:#b05a55;--eff-zero:#5a5a7a;--eff-zero-ink:#ffffff;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
+:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#35699f;--eff-dn-solid:#9e4a45;--eff-zero:#33334d;--eff-zero-ink:#c8c8d8;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
+body.cvd{--eff-up:#3987e5;--eff-dn:#e08c2f;--eff-up-solid:#3987e5;--eff-dn-solid:#d9822b;--eff-zero:#4a4a63;--eff-zero-ink:#f0f0f5}
+body.cvd .type-table td.cell.eff-2{color:#0d1420}
+body.cvd .type-table td.cell.eff-half{color:#1a1206}
+body.cvd .natures-table .stat-up,body.cvd .nature-matrix .nm-up{color:#5aa0f0}
+body.cvd .natures-table .stat-down,body.cvd .nature-matrix .nm-dn{color:#e8a33d}
+body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#4a7fb5;--eff-dn-solid:#b05a55;--eff-zero:#5a5a7a;--eff-zero-ink:#ffffff;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
 body{min-height:100vh;background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg1) 100%);color:var(--text);font-family:'Nunito','Segoe UI',system-ui,sans-serif}
 body.light .header{background:linear-gradient(135deg,#fff,#f8f8fc);border-bottom-color:rgba(0,0,0,0.1)}
 #universal-search-bar{background:#12121e}
@@ -366,7 +371,7 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .type-table tr.tc-hi td.row-header .tc-pill,.type-table th.col-header.tc-hi .tc-pill{outline:2px solid var(--text);outline-offset:-1px}
 /* Solid fills - the glyph still carries the value, so colour reinforces rather than encodes. */
 .type-table td.cell.eff-2{background:var(--eff-up-solid);color:#eef2f7;border-color:var(--eff-up-solid)}
-.type-table td.cell.eff-half{background:var(--eff-dn-solid);color:#f7eeee;border-color:var(--eff-dn-solid);font-size:15px}
+.type-table td.cell.eff-half{background:var(--eff-dn-solid);color:#f7eeee;border-color:var(--eff-dn-solid)}
 /* Immunity is categorically different from 'less effective' - the rarest and most decision-relevant
    cell, so it gets the solid treatment rather than the dullest one. */
 .type-table td.cell.eff-0{background:var(--eff-zero);color:var(--eff-zero-ink);font-weight:800}
@@ -711,7 +716,8 @@ button,select,input{touch-action:manipulation}
     </select>
   </div>
   <div style="display:flex;align-items:center;gap:6px;flex:1;justify-content:flex-end">
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" id="theme-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    <button onclick="toggleCVD()" id="cvd-btn" title="Colourblind mode: swaps the chart palette for a blue/orange pair with much stronger separation" style="background:none;border:1px solid var(--border2);color:var(--text4);border-radius:8px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;margin-right:8px">CVD</button>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" id="theme-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
   </div>
 </div>
 <div class="tabs">
@@ -1401,6 +1407,7 @@ async function init(){
   // code inside it dragged unrelated functions into the harness and broke the suite.
   if(restoreWorkingTeam()){renderTeamBuilder();renderTeamAnalysis()}
   renderTeamStoreUI();
+  restoreCVD();
   applyTabVisibility();  // the app opens in Champions mode, so this has to run before first paint
   await restoreHash();
   // Pre-load search indexes for universal search
@@ -3524,7 +3531,7 @@ function renderTC(){
   const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
   const pill=(t)=>'<span class="tc-pill" style="background:'+TC[t]+'">'+(abbr[t]||t.slice(0,3))+'</span>';
   const key=(sw,label)=>'<span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;'+sw+'"></span><span style="color:var(--text3)">'+label+'</span></span>';
-  let h='<div style="font-size:11px;margin-bottom:6px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+'<span style="color:#5DBB3E;font-weight:700">'+genLabel+'</span>'+key('background:color-mix(in srgb,var(--eff-up) 22%,transparent);border:1px solid var(--eff-up)','×2 super effective')+key('background:color-mix(in srgb,var(--eff-dn) 20%,transparent);border:1px solid var(--eff-dn)','×½ not very effective')+key('background:var(--eff-zero)','×0 immune')+'<span style="color:var(--text5)">blank = ×1 neutral</span></div>';
+  let h='<div style="font-size:11px;margin-bottom:6px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+'<span style="color:#5DBB3E;font-weight:700">'+genLabel+'</span>'+key('background:color-mix(in srgb,var(--eff-up) 22%,transparent);border:1px solid var(--eff-up)','×2 super effective')+key('background:color-mix(in srgb,var(--eff-dn) 20%,transparent);border:1px solid var(--eff-dn)','×0.5 not very effective')+key('background:var(--eff-zero)','×0 immune')+'<span style="color:var(--text5)">blank = ×1 neutral</span></div>';
   h+='<table class="type-table"><thead><tr><th class="corner"><span style="font-size:8px;font-weight:800;color:#6890F0">DEF &#x2192;</span><br><span style="font-size:8px;font-weight:800;color:#F85888">ATK &#x2193;</span></th>';
   cd.types.forEach((t,ci)=>{h+='<th class="col-header" data-col="'+ci+'">'+pill(t)+'</th>'});
   h+='</tr></thead><tbody>';
@@ -3534,7 +3541,7 @@ function renderTC(){
       const e=eff(a,d,cd.chart);
       let cls='',tx='';
       // The glyph carries the value, so the chart still reads with colour removed entirely.
-      if(e===2){cls='eff-2';tx='2'}else if(e===.5){cls='eff-half';tx='½'}else if(e===0){cls='eff-0';tx='0'}
+      if(e===2){cls='eff-2';tx='2'}else if(e===.5){cls='eff-half';tx='0.5'}else if(e===0){cls='eff-0';tx='0'}
       h+='<td class="cell '+cls+'" data-col="'+ci+'" onmouseenter="showChartTip(event,\''+cap(a)+'\',\''+cap(d)+'\','+e+');tcCross(this)" onmouseleave="hideChartTip()">'+tx+'</td>';
     });
     h+='</tr>';
@@ -6499,6 +6506,23 @@ async function pasteResolveSpecies(name){
 // the team editor, the damage calculator and anything added later cannot disagree about the rules.
 // The calculator already had this inline; the team editor did not, and showed a 510 EV budget in
 // Champions mode where the real cap is 66.
+// Colourblind mode. Stored like the theme, so it survives a reload; the classes it toggles are
+// declared once in CSS rather than being applied per element.
+function toggleCVD(){
+  const on=!document.body.classList.contains('cvd');
+  document.body.classList.toggle('cvd',on);
+  try{localStorage.setItem('hoopa-cvd',on?'1':'0')}catch{}
+  const b=document.getElementById('cvd-btn');
+  if(b){b.style.color=on?'var(--eff-up)':'var(--text4)';b.style.borderColor=on?'var(--eff-up)':'var(--border2)'}
+}
+function restoreCVD(){
+  let on=false;
+  try{on=localStorage.getItem('hoopa-cvd')==='1'}catch{}
+  if(on){document.body.classList.add('cvd');
+    const b=document.getElementById('cvd-btn');
+    if(b){b.style.color='var(--eff-up)';b.style.borderColor='var(--eff-up)'}}
+}
+
 function statBudget(){
   return isChampionsMode
     ? {label:'SP',  perStat:32,  total:66,  step:1}

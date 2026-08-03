@@ -62,7 +62,10 @@ for (const [name, block, want] of [['dark', rootBlock, '#3987e5'], ['light', lig
 // Bare glyphs, with the multiplier spelled out in the legend — they read better than "×2" in a
 // 24px cell. What matters is that a glyph exists at all, so the grid survives colour removal.
 check(/cls='eff-2';tx='2'/.test(src), 'type chart marks super effective with a glyph', '');
-check(/cls='eff-half';tx='½'/.test(src), 'type chart marks not-very-effective with a glyph', '');
+// Digits, not the one-half character: its numerals render at roughly 60% of cap height, so beside
+// a full-height "2" it reads small and soft at any font size.
+check(/cls='eff-half';tx='0\.5'/.test(src), 'type chart marks not-very-effective with a glyph', '');
+check(!/tx='½'/.test(src), 'the mushy fraction glyph is not used in cells', '');
 check(/cls='eff-0';tx='0'/.test(src), 'type chart marks immune with a glyph', '');
 // Natures: the matrix encodes direction by POSITION — row is the raised stat, column is the
 // lowered one. That is a stronger non-colour encoding than a glyph, since it survives even a
@@ -87,6 +90,20 @@ check(/\.natures-table \.stat-down\{color:var\(--eff-dn\)/.test(src), 'natures l
 // reading as a matrix. Recessive, not invisible.
 check(/\.type-table td\.cell\{[^}]*background:rgba\(255,255,255,0\.0[0-9]\)/.test(src),
   'neutral (×1) type chart cells are recessive but still drawn', '');
+
+// --- colourblind mode ------------------------------------------------------------------
+// A dedicated mode is what lets the DEFAULT palette be chosen to look right rather than to clear a
+// colour-vision threshold. Both must keep their glyphs: the mode changes the hues, not whether
+// colour is the sole encoding.
+check(/body\.cvd\{[^}]*--eff-up-solid:#3987e5/.test(src), 'colourblind mode redefines the up colour', '');
+check(/body\.cvd\{[^}]*--eff-dn-solid:#d9822b/.test(src), 'colourblind mode redefines the down colour', '');
+check(/function toggleCVD\(/.test(src), 'the mode has a toggle', '');
+check(/function restoreCVD\(/.test(src), 'the mode is restored on load', '');
+check(/localStorage\.setItem\('hoopa-cvd'/.test(src), 'the preference is persisted', '');
+check(/id="cvd-btn"/.test(src), 'the toggle is reachable in the UI', '');
+// Blue against orange, not blue against red: the point of the mode is separation under
+// deuteranopia and protanopia, measured at dE 27.1 versus 13.0 for the default pair.
+check(/body\.cvd\{[^}]*--eff-dn:#e08c2f/.test(src), 'the mode uses orange, not another red', '');
 
 // --- the crosshair exists --------------------------------------------------------------
 check(/function tcCross\(/.test(src), 'type chart has a row/column crosshair', '');

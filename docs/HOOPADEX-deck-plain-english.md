@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 1.0 · Last updated 2026-07-22**
+**Version 1.1 · Last updated 2026-08-03 · HoopaDex v2.9.3**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -94,32 +94,70 @@ numbers everyone else gets. The only new part is the Champions stat system layer
 
 ---
 
-## Slide 9 — A bug we found and fixed
+## Slide 9 — Finding the Pokémon you actually mean
 
-The dex opens in Champions mode on the newest regulation. It always did.
+Most dex search is one box, one word, one match.
 
-But every link it *generated* was broken. Sharing or bookmarking a page quietly kicked you
-back into the wrong mode.
+Here you stack criteria. Type **dark**, press Enter. Type **prankster**, press Enter. Type **rain
+dance**, press Enter. Three filters, combined: four Pokémon come back — Murkrow, Sableye, Purrloin
+and Liepard.
 
-Cause: the link recorded "generation 9", and the reader treated "generation 9" as *leave
-Champions mode*. Fixed in v1.93, and old broken links now work correctly.
+It works in a static web page with no server because each criterion costs exactly one request —
+the API will tell you every Dark type, every Prankster user, and everything that learns Rain Dance,
+and the answer is the overlap. Loading all 1,025 Pokémon to filter them locally is what makes this
+feel impossible elsewhere.
 
----
-
-## Slide 10 — What we don't claim
-
-The whole point of this project is historical accuracy. So this matters:
-
-**The historical tables have not been automatically tested.** They were typed in and checked
-by eye. Nine tests exist, but they only cover links and defaults, not whether the generation 2
-type chart is right.
-
-That is the biggest gap in the project, it is written down in the white paper, and it is the
-next thing to fix.
+Teams speak Showdown's format, so a team built here pastes straight into Showdown, Pokepaste or
+their calculator — and back again, unchanged.
 
 ---
 
-## Slide 11 — Read more
+## Slide 10 — The bug that turned out to be a pattern
+
+Someone noticed Krookodile's Defence looked wrong. It showed 80 for a Generation V game; it was
+70 back then.
+
+One entry missing from a table. Except the table was checked properly afterwards, against
+published game data — and **only 10 of its 43 entries were right.** Ten species had their
+Generation VII change filed one generation too early. Eleven listed numbers that were never real
+in any generation. Forty-one changes were missing altogether.
+
+Nobody had noticed, because there is nothing to notice. A wrong stat renders exactly like a right
+one.
+
+---
+
+## Slide 11 — So the tables stopped being written by hand
+
+The fix was not to correct 43 entries. It was to stop typing them.
+
+Base stats and historical typing are now **generated** from published per-generation game data.
+Move tags come from the same damage engine the calculator runs on. The regulation-change article
+is computed from the roster the dex itself filters by.
+
+The rule: **if it can be derived from something published, derive it.** A table you maintain by
+hand is wrong the day the world changes and stays wrong. A table you generate is only ever as
+stale as the last time you ran it.
+
+---
+
+## Slide 12 — What we don't claim
+
+Ten test suites and 252 assertions now cover the historical data, and each one has been checked
+by deliberately breaking the code to confirm the test goes red. Three tests were found to be
+passing without testing anything, and fixed.
+
+**But nothing tests what the app looks like.** Layout, light mode and phones are unverified — and
+that has already cost us: a type chart that passed every colour and contrast measurement was
+genuinely unpleasant to read, and only a human looking at it caught that.
+
+That is now the biggest gap, it is written down in the white paper, and it is the next thing to
+fix.
+
+---
+
+
+## Slide 13 — Read more
 
 **The white paper** — the data model, the stat formulas, every source:
 
