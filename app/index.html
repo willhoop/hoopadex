@@ -11,13 +11,22 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 /* Theme variables */
-:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#35699f;--eff-dn-solid:#9e4a45;--eff-zero:#33334d;--eff-zero-ink:#c8c8d8;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
-body.cvd{--eff-up:#3987e5;--eff-dn:#e08c2f;--eff-up-solid:#3987e5;--eff-dn-solid:#d9822b;--eff-zero:#4a4a63;--eff-zero-ink:#f0f0f5}
+:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#35699f;--eff-dn-solid:#9e4a45;--eff-zero:#5f5f85;--eff-zero-ink:#ffffff;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
+body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#7fb0d8;--eff-dn-solid:#dc9086;--eff-zero:#c9c9d6;--eff-zero-ink:#2f2f45;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
+/* Colourblind mode. Declared AFTER body.light so it wins in dark mode by source order, with an
+   explicit body.light.cvd rule that beats both on specificity - an earlier version sat above
+   body.light and was silently overridden whenever the light theme was on. */
+body.cvd{--eff-up:#3987e5;--eff-dn:#e08c2f;--eff-up-solid:#3987e5;--eff-dn-solid:#d9822b;--eff-zero:#5f5f85;--eff-zero-ink:#ffffff}
 body.cvd .type-table td.cell.eff-2{color:#0d1420}
 body.cvd .type-table td.cell.eff-half{color:#1a1206}
-body.cvd .natures-table .stat-up,body.cvd .nature-matrix .nm-up{color:#5aa0f0}
-body.cvd .natures-table .stat-down,body.cvd .nature-matrix .nm-dn{color:#e8a33d}
-body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#4a7fb5;--eff-dn-solid:#b05a55;--eff-zero:#5a5a7a;--eff-zero-ink:#ffffff;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
+body.light.cvd{--eff-up:#1f66b8;--eff-dn:#a86a12;--eff-up-solid:#7fb2df;--eff-dn-solid:#e0aa5c;--eff-zero:#c9c9d6;--eff-zero-ink:#2f2f45}
+body.light.cvd .type-table td.cell.eff-2{color:#0f3a63}
+body.light.cvd .type-table td.cell.eff-half{color:#5c3a08}
+body.cvd .natures-table .stat-up,body.cvd .nature-matrix .nm-up{color:var(--eff-up)}
+body.cvd .natures-table .stat-down,body.cvd .nature-matrix .nm-dn{color:var(--eff-dn)}
+/* Light theme ink: dark text on a light fill, the inverse of dark mode. */
+body.light .type-table td.cell.eff-2{color:#10395e}
+body.light .type-table td.cell.eff-half{color:#6d2721}
 body{min-height:100vh;background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg1) 100%);color:var(--text);font-family:'Nunito','Segoe UI',system-ui,sans-serif}
 body.light .header{background:linear-gradient(135deg,#fff,#f8f8fc);border-bottom-color:rgba(0,0,0,0.1)}
 #universal-search-bar{background:#12121e}
@@ -469,20 +478,20 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .sc-to{font-weight:700}
 .sc-to.sc-physical{color:var(--eff-dn)}
 .sc-to.sc-special{color:var(--eff-up)}
-.pri-tools{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.pri-tools{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .pri-tools #pri-filter{max-width:280px}
 .pri-count{font-size:12px;color:var(--text4)}
 .pri-table{width:100%;border-collapse:collapse}
-.pri-table td{border-top:1px solid var(--border);padding:10px 0;vertical-align:top}
+.pri-table td{border-top:1px solid var(--border);padding:5px 0;vertical-align:baseline}
 .pri-table tr:first-child td{border-top:none}
-.pri-num{width:52px;font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:800;text-align:right;padding-right:16px!important;white-space:nowrap}
+.pri-num{width:44px;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800;text-align:right;padding-right:14px!important;white-space:nowrap}
 .pri-num.pri-up{color:var(--eff-up)}
 .pri-num.pri-down{color:var(--eff-dn)}
 .pri-num.pri-zero{color:var(--text5)}
-.pri-desc{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text5);margin-bottom:5px}
-.pri-moves{display:flex;flex-wrap:wrap;gap:3px 14px}
-.pri-move{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--text2);text-transform:capitalize}
-.pri-move i{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.pri-desc{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text5);margin-right:4px;white-space:nowrap}
+.pri-moves{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px 11px}
+.pri-move{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);text-transform:capitalize}
+.pri-move i{width:6px;height:6px;border-radius:2px;flex-shrink:0}
 .pri-move.pri-hit{color:var(--text);font-weight:700}
 .pri-placeholder{color:var(--text5);font-style:italic;text-transform:none}
 .mv-tags{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0 3px}
@@ -552,7 +561,7 @@ body.light .team-matrix td.cell.tm-quad{box-shadow:inset 0 0 0 2px rgba(0,0,0,0.
    move names are. They were wrapping 4/3+1 and the cards read as ragged. */
 .team-slot .team-moves{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:6px 0}
 .team-slot .team-moves>*{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
-.nature-matrix{border-collapse:collapse;font-size:13px;margin-top:6px}
+.nature-matrix{border-collapse:collapse;font-size:13px;margin:6px auto 0}
 .nature-matrix th,.nature-matrix td{border:1px solid var(--border2);padding:0}
 .nature-matrix th.corner{width:96px;padding:5px 8px;text-align:left;font-size:9px;font-weight:800;letter-spacing:.06em;line-height:1.5}
 .nature-matrix .nm-dn{color:var(--eff-dn)}
@@ -805,7 +814,7 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn" id="other-sub-regs" onclick="switchOtherSub('regs')">Regulation Changes</button>
 </div>
 <div id="other-priority-sub">
-<p style="font-size:14px;color:#8a8a9a;margin-bottom:12px">Moves grouped by priority bracket. Higher priority moves go first regardless of Speed.</p>
+<p style="font-size:12px;color:var(--text4);margin-bottom:8px">Higher priority acts first regardless of Speed.</p>
 <div id="priority-content"></div>
 </div>
 <div id="other-split-sub" style="display:none">
@@ -829,7 +838,8 @@ button,select,input{touch-action:manipulation}
     <div class="calc-row"><label>Stat stage</label><select class="filter-select" id="calc-atk-stage" onchange="calcRun()"><option value="0">0</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option><option value="4">+4</option><option value="6">+6</option><option value="-1">-1</option><option value="-2">-2</option></select></div>
     <div class="calc-row"><label>Item</label><div style="flex:1;position:relative"><input class="filter-input" id="calc-atk-item" placeholder="None" autocomplete="off" style="width:100%;box-sizing:border-box;padding:7px 10px;font-size:12px"></div></div>
     <div class="calc-row"><label>Ability</label><div style="flex:1;position:relative"><input class="filter-input" id="calc-atk-abil" placeholder="None" autocomplete="off" style="width:100%;box-sizing:border-box;padding:7px 10px;font-size:12px"></div></div>
-    <div class="calc-row"><label><input type="checkbox" id="calc-burn" onchange="calcRun()"> Burned</label><label><input type="checkbox" id="calc-crit" onchange="calcRun()"> Crit</label>
+    <div class="calc-row" style="justify-content:flex-end;margin-bottom:6px"><button onclick="openInShowdownCalc()" title="Copies your team as a Showdown paste and opens their calculator - paste it into their Import box" style="padding:4px 10px;border-radius:8px;border:1px solid rgba(104,144,240,0.3);background:rgba(104,144,240,0.08);color:#6890F0;font-size:11px;font-weight:700;cursor:pointer">Open in Showdown calc ↗</button></div>
+<div class="calc-row"><label><input type="checkbox" id="calc-burn" onchange="calcRun()"> Burned</label><label><input type="checkbox" id="calc-crit" onchange="calcRun()"> Crit</label>
     <label><input type="checkbox" id="calc-spread" onchange="calcRun()"> Spread</label></div>
     <div class="calc-row"><label>Weather</label><select class="filter-select" id="calc-weather" onchange="calcRun()"><option value="none">None</option><option value="sun">Sun</option><option value="rain">Rain</option><option value="sand">Sand</option><option value="snow">Snow</option></select>
     <select class="filter-select" id="calc-terrain" onchange="calcRun()"><option value="none">No Terrain</option><option value="Electric">Electric</option><option value="Grassy">Grassy</option><option value="Psychic">Psychic</option><option value="Misty">Misty</option></select></div>
@@ -3532,7 +3542,7 @@ function renderTC(){
   const pill=(t)=>'<span class="tc-pill" style="background:'+TC[t]+'">'+(abbr[t]||t.slice(0,3))+'</span>';
   const key=(sw,label)=>'<span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;'+sw+'"></span><span style="color:var(--text3)">'+label+'</span></span>';
   let h='<div style="font-size:11px;margin-bottom:6px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+'<span style="color:#5DBB3E;font-weight:700">'+genLabel+'</span>'+key('background:color-mix(in srgb,var(--eff-up) 22%,transparent);border:1px solid var(--eff-up)','×2 super effective')+key('background:color-mix(in srgb,var(--eff-dn) 20%,transparent);border:1px solid var(--eff-dn)','×0.5 not very effective')+key('background:var(--eff-zero)','×0 immune')+'<span style="color:var(--text5)">blank = ×1 neutral</span></div>';
-  h+='<table class="type-table"><thead><tr><th class="corner"><span style="font-size:8px;font-weight:800;color:#6890F0">DEF &#x2192;</span><br><span style="font-size:8px;font-weight:800;color:#F85888">ATK &#x2193;</span></th>';
+  h+='<table class="type-table"><thead><tr><th class="corner"><span style="font-size:8px;font-weight:800;color:var(--text4)">DEF &#x2192;</span><br><span style="font-size:8px;font-weight:800;color:var(--text4)">ATK &#x2193;</span></th>';
   cd.types.forEach((t,ci)=>{h+='<th class="col-header" data-col="'+ci+'">'+pill(t)+'</th>'});
   h+='</tr></thead><tbody>';
   cd.types.forEach(a=>{
@@ -5471,7 +5481,7 @@ function renderPriorityTab(){
     const cls=n>0?'pri-up':(n<0?'pri-down':'pri-zero');
     h+='<tr class="pri-row">';
     h+='<td class="pri-num '+cls+'">'+(n>0?'+':'')+n+'</td>';
-    h+='<td class="pri-body"><div class="pri-desc">'+desc+'</div><div class="pri-moves">';
+    h+='<td class="pri-body"><div class="pri-moves"><span class="pri-desc">'+desc+'</span>';
     h+=moves.map(function(m){
       if(m.placeholder)return '<span class="pri-move pri-placeholder">Thunderbolt, Earthquake, Surf, and every other standard move</span>';
       const nm=m.name.replace(/-/g,' ');
@@ -5523,7 +5533,7 @@ function renderSplit(){
     if(genNum>=2){physTypes.push('steel');specTypes.push('dark')}
 
     h+='<div class="split-callout" style="background:transparent;border:1px solid var(--border2)">';
-    h+='<div style="font-size:14px;font-weight:800;color:#F8A060;margin-bottom:6px">'+genLabel+' \u2014 Type-Based Categories</div>';
+    h+='<div style="font-size:14px;font-weight:800;color:#F8A060;margin-bottom:6px">Type-based categories <span style="font-weight:600;color:var(--text4)">— how it worked before Generation IV</span></div>';
     h+='<div style="font-size:13px;color:#a8a8b8">In Generations I&#x2013;III, whether a move is Physical or Special is determined entirely by its <strong style="color:#e0e0e8">type</strong>, not the individual move. All damaging moves of a given type use the same attacking stat.</div>';
     h+='</div>';
 
@@ -5568,7 +5578,7 @@ function renderSplit(){
   }else{
     // Gen 4+: individual move split
     h+='<div class="split-callout" style="background:transparent;border:1px solid var(--border2)">';
-    h+='<div style="font-size:14px;font-weight:800;color:#6890F0;margin-bottom:6px">'+genLabel+' \u2014 Physical / Special Split</div>';
+    h+='<div style="font-size:14px;font-weight:800;color:#6890F0;margin-bottom:6px">Physical / Special split <span style="font-weight:600;color:var(--text4)">— in effect since Generation IV</span></div>';
     h+='<div style="font-size:13px;color:#a8a8b8">Starting in Generation IV (Diamond & Pearl), each individual move has its own damage category independent of type. A Fire-type move can be Physical <em>or</em> Special depending on the specific move.</div>';
     h+='</div>';
 
