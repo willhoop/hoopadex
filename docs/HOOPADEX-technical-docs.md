@@ -162,6 +162,26 @@ The application holds these tables. They let it show historical data correctly.
 
 **Important:** The application needs an internet connection. It has no offline mode.
 
+### How `PAST_STATS` is produced
+`PAST_STATS` is the one embedded table that is generated rather than written by hand. It is built
+by diffing Pokemon Showdown's per-generation mod data — `data/mods/gen{5,6,7,8}/pokedex.ts` in the
+`smogon/pokemon-showdown` repository — against Showdown's current Pokedex. Each mod file records how
+a generation differs from the one above it, so a `genN` override becomes a `genN+1` cutoff in the
+table's "in generations below this, use these values" form.
+
+This is a build-time source, not a runtime one: the generated table is embedded, and the application
+never calls Showdown. Regenerate rather than editing entries by hand. The hand-maintained version
+that this replaced in 1.96 had only 10 of its 43 entries correct — the rest were filed under the
+wrong generation, asserted values that were never real, or were missing.
+
+Two constraints follow from the source data:
+- Base stats were stable from Generation II through Generation V, so cutoff 6 is the earliest that
+  can exist. Showdown carries no stat overrides for generations 2, 3 or 4.
+- Generation I is not modelled, because its single Special stat is a display question rather than a
+  value substitution. See `docs/BACKLOG.md` item 14.
+
+`tests/test-past-stats.js` pins the result and asserts the structural invariants.
+
 ## 3.5 Caching
 The application caches responses in memory. This reduces the number of requests. The caches are
 `evoCache`, `speciesCache`, `formSpeciesCache`, and a TM move index.
