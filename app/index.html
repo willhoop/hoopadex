@@ -11,8 +11,8 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 /* Theme variables */
-:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-zero:#3a3a5c;--eff-zero-ink:#e8e8f0;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
-body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-zero:#d6d6e4;--eff-zero-ink:#2a2a3a;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
+:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#2a6fc4;--eff-dn-solid:#c0403c;--eff-zero:#3a3a5c;--eff-zero-ink:#e8e8f0;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
+body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#2a6fc4;--eff-dn-solid:#c0403c;--eff-zero:#d6d6e4;--eff-zero-ink:#2a2a3a;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
 body{min-height:100vh;background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg1) 100%);color:var(--text);font-family:'Nunito','Segoe UI',system-ui,sans-serif}
 body.light .header{background:linear-gradient(135deg,#fff,#f8f8fc);border-bottom-color:rgba(0,0,0,0.1)}
 #universal-search-bar{background:#12121e}
@@ -357,23 +357,23 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .type-table th.corner{font-size:8px;color:#5a5a6a;width:48px}
 .type-table th.col-header{padding:0}
 .type-table td.row-header{padding:0;width:48px;border:none}
-/* Neutral (1x) cells carry no fill - a hairline only. Over half the grid says nothing, and
-   letting it recede is what makes the signal legible without turning the signal up. */
-.type-table td.cell{text-align:center;font-weight:700;font-size:10px;cursor:default;font-family:'JetBrains Mono',monospace;padding:0;height:24px;line-height:24px;border:1px solid var(--border2);background:transparent;color:var(--text5);transition:outline 0.1s}
+/* Neutral (1x) cells recede but still read as cells - a faint fill and a visible border. With no
+   fill at all the matrix stopped reading as a matrix and rows became impossible to track. */
+.type-table td.cell{text-align:center;font-weight:800;font-size:12px;cursor:default;font-family:'JetBrains Mono',monospace;padding:0;height:24px;line-height:24px;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.03);color:var(--text5);transition:outline 0.1s}
 .type-table td.cell:hover{outline:2px solid var(--text);z-index:20;position:relative}
 /* Crosshair - the single biggest readability win in an 18x18 matrix. */
 .type-table tr.tc-hi td.cell,.type-table td.cell.tc-hi{box-shadow:inset 0 0 0 9999px rgba(255,255,255,0.07)}
 .type-table tr.tc-hi td.row-header .tc-pill,.type-table th.col-header.tc-hi .tc-pill{outline:2px solid var(--text);outline-offset:-1px}
-/* Every cell carries a glyph, so colour reinforces and is never the only encoding. */
-.type-table td.cell.eff-2{background:color-mix(in srgb,var(--eff-up) 22%,transparent);color:var(--eff-up);border-color:color-mix(in srgb,var(--eff-up) 48%,transparent)}
-.type-table td.cell.eff-half{background:color-mix(in srgb,var(--eff-dn) 20%,transparent);color:var(--eff-dn);border-color:color-mix(in srgb,var(--eff-dn) 45%,transparent)}
+/* Solid fills - the glyph still carries the value, so colour reinforces rather than encodes. */
+.type-table td.cell.eff-2{background:var(--eff-up-solid);color:#fff;border-color:var(--eff-up-solid)}
+.type-table td.cell.eff-half{background:var(--eff-dn-solid);color:#fff;border-color:var(--eff-dn-solid);font-size:15px}
 /* Immunity is categorically different from 'less effective' - the rarest and most decision-relevant
    cell, so it gets the solid treatment rather than the dullest one. */
-.type-table td.cell.eff-0{background:var(--eff-zero);color:var(--eff-zero-ink);font-weight:800}
-/* Type identity is a label, not data. A thin colour chip over neutral text stops 18 saturated
-   pills competing with the layer that actually carries meaning. */
-.tc-pill{display:block;font-size:9px;font-weight:800;color:var(--text2);text-transform:uppercase;text-align:center;line-height:12px;padding:2px 0 0;border-radius:0}
-.tc-pill i{display:block;height:3px;border-radius:2px;margin:0 3px 2px}
+.type-table td.cell.eff-0{background:#45456a;color:#e8e8f0;font-weight:800}
+/* The type pills ARE the axes. Eighteen saturated labels anchoring a grid is what makes it
+   scannable; reducing them to a hairline chip destroyed that. Identity stays loud. */
+.tc-pill{display:block;font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;text-align:center;text-shadow:0 1px 1px rgba(0,0,0,0.35);line-height:24px;padding:0;border-radius:0}
+.tc-pill i{display:none}
 .type-table td.row-header{position:sticky;left:0;z-index:9;background:var(--bg2)}
 .chart-tip{position:fixed;z-index:9999;background:#1e1e38;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700;color:#e0e0e8;box-shadow:0 6px 24px rgba(0,0,0,0.5);pointer-events:none;white-space:nowrap}
 .result-count{font-size:12px;color:#5a5a6a;margin-bottom:12px;font-weight:600}
@@ -3163,7 +3163,7 @@ function renderTC(){
       const e=eff(a,d,cd.chart);
       let cls='',tx='';
       // The glyph carries the value, so the chart still reads with colour removed entirely.
-      if(e===2){cls='eff-2';tx='×2'}else if(e===.5){cls='eff-half';tx='×½'}else if(e===0){cls='eff-0';tx='×0'}
+      if(e===2){cls='eff-2';tx='2'}else if(e===.5){cls='eff-half';tx='½'}else if(e===0){cls='eff-0';tx='0'}
       h+='<td class="cell '+cls+'" data-col="'+ci+'" onmouseenter="showChartTip(event,\''+cap(a)+'\',\''+cap(d)+'\','+e+');tcCross(this)" onmouseleave="hideChartTip()">'+tx+'</td>';
     });
     h+='</tr>';
