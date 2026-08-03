@@ -12,6 +12,44 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.0] — 2026-08-02
+
+### Added
+- **The damage calculator answers all four moves at once.** A filled Team Builder slot gets a
+  **Calc** button that loads the species, its four moves, item and ability, then runs the engine
+  once per move against one defender and ranks the results best-first. This changes the question the
+  tab answers: from "how much does this move do" to "which of my moves does the most to this",
+  which is the question people actually arrive with. Status moves and anything the engine cannot
+  resolve are listed separately rather than silently dropped.
+  - `calcRunSmogon()` gained `moveOverride` and `collect` parameters instead of being duplicated, so
+    both views run the *same* calculation and cannot drift apart.
+- **Showdown / Pokepaste import.** The Team Builder takes a Showdown export block — the format the
+  Showdown teambuilder, Pokepaste and every serious calculator already speak — and fills the team
+  from it: species, nickname, gender, item, ability, level, Tera type, EVs, IVs, nature and moves.
+  Parsed here rather than by pulling in `@pkmn/sets`, because `calc-engine.js` is already a ~480 KB
+  bundle and the one-file, no-dependency constraint is worth more than the ~60 lines saved.
+  Importing replaces the team rather than appending — a paste is a whole team, not an addition.
+
+### Fixed
+- **The calculator's "name lookup failed" error named the wrong thing.** It reported any of three
+  different failures identically. Forme-named species are the usual cause — PokéAPI calls 645
+  `landorus-incarnate` while the calc engine calls it `Landorus` — and the message now says which
+  lookup failed.
+
+### Notes
+- **A first draft of the paste importer silently imported the wrong Pokémon.** Its fallback matched
+  species by prefix, so `Rotom-Wash` resolved to base Rotom (Electric/Ghost instead of
+  Electric/Water) and `Urshifu-Rapid-Strike` resolved to Urshifu-**Single**-Strike — a different
+  Pokémon with different typing, silently substituted into your team. The resolver now asks PokéAPI
+  for the exact forme slug, which it serves, and accepts **exact matches only**; anything it cannot
+  resolve is named in the status line. Importing nothing is better than importing something the
+  paste did not say. Caught in browser testing, not by the unit tests — the parser was correct, the
+  resolution was not.
+- `tests/test-paste-import.js` (32 assertions) covers the parser against real-world messiness:
+  nicknames, genders, trailing whitespace Showdown actually emits, hyphenated formes, absent
+  fields, zero IVs that must not be dropped as falsy, and multi-member blocks.
+
+
 ## [1.99] — 2026-08-02
 
 ### Fixed

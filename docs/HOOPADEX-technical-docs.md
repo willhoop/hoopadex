@@ -158,6 +158,7 @@ The application holds these tables. They let it show historical data correctly.
 | `pokeapi.co/api/v2/` | Species, Pokemon, moves, abilities, items, item categories, regions | The primary source. |
 | `raw.githubusercontent.com/PokeAPI/sprites` | Pokemon sprites and item sprites | Images only. |
 | `data.pkmn.cc/sets/` | Competitive sets for the Team Builder | Public Smogon set data. |
+| Showdown export format | Team import (paste) | A text format, not a service. Parsed in-app; nothing is sent anywhere. |
 | `raw.githubusercontent.com/msikma/pokesprite` | Mint item sprites | Images only. |
 | Google Fonts | The Nunito and JetBrains Mono fonts | Cosmetic. |
 

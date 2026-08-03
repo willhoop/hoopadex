@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 1.99 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 2.0 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -712,10 +712,12 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn active" id="team-sub-builder" onclick="switchTeamSub('builder')">Team Builder</button>
 <button class="tab-btn" id="team-sub-compare" onclick="switchTeamSub('compare')">Compare Pok&#233;mon</button>
 <div style="flex:1"></div>
+<button id="team-import-btn" onclick="togglePasteBox()" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(104,144,240,0.3);background:rgba(104,144,240,0.08);color:#6890F0;font-size:11px;font-weight:700;cursor:pointer;margin-right:6px">Import paste</button>
 <button id="team-clear-all-btn" onclick="clearAllTeam()" style="display:none;padding:5px 12px;border-radius:8px;border:1px solid rgba(248,88,136,0.3);background:rgba(248,88,136,0.08);color:#F85888;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s">Clear All</button>
 </div>
 <div id="team-builder-sub">
 <p style="font-size:13px;color:#8a8a9a;margin-bottom:16px">Build a team of up to 6 Pok&#233;mon and analyze type coverage. Click a slot to add from your Pok&#233;dex.</p>
+<div id="team-paste-box" style="display:none;margin-bottom:16px;padding:12px;border:1px solid rgba(104,144,240,0.22);background:rgba(104,144,240,0.05);border-radius:10px"><div style="font-size:12px;color:var(--text2);margin-bottom:8px">Paste a Showdown export or Pokepaste block. Build the team in Showdown's teambuilder, hit <b>Import/Export</b>, and paste it here.</div><textarea id="team-paste-input" spellcheck="false" placeholder="Garchomp @ Life Orb&#10;Ability: Rough Skin&#10;EVs: 252 Atk / 4 SpD / 252 Spe&#10;Jolly Nature&#10;- Earthquake&#10;- Dragon Claw" style="width:100%;min-height:150px;background:var(--bg1);color:var(--text);border:1px solid var(--border2);border-radius:8px;padding:10px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5;resize:vertical"></textarea><div style="display:flex;gap:8px;align-items:center;margin-top:8px"><button onclick="runPasteImport()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(120,200,80,0.35);background:rgba(120,200,80,0.12);color:#78C850;font-size:12px;font-weight:700;cursor:pointer">Import team</button><button onclick="togglePasteBox()" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:12px;cursor:pointer">Cancel</button><span id="team-paste-status" style="font-size:12px;color:var(--text3)"></span></div></div>
 <div class="team-grid" id="team-grid"></div>
 <div id="team-search-wrap" style="display:none;margin-bottom:16px">
 <input class="filter-input" id="team-search" placeholder="Search Pok&#233;mon to add..." oninput="onTeamSearch()" onfocus="this.select()" autocomplete="off">
@@ -5827,7 +5829,7 @@ function renderTeamBuilder(){
       h+='<button class="team-remove" onclick="event.stopPropagation();removeTeamSlot('+i+')">&#x2715;</button>';
       // The slot body opens the set editor, so the trip to the full dex entry needs its own control.
       h+='<button class="team-dex" title="Open '+p.name.replace(/-/g,' ')+' in the Pokédex" onclick="event.stopPropagation();openTeamMemberInDex('+p.id+')">Dex</button>';
-      h+='<button class="team-calc" title="Damage calc with this set's moves" onclick="event.stopPropagation();calcLoadFromTeamSlot('+i+')">Calc</button>';
+      h+='<button class="team-calc" title="Damage calc using the moves on this set" onclick="event.stopPropagation();calcLoadFromTeamSlot('+i+')">Calc</button>';
       
       // Top row: sprite + name/types/set info
       h+='<div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">';
@@ -5959,6 +5961,139 @@ let teamEditSlot=-1;// tracks which slot we're editing when adding a set from de
 function openTeamMemberInDex(id){
   switchTab('pokedex');
   showDetail(id);
+}
+
+/* ── Showdown / Pokepaste import ────────────────────────────────────────────────────────
+   The Showdown export block is the lingua franca: it round-trips with the Showdown
+   teambuilder, Pokepaste, and every damage calculator worth using. Parsing it here rather
+   than pulling in @pkmn/sets keeps the one-file, no-dependency constraint - the format is
+   stable and small enough that a parser is cheaper than a second bundle.
+
+   A block looks like:
+     Nickname (Species) (M) @ Choice Band
+     Ability: Rough Skin
+     Level: 50
+     Tera Type: Fire
+     EVs: 252 Atk / 4 SpD / 252 Spe
+     Jolly Nature
+     IVs: 0 SpA
+     - Earthquake
+     - Dragon Claw
+   Blank lines separate members. Every field except the species line is optional.        */
+const PASTE_STATKEY={hp:'hp',atk:'attack',def:'defense',spa:'special-attack',spd:'special-defense',spe:'speed'};
+function parseStatLine(str){
+  const out={};
+  String(str).split('/').forEach(part=>{
+    const m=part.trim().match(/^(\d+)\s+(HP|Atk|Def|SpA|SpD|Spe)$/i);
+    if(m)out[PASTE_STATKEY[m[2].toLowerCase()]]=parseInt(m[1]);
+  });
+  return out;
+}
+function parseShowdownPaste(text){
+  const blocks=String(text).replace(/\r/g,'').split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
+  return blocks.map(block=>{
+    const lines=block.split('\n').map(l=>l.trim()).filter(Boolean);
+    const set={species:'',nickname:'',gender:'',item:'',ability:'',level:null,tera:'',
+               shiny:false,evs:{},ivs:{},nature:'',moves:[]};
+    // --- first line: [Nickname (]Species[)] [(M|F)] [@ Item] ---
+    let head=lines.shift()||'';
+    const at=head.lastIndexOf(' @ ');
+    if(at>-1){set.item=head.slice(at+3).trim();head=head.slice(0,at).trim()}
+    const gm=head.match(/\s\((M|F)\)$/i);
+    if(gm){set.gender=gm[1].toUpperCase();head=head.slice(0,gm.index).trim()}
+    const nm=head.match(/^(.+?)\s+\((.+)\)$/);
+    if(nm){set.nickname=nm[1].trim();set.species=nm[2].trim()}
+    else set.species=head.trim();
+    // --- remaining lines ---
+    for(const line of lines){
+      if(line.startsWith('- ')){set.moves.push(line.slice(2).trim());continue}
+      const kv=line.match(/^([A-Za-z ]+):\s*(.+)$/);
+      if(kv){
+        const k=kv[1].trim().toLowerCase(),v=kv[2].trim();
+        if(k==='ability')set.ability=v;
+        else if(k==='level')set.level=parseInt(v)||null;
+        else if(k==='shiny')set.shiny=/yes/i.test(v);
+        else if(k==='tera type')set.tera=v;
+        else if(k==='evs')set.evs=parseStatLine(v);
+        else if(k==='ivs')set.ivs=parseStatLine(v);
+        continue;
+      }
+      const nat=line.match(/^([A-Za-z]+)\s+Nature$/i);
+      if(nat)set.nature=nat[1];
+    }
+    return set;
+  }).filter(s=>s.species);
+}
+// Showdown names formes as "Landorus-Therian" or "Urshifu-Rapid-Strike". PokeAPI serves those
+// slugs directly (as ids above 10000), so ask it by name first. Only fall back to shortening the
+// slug, and only on EXACT matches - never fuzzy. An earlier draft used a startsWith() fallback and
+// silently resolved Urshifu-Rapid-Strike to Urshifu-Single-Strike, a different Pokemon with
+// different typing. Returning null so the member is reported as skipped is far better than
+// importing something the paste did not say.
+const pasteSpeciesCache={};
+async function pasteResolveSpecies(name){
+  const slug=String(name).toLowerCase().trim().replace(/[’']/g,'').replace(/\.\s*/g,'-').replace(/\s+/g,'-');
+  if(!slug)return null;
+  if(pasteSpeciesCache[slug]!==undefined)return pasteSpeciesCache[slug];
+  const parts=slug.split('-');
+  for(let n=parts.length;n>0;n--){
+    const t=parts.slice(0,n).join('-');
+    const hit=master.find(p=>p.name===t);
+    if(hit){pasteSpeciesCache[slug]=hit;return hit}
+    try{
+      const r=await fetch('https://pokeapi.co/api/v2/pokemon/'+t);
+      if(r.ok){const d=await r.json();dc[d.id]=d;const e={id:d.id,name:d.name};pasteSpeciesCache[slug]=e;return e}
+    }catch{}
+  }
+  pasteSpeciesCache[slug]=null;
+  return null;
+}
+function togglePasteBox(){
+  const b=document.getElementById('team-paste-box');
+  if(!b)return;
+  const open=b.style.display==='none';
+  b.style.display=open?'':'none';
+  if(open)document.getElementById('team-paste-input').focus();
+  else document.getElementById('team-paste-status').textContent='';
+}
+async function runPasteImport(){
+  const status=document.getElementById('team-paste-status');
+  const text=document.getElementById('team-paste-input').value;
+  if(!text.trim()){status.style.color='var(--text3)';status.textContent='Nothing to import.';return}
+  status.style.color='var(--text3)';status.textContent='Importing…';
+  const {imported,failed}=await importShowdownPaste(text);
+  if(!imported.length){
+    status.style.color='#F85888';
+    status.textContent='Could not read that paste'+(failed.length?': '+failed.join(', '):'.');
+    return;
+  }
+  // Replace the team rather than appending - a paste is a whole team, not an addition.
+  teamSlots=[null,null,null,null,null,null];
+  imported.forEach((p,i)=>{teamSlots[i]=p});
+  renderTeamBuilder();renderTeamAnalysis();
+  // Anything that could not be resolved is named, never silently dropped.
+  status.style.color=failed.length?'#F8A060':'#78C850';
+  status.textContent='Imported '+imported.length+' Pokémon'+(failed.length?' · skipped: '+failed.join(', '):'.');
+  if(!failed.length)setTimeout(()=>{const b=document.getElementById('team-paste-box');if(b)b.style.display='none';status.textContent=''},1800);
+}
+
+async function importShowdownPaste(text){
+  const sets=parseShowdownPaste(text);
+  const imported=[],failed=[];
+  for(const set of sets){
+    if(imported.length>=6){failed.push(set.species+' (team is full)');continue}
+    const hit=await pasteResolveSpecies(set.species);
+    if(!hit){failed.push(set.species+' (not found)');continue}
+    if(!dc[hit.id]){try{dc[hit.id]=await (await fetch('https://pokeapi.co/api/v2/pokemon/'+hit.id)).json()}catch{failed.push(set.species+' (could not load)');continue}}
+    const d=dc[hit.id];
+    imported.push({
+      id:hit.id,name:d.name,types:d.types.map(t=>t.type.name),
+      smogonSet:{moves:set.moves.slice(0,4),item:set.item,ability:set.ability,nature:set.nature,
+                 evs:set.evs,ivs:set.ivs,level:set.level,tera:set.tera,
+                 setName:set.nickname||'Imported',tier:'Paste'}
+    });
+  }
+  return {imported,failed};
 }
 
 function teamSlotClick(idx){
@@ -7453,7 +7588,13 @@ async function calcRunSmogon(moveOverride,collect){
   const M=SmogonCalc,gen=CalcMaps.gen;
   const spName=CalcMaps.species[calcFlat(a.name)],dName=CalcMaps.species[calcFlat(d.name)];
   const mvName=CalcMaps.moves[calcFlat(mvRaw)];
-  if(!spName||!dName||!mvName){if(collect)return{move:mvRaw,skipped:'unknown move'};throw new Error('name lookup failed')}
+  if(!spName||!dName||!mvName){
+    // Say which lookup failed. Forme-named species are the usual cause: PokeAPI calls 645
+    // landorus-incarnate while the calc engine calls it Landorus.
+    const miss=!spName?'attacker '+a.name+' not known to the calc engine':(!dName?'defender '+d.name+' not known to the calc engine':'unknown move');
+    if(collect)return{move:mvRaw,skipped:miss};
+    throw new Error('name lookup failed: '+miss);
+  }
   const lv=Math.max(1,Math.min(100,parseInt(document.getElementById('calc-level').value)||50));
   // move meta for category-aware natures/EVs
   const probe=new M.Move(gen,mvName);

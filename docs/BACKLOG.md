@@ -18,6 +18,10 @@ it persist in `localStorage` or export to a file? Is it per-game, or one run at 
 
 ## 2. ROM save upload for boss calc — `open`
 
+**Partly superseded by item 19.** Showdown paste import (2.0) already gets a real set into the
+calculator without parsing a save file. A save would still add actual in-game IVs/EVs and the box,
+but the common case is covered.
+
 Upload a save file and load the player's actual party into the damage calculator, so boss fights
 are computed against real EVs, IVs, levels and items rather than assumptions.
 
@@ -136,3 +140,16 @@ and arrows so colour is never the only encoding, recessive neutrals, and a cross
 encounter rarity (`loc-chance-*`), EV totals, TM status and the damage-roll colours. They are
 single-state indicators rather than diverging pairs, so they do not have the same failure mode,
 but none has been checked for contrast against either surface.
+
+## 19. Four-move damage calc and paste import — `done` (2.0)
+
+*Added 2026-08-02.* The calculator runs all four moves from a Team Builder slot at once, ranked
+best-first, and the Team Builder imports Showdown/Pokepaste blocks.
+
+**Watch item.** The species resolver accepts exact matches only, by design: an earlier draft matched
+by prefix and silently substituted Urshifu-Single-Strike for Urshifu-Rapid-Strike. Do not
+reintroduce fuzzy matching here — a wrong Pokémon in the team is worse than a named skip.
+
+**Still open.** Export in the same format (the parser exists; the emitter does not), and the calc
+does not yet apply the imported EVs, IVs, level or nature — it loads species, moves, item and
+ability, and uses the attacker fields already on screen for the rest.
