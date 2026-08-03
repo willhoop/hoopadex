@@ -12,6 +12,37 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [3.0] — 2026-08-03
+
+### Added
+- **Colourblind mode**, a toggle beside the theme control, persisted like the theme. It swaps the
+  chart and natures palette for **blue against orange** — the classic deuteranopia/protanopia-safe
+  diverging pair — measuring **CVD ΔE 27.1** against 13.0 for the default.
+- **This is the point of it:** a dedicated mode frees the *default* palette from having to clear a
+  colour-vision threshold, so the default can be chosen to look right and the mode can be chosen
+  purely for separation. Every previous swing on this chart — washed out in 1.99, too loud in 2.2,
+  muddy in 2.9.3 — came from making one palette serve both jobs. Glyphs remain in both modes;
+  colour is never the sole encoding either way.
+
+### Changed
+- **The default fills are evened out.** The blue was a cold grey-navy against a warm earthy red, so
+  the two did not read as a pair and the blue looked dull. They are now lightness-matched —
+  `#35699f` and `#9e4a45`, a lightness gap of 0.008 — both carrying text near 5.8:1.
+- **`½` replaced with `0.5` in chart cells.** The one-half character renders with numerals at
+  roughly 60% of cap height, so beside a full-height `2` it reads small and soft *at any font size*.
+  It was being set two sizes larger to compensate, which is why it looked mushy rather than merely
+  small. Both glyphs now sit at the same size and the size override is gone.
+
+### Documentation
+- **The white paper and deck were eight versions stale** and said the opposite of what is now true.
+  Section 5 still claimed the historical tables were untested and called that "the most significant
+  gap in its verification"; the deck's Slide 10 said the same. Both rewritten: the paper now records
+  what the audit actually found (10 of 43 base-stat entries correct, typing with no historical record
+  at all), the derive-don't-type principle that followed, the three tests found passing vacuously,
+  and the honest new largest gap — **no visual or responsive testing**. Deck slides renumbered after
+  a duplicate Slide 11 crept in.
+
+
 ## [2.9.3] — 2026-08-03
 
 ### Changed
