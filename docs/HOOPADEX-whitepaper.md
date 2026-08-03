@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 1.2 · Last updated 2026-08-03 · HoopaDex v3.8**
+**Version 1.3 · Last updated 2026-08-03 · HoopaDex v4.0**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -104,6 +104,17 @@ roster the Pokédex itself filters by. The Defending Type Calculator's species l
 move: which Pokémon have a given typing is an intersection of PokéAPI's two per-type membership
 lists — the same endpoint the Pokédex type filter already calls — rather than a table of pairs
 someone would have to keep.
+
+The Champions mega abilities joined this group in v4.0, and the way they were found is the point.
+The table was written by hand and covered 23 of the 41 Z-A megas the application itself declares.
+The 18 it missed did not render as an error; they rendered as an ability that simply had fewer
+Pokémon, which is indistinguishable from a correct answer. The 23 present rows all turned out to be
+right — which is luck, not a process, because nothing in the product could have surfaced a wrong
+one. `build/generate-mega-abilities.js` now derives all 45 rows from Showdown's `data/pokedex.ts`.
+
+The hand table also could not express a species with two different megas. Raichu has both: Mega
+Raichu X with Electric Surge and Mega Raichu Y with No Guard. A shape that cannot represent the data
+is its own kind of wrongness, and one a spot-check of existing rows will never find.
 
 The principle is worth stating plainly, because it is what the project learned the hard way
 (section 5): **if a value can be derived from a published artefact, derive it.** A hand-maintained

@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 1.2 · Last updated 2026-08-03 · HoopaDex v3.8**
+**Version 1.3 · Last updated 2026-08-03 · HoopaDex v4.0**
 Documents the published application and the local file `app/HoopaDex_1_92.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -118,7 +118,7 @@ The application reads public APIs from the browser. Those APIs permit cross-orig
 | Property | Value |
 |---|---|
 | File | `app/index.html` (published copy; see 3.7) |
-| Version | 3.8 |
+| Version | 4.0 |
 | Size | Approximately 578 KB |
 | Lines | Approximately 8,760 |
 | Dependencies | None to install. Two web fonts load from Google Fonts. |
@@ -129,7 +129,7 @@ The application reads public APIs from the browser. Those APIs permit cross-orig
 |---|---|
 | Pokedex | Browse and filter the species list. Open a detail view. |
 | Moves | Browse moves. Includes the TM list for each game. |
-| Abilities | Browse abilities. Shows the generation that introduced each one, and which Pokemon have it in the selected generation. |
+| Abilities | Browse abilities. Shows the generation that introduced each one, and which Pokemon have it in the selected generation, alternate forms included. |
 | Items | Browse items by category. Shows the generation that introduced each one. |
 | Locations | Find where a Pokemon appears, by game. |
 | Type Chart | Show the type effectiveness chart for the selected generation. Includes the Defending Type Calculator (3.8). |

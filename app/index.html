@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 3.9 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 4.0 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -552,6 +552,12 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
   text-transform:capitalize;transition:border-color .15s,color .15s}
 .ap-mon:hover{border-color:var(--eff-up);color:var(--text)}
 .ap-mon img{width:28px;height:28px;flex-shrink:0;image-rendering:pixelated}
+/* Marks an alternate form and states which era it belongs to, because "Slowbro (Galarian)" and
+   "Slowbro" sitting next to each other otherwise look like a duplicate rather than two Pokemon. */
+.ap-form-pill{flex-shrink:0;font-size:8.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;border-radius:999px;margin-left:6px;white-space:nowrap;
+  background:color-mix(in srgb,var(--eff-up) 16%,transparent);color:var(--eff-up);
+  border:1px solid color-mix(in srgb,var(--eff-up) 40%,transparent)}
 
 /* Hidden-ability marker. This was background:transparent in both themes, so the one thing that
    distinguishes a hidden ability from a normal one was carried by a faint border alone. It is a
@@ -2795,6 +2801,42 @@ function switchMovesTab(btn,cat){
   btn.closest('.detail-panel').querySelectorAll('.moves-list').forEach(el=>{el.style.display=el.dataset.cat===cat?'':'none'});
 }
 
+/* Which species a form belongs to, resolved from its name rather than a fetch. PokeAPI gives a
+   form an id above 10000 that carries no relation to its species' dex number, and every gate the
+   app applies - generation range, Champions legality - is a fact about the SPECIES.
+   Longest match first, because plenty of base species contain a hyphen themselves: ho-oh,
+   porygon-z, mr-mime, jangmo-o, tapu-koko. Shortening from the full name means "mr-mime-galar"
+   finds "mr-mime" and never "mr". */
+function baseSpeciesId(formName){
+  const parts=String(formName).toLowerCase().split('-');
+  for(let n=parts.length;n>0;n--){
+    const t=parts.slice(0,n).join('-');
+    const hit=master.find(p=>p.name===t);
+    if(hit)return hit.id;
+  }
+  return 0;
+}
+
+/* One definition of how a form is named on screen. The Pokedex detail panel and the ability page
+   both show forms, and two copies of these rules would drift - "Slowbro-Galar" reading as
+   "Galarian Slowbro" in one place and "slowbro galar" in the other. */
+const DEFAULT_FORM_SUFFIXES=['-normal','-plant','-altered','-land','-incarnate','-ordinary','-aria','-shield','-average','-50','-standard','-midday','-solo','-red-striped','-star','-baile','-full-belly','-single-strike','-amped'];
+function formDisplayName(rawName){
+  const name=String(rawName);
+  let displayName=pokeName(name);
+  const lower=name.toLowerCase();
+  for(const suf of DEFAULT_FORM_SUFFIXES){
+    if(lower.endsWith(suf)){displayName=pokeName(name.slice(0,name.length-suf.length));break}
+  }
+  if(name.includes('-mega'))displayName=pokeName(name.split('-mega')[0])+' (Mega'+(name.includes('-mega-x')?' X':name.includes('-mega-y')?' Y':'')+')';
+  else if(name.includes('-alola'))displayName=pokeName(name.replace('-alola',''))+' (Alolan)';
+  else if(name.includes('-galar'))displayName=pokeName(name.replace('-galar',''))+' (Galarian)';
+  else if(name.includes('-hisui'))displayName=pokeName(name.replace('-hisui',''))+' (Hisuian)';
+  else if(name.includes('-paldea'))displayName=pokeName(name.replace('-paldea',''))+' (Paldean)';
+  else if(name.includes('-gmax'))displayName=pokeName(name.split('-gmax')[0])+' (Gigantamax)';
+  return displayName.replace(/\b\w/g,x=>x.toUpperCase());
+}
+
 function getFormGenRange(name){
   const n=name.toLowerCase();
   const MEGAS_GEN6_CHECK=new Set(['venusaur','charizard','blastoise','alakazam','gengar','kangaskhan','pinsir','gyarados','aerodactyl','mewtwo','ampharos','scizor','heracross','houndoom','tyranitar','blaziken','gardevoir','mawile','aggron','medicham','manectric','banette','absol','garchomp','lucario','abomasnow','beedrill','pidgeot','slowbro','steelix','sceptile','swampert','sableye','sharpedo','camerupt','altaria','glalie','salamence','metagross','latias','latios','rayquaza','lopunny','gallade','audino','diancie']);
@@ -2808,11 +2850,15 @@ function getFormGenRange(name){
     return {available:g=>g>=9, label:'Gen IX (Z-A)'};
   }
   if(n.includes('-gmax'))return {available:g=>g===8, label:'Gen VIII'};
+  /* Totem is tested BEFORE the regional suffixes on purpose. Totem Pokemon are Generation VII
+     only, but several of them are also Alolan - "raticate-totem-alola" - and an -alola test
+     placed first claims Gen VII+, which put Totem Raticate in Generation VIII where it has never
+     existed. The narrower window has to win. */
+  if(n.includes('-totem'))return {available:g=>g===7, label:'Gen VII'};
   if(n.includes('-alola'))return {available:g=>g>=7, label:'Gen VII+'};
   if(n.includes('-galar'))return {available:g=>g>=8, label:'Gen VIII+'};
   if(n.includes('-hisui'))return {available:g=>g>=8, label:'Gen VIII+'};
   if(n.includes('-paldea'))return {available:g=>g>=9, label:'Gen IX+'};
-  if(n.includes('-totem'))return {available:g=>g===7, label:'Gen VII'};
   return null;
 }
 async function renderDetail(p){
@@ -2837,22 +2883,8 @@ async function renderDetail(p){
     outOfGenBanner='<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;background:transparent;border:1px solid var(--border2);margin-bottom:8px;font-size:12px;color:#F08030;font-weight:600"><span style="font-size:14px"></span>This form is only available in '+formRange.label+'. Showing reference data.</div>';
   }
 
-  // Default form suffixes that should be stripped from display names
-  const DEFAULT_FORM_SUFFIXES=['-normal','-plant','-altered','-land','-incarnate','-ordinary','-aria','-shield','-average','-50','-standard','-midday','-solo','-red-striped','-star','-baile','-full-belly','-single-strike','-amped'];
-  let displayName=pokeName(p.name);
-  // Strip default form suffixes for cleaner display
-  const pnLower=p.name.toLowerCase();
-  for(const suf of DEFAULT_FORM_SUFFIXES){
-    if(pnLower.endsWith(suf)){displayName=pokeName(p.name.slice(0,p.name.length-suf.length));break}
-  }
-  // Prettify alternate form names
-  if(p.name.includes('-mega'))displayName=pokeName(p.name.split('-mega')[0])+' (Mega'+(p.name.includes('-mega-x')?' X':p.name.includes('-mega-y')?' Y':'')+')';
-  else if(p.name.includes('-alola'))displayName=pokeName(p.name.replace('-alola',''))+' (Alolan)';
-  else if(p.name.includes('-galar'))displayName=pokeName(p.name.replace('-galar',''))+' (Galarian)';
-  else if(p.name.includes('-hisui'))displayName=pokeName(p.name.replace('-hisui',''))+' (Hisuian)';
-  else if(p.name.includes('-paldea'))displayName=pokeName(p.name.replace('-paldea',''))+' (Paldean)';
-  else if(p.name.includes('-gmax'))displayName=pokeName(p.name.split('-gmax')[0])+' (Gigantamax)';
-  displayName=displayName.replace(/\b\w/g,x=>x.toUpperCase());
+  // Naming rules live in formDisplayName so this panel and the ability page cannot disagree.
+  const displayName=formDisplayName(p.name);
 
   let abs='';
   let abilityList=[];
@@ -6249,16 +6281,31 @@ async function showAbilityPage(abilityName){
       h+='<div class="ap-detail">'+detail+'</div>';
     }
 
-    // Show Pok&#233;mon with this ability (filtered by current gen)
+    /* Show Pokemon with this ability, forms included.
+       Every alternate form - megas, regionals, Gigantamax, Therian and the rest - is served by
+       PokeAPI with an id above 10000. The old filter was `id>genMax` against a genMax that never
+       exceeds 1025, so it discarded ALL of them before any other rule ran: Mega Dragalge has
+       Regenerator and base Dragalge does not, and the Regenerator page could never say so.
+       A form is gated on TWO things, not one: its base species must exist in the selected
+       generation, and the form itself must (Alolan Raichu is a Gen VII form of a Gen I species). */
     const genMax=getGenMaxId();
     const pokemonList=(d.pokemon||[]).filter(p=>{
-      const idMatch=p.pokemon.url.match(/\/(\d+)\//);
-      const id=idMatch?parseInt(idMatch[1]):0;
-      if(id<=0||id>genMax)return false;
+      const id=idFromUrl(p.pokemon.url)||0;
+      if(id<=0)return false;
+      const name=p.pokemon.name;
+      const baseId=id>10000?baseSpeciesId(name):id;
+      if(!baseId||baseId>genMax)return false;
       // Champions is a fixed roster, not a generation range. Without this the page listed Riolu,
       // Impidimp, Morgrem and other non-fully-evolved Pokemon that are not legal in the format -
       // the same class of bug as the generation filter being ignored in applyFilters().
-      if(isChampionsMode&&!CHAMPIONS_IDS.has(id))return false;
+      // A form is legal exactly when its base species is: the roster names species, not formes.
+      if(isChampionsMode&&!CHAMPIONS_IDS.has(baseId))return false;
+      // The form's own era. Null means the form is not one this app dates - a cosmetic or battle
+      // forme that shipped with its species - so the base species check above already covers it.
+      if(id>10000){
+        const range=getFormGenRange(name);
+        if(range&&!range.available(genNum))return false;
+      }
       // Hidden abilities didn't exist before Gen 5; exclude Pokemon that only have this ability as hidden
       if(p.is_hidden&&genNum<5)return false;
       return true;
@@ -6267,12 +6314,13 @@ async function showAbilityPage(abilityName){
     h+='<div class="ap-mon-grid">';
     pokemonList.forEach(p=>{
       const name=p.pokemon.name;
-      const idMatch=p.pokemon.url.match(/\/(\d+)\//);
-      const id=parseInt(idMatch[1]);
+      const id=idFromUrl(p.pokemon.url);
+      // Forms have their own sprite under their form id, so this needs no special case.
       const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png';
       const hidden=(p.is_hidden&&genNum>=5)?'<span class="hidden-pill">Hidden</span>':'';
+      const form=id>10000?'<span class="ap-form-pill">'+(getFormGenRange(name)?getFormGenRange(name).label:'Form')+'</span>':'';
       h+='<div class="ap-mon" onclick="switchTab(\'pokedex\');showDetail('+id+')">';
-      h+='<img src="'+spr+'" loading="lazy" alt="">'+name.replace(/-/g,' ')+hidden+'</div>';
+      h+='<img src="'+spr+'" loading="lazy" alt="">'+formDisplayName(name)+form+hidden+'</div>';
     });
     h+='</div></div>';
     
