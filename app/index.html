@@ -485,6 +485,28 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .mv-tag b{font-family:'JetBrains Mono',monospace;font-weight:800;letter-spacing:0}
 .mv-tag.mv-tag-boost{border-color:color-mix(in srgb,var(--eff-up) 45%,transparent);color:var(--eff-up)}
 .mv-tag.mv-tag-block{border-color:color-mix(in srgb,var(--eff-dn) 45%,transparent);color:var(--eff-dn)}
+/* Regulation changes: a diff, laid out as one. Added and removed are rows, not cards. */
+.abil-tag{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:1px 5px;margin-left:7px;border:1px solid var(--border2);color:var(--text4)}
+.abil-tag.abil-new{color:var(--eff-up);border-color:color-mix(in srgb,var(--eff-up) 40%,transparent)}
+.regs-intro{font-size:13px;color:var(--text3);margin-bottom:18px;max-width:60ch;line-height:1.55}
+.regs-none{font-size:13px;color:var(--text4);font-style:italic}
+.regs-block{border-top:1px solid var(--border2);padding-top:14px;margin-bottom:22px}
+.regs-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.regs-title{font-size:15px;font-weight:800;color:var(--text)}
+.regs-counts{font-size:12px;color:var(--text4);font-family:'JetBrains Mono',monospace}
+.regs-counts b{margin-left:6px}
+.regs-counts .regs-up{color:var(--eff-up)}
+.regs-counts .regs-down{color:var(--eff-dn)}
+.regs-row{display:flex;gap:16px;margin-bottom:10px;align-items:flex-start}
+.regs-label{width:96px;flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding-top:3px}
+.regs-label span{font-family:'JetBrains Mono',monospace;color:var(--text5);margin-left:4px}
+.regs-label.regs-added{color:var(--eff-up)}
+.regs-label.regs-removed{color:var(--eff-dn)}
+.regs-names{display:flex;flex-wrap:wrap;gap:4px 14px}
+.regs-name{display:inline-flex;align-items:baseline;gap:6px;font-size:13px;color:var(--text2);text-decoration:none;text-transform:capitalize}
+.regs-name:hover{color:var(--text)}
+.regs-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text5)}
+.regs-empty{font-size:13px;color:var(--text5);font-style:italic}
 #dex-search-hint{font-size:12px;color:var(--text4);margin-bottom:10px}
 #dex-search-hint b{color:var(--text3);font-weight:700}
 #dex-search-hint a{color:var(--eff-up);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--eff-up) 40%,transparent)}
@@ -774,6 +796,7 @@ button,select,input{touch-action:manipulation}
 <div style="display:flex;gap:6px;margin-bottom:16px">
 <button class="tab-btn active" id="other-sub-priority" onclick="switchOtherSub('priority')">Move Priority</button>
 <button class="tab-btn" id="other-sub-split" onclick="switchOtherSub('split')">Phys / Spec Split</button>
+<button class="tab-btn" id="other-sub-regs" onclick="switchOtherSub('regs')">Regulation Changes</button>
 </div>
 <div id="other-priority-sub">
 <p style="font-size:14px;color:#8a8a9a;margin-bottom:12px">Moves grouped by priority bracket. Higher priority moves go first regardless of Speed.</p>
@@ -781,6 +804,9 @@ button,select,input{touch-action:manipulation}
 </div>
 <div id="other-split-sub" style="display:none">
 <div id="split-container"></div>
+</div>
+<div id="other-regs-sub" style="display:none">
+<div id="regs-container"></div>
 </div>
 </div>
 <div id="calc-tab" style="display:none">
@@ -3310,12 +3336,65 @@ function switchTab(tab){
 let currentOtherSub='priority';
 function switchOtherSub(sub){
   currentOtherSub=sub;
-  document.getElementById('other-priority-sub').style.display=sub==='priority'?'':'none';
-  document.getElementById('other-split-sub').style.display=sub==='split'?'':'none';
-  document.getElementById('other-sub-priority').className='tab-btn'+(sub==='priority'?' active':'');
-  document.getElementById('other-sub-split').className='tab-btn'+(sub==='split'?' active':'');
+  ['priority','split','regs'].forEach(function(k){
+    const panel=document.getElementById('other-'+k+'-sub');
+    if(panel)panel.style.display=sub===k?'':'none';
+    const btn=document.getElementById('other-sub-'+(k==='regs'?'regs':k));
+    if(btn)btn.className='tab-btn'+(sub===k?' active':'');
+  });
   if(sub==='priority')renderPriorityTab();
   if(sub==='split')renderSplit();
+  if(sub==='regs')renderRegulationChanges();
+}
+
+/* ── Regulation changes ─────────────────────────────────────────────────────────────────
+   Derived from CHAMPIONS_REGS by set difference, never written out by hand. Adding a
+   regulation to that registry is the only edit needed; this page and the "recently added"
+   sort both follow from it, and neither can disagree with the roster they describe.        */
+function regulationDiffs(){
+  const out=[];
+  for(let i=0;i<CHAMPIONS_REGS.length-1;i++){
+    const to=CHAMPIONS_REGS[i], from=CHAMPIONS_REGS[i+1];
+    const a=from.ids(), b=to.ids();
+    const added=[...b].filter(function(id){return !a.has(id)}).sort(function(x,y){return x-y});
+    const removed=[...a].filter(function(id){return !b.has(id)}).sort(function(x,y){return x-y});
+    out.push({from:from,to:to,added:added,removed:removed,size:b.size,prevSize:a.size});
+  }
+  return out;
+}
+function regRosterName(id){
+  const m=master.find(function(p){return p.id===id});
+  return m?pokeName(m.name):('#'+String(id).padStart(4,'0'));
+}
+function renderRegulationChanges(){
+  const el=document.getElementById('regs-container');
+  if(!el)return;
+  const diffs=regulationDiffs();
+  let h='<p class="regs-intro">What changed between Pokémon Champions regulations. Derived from the '
+   +'roster itself, so it cannot drift from what the Pokédex actually filters.</p>';
+  if(!diffs.length){
+    el.innerHTML=h+'<p class="regs-none">Only one regulation is on record, so there is nothing to compare yet.</p>';
+    return;
+  }
+  diffs.forEach(function(d){
+    const net=d.size-d.prevSize;
+    h+='<div class="regs-block">';
+    h+='<div class="regs-head"><span class="regs-title">'+d.from.label+' → '+d.to.label+'</span>'
+      +'<span class="regs-counts">'+d.prevSize+' → '+d.size+' Pokémon'
+      +(net?' <b class="'+(net>0?'regs-up':'regs-down')+'">'+(net>0?'+':'')+net+'</b>':'')+'</span></div>';
+    [['Added',d.added,'regs-added'],['Removed',d.removed,'regs-removed']].forEach(function(row){
+      const label=row[0],ids=row[1],cls=row[2];
+      h+='<div class="regs-row"><div class="regs-label '+cls+'">'+label+' <span>'+ids.length+'</span></div>';
+      h+= ids.length
+        ? '<div class="regs-names">'+ids.map(function(id){
+            return '<a class="regs-name" href="'+pokemonHref(id)+'" onclick="event.preventDefault();switchTab(\'pokedex\');showDetail('+id+')">'
+              +'<span class="regs-num">#'+String(id).padStart(4,'0')+'</span>'+regRosterName(id)+'</a>'}).join('')+'</div>'
+        : '<div class="regs-empty">none</div>';
+      h+='</div>';
+    });
+    h+='</div>';
+  });
+  el.innerHTML=h;
 }
 
 function pokemonHref(id){return '#pokedex/p'+id+'/g'+selectedGenNum}
@@ -5887,11 +5966,8 @@ function renderAbilityList(externalQuery){
   // Filter to only show abilities that have pokemon in current gen
   list=list.filter(a=>a.pokemon.some(p=>{const m=p.pokemon.url.match(/\/(\d+)\//);return m&&parseInt(m[1])<=genMax}));
   
-  list.sort((a,b)=>a.name.localeCompare(b.name));
-  
-  const container=document.getElementById('abilities-container');
-  if(!list.length){container.innerHTML='<div style="color:#6a6a7a;padding:20px">No abilities found.</div>';return}
-  
+  // Declared before use: these were below the injection that reads them, which put them in the
+  // temporal dead zone and threw on every render - the abilities list came back empty.
   const CHAMP_NEW_ABILITIES=[
     {name:'Mega Sol',pokemon:'Mega Meganium',desc:'Treats weather as harsh sunlight for moves and abilities, regardless of actual weather.'},
     {name:'Dragonize',pokemon:'Mega Feraligatr',desc:'Converts Normal-type moves to Dragon-type and boosts their power by 20%.'},
@@ -5910,35 +5986,41 @@ function renderAbilityList(externalQuery){
     {pokemon:'Mega Crabominable',ability:'Iron Fist'},{pokemon:'Mega Drampa',ability:'Berserk'},
     {pokemon:'Mega Glimmora',ability:'Adaptability'},
   ];
-  let champH='';
-  if(!q){
-    champH+='<div style="background:transparent;border:1px solid var(--border2);border-radius:12px;padding:14px;margin-bottom:18px">';
-    champH+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-size:13px;font-weight:800;color:#6890F0;letter-spacing:1px;text-transform:uppercase">New in Pok\u00e9mon Champions</span><span style="font-size:10px;background:transparent;color:#6890F0;border:1px solid var(--border2);border-radius:5px;padding:1px 7px;font-weight:700">2026</span></div>';
-    champH+='<div style="font-size:11px;color:#8a8a9a;margin-bottom:10px">4 brand-new abilities for Mega Evolutions from Legends: Z-A.</div>';
-    champH+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">';
-    CHAMP_NEW_ABILITIES.forEach(a=>{
-      champH+=`<div style="background:transparent;border:1px solid var(--border2);border-radius:8px;padding:8px 10px;flex:1;min-width:180px">`;
-      champH+=`<div style="font-size:12px;font-weight:800;color:#6890F0;margin-bottom:2px">${a.name}</div>`;
-      champH+=`<div style="font-size:10px;color:#8a8a9a;margin-bottom:3px">${a.pokemon}</div>`;
-      champH+=`<div style="font-size:11px;color:var(--text2)">${a.desc}</div>`;
-      champH+=`</div>`;
+  const CHAMP_NEW_SET=new Set(CHAMP_NEW_ABILITIES.map(function(a){return a.name.toLowerCase()}));
+  const CHAMP_MEGA_SET=new Set(CHAMP_MEGA_ABILITIES.map(function(m){return m.ability.toLowerCase()}));
+  // The four abilities introduced by Champions do not exist in PokeAPI, so they are absent from
+  // `list` entirely. They used to be visible only in the banner above; removing that banner without
+  // this would have deleted them from the app. Inject them as real rows so they are searchable and
+  // sortable like everything else, rather than living in a special case.
+  if(isChampionsMode){
+    CHAMP_NEW_ABILITIES.forEach(function(a){
+      const slug=a.name.toLowerCase().replace(/ /g,'-');
+      if(list.some(function(x){return x.name===slug}))return;
+      if(q&&!(a.name.toLowerCase().includes(q)||(a.desc||'').toLowerCase().includes(q)))return;
+      list.push({name:slug,gen:'IX',desc:a.desc,pokemon:[],championsOnly:true,forPokemon:a.pokemon});
     });
-    champH+='</div>';
-    champH+='<div style="font-size:11px;color:#6a6a7a;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">New Mega Abilities (existing pool)</div>';
-    champH+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
-    CHAMP_MEGA_ABILITIES.forEach(m=>{
-      champH+=`<span onclick="showAbilityPage('${m.ability.toLowerCase().replace(/ /g,'-')}')" style="font-size:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:2px 8px;cursor:pointer;color:var(--text2)">${m.pokemon}: <span style="color:#6890F0;font-weight:700">${m.ability}</span></span>`;
-    });
-    champH+='</div></div>';
   }
-  let h=champH+'<div class="ability-count">'+list.length+' abilities</div>';
+  list.sort((a,b)=>a.name.localeCompare(b.name));
+  
+  const container=document.getElementById('abilities-container');
+  if(!list.length){container.innerHTML='<div style="color:#6a6a7a;padding:20px">No abilities found.</div>';return}
+  
+  // The 'New in Pokemon Champions' banner is gone: a bordered panel of cards restating what the
+  // list below already contains. The same information now sits on the rows themselves, where you
+  // are already looking, and 'recently added' is a sort rather than a callout.
+  let h='<div class="ability-count">'+list.length+' abilities</div>';
   h+='<div class="ability-grid">';
   list.forEach(a=>{
     const genCount=a.pokemon.filter(p=>{const m=p.pokemon.url.match(/\/(\d+)\//);return m&&parseInt(m[1])<=genMax}).length;
     h+='<div class="ability-card" onclick="showAbilityPage(\''+a.name+'\')">';
     h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
-    h+='<span class="ability-card-name">'+a.name.replace(/-/g,' ')+'</span>';
-    h+='<span class="ability-card-meta">Gen '+a.gen+' · '+genCount+' Pok&#233;mon</span>';
+    const _nm=a.name.replace(/-/g,' ');
+    const _tag=isChampionsMode&&CHAMP_NEW_SET.has(_nm.toLowerCase())?'<span class="abil-tag abil-new">new</span>':
+               (isChampionsMode&&CHAMP_MEGA_SET.has(_nm.toLowerCase())?'<span class="abil-tag abil-mega">mega</span>':'');
+    h+='<span class="ability-card-name">'+_nm+_tag+'</span>';
+    h+='<span class="ability-card-meta">'+(a.championsOnly
+        ? 'New in Champions · '+a.forPokemon
+        : 'Gen '+a.gen+' · '+genCount+' Pokémon')+'</span>';
     h+='</div>';
     if(a.desc)h+='<div class="ability-card-desc">'+a.desc.slice(0,100)+(a.desc.length>100?'...':'')+'</div>';
     h+='</div>';
