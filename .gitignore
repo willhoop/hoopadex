@@ -9,6 +9,7 @@ build/output/
 Thumbs.db
 .vscode/
 .idea/
+.claude/
 
 # local + secrets
 .env

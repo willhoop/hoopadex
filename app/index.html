@@ -732,6 +732,12 @@ button,select,input{touch-action:manipulation}
 <script src="calc-engine.js"></script>
 <script>
 // === CONSTANTS ===
+// Stat bar colour bands. Absolute thresholds, not a percentile against the current Pokedex and
+// not a ramp scaled to the highest stat, so a given number reads the same in every generation and
+// does not shift as new Pokemon are added. Bar length carries the magnitude; colour carries the band.
+const STAT_BANDS=[{max:60,color:'#d9534f',label:'poor'},{max:90,color:'#e0883c',label:'average'},
+                  {max:120,color:'#9fbf3f',label:'good'},{max:Infinity,color:'#4da65a',label:'excellent'}];
+function statBand(v){return STAT_BANDS.find(b=>v<b.max)}
 const TC={normal:"#A8A878",fire:"#F08030",water:"#6890F0",electric:"#F8D030",grass:"#8BC34A",ice:"#98D8D8",fighting:"#C03028",poison:"#A040A0",ground:"#E0C068",flying:"#A890F0",psychic:"#F85888",bug:"#A8B820",rock:"#B8A038",ghost:"#705898",dragon:"#7038F8",dark:"#705848",steel:"#B8B8D0",fairy:"#EE99AC"};
 const AT=Object.keys(TC);
 const SL={hp:"HP",attack:"ATK",defense:"DEF","special-attack":"SPA","special-defense":"SPD",speed:"SPE"};
@@ -784,7 +790,7 @@ let selectedVersion=''; // specific game version name for locations (e.g. 'firer
 // Type charts per gen era
 const CM={normal:{rock:.5,ghost:0,steel:.5},fire:{fire:.5,water:.5,grass:2,ice:2,bug:2,rock:.5,dragon:.5,steel:2},water:{fire:2,water:.5,grass:.5,ground:2,rock:2,dragon:.5},electric:{water:2,electric:.5,grass:.5,ground:0,flying:2,dragon:.5},grass:{fire:.5,water:2,grass:.5,poison:.5,ground:2,flying:.5,bug:.5,rock:2,dragon:.5,steel:.5},ice:{fire:.5,water:.5,grass:2,ice:.5,ground:2,flying:2,dragon:2,steel:.5},fighting:{normal:2,ice:2,poison:.5,flying:.5,psychic:.5,bug:.5,rock:2,ghost:0,dark:2,steel:2,fairy:.5},poison:{grass:2,poison:.5,ground:.5,rock:.5,ghost:.5,steel:0,fairy:2},ground:{fire:2,electric:2,grass:.5,poison:2,flying:0,bug:.5,rock:2,steel:2},flying:{electric:.5,grass:2,fighting:2,bug:2,rock:.5,steel:.5},psychic:{fighting:2,poison:2,psychic:.5,dark:0,steel:.5},bug:{fire:.5,grass:2,fighting:.5,poison:.5,flying:.5,psychic:2,ghost:.5,dark:2,steel:.5,fairy:.5},rock:{fire:2,ice:2,fighting:.5,ground:.5,flying:2,bug:2,steel:.5},ghost:{normal:0,psychic:2,ghost:2,dark:.5},dragon:{dragon:2,steel:.5,fairy:0},dark:{fighting:.5,psychic:2,ghost:2,dark:.5,fairy:.5},steel:{fire:.5,water:.5,electric:.5,ice:2,rock:2,steel:.5,fairy:2},fairy:{fire:.5,fighting:2,poison:.5,dragon:2,dark:2,steel:.5}};
 const C2={normal:{rock:.5,ghost:0,steel:.5},fire:{fire:.5,water:.5,grass:2,ice:2,bug:2,rock:.5,dragon:.5,steel:2},water:{fire:2,water:.5,grass:.5,ground:2,rock:2,dragon:.5},electric:{water:2,electric:.5,grass:.5,ground:0,flying:2,dragon:.5},grass:{fire:.5,water:2,grass:.5,poison:.5,ground:2,flying:.5,bug:.5,rock:2,dragon:.5,steel:.5},ice:{fire:.5,water:.5,grass:2,ice:.5,ground:2,flying:2,dragon:2,steel:.5},fighting:{normal:2,ice:2,poison:.5,flying:.5,psychic:.5,bug:.5,rock:2,ghost:0,dark:2,steel:2},poison:{grass:2,poison:.5,ground:.5,rock:.5,ghost:.5,steel:0},ground:{fire:2,electric:2,grass:.5,poison:2,flying:0,bug:.5,rock:2,steel:2},flying:{electric:.5,grass:2,fighting:2,bug:2,rock:.5,steel:.5},psychic:{fighting:2,poison:2,psychic:.5,dark:0,steel:.5},bug:{fire:.5,grass:2,fighting:.5,poison:.5,flying:.5,psychic:2,ghost:.5,dark:2,steel:.5},rock:{fire:2,ice:2,fighting:.5,ground:.5,flying:2,bug:2,steel:.5},ghost:{normal:0,psychic:2,ghost:2,dark:.5,steel:.5},dragon:{dragon:2,steel:.5},dark:{fighting:.5,psychic:2,ghost:2,dark:.5,steel:.5},steel:{fire:.5,water:.5,electric:.5,ice:2,rock:2,steel:.5}};
-const C1={normal:{rock:.5,ghost:0},fire:{fire:.5,water:.5,grass:2,ice:2,bug:2,rock:.5,dragon:.5},water:{fire:2,water:.5,grass:.5,ground:2,rock:2,dragon:.5},electric:{water:2,electric:.5,grass:.5,ground:0,flying:2,dragon:.5},grass:{fire:.5,water:2,grass:.5,poison:.5,ground:2,flying:.5,bug:.5,rock:2,dragon:.5},ice:{fire:.5,water:.5,grass:2,ice:.5,ground:2,flying:2,dragon:2},fighting:{normal:2,ice:2,poison:.5,flying:.5,psychic:.5,bug:.5,rock:2,ghost:0},poison:{grass:2,poison:.5,ground:.5,rock:.5,ghost:.5,bug:2},ground:{fire:2,electric:2,grass:.5,poison:2,flying:0,bug:.5,rock:2},flying:{electric:.5,grass:2,fighting:2,bug:2,rock:.5},psychic:{fighting:2,poison:2,psychic:.5},bug:{fire:.5,grass:2,fighting:.5,poison:2,flying:.5,psychic:2,ghost:.5},rock:{fire:2,ice:2,fighting:.5,ground:.5,flying:2,bug:2},ghost:{normal:0,psychic:0,ghost:2},dragon:{dragon:2}};
+const C1={normal:{rock:.5,ghost:0},fire:{fire:.5,water:.5,grass:2,ice:2,bug:2,rock:.5,dragon:.5},water:{fire:2,water:.5,grass:.5,ground:2,rock:2,dragon:.5},electric:{water:2,electric:.5,grass:.5,ground:0,flying:2,dragon:.5},grass:{fire:.5,water:2,grass:.5,poison:.5,ground:2,flying:.5,bug:.5,rock:2,dragon:.5},ice:{water:.5,grass:2,ice:.5,ground:2,flying:2,dragon:2},fighting:{normal:2,ice:2,poison:.5,flying:.5,psychic:.5,bug:.5,rock:2,ghost:0},poison:{grass:2,poison:.5,ground:.5,rock:.5,ghost:.5,bug:2},ground:{fire:2,electric:2,grass:.5,poison:2,flying:0,bug:.5,rock:2},flying:{electric:.5,grass:2,fighting:2,bug:2,rock:.5},psychic:{fighting:2,poison:2,psychic:.5},bug:{fire:.5,grass:2,fighting:.5,poison:2,flying:.5,psychic:2,ghost:.5},rock:{fire:2,ice:2,fighting:.5,ground:.5,flying:2,bug:2},ghost:{normal:0,psychic:0,ghost:2},dragon:{dragon:2}};
 
 function getChartForGen(genNum){
   if(genNum<=1)return{chart:C1,types:["normal","fire","water","electric","grass","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon"]};
@@ -1064,7 +1070,32 @@ function onGameChange(){
   triggerDataRefresh();
 }
 
+// Tabs that do not apply to every selection. Champions mode is a competitive format rather than a
+// playable world, so route encounters and in-game EV training spots have nothing to describe there.
+// Add a rule here rather than scattering isChampionsMode checks through the tab code.
+const TAB_RELEVANCE={
+  locations:{champions:false},
+  evs:{champions:false},
+};
+function isTabRelevant(tab){
+  const rule=TAB_RELEVANCE[tab];
+  if(!rule)return true;
+  if(rule.champions===false&&isChampionsMode)return false;
+  if(rule.minGen&&!isChampionsMode&&selectedGenNum<rule.minGen)return false;
+  return true;
+}
+function applyTabVisibility(){
+  for(const tab of Object.keys(TAB_RELEVANCE)){
+    const btn=document.getElementById('tab-'+tab);
+    if(btn)btn.style.display=isTabRelevant(tab)?'':'none';
+  }
+  // If the open tab just stopped applying, fall back to the Pokedex rather than leaving the user
+  // on a pane with no content and no visible way back to it.
+  if(currentTab&&!isTabRelevant(currentTab))switchTab('pokedex');
+}
+
 function triggerDataRefresh(){
+  applyTabVisibility();
   tmCriteria=[];tmMoveDetailCache={};
   locInited=false;  locAllAreas=[];
   locPins=[];
@@ -1181,6 +1212,7 @@ async function init(){
     });
   }
   applyFilters();
+  applyTabVisibility();  // the app opens in Champions mode, so this has to run before first paint
   await restoreHash();
   // Pre-load search indexes for universal search
   fetch('https://pokeapi.co/api/v2/ability?limit=400').then(r=>r.json()).then(d=>{window._abilityIndex=d.results.map(a=>a.name)}).catch(()=>{});
@@ -2313,14 +2345,7 @@ async function renderDetail(p){
       abs='<span style="color:#5a5a6a;font-size:12px;font-style:italic">No abilities in this generation</span>';
     }
   }
-  const statColor=(v)=>{
-    // 0-50: red&#x2192;orange, 50-100: orange&#x2192;yellow, 100-150: yellow&#x2192;green, 150+: bright green
-    const t=Math.min(v/180,1);
-    const r=Math.round(t<0.5?255:255*(1-((t-0.5)*2)));
-    const g=Math.round(t<0.5?t*2*200:180+t*75);
-    return 'rgb('+r+','+g+',50)';
-  };
-  const bars=stats.map(s=>{const l=SL[s.stat.name]||s.stat.name,v=s.base_stat,pct=Math.min(v/255*100,100),sc=statColor(v);return '<div class="stat-row"><span class="stat-label">'+l+'</span><span class="stat-value">'+v+'</span><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:'+pct+'%;background:'+sc+'"></div></div></div>'}).join('');
+  const bars=stats.map(s=>{const l=SL[s.stat.name]||s.stat.name,v=s.base_stat,pct=Math.min(v/255*100,100),b=statBand(v);return '<div class="stat-row"><span class="stat-label">'+l+'</span><span class="stat-value">'+v+'</span><div class="stat-bar-bg" title="'+v+' &#8212; '+b.label+'"><div class="stat-bar-fill" style="width:'+pct+'%;background:'+b.color+'"></div></div></div>'}).join('');
 
   // Defensive matchups using the gen-appropriate chart
   const chartData=getChartForGen(genNum);
@@ -2876,6 +2901,9 @@ function clearAllPins(){pins=[];backToList();renderPins()}
 let currentTab='pokedex';
 let _restoring=false;
 function switchTab(tab){
+  // A saved link can name a tab the current game or format has hidden. Send those to the Pokedex
+  // rather than opening a pane whose own button is not on screen.
+  if(!isTabRelevant(tab))tab='pokedex';
   // Save scroll position for current tab
   if(currentTab)tabScrollPositions[currentTab]=window.scrollY;
   currentTab=tab;
@@ -4062,6 +4090,9 @@ const VARIABLE_MOVE_INFO={
   'rage-fist':   {label:'Power per hit taken',formula:'+50 power per hit taken (persists through switches)',table:[['0 hits taken','50'],['1 hit taken','100'],['2 hits taken','150'],['6+ hits taken','350 (max)']]},
   // Population Bomb (hits)
   'population-bomb':{label:'Hits 1–10 times randomly',note:'Hits 1 to 10 times. Each hit has independent accuracy. With Loaded Dice, always hits 4–10 times.'},
+  // Urshifu signature moves - guaranteed critical hits
+  'wicked-blow':    {label:'Always critically hits',formula:'Critical hit = 1.5× damage',note:'The guaranteed critical hit ignores the target\'s Defense boosts and the user\'s own Attack drops, so it punches through a Bulk Up or Cosmic Power wall. Blocked by Battle Armor, Shell Armor and Lucky Chant, which prevent critical hits entirely. On Single Strike Urshifu, Unseen Fist also lets it hit through Protect and Detect.'},
+  'surging-strikes':{label:'Always critically hits, 3 strikes',formula:'25 power × 3 hits, each a critical hit at 1.5×',note:'Every one of the three hits is a guaranteed critical, ignoring the target\'s Defense boosts and the user\'s own Attack drops. Blocked by Battle Armor, Shell Armor and Lucky Chant. On Rapid Strike Urshifu, Unseen Fist also lets it hit through Protect and Detect.'},
 };
 
 function renderVariableMoveInfo(moveName){
