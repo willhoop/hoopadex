@@ -12,6 +12,32 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.7] — 2026-08-03
+
+### Added
+- **Attacking Type Calculator**, on the Type Chart tab directly beneath the defending one — they
+  answer the two halves of the same question, which settles where it lives (the backlog's open
+  question on item 13).
+
+  Pick the types of your four moves. **The gap is stated first**, because that is the reason to open
+  it: Fighting / Fire / Rock / Ground reports *"7 of 18 types are not hit super effectively"* and
+  names them — Water, Fighting, Ground, Psychic, Ghost, Dragon, Fairy. The full breakdown follows,
+  grouped by super effective, neutral, resisted and immune.
+
+  Each defending type is scored by the **best** of your picks, not the sum: in a battle you use the
+  move that works, so coverage is a maximum. Summing would make four bad moves look like one good
+  one. Guarded by `tests/test-coverage.js`, which asserts that property directly — repeating a type
+  changes nothing, and adding a type can only ever help.
+
+  Generation-aware like everything else: in Gen I, Psychic is not walled by Ghost.
+
+### Notes
+- Two assertions in the new suite failed on first run and both were **my** error, not the app's — I
+  had picked Fighting as a move that opens up Ghost, and Fighting cannot touch Ghost either. The
+  test now covers both directions: Dark opens the wall, Fighting leaves it standing.
+
+---
+
 ## [5.6] — 2026-08-03
 
 ### Fixed

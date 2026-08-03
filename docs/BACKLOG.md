@@ -106,15 +106,19 @@ the default.
 Remembered per species for the session, restored only when the form is still loaded so the panel
 never blocks on a refetch. Verified in the browser against Rotom.
 
-## 13. Coverage calculator — `open`
+## 13. Coverage calculator — `done` (5.7)
 
-Enter a set of move types; see which types are hit super effectively, neutrally, resisted and
-immune.
+Shipped as the **Attacking Type Calculator** on the Type Chart tab, directly beneath the defending
+one. That answers the open question about where it lives: the two are mirrors of each other and
+belong together.
 
-**Open question.** Where does it live — its own tab, or inside Team Builder next to the defensive
-matchups?
+**The gap is the headline, not the coverage.** Fighting / Fire / Rock / Ground reports "7 of 18
+types are not hit super effectively" and names them, because that is what you opened the tool to
+find out. The full breakdown follows underneath.
 
----
+Each defending type is scored by the **best** of the picks rather than the sum — in a battle you use
+the move that works, so coverage is a maximum. `tests/test-coverage.js` asserts that property
+directly: repeating a type changes nothing, and adding one can only ever help.
 
 ## 14. Generation I Special stat — `done` (5.2)
 

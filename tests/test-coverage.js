@@ -79,11 +79,19 @@ check(normalOnly.se.length === 0, 'Normal is super effective against nothing', n
 check(normalOnly.resist.sort().join(',') === 'rock,steel', 'and resisted by Rock and Steel',
   normalOnly.resist);
 
-// A type that is immune to one pick but hit by another must NOT be reported as immune.
-const withFighting = coverage(CM, T18, ['normal', 'fighting']);
-check(!withFighting.immune.includes('ghost'),
-  'Ghost stops being immune once a move that touches it is added');
-check(withFighting.immune.length === 0, 'nothing else is immune to that pair', withFighting.immune);
+/* A type immune to one pick but hit by another must NOT be reported as immune.
+   Fighting is the wrong second move to test this with — it cannot touch Ghost either, so the pair
+   is still a wall. Dark is the one that opens it. (Written with Fighting first; the suite caught
+   it, which is the point of asserting the mechanism rather than the outcome.) */
+const withDark = coverage(CM, T18, ['normal', 'dark']);
+check(!withDark.immune.includes('ghost'),
+  'Ghost stops being immune once Dark is added, because Dark hits it', withDark.immune);
+check(withDark.se.includes('ghost'), 'and it becomes super effective, not merely neutral');
+check(withDark.immune.length === 0, 'nothing is immune to Normal + Dark', withDark.immune);
+// The negative case still has to hold: two moves that both fail leave the wall standing.
+const bothFail = coverage(CM, T18, ['normal', 'fighting']);
+check(bothFail.immune.includes('ghost'),
+  'Normal + Fighting leaves Ghost immune — neither one touches it', bothFail.immune);
 
 // --- an empty pick answers nothing rather than everything --------------------------------
 const none = coverage(CM, T18, []);
