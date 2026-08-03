@@ -12,6 +12,33 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.7] — 2026-08-03
+
+### Changed
+- **Move Priority is a reference table with a filter, not a gallery of pills.** It is consulted
+  mid-game under time pressure, and the old layout answered the wrong question: two columns meant
+  scanning two axes, and every move was a tinted pill with a coloured dot, so nothing stood out
+  from anything else. It is now one column running +5 down to −7, moves as plain text with a small
+  type swatch, and a filter box at the top. Type "sucker" and the +1 bracket is the only thing left
+  on screen; brackets with no surviving move disappear rather than sitting there empty.
+- **The Physical / Special Split page is two tables.** The three tinted category cards with icon
+  badges said nothing the words did not, and the tints implied a meaning the categories do not
+  have; they are now a definition table that aligns the thing which actually differs — which stats
+  each category reads. The wall of pills reading "Shadow Ball was Phys Special" crammed three facts
+  into one token, and is now a Move / Gen III / Gen IV table, so the eye compares down a column
+  instead of parsing across a badge.
+
+### Notes
+- **A bad edit was reverted rather than repaired.** The first attempt at the split page used an
+  unbounded splice that removed 349 lines against 92 inserted, running past the section end and
+  into the ability renderer. The tree was reset to the last verified commit and the work redone
+  with explicit bounds and assertions — the block must contain what it should, must *not* contain
+  the neighbouring function, and the resulting diff must be proportionate. Both replacements now
+  assert before writing.
+- Category colour lives on the category *name* only, where it is a label, rather than washing a
+  whole panel. Same principle as the type chart fix in 2.2: colour identifies, it does not decorate.
+
+
 ## [2.6] — 2026-08-03
 
 ### Added
