@@ -188,6 +188,22 @@ It must restore rather than subtract: deleting a type that did not exist yet is 
 that type was ADDED to a species. Where Fairy REPLACED a type it loses one — Togetic and Togekiss
 were Normal/Flying and rendered as pure Flying in Gens II-V until 1.98.
 
+### Regulation changes are generated, not written
+`docs/REGULATIONS.md` and `data/regulations.json` are produced by `build/generate-regulations.js`,
+which reads the `CHAMPIONS_REGS` registry out of `app/index.html` and takes the set difference
+between each pair of regulations. The in-app Regulation Changes page derives the same diff at
+runtime from the same registry, so the article, the page and the Pokedex filter cannot disagree.
+
+Adding a regulation is one edit — a new ID set and one row unshifted onto `CHAMPIONS_REGS` — after
+which rerunning the generator updates everything downstream. Species names are fetched from PokeAPI
+once and cached in `data/species-names.json`, so reruns work offline and are byte-identical.
+
+A scheduled task, `hoopadex-regulation-watch`, runs this weekly and checks whether a regulation
+exists that the app does not know about. It deliberately **does not** invent a roster: a regulation
+is roughly 200 dex numbers, and a wrong roster would silently corrupt the dex filter, the
+recently-added sort, the article and Team Builder legality at once while still rendering fine. It
+reports and asks instead.
+
 `tests/test-past-stats.js` and `tests/test-past-types.js` pin the results and assert the structural
 invariants.
 

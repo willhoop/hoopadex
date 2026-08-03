@@ -12,6 +12,31 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.9.1] — 2026-08-03
+
+### Added
+- **`build/generate-regulations.js`**, which writes `docs/REGULATIONS.md` and
+  `data/regulations.json` from the `CHAMPIONS_REGS` registry in `app/index.html`. The article is
+  generated, never written: the in-app page derives the same diff at runtime from the same registry,
+  so the article, the page and the Pokédex filter cannot disagree. Species names are fetched from
+  PokéAPI once and cached in `data/species-names.json`, so reruns work offline and are byte-identical
+  — verified by running it twice and diffing.
+- **A weekly scheduled agent, `hoopadex-regulation-watch`.** It regenerates the artefacts (catching
+  a roster edited by hand without regenerating), then checks Serebii and Victory Road for a
+  regulation the app does not know about.
+
+### Notes
+- **The agent deliberately will not invent a roster.** A regulation is roughly 200 National Dex
+  numbers. If it finds a new one it reports the name, the date and what each source actually said,
+  and asks for the authoritative list — it does not extrapolate from the previous regulation or
+  half-populate the set. A wrong roster would silently corrupt the dex filter, the recently-added
+  sort, the article and Team Builder legality simultaneously, and everything would still render, so
+  nobody would notice. That is the failure mode this whole day has been about.
+- The agent is stored under `~/.claude/scheduled-tasks/` and runs while the app is open; a missed
+  run fires on next launch. `CronCreate` was rejected for this — it is session-only and would have
+  died with the conversation that created it.
+
+
 ## [2.9] — 2026-08-03
 
 ### Added
