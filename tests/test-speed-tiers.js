@@ -80,5 +80,23 @@ check(/return \{available:g=>g>=9, label:'Gen IX \(Z-A\)'\}/.test(formGen),
 check(/Mega and alternate forms/.test(speed),
   'the caption reports how many forms were added, rather than quietly changing the total');
 
+/* --- the Bulk tab, which had the identical defect ---------------------------------------------
+   Bulk walks the same roster to recommend defensive spreads and filtered CHAMPIONS_IDS the same
+   way, so it omitted every Mega too. That matters more there than the row count suggests: a Mega's
+   defences are usually nothing like its base species', so the entries most likely to be built
+   around were the ones missing. Fixed in 5.14 with the same one-line change. */
+const bulk = slice('function renderBulk()', 'function onBulkSearch');
+check(/const roster=calcRoster\(\);/.test(bulk),
+  'Bulk takes its roster from calcRoster() too');
+check(!/CHAMPIONS_IDS\.has/.test(bulk),
+  'and does not filter CHAMPIONS_IDS directly either',
+  'found a direct CHAMPIONS_IDS.has() call in renderBulk');
+check(/ensureRosterLoaded\(renderBulk,roster\.map/.test(bulk),
+  'Bulk tells the loader which ids to fetch, so form stats actually arrive');
+check(/id>10000\?formDisplayName/.test(bulk),
+  'and a form is labelled with formDisplayName, so the two Mega Garchomps stay distinguishable');
+check(/Mega and alternate forms/.test(bulk),
+  'Bulk also reports how many forms it added');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

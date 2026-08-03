@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.13 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.14 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -4519,11 +4519,28 @@ function renderBulk(){
   // Same sourcing as the speed tiers table: walk the roster, use whatever stats are already
   // cached, and say plainly how many are still loading rather than pretending the list is whole.
   const q=(window._bulkQuery||'').toLowerCase().trim();
-  ensureRosterLoaded(renderBulk);   // same gap as the speed tiers had
-  const roster=master.filter(function(m){return CHAMPIONS_IDS.has(m.id)});
-  const loaded=roster.filter(function(m){return dc[m.id]});
+  /* calcRoster() rather than a CHAMPIONS_IDS filter, for the reason Speed Tiers was fixed in 5.12:
+     the Champions roster names species, not formes, so filtering it drops every Mega and regional
+     form - each is a separate PokeAPI entry with an id above 10000. It matters more here than it
+     looks. A Mega's defences are usually nothing like its base species' - Mega Absol's optimal
+     spread has no relationship to Absol's - so a bulk table without them is not merely shorter, it
+     is missing the entries most likely to be built around. One roster, shared with the calculator
+     and the speed tiers, so all three agree on what is legal. */
+  const roster=calcRoster();
+  const _bkForms=roster.filter(function(m){return m.id>10000}).length;
+  ensureRosterLoaded(renderBulk,roster.map(function(m){return m.id}));
+  /* Order by base species, with a species' forms directly after it, rather than by raw id.
+     calcRoster() returns base species first and forms afterwards, because form ids start at 10001.
+     This table shows only the first 60 rows, so in id order every single Mega fell off the end:
+     the forms were in the roster and none of them was reachable. Sorting by base species puts
+     Mega Absol next to Absol, which is also where a reader looking for it would expect it. */
+  const loaded=roster.filter(function(m){return dc[m.id]}).slice().sort(function(a,b){
+    const ab=a.id>10000?baseSpeciesId(a.name):a.id, bb=b.id>10000?baseSpeciesId(b.name):b.id;
+    return (ab-bb)||(a.id-b.id);
+  });
   const rows=loaded.filter(function(m){return !q||m.name.includes(q)}).map(function(m){return m.id}).slice(0,60);
-  h+='<p class="bulk-count">'+roster.length+' Pokémon in this regulation'
+  h+='<p class="bulk-count">'+(roster.length-_bkForms)+' Pokémon in this regulation'
+    +(_bkForms?' plus '+_bkForms+' Mega and alternate forms':'')
     +(loaded.length<roster.length?', '+(roster.length-loaded.length)+' still loading':'')
     +(rows.length&&rows.length<loaded.length?' — showing '+rows.length:'')+'.</p>';
   if(!rows.length){
@@ -4539,7 +4556,9 @@ function renderBulk(){
     const bh=g('hp'), bd=g('defense'), bs=g('special-defense');
     const mix=optimalBulkSpread(bh,bd,bs,budVal,natVal);
     const phys=optimalBulkSplit(bh,bd,budVal,natVal), spec=optimalBulkSplit(bh,bs,budVal,natVal);
-    h+='<tr><td class="bulk-mon"><a href="#" onclick="event.preventDefault();switchTab(\'pokedex\');showDetail('+id+')">'+capName(p.name)+'</a>'
+    // formDisplayName for forms, so a Mega reads "Absol (Mega Z-A)" here as it does everywhere
+    // else - and so the Gen VI and Z-A Megas of the same species stay distinguishable.
+    h+='<tr><td class="bulk-mon"><a href="#" onclick="event.preventDefault();switchTab(\'pokedex\');showDetail('+id+')">'+(id>10000?formDisplayName(p.name):capName(p.name))+'</a>'
       +'<span class="bulk-base">'+bh+'/'+bd+'/'+bs+'</span></td>'
       +'<td class="bulk-split">'+mix.hpSP+' HP / '+mix.defSP+' Def / '+mix.spdSP+' SpD</td>'
       +'<td class="bulk-res">'+mix.hp+' / '+mix.def+' / '+mix.spd+'</td>'

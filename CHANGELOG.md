@@ -12,6 +12,42 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.14] — 2026-08-03
+
+### Fixed
+- **The Bulk tab now includes Megas and alternate forms**, the same defect Speed Tiers had in 5.12
+  and the same one-line cause: it filtered `CHAMPIONS_IDS`, which names species, not formes. It
+  matters more here than the row count suggests, because a Mega's defences are usually nothing like
+  its base species' — Venusaur is **80/83/100** and Mega Venusaur is **80/123/120**. A tool that
+  recommends defensive spreads was silently missing the entries most likely to be built around.
+  It now shares `calcRoster()` with the calculator and Speed Tiers, so all three agree on what is
+  legal. 208 species plus 119 forms.
+
+- **Adding the forms exposed a second bug that would have made the fix useless.** Bulk shows only
+  the first 60 rows, and `calcRoster()` returns base species first because form ids start at 10001
+  — so every single Mega sorted past the cut. The forms were in the roster and not one of them was
+  reachable, which is a worse failure than omitting them, because the caption claimed they were
+  there. Rows are now ordered by base species with a species' forms directly after it, so Mega
+  Venusaur sits under Venusaur — which is where someone looking for it would expect it anyway.
+  Verified in the browser: 16 Megas in the first 60 rows, against none before.
+
+- Bulk labels forms with `formDisplayName()` like everywhere else, so the Gen VI and Z-A Megas of
+  the same species stay distinguishable after 5.13.
+
+### Added
+- `tests/test-speed-tiers.js` covers `renderBulk` as well, and mutations **M26** (Bulk reverts to
+  the species-only roster) and **M27** (the Z-A mega suffix loses its case, so two Pokémon share
+  one name) join the committed set. 27 mutations, all killed.
+
+### Changed
+- **M24 was re-anchored.** Relabelling the speed columns in 5.13 left its anchor matching nothing,
+  and `build/mutation-check.js` reported it as SKIP and failed the run rather than counting it as a
+  pass — which is the behaviour that was designed in, working. It now mutates the neutral-nature
+  Scarf column to be computed from the boosting figure instead, which is the mistake that column is
+  most likely to attract.
+
+---
+
 ## [5.13] — 2026-08-03
 
 ### Fixed
