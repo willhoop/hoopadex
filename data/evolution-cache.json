@@ -1,0 +1,1464 @@
+{
+ "3": {
+  "name": "venusaur",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "6": {
+  "name": "charizard",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "9": {
+  "name": "blastoise",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "15": {
+  "name": "beedrill",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "18": {
+  "name": "pidgeot",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "24": {
+  "name": "arbok",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "25": {
+  "name": "pikachu",
+  "fullyEvolved": false,
+  "evolvesTo": [
+   "raichu"
+  ],
+  "isBaby": false,
+  "stage": 1
+ },
+ "26": {
+  "name": "raichu",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "36": {
+  "name": "clefable",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "38": {
+  "name": "ninetales",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "45": {
+  "name": "vileplume",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "59": {
+  "name": "arcanine",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "65": {
+  "name": "alakazam",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "68": {
+  "name": "machamp",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "71": {
+  "name": "victreebel",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "80": {
+  "name": "slowbro",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "94": {
+  "name": "gengar",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "115": {
+  "name": "kangaskhan",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "121": {
+  "name": "starmie",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "127": {
+  "name": "pinsir",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "128": {
+  "name": "tauros",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "130": {
+  "name": "gyarados",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "132": {
+  "name": "ditto",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "134": {
+  "name": "vaporeon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "135": {
+  "name": "jolteon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "136": {
+  "name": "flareon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "142": {
+  "name": "aerodactyl",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "143": {
+  "name": "snorlax",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "149": {
+  "name": "dragonite",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "154": {
+  "name": "meganium",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "157": {
+  "name": "typhlosion",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "160": {
+  "name": "feraligatr",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "168": {
+  "name": "ariados",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "181": {
+  "name": "ampharos",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "184": {
+  "name": "azumarill",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "186": {
+  "name": "politoed",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "196": {
+  "name": "espeon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "197": {
+  "name": "umbreon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "199": {
+  "name": "slowking",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "205": {
+  "name": "forretress",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "208": {
+  "name": "steelix",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "211": {
+  "name": "qwilfish",
+  "fullyEvolved": false,
+  "evolvesTo": [
+   "overqwil"
+  ],
+  "isBaby": false,
+  "stage": 0
+ },
+ "212": {
+  "name": "scizor",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "214": {
+  "name": "heracross",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "227": {
+  "name": "skarmory",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "229": {
+  "name": "houndoom",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "248": {
+  "name": "tyranitar",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "254": {
+  "name": "sceptile",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "257": {
+  "name": "blaziken",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "260": {
+  "name": "swampert",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "279": {
+  "name": "pelipper",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "282": {
+  "name": "gardevoir",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "302": {
+  "name": "sableye",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "303": {
+  "name": "mawile",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "306": {
+  "name": "aggron",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "308": {
+  "name": "medicham",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "310": {
+  "name": "manectric",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "319": {
+  "name": "sharpedo",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "323": {
+  "name": "camerupt",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "324": {
+  "name": "torkoal",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "334": {
+  "name": "altaria",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "350": {
+  "name": "milotic",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "351": {
+  "name": "castform",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "354": {
+  "name": "banette",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "358": {
+  "name": "chimecho",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "359": {
+  "name": "absol",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "362": {
+  "name": "glalie",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "376": {
+  "name": "metagross",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "389": {
+  "name": "torterra",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "392": {
+  "name": "infernape",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "395": {
+  "name": "empoleon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "398": {
+  "name": "staraptor",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "405": {
+  "name": "luxray",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "407": {
+  "name": "roserade",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "409": {
+  "name": "rampardos",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "411": {
+  "name": "bastiodon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "428": {
+  "name": "lopunny",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "442": {
+  "name": "spiritomb",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "445": {
+  "name": "garchomp",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "448": {
+  "name": "lucario",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "450": {
+  "name": "hippowdon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "454": {
+  "name": "toxicroak",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "460": {
+  "name": "abomasnow",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "461": {
+  "name": "weavile",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "464": {
+  "name": "rhyperior",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "470": {
+  "name": "leafeon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "471": {
+  "name": "glaceon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "472": {
+  "name": "gliscor",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "473": {
+  "name": "mamoswine",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "475": {
+  "name": "gallade",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "478": {
+  "name": "froslass",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "479": {
+  "name": "rotom",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "497": {
+  "name": "serperior",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "500": {
+  "name": "emboar",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "503": {
+  "name": "samurott",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "505": {
+  "name": "watchog",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "510": {
+  "name": "liepard",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "512": {
+  "name": "simisage",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "514": {
+  "name": "simisear",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "516": {
+  "name": "simipour",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "518": {
+  "name": "musharna",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "530": {
+  "name": "excadrill",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "531": {
+  "name": "audino",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "534": {
+  "name": "conkeldurr",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "545": {
+  "name": "scolipede",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "547": {
+  "name": "whimsicott",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "553": {
+  "name": "krookodile",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "560": {
+  "name": "scrafty",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "563": {
+  "name": "cofagrigus",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "569": {
+  "name": "garbodor",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "571": {
+  "name": "zoroark",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "579": {
+  "name": "reuniclus",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "584": {
+  "name": "vanilluxe",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "587": {
+  "name": "emolga",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "604": {
+  "name": "eelektross",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "609": {
+  "name": "chandelure",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "614": {
+  "name": "beartic",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "618": {
+  "name": "stunfisk",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "623": {
+  "name": "golurk",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "635": {
+  "name": "hydreigon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "637": {
+  "name": "volcarona",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "652": {
+  "name": "chesnaught",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "655": {
+  "name": "delphox",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "658": {
+  "name": "greninja",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "660": {
+  "name": "diggersby",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "663": {
+  "name": "talonflame",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "666": {
+  "name": "vivillon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "668": {
+  "name": "pyroar",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "670": {
+  "name": "floette",
+  "fullyEvolved": false,
+  "evolvesTo": [
+   "florges"
+  ],
+  "isBaby": false,
+  "stage": 1
+ },
+ "671": {
+  "name": "florges",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "675": {
+  "name": "pangoro",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "676": {
+  "name": "furfrou",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "678": {
+  "name": "meowstic",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "681": {
+  "name": "aegislash",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "683": {
+  "name": "aromatisse",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "685": {
+  "name": "slurpuff",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "687": {
+  "name": "malamar",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "689": {
+  "name": "barbaracle",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "691": {
+  "name": "dragalge",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "693": {
+  "name": "clawitzer",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "695": {
+  "name": "heliolisk",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "697": {
+  "name": "tyrantrum",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "699": {
+  "name": "aurorus",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "700": {
+  "name": "sylveon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "701": {
+  "name": "hawlucha",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "702": {
+  "name": "dedenne",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "706": {
+  "name": "goodra",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "707": {
+  "name": "klefki",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "709": {
+  "name": "trevenant",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "711": {
+  "name": "gourgeist",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "713": {
+  "name": "avalugg",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "715": {
+  "name": "noivern",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "724": {
+  "name": "decidueye",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "727": {
+  "name": "incineroar",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "730": {
+  "name": "primarina",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "733": {
+  "name": "toucannon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "740": {
+  "name": "crabominable",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "745": {
+  "name": "lycanroc",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "748": {
+  "name": "toxapex",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "750": {
+  "name": "mudsdale",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "752": {
+  "name": "araquanid",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "758": {
+  "name": "salazzle",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "763": {
+  "name": "tsareena",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "765": {
+  "name": "oranguru",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "766": {
+  "name": "passimian",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "778": {
+  "name": "mimikyu",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "780": {
+  "name": "drampa",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "784": {
+  "name": "kommo-o",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "823": {
+  "name": "corviknight",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "841": {
+  "name": "flapple",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "842": {
+  "name": "appletun",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "844": {
+  "name": "sandaconda",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "855": {
+  "name": "polteageist",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "858": {
+  "name": "hatterene",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "861": {
+  "name": "grimmsnarl",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "866": {
+  "name": "mr-rime",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "867": {
+  "name": "runerigus",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "869": {
+  "name": "alcremie",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "870": {
+  "name": "falinks",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "877": {
+  "name": "morpeko",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "887": {
+  "name": "dragapult",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "899": {
+  "name": "wyrdeer",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "900": {
+  "name": "kleavor",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "902": {
+  "name": "basculegion",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "903": {
+  "name": "sneasler",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "904": {
+  "name": "overqwil",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "908": {
+  "name": "meowscarada",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "911": {
+  "name": "skeledirge",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "914": {
+  "name": "quaquaval",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "925": {
+  "name": "maushold",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "934": {
+  "name": "garganacl",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "936": {
+  "name": "armarouge",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "937": {
+  "name": "ceruledge",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "939": {
+  "name": "bellibolt",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "952": {
+  "name": "scovillain",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "956": {
+  "name": "espathra",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "959": {
+  "name": "tinkaton",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "964": {
+  "name": "palafin",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "968": {
+  "name": "orthworm",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "970": {
+  "name": "glimmora",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "972": {
+  "name": "houndstone",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "979": {
+  "name": "annihilape",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "981": {
+  "name": "farigiraf",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "983": {
+  "name": "kingambit",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "1000": {
+  "name": "gholdengo",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "1013": {
+  "name": "sinistcha",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "1018": {
+  "name": "archaludon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "1019": {
+  "name": "hydrapple",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ }
+}
