@@ -12,6 +12,36 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.4] — 2026-08-03
+
+### Fixed
+- **The calculator applied natures without knowing which stat they affected.** Introduced in 5.1
+  and found by pasting a real set in and reading the field. A nature raises one stat and lowers
+  another, so its effect depends on *which* stat the calculation uses — and that follows from the
+  move's damage class, not from the side. The 5.1 version asked only "does this nature touch either
+  offensive stat", so a **Jolly physical attacker came out at 0.9**: Jolly lowers Special Attack,
+  which has nothing to do with Close Combat. It understated that attacker's damage by 10% and looked
+  entirely plausible.
+
+  The mirror error was on the defending side — a Careful defender was boosted against physical hits,
+  where Special Defence does nothing.
+
+  The multiplier is now derived from the move's category and re-derived whenever the move changes.
+  A pasted set also loads its moves' data first, because with the category unknown the calculation
+  quietly fell back to a neutral guess — which is precisely why the physical case looked right and
+  the special case did not.
+
+### Added
+- **Paste a Showdown set straight into either side of the calculator.** No detour through the Team
+  Builder. The parser already existed and the apply step already existed; this joins them, so a
+  pasted set and a saved set cannot resolve differently — both now go through one `calcApplySet`.
+  Species resolution reuses the exact-match-only path, which reports a miss rather than substituting
+  a similar Pokémon, and a set that is not legal in the current selection is refused with a reason.
+  For the attacker the four moves in the set become the move list, since the point of pasting a set
+  is to ask what *that* set does.
+
+---
+
 ## [5.3] — 2026-08-03
 
 ### Added

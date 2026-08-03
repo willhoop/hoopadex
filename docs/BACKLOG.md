@@ -272,16 +272,18 @@ assertions.
 It also documents the floored nature multiplier: a hindering nature makes the first Stat Point worth
 zero, which is the mechanism behind item 22's finding.
 
-## 24. Damage calculator: team selector and paste both sides — `done` (5.1, partly)
+## 24. Damage calculator: team selector and paste both sides — `done` (5.1, 5.4)
 
-**Done:** both panels have a "Load from my team" picker. It applies the saved stat spread and
-translates the nature into the multiplier that side uses — the previous route (the Calc button on a
-Team Builder slot) loaded the attacker only, and carried moves, item and ability but *not* the
-spread, so the calculator silently answered a different question. There was no way to load a
-defender at all, which is the half you usually want: does this survive that.
+Both panels can load a saved team member (5.1) or take a pasted Showdown set (5.4). Both routes go
+through one `calcApplySet`, so a pasted set and a saved set cannot resolve differently — they were
+otherwise going to drift, and the way they would drift is the spread quietly not being applied,
+which is the exact bug the team picker was added to fix.
 
-**Still open:** pasting a full Showdown set directly into either side of the calculator, without
-going through the Team Builder first.
+**5.4 also fixed a bug 5.1 introduced.** The nature was applied without regard to the move's damage
+class, so a Jolly physical attacker was given 0.9 — Jolly lowers Special Attack, which is irrelevant
+to Close Combat — understating its damage by 10%. The multiplier now follows the move category and
+is re-derived when the move changes. Found by pasting a real set in and reading the field, not by a
+test; `tests/test-calc-nature.js` now covers it and fails three ways against the old logic.
 
 ## 25. Megas, regionals and alt forms in Team Builder and calc pickers — `done` (4.4)
 

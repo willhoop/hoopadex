@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.3 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.4 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -782,7 +782,16 @@ body.light .nature-matrix tr.nm-hi td.nm-cell,body.light .nature-matrix td.nm-ce
 .calc-panel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px}
 .calc-title{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
 .calc-sprite{width:56px;height:56px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4))}
-.calc-team-row{margin:0 0 10px}
+.calc-team-row{margin:0 0 10px;display:flex;gap:8px;align-items:center}
+.calc-team-row select{flex:1}
+.calc-paste-btn{flex-shrink:0;padding:7px 12px;border-radius:8px;border:1px solid var(--border3);background:transparent;color:var(--text3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.calc-paste-btn:hover{border-color:var(--eff-up);color:var(--eff-up)}
+.calc-paste{margin:0 0 10px}
+.calc-paste textarea{width:100%;min-height:104px;background:var(--bg1);color:var(--text);border:1px solid var(--border2);border-radius:8px;padding:9px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.5;resize:vertical;box-sizing:border-box}
+.calc-paste-actions{display:flex;gap:8px;align-items:center;margin-top:6px}
+.calc-paste-actions button{padding:6px 14px;border-radius:8px;border:1px solid color-mix(in srgb,var(--eff-up) 40%,transparent);background:color-mix(in srgb,var(--eff-up) 12%,transparent);color:var(--eff-up);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.calc-paste-status{font-size:11.5px;color:var(--text4)}
+
 .calc-team-row select{width:100%;font-size:12.5px;padding:7px 10px}
 .calc-team-row select:disabled{opacity:.5;cursor:not-allowed}
 .calc-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
@@ -986,7 +995,7 @@ button,select,input{touch-action:manipulation}
 <div class="calc-grid">
   <div class="calc-panel">
     <div class="calc-title" style="color:#F8A060">Attacker</div>
-    <div class="calc-team-row"><select id="calc-team-atk" class="filter-select" onchange="calcLoadTeamMember('atk')"><option value="">Load from my team…</option></select></div>
+    <div class="calc-team-row"><select id="calc-team-atk" class="filter-select" onchange="calcLoadTeamMember('atk')"><option value="">Load from my team…</option></select><button type="button" class="calc-paste-btn" onclick="toggleCalcPaste('atk')">Paste a set</button></div><div id="calc-paste-atk" class="calc-paste" style="display:none"><textarea id="calc-paste-text-atk" spellcheck="false" placeholder="Garchomp @ Life Orb&#10;Ability: Rough Skin&#10;EVs: 32 Atk / 32 Spe&#10;Jolly Nature&#10;- Earthquake"></textarea><div class="calc-paste-actions"><button type="button" onclick="runCalcPaste('atk')">Apply</button><span id="calc-paste-status-atk" class="calc-paste-status"></span></div></div>
     <div style="display:flex;gap:10px;align-items:center"><img id="calc-atk-img" class="calc-sprite" src="" alt="" style="display:none"><div style="flex:1;position:relative"><input class="filter-input" id="calc-atk" placeholder="Pok&#233;mon..." autocomplete="off" style="width:100%;box-sizing:border-box"></div></div>
     <div style="position:relative;margin-top:6px"><input class="filter-input" id="calc-move" placeholder="Move..." autocomplete="off" style="width:100%;box-sizing:border-box"></div>
     <div id="calc-move-info" style="font-size:11px;color:#8a8a9a;margin-top:4px;min-height:14px"></div>
@@ -1004,7 +1013,7 @@ button,select,input{touch-action:manipulation}
   </div>
   <div class="calc-panel">
     <div class="calc-title" style="color:#6890F0">Defender</div>
-    <div class="calc-team-row"><select id="calc-team-def" class="filter-select" onchange="calcLoadTeamMember('def')"><option value="">Load from my team…</option></select></div>
+    <div class="calc-team-row"><select id="calc-team-def" class="filter-select" onchange="calcLoadTeamMember('def')"><option value="">Load from my team…</option></select><button type="button" class="calc-paste-btn" onclick="toggleCalcPaste('def')">Paste a set</button></div><div id="calc-paste-def" class="calc-paste" style="display:none"><textarea id="calc-paste-text-def" spellcheck="false" placeholder="Garchomp @ Life Orb&#10;Ability: Rough Skin&#10;EVs: 32 Atk / 32 Spe&#10;Jolly Nature&#10;- Earthquake"></textarea><div class="calc-paste-actions"><button type="button" onclick="runCalcPaste('def')">Apply</button><span id="calc-paste-status-def" class="calc-paste-status"></span></div></div>
     <div style="display:flex;gap:10px;align-items:center"><img id="calc-def-img" class="calc-sprite" src="" alt="" style="display:none"><div style="flex:1;position:relative"><input class="filter-input" id="calc-def" placeholder="Pok&#233;mon..." autocomplete="off" style="width:100%;box-sizing:border-box"></div></div>
     <div class="calc-row"><label id="calc-def-hpev-label">HP EVs</label><input type="number" class="filter-input" id="calc-def-hpev" min="0" max="252" value="252" oninput="calcClamp(this)" onchange="calcClamp(this);calcRun()" style="width:74px;padding:6px 10px;flex:none"></div>
     <div class="calc-row"><label id="calc-def-ev-label">Defense EVs</label><input type="number" class="filter-input" id="calc-def-ev" min="0" max="252" value="0" oninput="calcClamp(this)" onchange="calcClamp(this);calcRun()" style="width:74px;padding:6px 10px;flex:none">
@@ -9055,13 +9064,43 @@ const CALC_NATURE={Adamant:['attack','special-attack'],Modest:['special-attack',
   Brave:['attack','speed'],Quiet:['special-attack','speed'],Relaxed:['defense','speed'],Sassy:['special-defense','speed'],
   Lonely:['attack','defense'],Mild:['special-attack','defense'],Gentle:['special-defense','defense'],Hasty:['speed','defense'],
   Naughty:['attack','special-defense'],Rash:['special-attack','special-defense'],Lax:['defense','special-defense'],Naive:['speed','special-defense']};
-function calcNatureMultiplier(natureName,side){
+/* A nature raises one stat and lowers another, so its effect depends entirely on WHICH stat the
+   calculation is using - and that follows from the move's damage class, not from the side.
+   The first version of this took only the side and asked whether the nature touched either offensive
+   stat. That gave a Jolly physical attacker 0.9: Jolly lowers Special Attack, which has nothing to
+   do with Close Combat, and the result understated its damage by 10%. Same trap defending - Careful
+   raises Special Defence, which does nothing against a physical hit. */
+function calcNatureMultiplierFor(natureName,statName){
   const n=CALC_NATURE[natureName];
-  if(!n)return 1;
-  const relevant=side==='atk'?['attack','special-attack']:['defense','special-defense'];
-  if(relevant.indexOf(n[0])>=0)return 1.1;
-  if(relevant.indexOf(n[1])>=0)return 0.9;
+  if(!n||!statName)return 1;
+  if(n[0]===statName)return 1.1;
+  if(n[1]===statName)return 0.9;
   return 1;
+}
+// Which stat each side is actually using, given the move on screen.
+function calcMoveIsPhysical(){
+  const mv=document.getElementById('calc-move');
+  const slug=normalizeMoveName(String(mv&&mv.value||'').toLowerCase().replace(/\s+/g,'-'));
+  const md=moveCache[slug];
+  if(!md)return null;                     // unknown yet - leave the natures alone
+  return getMoveCatForGen(md)==='physical';
+}
+function calcNatureMultiplier(natureName,side){
+  const phys=calcMoveIsPhysical();
+  if(phys===null)return calcNatureMultiplierFor(natureName,side==='atk'?'attack':'defense');
+  const stat=side==='atk' ? (phys?'attack':'special-attack') : (phys?'defense':'special-defense');
+  return calcNatureMultiplierFor(natureName,stat);
+}
+/* Re-apply the stored natures when the move changes, because the move is what decides which stat
+   they touch. Only fires for sides loaded from a set; a nature the user picked by hand is theirs. */
+const calcSetNature={atk:null,def:null};
+function calcSyncNatures(){
+  ['atk','def'].forEach(function(side){
+    const name=calcSetNature[side];
+    if(!name)return;
+    const sel=document.getElementById('calc-'+side+'-nat');
+    if(sel)sel.value=String(calcNatureMultiplier(name,side));
+  });
 }
 function calcRefreshTeamPickers(){
   ['atk','def'].forEach(function(side){
@@ -9075,23 +9114,37 @@ function calcRefreshTeamPickers(){
     sel.disabled=!filled.length;
   });
 }
-async function calcLoadTeamMember(side){
-  const sel=document.getElementById('calc-team-'+side);
-  if(!sel||sel.value==='')return;
-  const p=teamSlots[parseInt(sel.value)];
-  if(!p)return;
+/* One implementation of "put this set on this side", shared by the team picker and the paste box.
+   They would otherwise drift, and the way they would drift is the spread quietly not being applied
+   - which is the exact bug the team picker was added to fix. */
+async function calcApplySet(side,name,set,sourceLabel){
   const inp=document.getElementById('calc-'+side);
-  if(inp)inp.value=formDisplayName(p.name);
+  if(inp)inp.value=formDisplayName(name);
   await calcPickPoke(side);          // species, sprite, ability and - for the attacker - the moves
-  const set=p.smogonSet||{};
+  set=set||{};
   const put=function(id,v){const el=document.getElementById(id);if(el&&v!==undefined&&v!=='')el.value=v};
   put('calc-'+side+'-item',set.item);
   put('calc-'+side+'-abil',set.ability);
   const evs=readStatObj(set.evs||{});
+  calcSetNature[side]=set.nature||null;
   const nat=calcNatureMultiplier(set.nature,side);
   if(side==='atk'){
     put('calc-atk-ev',String(Math.max(evs['attack']||0,evs['special-attack']||0)));
     const ns=document.getElementById('calc-atk-nat'); if(ns)ns.value=String(nat);
+    // A pasted set names its four moves. Offer those rather than the whole learnset - the point of
+    // pasting a set is that you want to know what THAT set does.
+    if(set.moves&&set.moves.length){
+      const slugs=set.moves.filter(Boolean).map(function(m){return normalizeMoveName(String(m).toLowerCase().replace(/\s+/g,'-'))});
+      window._calcMoves=[...new Set(slugs)].sort();
+      const mv=document.getElementById('calc-move');
+      if(mv&&!mv.value&&slugs.length)mv.value=calcTitle(slugs[0]);
+      /* Load the set's move data. The nature multiplier is derived from the move's damage class,
+         so without this the class is unknown, calcMoveIsPhysical returns null, and the nature
+         silently falls back to a neutral guess - which is how a Jolly attacker looked correct on a
+         physical move and wrong on a special one. */
+      Promise.all([...new Set(slugs)].map(function(n){return ensureMoveData(n).catch(function(){})}))
+        .then(function(){calcSyncNatures();calcRun()});
+    }
   }else{
     put('calc-def-hpev',String(evs['hp']||0));
     put('calc-def-ev',String(Math.max(evs['defense']||0,evs['special-defense']||0)));
@@ -9103,10 +9156,49 @@ async function calcLoadTeamMember(side){
     const spread=Object.keys(evs).length
       ? Object.entries(evs).map(function(e){return e[1]+' '+(CALC_STAT_LABEL[e[0]]||e[0])}).join(' / ')
       : 'no stat points set';
-    banner.innerHTML='<b style="text-transform:capitalize">'+formDisplayName(p.name)+'</b> loaded as '
-      +(side==='atk'?'attacker':'defender')+' · '+spread+(set.nature?' · '+set.nature:'');
+    banner.innerHTML='<b style="text-transform:capitalize">'+formDisplayName(name)+'</b> loaded as '
+      +(side==='atk'?'attacker':'defender')+' from '+(sourceLabel||'your team')+' · '+spread
+      +(set.nature?' · '+set.nature:'');
   }
   calcRun();
+}
+
+function toggleCalcPaste(side){
+  const box=document.getElementById('calc-paste-'+side);
+  if(!box)return;
+  box.style.display=(box.style.display==='none')?'':'none';
+  if(box.style.display===''){const t=document.getElementById('calc-paste-text-'+side);if(t)t.focus()}
+}
+/* Paste a Showdown block straight onto a side. The parser already existed for the Team Builder and
+   the apply step already existed for the team picker; this only joins them, so a pasted set and a
+   saved set cannot resolve differently. Species resolution reuses the exact-match-only path, which
+   reports a miss rather than substituting a similar Pokemon. */
+async function runCalcPaste(side){
+  const t=document.getElementById('calc-paste-text-'+side);
+  const status=document.getElementById('calc-paste-status-'+side);
+  if(!t)return;
+  const sets=parseShowdownPaste(t.value||'');
+  if(!sets.length){if(status)status.textContent='Nothing to read there.';return}
+  const set=sets[0];
+  if(status)status.textContent='Looking up '+set.species+'…';
+  const hit=await pasteResolveSpecies(set.species);
+  if(!hit){if(status)status.textContent='Could not find "'+set.species+'". Check the spelling.';return}
+  if(!formAllowed(hit.name,hit.id,getDataGenNum(),getGenMaxId())){
+    if(status)status.textContent=formDisplayName(hit.name)+' is not legal in this selection.';
+    return;
+  }
+  await calcApplySet(side,hit.name,set,'a pasted set');
+  if(status)status.textContent=sets.length>1?'Loaded the first of '+sets.length+' sets.':'';
+  const box=document.getElementById('calc-paste-'+side);
+  if(box)box.style.display='none';
+}
+
+async function calcLoadTeamMember(side){
+  const sel=document.getElementById('calc-team-'+side);
+  if(!sel||sel.value==='')return;
+  const p=teamSlots[parseInt(sel.value)];
+  if(!p)return;
+  await calcApplySet(side,p.name,p.smogonSet||{},'your team');
 }
 
 function calcBase(p,name){const s=(p.stats||[]).find(x=>x.stat.name===name);return s?s.base_stat:80}
@@ -9185,7 +9277,8 @@ function calcInitAC(){
     if(!q)return[];
     const qs=q.replace(/ /g,'-');
     return (window._calcMoves||[]).filter(m=>m.includes(qs)).map(m=>({label:calcTitle(m)}));
-  },()=>calcRun());
+    // The move decides which stat each nature touches, so re-derive them before recalculating.
+  },()=>{calcSyncNatures();calcRun()});
   const listProv=key=>q=>{
     if(!q)return[];
     return (window[key]||[]).filter(x=>x.toLowerCase().includes(q)).map(x=>({label:x}));
