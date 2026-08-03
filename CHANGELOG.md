@@ -12,6 +12,41 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.9] — 2026-08-03
+
+### Added
+- **A Regulation Changes page**, under Other. It lists what was added and removed between each pair
+  of Champions regulations, with every Pokémon clickable through to its dex entry. Regulation M-A →
+  M-B: 186 → 208, **+22 added, none removed**.
+  - It is **derived** by set difference over `CHAMPIONS_REGS`, never written out. The computed
+    additions equal `REG_MB_NEW` exactly, which the test suite asserts. Adding a regulation to that
+    registry is the only edit needed — this page and the "recently added" sort both follow from it,
+    and neither can disagree with the roster the Pokédex actually filters by. A hand-written article
+    would be wrong the first time the roster changed, and nobody would notice.
+- **`tests/test-regulations.js`** (18 assertions), covering removals as well as additions — the case
+  a hand-written article is most likely to miss — three-regulation chains diffing against the right
+  predecessor, an unchanged regulation reporting an empty diff rather than being omitted, and the
+  shipped registry matching `REG_MB_NEW`.
+
+### Changed
+- **The "New in Pokémon Champions" banner is gone.** It was a bordered panel of cards restating what
+  the list below already contained. The information now sits on the rows themselves, and "recently
+  added" is a sort rather than a callout.
+- **The four Champions-only abilities are now real rows** — Mega Sol, Dragonize, Piercing Drill and
+  Spicy Spray. They do not exist in PokéAPI, so they lived *only* in that banner: removing it deleted
+  them from the app entirely. They are injected into the list instead, searchable and sortable like
+  everything else, marked "new" and showing which Mega they belong to. The abilities tab goes from
+  284 to 288.
+
+### Notes
+- Two self-inflicted breaks, both caught in the browser rather than by tests. Removing the banner
+  silently dropped four abilities — the regression only became visible because a check for the "new"
+  markers returned zero. Fixing that then put a `const` below its first use, which is a temporal dead
+  zone, so the abilities list rendered **completely empty** until the declaration was moved above.
+  Neither would have been caught by the suite; both were caught by reloading the page and reading
+  the numbers.
+
+
 ## [2.8] — 2026-08-03
 
 ### Fixed
