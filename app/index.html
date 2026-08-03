@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.11 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.12 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -3797,9 +3797,14 @@ const SPEED_COLS=[
    you do not.
    Fetches in batches and re-renders as each lands, so the table fills in front of you. */
 let _rosterLoading=false;
-async function ensureRosterLoaded(rerender){
+/* ids is optional and defaults to the base-species roster. Speed Tiers passes the forms-aware
+   roster from calcRoster(), because a Mega is a separate PokeAPI entry with an id above 10000 and
+   so is never in CHAMPIONS_IDS - the Champions roster names species, not formes. Without this the
+   Speed Tiers table silently omitted every Mega and regional form in the format, which for a speed
+   table is a real answer missing: Mega Alakazam outruns everything the old table listed. */
+async function ensureRosterLoaded(rerender,ids){
   if(_rosterLoading)return;
-  const missing=[...CHAMPIONS_IDS].filter(id=>!dc[id]);
+  const missing=(ids||[...CHAMPIONS_IDS]).filter(id=>!dc[id]);
   if(!missing.length)return;
   _rosterLoading=true;
   try{
@@ -3831,8 +3836,13 @@ function renderSpeedTiers(){
     return;
   }
   // Actually fetch what is missing, rather than reporting it as "still loading" forever.
-  ensureRosterLoaded(renderSpeedTiers);
-  const roster=master.filter(function(p){return CHAMPIONS_IDS.has(p.id)});
+  /* calcRoster() is the Damage Calc's roster: base species PLUS every alternate form that
+     formAllowed() lets through for the selected generation. Reused here rather than rebuilt, so
+     Speed Tiers and the calculator can never disagree about what is legal - and so a Mega only has
+     to be declared legal in one place. */
+  const roster=calcRoster();
+  const _spForms=roster.filter(function(p){return p.id>10000}).length;
+  ensureRosterLoaded(renderSpeedTiers,roster.map(function(p){return p.id}));
   // Prep for a specific game: narrow to your team, or to whatever you type.
   const q=(speedQuery||'').toLowerCase().trim();
   const teamIds=new Set(teamSlots.filter(Boolean).map(function(t){return t.id}));
@@ -3843,14 +3853,17 @@ function renderSpeedTiers(){
     if(q&&p.name.indexOf(q)<0)return null;
     const b=(getStatsForGen(d).find(function(x){return x.stat.name==='speed'})||{}).base_stat;
     if(b===undefined)return null;
-    const r={id:p.id,name:pokeName(p.name),base:b};
+    // formDisplayName is the one place that knows a form's on-screen name, so a Mega reads
+    // "Alakazam (Mega)" here exactly as it does on the ability page and in the calculator.
+    const r={id:p.id,name:p.id>10000?formDisplayName(p.name):pokeName(p.name),base:b};
     SPEED_COLS.forEach(function(c){r[c.key]=c.f(b)});
     return r;
   }).filter(Boolean).sort(function(x,y){return y[speedSortCol]-x[speedSortCol]||x.name.localeCompare(y.name)});
 
   const loaded=roster.filter(function(p){return dc[p.id]}).length;
   let h='<p class="regs-intro">Every column uses the same model as the damage calculator: at level 50 with fixed 31 IVs a stat is base+20, then +1 per Stat Point, then the nature multiplier. '
-   +roster.length+' Pok\u00e9mon in this regulation'
+   +(roster.length-_spForms)+' Pok\u00e9mon in this regulation'
+   +(_spForms?' plus '+_spForms+' Mega and alternate forms':'')
    +(loaded<roster.length?' \u2014 loading '+(roster.length-loaded)+' more':'')
    +((q||speedTeamOnly)?' \u2014 showing '+rows.length:'')+'.</p>';
   h+='<div class="speed-tools">'

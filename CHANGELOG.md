@@ -12,6 +12,48 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.12] — 2026-08-03
+
+### Fixed
+- **Speed Tiers was missing every Mega and every regional form.** Reported by Will from the live
+  site. The table built its list with `master.filter(p => CHAMPIONS_IDS.has(p.id))`, and the
+  Champions roster names **species, not formes** — every alternate form is a separate PokéAPI entry
+  with an id above 10000, so none of them could ever match.
+
+  For a speed table this is not a cosmetic omission, it is a wrong answer with the top cut off. The
+  table showed **Dragapult at 319 as the fastest thing in Regulation M-B**. Measured after the fix:
+  **Mega Absol, Mega Garchomp and Mega Lucario all reach 334**, and Mega Aerodactyl and Mega
+  Alakazam 333. Anyone using it to work out what outspeeds what was reading a truncated list.
+
+  208 rows become **327** — 208 species plus 119 Mega and alternate forms, covering Mega, Mega X/Y,
+  Alolan, Galarian, Hisuian and Paldean. Verified in the browser.
+
+- The fix reuses **`calcRoster()`**, the roster the Damage Calc already uses — base species plus
+  every form `formAllowed()` permits — rather than building a second list. Two lists of what is
+  legal is exactly the shape of defect the last two reviews kept finding, so Speed Tiers and the
+  calculator now cannot disagree, and a Mega has to be declared legal in one place only.
+- `ensureRosterLoaded()` takes an optional id list. It previously fetched only `CHAMPIONS_IDS`, so
+  even once `calcRoster()` returned a Mega, nothing loaded its stats and the row would have been
+  dropped for want of data.
+- Forms are labelled with `formDisplayName()`, the single definition of a form's on-screen name, so
+  a Mega reads "Alakazam (Mega)" here exactly as it does on the ability page and in the calculator.
+- The caption reports the split — "208 Pokémon in this regulation plus 119 Mega and alternate
+  forms" — rather than quietly changing the total.
+
+### Added
+- `tests/test-speed-tiers.js` (10 assertions) and mutation **M25**, which reverts the roster to the
+  species-only filter and fails. The assertions are structural: `renderSpeedTiers` writes DOM and
+  awaits network calls, so a behavioural harness for it is real work and is recorded as open rather
+  than faked. They do catch the regression that actually happened.
+
+### Notes
+- **The Bulk tab has the identical defect** — same `master.filter(CHAMPIONS_IDS.has)` line, same
+  missing Megas. It is not fixed here because it was not what was reported and because its
+  recommendation is already under review (see the architecture review, finding F4). One line, the
+  same fix, whenever wanted.
+
+---
+
 ## [5.11] — 2026-08-03
 
 ### Notes

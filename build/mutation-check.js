@@ -104,6 +104,9 @@ const MUTATIONS = [
     '--eff-up-solid:#3987e5', '--eff-up-solid:#ff0000', 1, 'test-viz-palette.js'],
   ['M24', 'Speed tiers: the Choice Scarf column is relabelled',
     "{key:'scarf', label:'Scarf',", "{key:'scarf', label:'Band',", 1, 'test-stat-formula-doc.js'],
+  ['M25', 'Speed tiers: the roster goes back to species only, dropping every Mega and form',
+    '  const roster=calcRoster();',
+    '  const roster=master.filter(function(p){return CHAMPIONS_IDS.has(p.id)});', 1, 'test-speed-tiers.js'],
 ];
 
 function runSuite(suite, srcPath) {
