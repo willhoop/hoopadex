@@ -438,6 +438,13 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
    chart's, so the app speaks one visual language. */
 /* Search criteria tokens. Bordered, monochrome, with the criterion KIND spelled out - a reader
    should never have to infer from colour whether "prankster" is an ability or a move. */
+/* Move descriptor tags. Bordered text, not filled pills - these sit next to a move name and must
+   not out-shout it. A boosting ability tints the border; an outright block is the loud one. */
+.mv-tags{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0 3px}
+.mv-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:4px;border:1px solid var(--border2);color:var(--text4);cursor:help}
+.mv-tag b{font-family:'JetBrains Mono',monospace;font-weight:800;letter-spacing:0}
+.mv-tag.mv-tag-boost{border-color:color-mix(in srgb,var(--eff-up) 45%,transparent);color:var(--eff-up)}
+.mv-tag.mv-tag-block{border-color:color-mix(in srgb,var(--eff-dn) 45%,transparent);color:var(--eff-dn)}
 #dex-filter-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
 .df-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 4px 3px 9px;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);text-transform:capitalize}
 .df-chip b{font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text4)}
@@ -4380,6 +4387,59 @@ const VARIABLE_MOVE_INFO={
   'surging-strikes':{label:'Always critically hits, 3 strikes',formula:'25 power × 3 hits, each a critical hit at 1.5×',note:'Every one of the three hits is a guaranteed critical, ignoring the target\'s Defense boosts and the user\'s own Attack drops. Blocked by Battle Armor, Shell Armor and Lucky Chant. On Rapid Strike Urshifu, Unseen Fist also lets it hit through Protect and Detect.'},
 };
 
+/* ── Move descriptors ───────────────────────────────────────────────────────────────────
+   Every move carries flags that decide which abilities and items interact with it: contact,
+   punch, bite, sound, bullet, pulse, slicing, wind. Aura Sphere being BOTH bullet and pulse is
+   why Mega Launcher boosts it and Bulletproof blocks it outright - the sort of thing that
+   decides a game and is invisible in a plain move description.
+
+   The flags are DERIVED from the bundled calc engine (gen.moves.get(id).flags), not transcribed,
+   so they cannot drift from what the damage calculator actually uses. Only the ability/item
+   consequences below are written by hand, because that is genuine domain knowledge rather than
+   data the engine holds. */
+const MOVE_FLAG_INFO={
+  contact:{label:'Contact',note:'Triggers contact abilities and items.',
+    boosts:[{by:'Tough Claws',mult:'\u00D71.3'}],
+    risks:['Rough Skin / Iron Barbs','Static, Flame Body, Poison Point, Effect Spore','Rocky Helmet'],
+    negatedBy:'Protective Pads, Long Reach'},
+  punch:{label:'Punch',note:'A punching move.',boosts:[{by:'Iron Fist',mult:'\u00D71.2'}],
+    negatedBy:'Blocked by Punching Glove\u2019s contact removal (power still boosted)'},
+  bite:{label:'Bite',note:'A biting move.',boosts:[{by:'Strong Jaw',mult:'\u00D71.5'}]},
+  pulse:{label:'Pulse / Aura',note:'A pulse or aura move.',boosts:[{by:'Mega Launcher',mult:'\u00D71.5'}]},
+  slicing:{label:'Slicing',note:'A cutting move.',boosts:[{by:'Sharpness',mult:'\u00D71.5'}]},
+  sound:{label:'Sound',note:'Passes through Substitute.',boosts:[{by:'Punk Rock',mult:'\u00D71.3'}],
+    risks:['Blocked entirely by Soundproof'],negatedBy:'Throat Spray raises Sp. Atk after use'},
+  bullet:{label:'Ballistic',note:'A ball or bomb move.',risks:['Blocked entirely by Bulletproof']},
+  wind:{label:'Wind',note:'A wind move.',risks:['Wind Rider makes the target immune and raises its Attack','Wind Power charges the target']},
+};
+// Ask the engine what a move is. Returns [] when the engine has not loaded or does not know it,
+// so the caller renders nothing rather than a confident empty answer.
+function moveDescriptors(moveName){
+  try{
+    if(typeof SmogonCalc==='undefined'||!CalcMaps||!CalcMaps.gen)return [];
+    const id=String(moveName).toLowerCase().replace(/[^a-z0-9]/g,'');
+    const m=CalcMaps.gen.moves.get(id);
+    if(!m||!m.flags)return [];
+    return Object.keys(m.flags).filter(k=>MOVE_FLAG_INFO[k]);
+  }catch{ return [] }
+}
+// Bordered text tokens, not filled blobs: the tag says what it is, the tooltip says what it costs.
+function renderMoveTags(moveName){
+  const flags=moveDescriptors(moveName);
+  if(!flags.length)return '';
+  return '<div class="mv-tags">'+flags.map(f=>{
+    const i=MOVE_FLAG_INFO[f];
+    const bits=[i.note];
+    (i.boosts||[]).forEach(b=>bits.push(b.by+' '+b.mult));
+    (i.risks||[]).forEach(r=>bits.push(r));
+    if(i.negatedBy)bits.push(i.negatedBy);
+    const boosted=(i.boosts||[]).length?' mv-tag-boost':'';
+    const blocked=(i.risks||[]).some(r=>/Blocked entirely/.test(r))?' mv-tag-block':'';
+    return '<span class="mv-tag'+boosted+blocked+'" title="'+bits.join(' \u00b7 ').replace(/"/g,'&quot;')+'">'+i.label
+      +((i.boosts||[]).length?'<b>'+i.boosts[0].mult+'</b>':'')+'</span>';
+  }).join('')+'</div>';
+}
+
 function renderVariableMoveInfo(moveName){
   const info=VARIABLE_MOVE_INFO[moveName];
   if(!info)return '';
@@ -4458,6 +4518,7 @@ function renderTMResults(){
     if(cardPri!==0)h+=' · <span style="color:'+(cardPri>0?'#78C850':'#F85888')+'">Priority: '+(cardPri>0?'+':'')+cardPri+'</span>';
     h+='</div>';
     h+='<div style="font-size:11px;color:#a8a8b8;line-height:1.3">'+md.desc+'</div>';
+    h+=renderMoveTags(c.name);
     h+=renderVariableMoveInfo(c.name);
     h+='</div></div>';
   });
