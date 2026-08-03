@@ -12,6 +12,48 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.8] — 2026-08-03
+
+### Fixed
+- **"208 Pok&#233;mon found".** The result count was set with `textContent`, which does not decode
+  HTML entities, so the entity rendered literally on screen. Now uses the character itself, and the
+  count also appears when a search criterion is active rather than only when one of the dropdowns is.
+- **The generation filter did nothing in Champions mode.** `applyFilters()` had
+  `if(isChampionsMode){…} else if(g){…}` — an either/or, so selecting a generation while in Champions
+  silently had no effect. They are independent filters and are now applied independently. Champions
+  in Regulation M-B with Gen 2 selected returns 18 Pokémon, all inside the Gen 2 dex range.
+- **2.2 hid that filter instead of fixing it.** The reasoning then — "meaningless against a fixed
+  cross-generation roster" — was wrong: it was not meaningless, it was broken, and hiding it treated
+  the symptom. It is visible again now that it works, because "which Gen 2 Pokémon are legal here"
+  is a fair question of a cross-generational format.
+- **The ability page ignored the Champions roster**, listing Riolu, Impidimp, Morgrem, Purrloin and
+  other non-fully-evolved Pokémon that are not legal in the format. Same class of bug as the
+  generation filter. The header also claimed "Showing Gen IX Pokémon" while in Champions; it now
+  says which roster it is showing.
+
+### Changed
+- **The sorted stat is shown on every card.** Ordering by Speed without showing Speed made the order
+  unverifiable and two cards impossible to compare without opening both. The badge appears only for
+  stat orderings — dex number and name already show their own answer.
+- **Decorative emoji removed** — 33 of them across the app. Functional glyphs stay: the direction
+  arrows on the type chart axes and the natures matrix, the disclosure triangle, the close ×.
+- **Tinted translucent panels removed** across 68 lines. A coloured wash behind a paragraph implied
+  a meaning the content did not have. Panels now carry a neutral hairline and the coloured *text*
+  does the work. Buttons keep their tint — they read as controls, and nobody objected to those.
+
+### Added
+- **A hint explaining multi-criteria search**, with a one-click demo. The feature shipped in 2.4 and
+  was asked about immediately, which means it was not discoverable: the mechanic existed only in a
+  placeholder. The hint states it and offers to perform it once, then disappears after the first
+  criterion.
+
+### Notes
+- One of these was a genuine break I introduced and caught in the browser: the card badge shipped as
+  a *call without a definition*, because an earlier script asserted out before its write while a
+  later one added the call site. `cardSortValue is not defined` on every list render. The guard that
+  caught it was reloading and looking, not the test suite.
+
+
 ## [2.7] — 2026-08-03
 
 ### Changed
