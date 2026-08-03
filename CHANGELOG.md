@@ -12,6 +12,21 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [3.7] — 2026-08-03
+
+### Fixed
+- **Menus flashed white on first open.** `:root` never declared a `color-scheme`, so the browser
+  painted native controls with its default light chrome before the stylesheet landed. One line —
+  `color-scheme: dark` on `:root`, `light` under `body.light`.
+
+### Changed
+- **Form pills are one class with modifiers.** Mega, regional and Gigantamax selectors were built
+  from three inline ternaries choosing border, background and text colour independently, so every
+  state read as a different component. Now: a pill, an active modifier, and an out-of-generation
+  modifier shown dashed and dimmed rather than recoloured — the difference between "another form"
+  and "a form that does not exist in this generation" is legible instead of guessable.
+
+
 ## [3.6] — 2026-08-03
 
 ### Changed

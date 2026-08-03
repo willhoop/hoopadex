@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 3.6 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 3.7 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -11,8 +11,8 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 /* Theme variables */
-:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#35699f;--eff-dn-solid:#9e4a45;--eff-zero:#9a9a96;--eff-zero-ink:#15151f;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
-body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#8fadc6;--eff-dn-solid:#c9a096;--eff-zero:#c9c9d6;--eff-zero-ink:#2f2f45;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
+:root{color-scheme:dark;--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#35699f;--eff-dn-solid:#9e4a45;--eff-zero:#9a9a96;--eff-zero-ink:#15151f;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
+body.light{color-scheme:light;--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#8fadc6;--eff-dn-solid:#c9a096;--eff-zero:#c9c9d6;--eff-zero-ink:#2f2f45;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
 /* Colourblind mode. Declared AFTER body.light so it wins in dark mode by source order, with an
    explicit body.light.cvd rule that beats both on specificity - an earlier version sat above
    body.light and was silently overridden whenever the light theme was on. */
@@ -279,7 +279,17 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .card-types{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
 .card-placeholder{border-radius:16px;padding:20px 16px;cursor:pointer;transition:all 0.25s ease;position:relative;overflow:hidden;text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
 .card-placeholder:hover{transform:translateY(-4px);background:rgba(255,255,255,0.05)}
-.type-badge{color:#fff;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;text-shadow:0 1px 2px rgba(0,0,0,0.3);display:inline-block;border:1px solid rgba(255,255,255,0.2)}
+/* THE TYPE COLOUR ARRIVES AS --tc, NOT AS AN INLINE background. Every caller used to write
+   style="background:<colour>", which meant the only thing CSS could decide was the shape — eighteen
+   fully saturated fills sat on top of a dark page and shouted over the content they were labelling.
+   Passing the colour as a custom property instead lets ONE rule own the treatment, so the tint, the
+   ink and the border can never drift apart, and a caller cannot opt out by accident.
+   NOT the same decision as .tc-pill: the type-chart axes stay loud on purpose (see the note there) —
+   there the pills ARE the grid, here they are captions on something else. */
+.type-badge{--tc:#888;background:color-mix(in srgb,var(--tc) 15%,transparent);color:color-mix(in srgb,var(--tc) 72%,#fff);border:1px solid color-mix(in srgb,var(--tc) 34%,transparent);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:inline-block}
+/* Light mode pushes the ink the other way — the same 72% mix toward white is unreadable on a pale
+   card, so it mixes toward black instead and the tint drops to keep the contrast. */
+body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);color:color-mix(in srgb,var(--tc) 62%,#000);border-color:color-mix(in srgb,var(--tc) 30%,transparent)}
 .type-badge.small{padding:3px 10px;font-size:11px}
 .load-more-btn{padding:12px 32px;border-radius:12px;border:1px solid rgba(240,128,48,0.3);background:rgba(240,128,48,0.1);color:#F8A060;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:0.5px;transition:all 0.2s}
 .load-more-btn:hover{background:transparent}
@@ -525,6 +535,13 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 /* Regulation changes: a diff, laid out as one. Added and removed are rows, not cards. */
 .abil-tag{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:1px 5px;margin-left:7px;border:1px solid var(--border2);color:var(--text4)}
 .abil-tag.abil-new{color:var(--eff-up);border-color:color-mix(in srgb,var(--eff-up) 40%,transparent)}
+/* Form pills: one class with modifiers. They were three inline ternaries picking border,
+   background and text colour independently, so each state read as a different component. */
+.form-pill{padding:4px 11px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;border:1px solid var(--border2);background:transparent;color:var(--text4);text-transform:capitalize;font-family:inherit}
+.form-pill:hover{border-color:var(--border3);color:var(--text2)}
+.form-pill.fp-on{border-color:var(--eff-up);color:var(--eff-up);background:color-mix(in srgb,var(--eff-up) 12%,transparent)}
+.form-pill.fp-off{opacity:.5;border-style:dashed}
+.form-pill.fp-off:hover{opacity:.8}
 .us-meta{display:inline-flex;align-items:center;gap:6px;margin-left:10px;vertical-align:middle}
 .us-type{font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#fff;padding:1px 6px;border-radius:4px;text-shadow:0 1px 1px rgba(0,0,0,.3)}
 .us-meta [class^="us-cat-"]{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:1px 5px;border-radius:4px;border:1px solid var(--border2);color:var(--text4)}
@@ -1117,7 +1134,7 @@ async function showMoveTip(e,name){
   showTooltip(e,
     '<div class="tooltip-title">'+m.name.replace(/-/g,' ')+'</div>'+
     '<div class="tooltip-meta">'+
-      '<span class="type-badge small" style="background:'+typeColor+'">'+type+'</span>'+
+      '<span class="type-badge small" style="--tc:'+typeColor+'">'+type+'</span>'+
       '<span class="move-cat '+cat+'">'+cat+'</span>'+
       (m.power?'<span>Power: '+m.power+'</span>':'')+
       (m.accuracy?'<span>Acc: '+m.accuracy+'%</span>':'')+
@@ -2047,7 +2064,7 @@ function onFilterChange(){
 }
 
 // === LIST ===
-function typeBadge(type,small){return '<span class="type-badge'+(small?' small':'')+'" style="background:'+(TC[type]||'#888')+'">'+type+'</span>'}
+function typeBadge(type,small){return '<span class="type-badge'+(small?' small':'')+'" style="--tc:'+(TC[type]||'#888')+'">'+type+'</span>'}
 // Historical Pokemon typing: {dexNumber: {cutoff: [types]}} - "in generations below this cutoff,
 // the species was these types". DERIVED, NOT HAND-TYPED: generated from Pokemon Showdown's
 // per-generation mod data, the same source and method as PAST_STATS.
@@ -3003,7 +3020,8 @@ async function renderDetail(p){
       const fRange=getFormGenRange(f.name);
       const isOutOfGen=fRange&&!fRange.available(genNum);
       const genNote=fRange?' <span style="font-size:9px;color:'+(isOutOfGen?'#F08030':'#5a5a6a')+';font-weight:600">('+fRange.label+')</span>':'';
-      return '<button style="padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s;border:1px solid '+(isCurrent?'rgba(104,144,240,0.4)':isOutOfGen?'rgba(240,128,48,0.2)':'rgba(255,255,255,0.08)')+';background:'+(isCurrent?'rgba(104,144,240,0.12)':isOutOfGen?'rgba(240,128,48,0.05)':'rgba(255,255,255,0.03)')+';color:'+(isCurrent?'#6890F0':isOutOfGen?'#8a8a9a':'#8a8a9a')+'\" onclick=\"showForm('+f.id+')\">'+f.label+genNote+'</button>';
+      const cls='form-pill'+(isCurrent?' fp-on':'')+(isOutOfGen?' fp-off':'');
+      return '<button class="'+cls+'" title="'+(isOutOfGen&&fRange?'Not available in this generation ('+fRange.label+')':pokeName(f.name))+'" onclick=\"showForm('+f.id+')\">'+f.label+genNote+'</button>';
     }).join('');
   });
 
@@ -3744,14 +3762,14 @@ function runDualLookup(){
   const GROUPS=[[0,'Immune','\u00D70','dm-immune'],[0.25,'Super resist','\u00D7\u00BC','dm-sres'],
                 [0.5,'Resists','\u00D7\u00BD','dm-res'],[2,'Weak to','\u00D72','dm-weak'],
                 [4,'Super weak','\u00D74','dm-sweak']];
-  let h='<div class="dl-for">'+defs.map(function(d){return '<span class="type-badge small" style="background:'+TC[d]+'">'+d+'</span>'}).join('')+'</div>';
+  let h='<div class="dl-for">'+defs.map(function(d){return '<span class="type-badge small" style="--tc:'+TC[d]+'">'+d+'</span>'}).join('')+'</div>';
   let any=false;
   GROUPS.forEach(function(g){
     const list=by[g[0]];
     if(!list||!list.length)return;
     any=true;
     h+='<div class="dl-group"><div class="dl-label '+g[3]+'">'+g[1]+' <span>('+g[2]+')</span></div>'
-      +'<div class="dl-badges">'+list.map(function(t){return '<span class="type-badge" style="background:'+TC[t]+'">'+t+'</span>'}).join('')+'</div></div>';
+      +'<div class="dl-badges">'+list.map(function(t){return '<span class="type-badge" style="--tc:'+TC[t]+'">'+t+'</span>'}).join('')+'</div></div>';
   });
   if(!any)h+='<div class="dl-none">Everything hits this typing neutrally.</div>';
   out.innerHTML=h;
@@ -4875,7 +4893,7 @@ function renderTMResults(){
     const typeColor=TC[type]||'#888';
     h+='<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start">';
     h+='<div style="flex-shrink:0;display:flex;flex-direction:column;gap:4px;align-items:center;min-width:60px">';
-    h+='<span class="type-badge small" style="background:'+typeColor+';font-size:9px;padding:2px 8px">'+type+'</span>';
+    h+='<span class="type-badge small" style="--tc:'+typeColor+';font-size:9px;padding:2px 8px">'+type+'</span>';
     h+='<span class="move-cat '+cat+'" style="font-size:9px">'+cat+'</span>';
     h+='</div>';
     h+='<div style="flex:1;min-width:0">';
@@ -5712,7 +5730,7 @@ function filterPriority(){
 function renderSplit(){
   const genNum=getDataGenNum();
   const genLabel=getGenLabel();
-  const pill=(t)=>'<span class="type-badge" style="background:'+TC[t]+';font-size:12px;padding:4px 14px">'+t+'</span>';
+  const pill=(t)=>'<span class="type-badge" style="--tc:'+TC[t]+';font-size:12px;padding:4px 14px">'+t+'</span>';
   let h='';
 
   if(genNum<4){
@@ -5931,7 +5949,7 @@ function onUSearch(){
       const already=alreadyCompare||alreadyTeam;
       h+='<div class="usearch-item" data-idx="'+i+'" onclick="'+(already?'':'selectUSearch('+i+')')+'" style="'+(already?'opacity:0.4;pointer-events:none':'')+'"><img src="'+spr+'" loading="lazy"><div><div>'+pokeName(item.name)+' <span style="font-size:11px;color:#6a6a7a;font-family:\'JetBrains Mono\',monospace">#'+item.id+'</span></div></div><span class="usearch-cat">'+(already?'Added':item.cat)+'</span></div>';
     }else if(item.type==='type'){
-      h+='<div class="usearch-item" data-idx="'+i+'" onclick="selectUSearch('+i+')"><span class="type-badge small" style="background:'+TC[item.name]+'">'+item.name+'</span><span style="font-size:11px;color:#8a8a9a;margin-left:8px">Filter Pok&#233;dex by type</span><span class="usearch-cat">'+item.cat+'</span></div>';
+      h+='<div class="usearch-item" data-idx="'+i+'" onclick="selectUSearch('+i+')"><span class="type-badge small" style="--tc:'+TC[item.name]+'">'+item.name+'</span><span style="font-size:11px;color:#8a8a9a;margin-left:8px">Filter Pok&#233;dex by type</span><span class="usearch-cat">'+item.cat+'</span></div>';
     }else if(item.type==='ability'){
       const desc=item.desc?'<div style="font-size:11px;color:#8a8a9a;margin-top:1px">'+esc(item.desc.slice(0,80))+'</div>':'<div style="font-size:11px;color:#8a8a9a;margin-top:1px">View Pok&#233;mon with this ability</div>';
       h+='<div class="usearch-item" data-idx="'+i+'" onclick="selectUSearch('+i+')" style="text-transform:capitalize"><div>'+item.name.replace(/-/g,' ')+desc+'</div><span class="usearch-cat">'+item.cat+'</span></div>';
@@ -6331,11 +6349,11 @@ function renderAbilityBadge(item,size){
   const pad=size?'2px 6px':'1px 4px';
   if(typeof item==='object'&&item.t){
     return '<span style="display:inline-flex;align-items:center;gap:3px;margin:1px 0">'
-      +'<span class="type-badge small" style="background:'+TC[item.t]+';font-size:'+sz+';padding:'+pad+'">'+item.t+'</span>'
+      +'<span class="type-badge small" style="--tc:'+TC[item.t]+';font-size:'+sz+';padding:'+pad+'">'+item.t+'</span>'
       +'<span style="font-size:8px;padding:1px 4px;border-radius:3px;background:transparent;border:1px solid var(--border2);color:#40C8A8;white-space:nowrap">'+item.ab.replace(/-/g,' ')+'</span>'
       +'</span>';
   }
-  return '<span class="type-badge small" style="background:'+TC[item]+';font-size:'+sz+';padding:'+pad+'">'+item+'</span>';
+  return '<span class="type-badge small" style="--tc:'+TC[item]+';font-size:'+sz+';padding:'+pad+'">'+item+'</span>';
 }
 
 function renderCompare(){
@@ -6402,7 +6420,7 @@ function renderCompare(){
     h+='<div style="text-align:center;margin-bottom:12px">';
     h+='<img src="'+s.sprite+'" onclick="switchTab(\'pokedex\');showDetail('+s.id+')" style="width:90px;height:90px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3));cursor:pointer">';
     h+='<div onclick="switchTab(\'pokedex\');showDetail('+s.id+')" style="font-weight:700;font-size:15px;text-transform:capitalize;margin-top:4px;color:'+tc+';cursor:pointer">'+s.name.replace(/-/g,' ')+'</div>';
-    h+='<div style="display:flex;gap:3px;justify-content:center;margin-top:4px">'+filterTypesForGen(s.types,genNum,s.id).map(t=>'<span class="type-badge small" style="background:'+TC[t]+'">'+t+'</span>').join('')+'</div>';
+    h+='<div style="display:flex;gap:3px;justify-content:center;margin-top:4px">'+filterTypesForGen(s.types,genNum,s.id).map(t=>'<span class="type-badge small" style="--tc:'+TC[t]+'">'+t+'</span>').join('')+'</div>';
     h+='</div>';
     
     // Stats with individual bars
@@ -6487,7 +6505,7 @@ function renderTeamBuilder(){
       h+='<img src="'+spr+'" style="width:64px;height:64px">';
       h+='<div style="flex:1">';
       h+='<div class="team-name" style="font-size:15px;font-weight:800">'+p.name.replace(/-/g,' ')+'</div>';
-      if(p.types)h+='<div style="display:flex;gap:3px;margin-top:3px">'+filterTypesForGen(p.types,getDataGenNum(),p.id).map(t=>'<span class="type-badge small" style="background:'+TC[t]+';font-size:10px;padding:2px 8px">'+t+'</span>').join('')+'</div>';
+      if(p.types)h+='<div style="display:flex;gap:3px;margin-top:3px">'+filterTypesForGen(p.types,getDataGenNum(),p.id).map(t=>'<span class="type-badge small" style="--tc:'+TC[t]+';font-size:10px;padding:2px 8px">'+t+'</span>').join('')+'</div>';
       if(p.smogonSet){
         h+='<div style="font-size:11px;color:#6890F0;margin-top:3px;font-weight:700">'+p.smogonSet.tier+' · '+p.smogonSet.setName+'</div>';
       }
@@ -7006,7 +7024,7 @@ async function openTeamEditModal(idx){
   h+='<div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">';
   h+='<img src="'+spr+'" style="width:80px;height:80px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3))">';
   h+='<div style="flex:1"><div style="font-size:22px;font-weight:800;text-transform:capitalize;color:#e8e8f0">'+p.name.replace(/-/g,' ')+'</div>';
-  h+='<div style="display:flex;gap:4px;margin-top:4px">'+filterTypesForGen(p.types,getDataGenNum(),p.id).map(t=>'<span class="type-badge small" style="background:'+TC[t]+'">'+t+'</span>').join('')+'</div>';
+  h+='<div style="display:flex;gap:4px;margin-top:4px">'+filterTypesForGen(p.types,getDataGenNum(),p.id).map(t=>'<span class="type-badge small" style="--tc:'+TC[t]+'">'+t+'</span>').join('')+'</div>';
   h+='<div style="margin-top:6px"><a href="#" onclick="event.preventDefault();closeTeamEdit();switchTab(\'pokedex\');showDetail('+p.id+')" style="font-size:12px;color:#6890F0;text-decoration:none">View full Pok&#233;dex entry &#x2192;</a></div>';
   h+='</div>';
   h+='<button onclick="saveTeamEdit('+idx+')" style="background:none;border:none;color:#8a8a9a;font-size:24px;cursor:pointer;padding:4px 8px;align-self:flex-start">&#x2715;</button>';
@@ -8353,7 +8371,7 @@ async function calcRunAllMoves(){
     const best=i===0&&!r.immune;
     h+='<tr'+(best?' class="calc-best"':'')+'>'
       +'<td class="cm-name">'+r.move+(best?'<span class="cm-flag">best</span>':'')+'</td>'
-      +'<td><span class="type-badge small" style="background:'+(TC[String(r.type).toLowerCase()]||'#888')+'">'+r.type+'</span></td>'
+      +'<td><span class="type-badge small" style="--tc:'+(TC[String(r.type).toLowerCase()]||'#888')+'">'+r.type+'</span></td>'
       +'<td class="cm-num">'+(r.immune?'—':r.min+'–'+r.max)+'</td>'
       +'<td class="cm-num">'+(r.immune?'—':r.minP.toFixed(1)+'–'+r.maxP.toFixed(1)+'%')+'</td>'
       +'<td><div class="cm-bar"><div style="width:'+pct.toFixed(1)+'%"></div></div>'
