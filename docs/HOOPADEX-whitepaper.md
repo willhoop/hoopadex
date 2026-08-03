@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 1.3 · Last updated 2026-08-03 · HoopaDex v4.0**
+**Version 1.3 · Last updated 2026-08-03 · HoopaDex v4.1**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -277,6 +277,18 @@ paragraph a restatement deletes information from the page, and no rendering arte
 Both suites read their source through a `HOOPADEX_SRC` environment override so that the mutation
 check runs against a copy. The repository commits and pushes on a timer, so a file left broken for
 ten seconds to prove a point is a file that ships.
+
+v4.1 found the same failure a second time, in a place the lesson had not been carried to. The moves
+table sort shipped in 3.2 and did nothing for eight versions: it read each cell through
+`td[data-<key>]` and the renderer emitted no such attributes, so every row tied and a stable sort
+left the order alone — while the header still toggled its arrow, so the control looked live.
+
+The general shape is worth naming, because it is not a coding error in either function. It is a
+**contract between two functions, each individually sensible**, and no behavioural test covers it by
+accident. The guard that works derives both sides from the source — the sortable keys from the
+header, the emitted attributes from the row — and asserts they agree. Run against the shipped 3.7
+file it reports `emitted: []`. A test that can be run against a known-broken past revision of your
+own repository is the cheapest possible proof that it can go red.
 
 ### 5.2 The gap this project was built to have, and no longer has
 

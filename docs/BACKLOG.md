@@ -8,30 +8,19 @@ Status values: `open`, `in progress`, `blocked`, `done`.
 
 ---
 
-## 0. The moves-table sort does nothing — `open`
+## 0. The moves-table sort does nothing — `done` (4.1)
 
-**Found 2026-08-03 while working on v3.8. Not fixed in that pass because it is unrelated to what
-was asked for, and it deserves its own version.**
+*Found 2026-08-03; shipped broken in 3.2 and fixed in 4.1, eight versions later.*
 
-`sortMovesTable()` reads every sort key through
-`cellOf = (r,key) => r.querySelector('td[data-'+key+']')?.getAttribute(...)`, but
-`renderMovesSection()` emits no `data-name`, `data-cat`, `data-type`, `data-pow`, `data-acc` or
-`data-lv` attributes on any `<td>`. Confirmed by count: the file contains zero occurrences of
-`data-pow`, `data-type` and `data-lv`, and the single `data-acc` hit is `data-accent` on the detail
-panel. Every comparison therefore reads `''` against `''`, every row ties, and the sort is a
-stable no-op.
+`sortMovesTable()` read every value through `td[data-<key>]` and `renderMovesSection()` emitted no
+`data-*` attributes at all. Every comparison read `''` against `''`, every row tied, and a stable
+sort left the order untouched — while the header still toggled its arrow, so the control looked
+live. Both row emitters now carry the attributes.
 
-The header still toggles its `ms-asc` / `ms-desc` arrow, so the control looks like it worked. This
-shipped in 3.2 as "sortable moves".
-
-**Fix.** Emit the data attributes in `renderMovesSection()` — they are the values already being
-rendered into each cell. **Then prove it:** a test that asserts the sorted order changes, checked by
-mutation against a copy of the source, because this is precisely the class of bug the existing
-suites' own history warns about (whitepaper 5.1 — the Pokédex sort tests were passing vacuously for
-the same reason: the assertion never observed the thing it claimed to test).
-
-**Note.** Backlog item for the Moves tab type filter should be done in the same pass, since it
-touches the same rows.
+**The guard is the interesting part.** This was a contract between two functions that were each
+individually sensible, which is why no behavioural test caught it. `tests/test-move-table-contract.js`
+derives the sortable keys from the header and the emitted attributes from the row, both out of the
+shipped source, and asserts they agree. Pointed at the real 3.7 file it reports `emitted: []`.
 
 ## 1. Nuzlocke tracker — `open`
 
@@ -202,13 +191,15 @@ VIII because `-alola` was tested before `-totem`.
 
 **Not done:** the same form plumbing in Team Builder and the calculator pickers — see item 25.
 
-## 21. Moves tab type filter — `open`
+## 21. Moves tab type filter — `done` (4.1)
 
-*Asked for three times.* Same pattern as `filterPriority()`: filter in the DOM on each keystroke
-rather than re-rendering, and hide a group once nothing in it survives.
+*Asked for three times.* Done in the same pass as item 0, as planned — both touch the rows emitted
+by `renderMovesSection()`, and item 0 required adding data attributes to exactly those rows.
 
-**Do this in the same pass as item 0** — both touch the rows emitted by `renderMovesSection()`, and
-item 0 requires adding data attributes to exactly those rows.
+Only the types actually present on the Pokémon are offered, read off its moves rather than listing
+all eighteen, so no option can match nothing. Filtering is done in the DOM like `filterPriority()`,
+because re-rendering would discard the current sort. The filter persists across tab switches and the
+count is per-tab.
 
 ## 22. Bulk calculator — when to invest Def/SpD over HP — `open`
 

@@ -12,6 +12,39 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [4.1] — 2026-08-03
+
+### Fixed
+- **The moves table sort had done nothing since 3.2.** `sortMovesTable()` reads every value through
+  `querySelector('td[data-'+key+']')`, and `renderMovesSection()` emitted no `data-*` attributes at
+  all — zero occurrences of `data-pow`, `data-type` or `data-lv` anywhere in the file. Every
+  comparison read `''` against `''`, every row tied, and because the sort is stable the order never
+  moved. The header still toggled its ascending/descending arrow, so the control looked like it
+  worked. Eight versions.
+
+  Both row emitters now carry the attributes. Verified in the browser rather than by reading:
+  clicking Power on Charizard's learnset gives 25/35/50/50/50/55/60/60 ascending and
+  150/150/150/150/130/120/120/120 descending, where before the order was identical either way.
+
+### Added
+- **A type filter on the moves tab.** A 73-move learnset is the normal case and "what Fire moves
+  does this learn" was not a question you could ask. Only the types actually present are offered,
+  read off the moves rather than listing all eighteen, so no option matches nothing. Filtering is
+  done in the DOM like `filterPriority()`, because re-rendering would discard the current sort.
+  The filter persists across tab switches and the count is per-tab: Charizard in Gen IX shows
+  1 Flying move under Level Up and 5 under TM/HM.
+
+### Notes
+- `tests/test-move-table-contract.js` (20 assertions) checks the thing that actually broke: it
+  derives the sortable column keys from the header and the emitted attributes from the row, both out
+  of the shipped source, and asserts they agree. Run against the real 3.7 source it reports
+  `emitted: []` and fails on all six keys. No behavioural test would have caught this naturally —
+  each half was individually sensible, and the defect lived only in the contract between them.
+- This is the same failure the white paper already records under "the question is never whether the
+  suite is green, it is whether the suite can go red" — the earlier Pokédex sort tests passed
+  vacuously for a closely related reason. The lesson had been written down but not generalised to
+  the second sort.
+
 ## [4.0] — 2026-08-03
 
 ### Added

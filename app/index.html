@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 4.0 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 4.1 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -363,6 +363,9 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .moves-tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
 .moves-tab{padding:6px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#6a6a7a;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s}
 .moves-tab.active{background:transparent;color:#6890F0;border-color:rgba(104,144,240,0.3)}
+.moves-filter{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.moves-filter select{max-width:170px;font-size:12.5px;padding:6px 10px;font-weight:700}
+.moves-filter-count{font-size:12px;color:var(--text4)}
 .moves-table{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed}
 .moves-table th{text-align:left;padding:6px 8px;font-size:12px;font-weight:700;color:#5a5a6a;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.06)}
 .moves-table td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.03)}
@@ -2705,6 +2708,18 @@ function renderMovesSection(moves,missed){
   let tabs='<div class="moves-tabs">';
   cats.forEach(c=>{tabs+='<button class="moves-tab'+(c.key===first?' active':'')+'" onclick="switchMovesTab(this,\''+c.key+'\')">'+c.label+' ('+c.data.length+')</button>'});
   tabs+='</div>';
+  /* Type filter. A 73-move learnset is the normal case, and "what Fire moves does this learn" was
+     not a question you could ask. Only the types actually present are offered - an option that
+     matches nothing is a dead end - so the set is read off the moves rather than listing all
+     eighteen. Filtering is done in the DOM, like filterPriority(), because re-rendering would
+     drop the current sort order. */
+  const presentTypes=[...new Set(cats.flatMap(c=>c.data.map(m=>getMoveTypeForGen(moveCache[m.name]))).filter(Boolean))].sort();
+  if(presentTypes.length>1){
+    tabs+='<div class="moves-filter"><select id="moves-type-filter" class="filter-select" onchange="filterMovesByType()">'
+      +'<option value="">All types</option>'
+      +presentTypes.map(t=>'<option value="'+t+'">'+capName(t)+'</option>').join('')
+      +'</select><span id="moves-filter-count" class="moves-filter-count"></span></div>';
+  }
   let tables='';
   cats.forEach(c=>{
     const showLevel=c.key==='levelup';
@@ -2720,7 +2735,11 @@ function renderMovesSection(moves,missed){
       const shortDesc=desc.length>60?desc.slice(0,57)+'...':desc;
       const pri=md?.priority||0;
       const priTag=pri!==0?'<span style="font-size:9px;font-weight:700;color:'+(pri>0?'#78C850':'#F85888')+';flex-shrink:0;border:1px solid '+(pri>0?'rgba(120,200,80,0.3)':'rgba(248,88,136,0.3)')+';border-radius:3px;padding:0 3px">'+(pri>0?'+':'')+pri+'</span>':'';
-      tables+='<tr>'+(showLevel?'<td style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#6a6a7a;font-size:13px">'+(m.level||'\u2014')+'</td>':'')+'<td><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span>'+priTag+'<span style="font-size:12px;color:#6a6a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+shortDesc+'</span></div></td><td style="text-align:center">'+catIcon(cat)+'</td><td>'+typeBadge(type,true)+'</td><td style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
+      /* The data-* attributes are what sortMovesTable() reads. Without them cellOf() returned ''
+         for every key, so every row tied and the sort shipped in 3.2 was a stable no-op for eight
+         versions - only the header arrow ever moved. data-mtype on the row is what the type
+         filter matches, so filtering never has to parse a rendered badge. */
+      tables+='<tr data-mtype="'+type+'">'+(showLevel?'<td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#6a6a7a;font-size:13px">'+(m.level||'\u2014')+'</td>':'')+'<td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span>'+priTag+'<span style="font-size:12px;color:#6a6a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+shortDesc+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(md&&md.power?md.power:'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(md&&md.accuracy?md.accuracy:'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
     });
     // Add missed moves at the end of levelup tab
     if(c.key==='levelup'&&showMissed&&missed&&missed.moves.length>0){
@@ -2733,7 +2752,7 @@ function renderMovesSection(moves,missed){
         const cat=getMoveCatForGen(md);
         const missedDesc=md?.desc||'';
         const missedShort=missedDesc.length>60?missedDesc.slice(0,57)+'...':missedDesc;
-        tables+='<tr class="missed-move-row"><td style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#8a6a6a;font-size:13px">'+(m.level||'\u2014')+'</td><td><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="color:#e8a8a8;flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span><span class="missed-badge">MISSED</span><span style="font-size:12px;color:#5a5a6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+missedShort+'</span></div></td><td style="text-align:center">'+catIcon(cat)+'</td><td>'+typeBadge(type,true)+'</td><td style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
+        tables+='<tr class="missed-move-row" data-mtype="'+type+'"><td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#8a6a6a;font-size:13px">'+(m.level||'\u2014')+'</td><td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="color:#e8a8a8;flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span><span class="missed-badge">MISSED</span><span style="font-size:12px;color:#5a5a6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+missedShort+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(md&&md.power?md.power:'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(md&&md.accuracy?md.accuracy:'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
       });
     }
     tables+='</tbody></table></div>';
@@ -2795,10 +2814,33 @@ document.addEventListener('click',function(e){
   if(th)sortMovesTable(th);
 });
 
+/* Hide rows whose type does not match, across every tab in the panel so the filter survives
+   switching tab. Matched off data-mtype rather than the rendered badge: the badge is markup, and
+   parsing your own output back is how a filter starts disagreeing with what it filtered.
+   The "missed moves" separator row spans all columns and carries no type, so it is hidden while a
+   filter is active - it labels a section that may now be empty. */
+function filterMovesByType(){
+  const sel=document.getElementById('moves-type-filter');
+  if(!sel)return;
+  const want=sel.value;
+  let shown=0;
+  document.querySelectorAll('.moves-list table.moves-table tbody tr').forEach(function(tr){
+    const t=tr.getAttribute('data-mtype');
+    if(t===null){ tr.style.display=want?'none':''; return; }   // section separator
+    const hit=!want||t===want;
+    tr.style.display=hit?'':'none';
+    if(hit&&tr.closest('.moves-list')&&tr.closest('.moves-list').style.display!=='none')shown++;
+  });
+  const c=document.getElementById('moves-filter-count');
+  if(c)c.textContent=want?(shown===0?'no '+want+' moves in this tab':shown+' move'+(shown===1?'':'s')):'';
+}
+
 function switchMovesTab(btn,cat){
   btn.parentElement.querySelectorAll('.moves-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   btn.closest('.detail-panel').querySelectorAll('.moves-list').forEach(el=>{el.style.display=el.dataset.cat===cat?'':'none'});
+  // The count is per-tab, so it has to be recomputed once the new tab is the visible one.
+  filterMovesByType();
 }
 
 /* Which species a form belongs to, resolved from its name rather than a fetch. PokeAPI gives a
