@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 1.97 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 1.98 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1660,14 +1660,39 @@ function onFilterChange(){
 
 // === LIST ===
 function typeBadge(type,small){return '<span class="type-badge'+(small?' small':'')+'" style="background:'+(TC[type]||'#888')+'">'+type+'</span>'}
-function filterTypesForGen(types,genNum){
+// Historical Pokemon typing: {dexNumber: {cutoff: [types]}} - "in generations below this cutoff,
+// the species was these types". DERIVED, NOT HAND-TYPED: generated from Pokemon Showdown's
+// per-generation mod data, the same source and method as PAST_STATS.
+//
+// A subtractive rule cannot do this job. Dropping "fairy" for older generations works only when
+// Fairy was ADDED to a species; where it REPLACED a type it silently loses one. Togetic and
+// Togekiss were Normal/Flying before Fairy took the Normal slot, and subtraction left them as pure
+// Flying in Gens II-V - wrong immunity to Ghost, wrong Fighting matchup, wrong everywhere the
+// typing is read. Restore the recorded typing instead.
+const POKEMON_PAST_TYPES={
+  35:{6:['normal']},36:{6:['normal']},39:{6:['normal']},40:{6:['normal']},81:{2:['electric']},
+  82:{2:['electric']},122:{6:['psychic']},173:{6:['normal']},174:{6:['normal']},175:{6:['normal']},
+  176:{6:['normal','flying']},183:{6:['water']},184:{6:['water']},209:{6:['normal']},210:{6:['normal']},
+  280:{6:['psychic']},281:{6:['psychic']},282:{6:['psychic']},298:{6:['normal']},303:{6:['steel']},
+  439:{6:['psychic']},468:{6:['normal','flying']},546:{6:['grass']},547:{6:['grass']},
+};
+
+function filterTypesForGen(types,genNum,id){
+  // Entries are complete type lists rather than diffs, so the smallest applicable cutoff - the era
+  // closest to the selected generation - is the answer on its own.
+  const revisions=POKEMON_PAST_TYPES[id];
+  if(revisions){
+    const cutoff=Object.keys(revisions).map(Number).filter(c=>genNum<c).sort((a,b)=>a-b)[0];
+    if(cutoff!==undefined)return revisions[cutoff].slice();
+  }
+  // Fallback for anything the table does not cover: drop types that did not exist yet.
   const f=types.filter(t=>!(t==='fairy'&&genNum<6)&&!(t==='dark'&&genNum<2)&&!(t==='steel'&&genNum<2));
   return f.length>0?f:['normal'];
 }
 
 function cardHTML(e){
   const d=dc[e.id];
-  if(d){const _genNum=getDataGenNum(),_filteredTypes=filterTypesForGen(d.types.map(t=>t.type.name),_genNum),mt=_filteredTypes[0]||'normal',c=TC[mt],img=d.sprites?.other?.['official-artwork']?.front_default||d.sprites?.front_default||'',types=_filteredTypes.map(t=>typeBadge(t,true)).join('');
+  if(d){const _genNum=getDataGenNum(),_filteredTypes=filterTypesForGen(d.types.map(t=>t.type.name),_genNum,d.id),mt=_filteredTypes[0]||'normal',c=TC[mt],img=d.sprites?.other?.['official-artwork']?.front_default||d.sprites?.front_default||'',types=_filteredTypes.map(t=>typeBadge(t,true)).join('');
   return '<div class="card" style="background:linear-gradient(145deg,'+c+'18,'+c+'08);border:1px solid '+c+'30" onmouseenter="this.style.boxShadow=\'0 12px 32px '+c+'25\';this.style.borderColor=\''+c+'60\'" onmouseleave="this.style.boxShadow=\'\';this.style.borderColor=\''+c+'30\'" onclick="showDetail('+e.id+')"><div class="card-id">#'+String(e.id).padStart(4,'0')+'</div><div class="card-img"><img src="'+img+'" alt="'+e.name+'" loading="lazy"></div><div class="card-name">'+pokeName(e.name)+'</div><div class="card-types">'+types+'</div></div>'}
   return '<div class="card-placeholder" onclick="showDetail('+e.id+')"><div style="position:absolute;top:8px;right:12px;font-size:11px;color:#6a6a7a;font-weight:700;font-family:\'JetBrains Mono\',monospace">#'+String(e.id).padStart(4,'0')+'</div><div style="width:96px;height:96px;margin:0 auto 8px;background:rgba(255,255,255,0.03);border-radius:12px"></div><div class="card-name">'+pokeName(e.name)+'</div></div>'
 }
@@ -2353,7 +2378,7 @@ async function renderDetail(p){
 
   // Defensive matchups using the gen-appropriate chart
   const chartData=getChartForGen(genNum);
-  const tn=filterTypesForGen(p.types.map(t=>t.type.name),genNum).filter(t=>chartData.types.includes(t)||t==='normal');
+  const tn=filterTypesForGen(p.types.map(t=>t.type.name),genNum,p.id).filter(t=>chartData.types.includes(t)||t==='normal');
   let wH='',w4H='',rH='',r4H='',iH='';const ws=[],w4s=[],rs=[],r4s=[],im=[];
   chartData.types.forEach(a=>{let m=1;tn.forEach(d=>{m*=eff(a,d,chartData.chart)});if(m>=4)w4s.push(a);else if(m>1)ws.push(a);else if(m===0)im.push(a);else if(m<=.25)r4s.push(a);else if(m<1)rs.push(a)});
 
@@ -2412,7 +2437,7 @@ async function renderDetail(p){
   if(finalW.length)wH='<div class="matchup-label" style="color:#F8A060">WEAK TO (&#xD7;2)</div><div class="matchup-badges">'+renderBadges(finalW)+'</div>';
   if(finalW4.length)w4H='<div class="matchup-label" style="color:#F85888">SUPER WEAK (&#xD7;4)</div><div class="matchup-badges">'+renderBadges(finalW4)+'</div>';
   if(abFilterAbility){const fName=abFilterAbility.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());const filterNote='<div style="display:inline-flex;align-items:center;gap:8px;margin:8px 0;padding:6px 12px;background:rgba(64,200,168,0.08);border:1px solid rgba(64,200,168,0.25);border-radius:6px"><span style="font-size:11px;font-weight:800;color:#40C8A8;letter-spacing:0.3px">'+fName+'</span><span style="width:1px;height:12px;background:rgba(64,200,168,0.3);flex-shrink:0"></span><span style="font-size:11px;color:#a8c8c0">Super-effective moves deal <span style="font-weight:700;color:#60e0c0">×0.75</span> damage</span></div>';if(!iH)iH=filterNote;else iH=filterNote+iH;}
-  const tbs=filterTypesForGen(p.types.map(t=>t.type.name),genNum).map(t=>typeBadge(t,false)).join(' ');
+  const tbs=filterTypesForGen(p.types.map(t=>t.type.name),genNum,p.id).map(t=>typeBadge(t,false)).join(' ');
 
   // Get moves for selected gen - preload move data
   if(isChampionsMode){try{await ensureChampLS()}catch(e){}}
@@ -5661,7 +5686,7 @@ function renderCompare(){
     const baseWeak=[],baseResist=[],baseImmune=[],baseW4=[],baseR4s=[];
     allTypes.forEach(atk=>{
       let mult=1;
-      filterTypesForGen(s.types,genNum).forEach(def=>{mult*=getTypeEffect(atk,def,genNum)});
+      filterTypesForGen(s.types,genNum,s.id).forEach(def=>{mult*=getTypeEffect(atk,def,genNum)});
       if(mult>=4)baseW4.push(atk);
       else if(mult>=2)baseWeak.push(atk);
       else if(mult>0&&mult<=0.25)baseR4s.push(atk);
@@ -5677,7 +5702,7 @@ function renderCompare(){
     h+='<div style="text-align:center;margin-bottom:12px">';
     h+='<img src="'+s.sprite+'" onclick="switchTab(\'pokedex\');showDetail('+s.id+')" style="width:90px;height:90px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3));cursor:pointer">';
     h+='<div onclick="switchTab(\'pokedex\');showDetail('+s.id+')" style="font-weight:700;font-size:15px;text-transform:capitalize;margin-top:4px;color:'+tc+';cursor:pointer">'+s.name.replace(/-/g,' ')+'</div>';
-    h+='<div style="display:flex;gap:3px;justify-content:center;margin-top:4px">'+filterTypesForGen(s.types,genNum).map(t=>'<span class="type-badge small" style="background:'+TC[t]+'">'+t+'</span>').join('')+'</div>';
+    h+='<div style="display:flex;gap:3px;justify-content:center;margin-top:4px">'+filterTypesForGen(s.types,genNum,s.id).map(t=>'<span class="type-badge small" style="background:'+TC[t]+'">'+t+'</span>').join('')+'</div>';
     h+='</div>';
     
     // Stats with individual bars
@@ -5759,7 +5784,7 @@ function renderTeamBuilder(){
       h+='<img src="'+spr+'" style="width:64px;height:64px">';
       h+='<div style="flex:1">';
       h+='<div class="team-name" style="font-size:15px;font-weight:800">'+p.name.replace(/-/g,' ')+'</div>';
-      if(p.types)h+='<div style="display:flex;gap:3px;margin-top:3px">'+p.types.map(t=>'<span class="type-badge small" style="background:'+TC[t]+';font-size:10px;padding:2px 8px">'+t+'</span>').join('')+'</div>';
+      if(p.types)h+='<div style="display:flex;gap:3px;margin-top:3px">'+filterTypesForGen(p.types,getDataGenNum(),p.id).map(t=>'<span class="type-badge small" style="background:'+TC[t]+';font-size:10px;padding:2px 8px">'+t+'</span>').join('')+'</div>';
       if(p.smogonSet){
         h+='<div style="font-size:11px;color:#6890F0;margin-top:3px;font-weight:700">'+p.smogonSet.tier+' · '+p.smogonSet.setName+'</div>';
       }
@@ -5945,7 +5970,7 @@ async function openTeamEditModal(idx){
   h+='<div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">';
   h+='<img src="'+spr+'" style="width:80px;height:80px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3))">';
   h+='<div style="flex:1"><div style="font-size:22px;font-weight:800;text-transform:capitalize;color:#e8e8f0">'+p.name.replace(/-/g,' ')+'</div>';
-  h+='<div style="display:flex;gap:4px;margin-top:4px">'+p.types.map(t=>'<span class="type-badge small" style="background:'+TC[t]+'">'+t+'</span>').join('')+'</div>';
+  h+='<div style="display:flex;gap:4px;margin-top:4px">'+filterTypesForGen(p.types,getDataGenNum(),p.id).map(t=>'<span class="type-badge small" style="background:'+TC[t]+'">'+t+'</span>').join('')+'</div>';
   h+='<div style="margin-top:6px"><a href="#" onclick="event.preventDefault();closeTeamEdit();switchTab(\'pokedex\');showDetail('+p.id+')" style="font-size:12px;color:#6890F0;text-decoration:none">View full Pok&#233;dex entry &#x2192;</a></div>';
   h+='</div>';
   h+='<button onclick="saveTeamEdit('+idx+')" style="background:none;border:none;color:#8a8a9a;font-size:24px;cursor:pointer;padding:4px 8px;align-self:flex-start">&#x2715;</button>';
@@ -6962,7 +6987,9 @@ function renderTeamAnalysis(){
   filled.forEach(p=>{
     allTypes.forEach(atk=>{
       let mult=1;
-      p.types.forEach(def=>{
+      // Use the typing the species actually had in this generation. Reading p.types raw meant a
+      // Gen V team containing Clefable was scored against Fairy, a type that did not exist yet.
+      filterTypesForGen(p.types,genNum,p.id).forEach(def=>{
         const e=getTypeEffect(atk,def,genNum);
         mult*=e;
       });

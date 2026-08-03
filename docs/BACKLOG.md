@@ -35,7 +35,7 @@ Locations tab.
 
 Toggle the Pokédex between national numbering and the selected game's regional dex.
 
-## 5. Strip Fairy type Gen I–V — `open`
+## 5. Strip Fairy type Gen I–V — `done` (1.98)
 
 Fairy did not exist before Gen VI. `getMoveTypeForGen()` already reverts Fairy *moves* to Normal
 for gens < 6 (`app/index.html`, in the move-type resolver), but Pokémon typing is not covered —
@@ -108,3 +108,14 @@ that name a hidden tab.
 **Open question.** Which tabs should Gen I hide? Gen I has no held items, and "EV Training" is the
 wrong name for stat experience, but Moves and the bag-item list are both real in Red/Blue. Needs a
 decision on Items and on EV Training for Gens I–II before more rules go in.
+
+## 16. Audit the remaining generation-aware tables — `open`
+
+*Added 2026-08-02.* Three of the tables behind the generation-accuracy claim have now been found
+wrong on inspection: `PAST_STATS` (10 of 43 entries correct, fixed in 1.96), the Gen I type chart
+(`C1`, fixed in 1.97), and Pokémon typing (absent entirely, fixed in 1.98). Each was found only
+because someone looked.
+
+Not yet audited: `ITEM_INTRO_GEN`, `EVO_OVERRIDES`, `REGIONAL`, and the `C2`/`CM` type charts —
+only `C1` was checked, and only against `C2` over Gen I types. Same method applies: derive from a
+published source, diff against what the app believes, and pin the result with a test.

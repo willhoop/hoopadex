@@ -12,6 +12,39 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [1.98] — 2026-08-02
+
+### Added
+- **`POKEMON_PAST_TYPES`, a real record of historical Pokémon typing** — 24 species, generated from
+  Pokémon Showdown's per-generation mod data, the same source and method as `PAST_STATS`. Until now
+  the application had no record of what a species used to be. `filterTypesForGen()` merely *deleted*
+  types that did not exist yet, and nothing else stood behind it.
+
+### Fixed
+- **Togetic and Togekiss were pure Flying in Generations II–V.** Both are Normal/Flying before
+  Generation VI. Subtraction is only correct where Fairy was *added* to a species; where it
+  *replaced* a type, dropping "fairy" loses one outright. This was not cosmetic — Normal/Flying is
+  immune to Ghost and neutral to Fighting, while pure Flying is neither, so the defensive matchup
+  panel, the Pokédex cards, the compare view and the damage figures were all wrong for those two in
+  four generations. Verified against Serebii's Black/White dex, which lists Togetic as Normal/Flying.
+- **The Team Builder scored teams against types that did not exist.** `renderTeamAnalysis()` read
+  `p.types` raw, with no generation correction at all, so a Generation V team containing Clefable
+  was analysed as Fairy — a type introduced a generation later. It now resolves typing the same way
+  every other view does. The team slot badges and the set-editor badges were showing present-day
+  types for the same reason and are corrected with it.
+
+### Notes
+- `pastTypes` (lower case) is unrelated and was never broken: it holds per-*move* type history from
+  PokéAPI's `past_values` and works correctly. The row in the technical documentation describing it
+  as Pokémon typing was mislabelled and has been corrected.
+- Storing present-day types on team and compare slots is deliberate. Typing is resolved at render
+  time from the dex number, so a team stays correct when the selected generation changes.
+- Three of the generation-aware tables have now been found wrong on inspection: `PAST_STATS`
+  (1.96), the Generation I type chart (1.97), and typing (this release). All three are now either
+  generated from published data or covered by tests. `ITEM_INTRO_GEN`, `EVO_OVERRIDES` and
+  `REGIONAL` have not been audited; recorded as backlog item 16.
+
+
 ## [1.97] — 2026-08-02
 
 ### Added

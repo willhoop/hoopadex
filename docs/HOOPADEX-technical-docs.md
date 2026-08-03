@@ -144,7 +144,8 @@ The application holds these tables. They let it show historical data correctly.
 | Table | Purpose |
 |---|---|
 | `GEN_GAMES`, `VG_GEN` | Map a game or a version group to a generation number. |
-| `pastTypes` | The types that a Pokemon had in earlier generations. |
+| `pastTypes` | The types that a **move** had in earlier generations, from PokeAPI `past_values`. |
+| `POKEMON_PAST_TYPES` | The types that a **Pokemon** had in earlier generations. Generated, not hand-typed — see 3.4. |
 | `PAST_STATS` | The base stats that a Pokemon had in earlier generations. Generated, not hand-typed — see 3.4. |
 | `ITEM_INTRO_GEN` | The generation that introduced each item. |
 | `EVO_OVERRIDES` | Corrections to evolution chains. |
@@ -162,8 +163,9 @@ The application holds these tables. They let it show historical data correctly.
 
 **Important:** The application needs an internet connection. It has no offline mode.
 
-### How `PAST_STATS` is produced
-`PAST_STATS` is the one embedded table that is generated rather than written by hand. It is built
+### How the generated tables are produced
+`PAST_STATS` and `POKEMON_PAST_TYPES` are the embedded tables that are generated rather than written
+by hand. `PAST_STATS` is built
 by diffing Pokemon Showdown's per-generation mod data — `data/mods/gen{5,6,7,8}/pokedex.ts` in the
 `smogon/pokemon-showdown` repository — against Showdown's current Pokedex. Each mod file records how
 a generation differs from the one above it, so a `genN` override becomes a `genN+1` cutoff in the
@@ -180,7 +182,13 @@ Two constraints follow from the source data:
 - Generation I is not modelled, because its single Special stat is a display question rather than a
   value substitution. See `docs/BACKLOG.md` item 14.
 
-`tests/test-past-stats.js` pins the result and asserts the structural invariants.
+`POKEMON_PAST_TYPES` is produced the same way, from the `types` overrides in the same mod files.
+It must restore rather than subtract: deleting a type that did not exist yet is only correct where
+that type was ADDED to a species. Where Fairy REPLACED a type it loses one — Togetic and Togekiss
+were Normal/Flying and rendered as pure Flying in Gens II-V until 1.98.
+
+`tests/test-past-stats.js` and `tests/test-past-types.js` pin the results and assert the structural
+invariants.
 
 ## 3.5 Caching
 The application caches responses in memory. This reduces the number of requests. The caches are
