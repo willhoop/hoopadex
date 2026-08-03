@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.1 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.2 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1089,7 +1089,7 @@ function statBand(v){return STAT_BANDS.find(b=>v<b.max)}
 const TYPE_ABBR={normal:'NOR',fire:'FIR',water:'WAT',electric:'ELE',grass:'GRA',ice:'ICE',fighting:'FIG',poison:'POI',ground:'GRO',flying:'FLY',psychic:'PSY',bug:'BUG',rock:'ROC',ghost:'GHO',dragon:'DRA',dark:'DAR',steel:'STE',fairy:'FAI'};
 const TC={normal:"#A8A878",fire:"#F08030",water:"#6890F0",electric:"#F8D030",grass:"#8BC34A",ice:"#98D8D8",fighting:"#C03028",poison:"#A040A0",ground:"#E0C068",flying:"#A890F0",psychic:"#F85888",bug:"#A8B820",rock:"#B8A038",ghost:"#705898",dragon:"#7038F8",dark:"#705848",steel:"#B8B8D0",fairy:"#EE99AC"};
 const AT=Object.keys(TC);
-const SL={hp:"HP",attack:"ATK",defense:"DEF","special-attack":"SPA","special-defense":"SPD",speed:"SPE"};
+const SL={hp:"HP",attack:"ATK",defense:"DEF","special-attack":"SPA","special-defense":"SPD",speed:"SPE",special:"SPECIAL"};
 // Pokemon with real hyphens in their names (not API word separators)
 const HYPHEN_NAMES=new Set(['ho-oh','porygon-z','porygon2','jangmo-o','hakamo-o','kommo-o','chi-yu','chien-pao','ting-lu','wo-chien','type-null']);
 const DEFAULT_SUFFIXES=['-normal','-plant','-altered','-land','-incarnate','-ordinary','-aria','-shield','-average','-50','-standard','-midday','-solo','-red-striped','-star','-baile','-full-belly','-single-strike','-amped'];
@@ -1113,7 +1113,7 @@ function pokeName(apiName){
   }
   return cleaned.replace(/-/g,' ');
 }
-const SLC={hp:"#FF5555",attack:"#F8A060",defense:"#F8D030","special-attack":"#6890F0","special-defense":"#78C850",speed:"#F85888"};
+const SLC={hp:"#FF5555",attack:"#F8A060",defense:"#F8D030","special-attack":"#6890F0","special-defense":"#78C850",speed:"#F85888",special:"#6890F0"};
 const GR={"1":[1,151],"2":[152,251],"3":[252,386],"4":[387,493],"5":[494,649],"6":[650,721],"7":[722,809],"8":[810,905],"9":[906,1025]};
 
 // Version group -> gen number mapping
@@ -1323,6 +1323,22 @@ const PAST_STATS={
   // Changed in Gen 9 - these are the values used in Gens 1-8
   488:{9:{defense:120,"special-defense":130}},888:{9:{attack:130}},889:{9:{attack:130}},
 };
+
+/* Collapse the special pair into a single Special row for Generation I. Returns the array
+   unchanged for every other generation, so callers need no condition of their own. */
+function gen1StatRows(stats){
+  if(getDataGenNum()!==1)return stats;
+  const out=[];
+  for(const st of stats){
+    if(st.stat.name==='special-defense')continue;           // folded into the row below
+    if(st.stat.name==='special-attack'){
+      out.push({base_stat:st.base_stat,stat:{name:'special'}});
+      continue;
+    }
+    out.push(st);
+  }
+  return out;
+}
 
 function getStatsForGen(pokemon){
   const genNum=getDataGenNum();
@@ -2020,7 +2036,7 @@ function onSmartSearch(){
       h+=sectionHeader(cat.label);
       cat.items.forEach(item=>{
         if(item.type==='pokemon'){
-          const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+item.id+'.png';
+          const spr=spriteFor(item.id);
           h+='<div class="usearch-item" data-idx="'+idx+'" onclick="smartSelect('+idx+')" style="padding:8px 16px"><img src="'+spr+'" style="width:28px;height:28px" loading="lazy"><span style="text-transform:capitalize">'+pokeName(item.name)+'</span> <span style="font-size:11px;color:#6a6a7a;font-family:\'JetBrains Mono\',monospace">#'+item.id+'</span><span class="usearch-cat">Pok&#233;mon</span></div>';
         }else if(item.type==='ability'){
           const desc=item.desc?'<span style="font-size:11px;color:#6a6a7a;margin-left:6px">'+item.desc.slice(0,60)+'</span>':'';
@@ -2050,7 +2066,7 @@ function onSmartSearch(){
         const genItems=byGen[gen].slice(0,3);
         genItems.forEach(item=>{
           if(item.type==='pokemon'){
-            const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+item.id+'.png';
+            const spr=spriteFor(item.id);
             h+='<div class="usearch-item" data-idx="'+idx+'" onclick="switchGenAndSelect('+item.gen+','+idx+')" style="padding:8px 16px;opacity:0.5"><img src="'+spr+'" style="width:28px;height:28px;filter:grayscale(0.5)" loading="lazy"><span style="text-transform:capitalize">'+pokeName(item.name)+'</span> <span style="font-size:11px;color:#6a6a7a;font-family:\'JetBrains Mono\',monospace">#'+item.id+'</span><span class="usearch-cat" style="color:#F08030">Gen '+genRomans[item.gen]+'</span></div>';
           }else if(item.type==='ability'){
             const desc=item.desc?'<span style="font-size:11px;color:#6a6a7a;margin-left:6px">'+item.desc.slice(0,40)+'</span>':'';
@@ -2071,7 +2087,7 @@ function onSmartSearch(){
       h+='<div style="padding:8px 12px;font-size:10px;color:#F08030;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;border-top:2px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.015)">Not in Pok\u00e9mon Champions</div>';
       champNotItems.slice(0,6).forEach(item=>{
         if(item.type==='pokemon'){
-          const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+item.id+'.png';
+          const spr=spriteFor(item.id);
           h+='<div class="usearch-item" data-idx="'+idx+'" onclick="switchGenAndSelect(9,'+idx+')" style="padding:8px 16px;opacity:0.6"><img src="'+spr+'" style="width:28px;height:28px;filter:grayscale(0.5)" loading="lazy"><span style="text-transform:capitalize">'+pokeName(item.name)+'</span> <span style="font-size:11px;color:#6a6a7a;font-family:\'JetBrains Mono\',monospace">#'+item.id+'</span><span class="usearch-cat" style="color:#F08030">Gen IX</span></div>';
         }else if(item.type==='move'){
           h+='<div class="usearch-item" data-idx="'+idx+'" onclick="switchGenAndSelect(9,'+idx+')" style="text-transform:capitalize;padding:8px 16px;opacity:0.6">'+item.name.replace(/-/g,' ')+'<span class="usearch-cat" style="color:#F08030">Gen IX</span></div>';
@@ -2242,7 +2258,7 @@ function cardSortValue(id){
 
 function cardHTML(e){
   const d=dc[e.id];
-  if(d){const _genNum=getDataGenNum(),_filteredTypes=filterTypesForGen(d.types.map(t=>t.type.name),_genNum,d.id),mt=_filteredTypes[0]||'normal',c=TC[mt],img=d.sprites?.other?.['official-artwork']?.front_default||d.sprites?.front_default||'',types=_filteredTypes.map(t=>typeBadge(t,true)).join('');
+  if(d){const _genNum=getDataGenNum(),_filteredTypes=filterTypesForGen(d.types.map(t=>t.type.name),_genNum,d.id),mt=_filteredTypes[0]||'normal',c=TC[mt],img=periodArt(d),types=_filteredTypes.map(t=>typeBadge(t,true)).join('');
   return '<div class="card" style="background:linear-gradient(145deg,'+c+'18,'+c+'08);border:1px solid '+c+'30" onmouseenter="this.style.boxShadow=\'0 12px 32px '+c+'25\';this.style.borderColor=\''+c+'60\'" onmouseleave="this.style.boxShadow=\'\';this.style.borderColor=\''+c+'30\'" onclick="showDetail('+e.id+')"><div class="card-id">#'+String(e.id).padStart(4,'0')+'</div>'+cardSortValue(e.id)+'<div class="card-img"><img src="'+img+'" alt="'+e.name+'" loading="lazy"></div><div class="card-name">'+pokeName(e.name)+'</div><div class="card-types">'+types+'</div></div>'}
   return '<div class="card-placeholder" onclick="showDetail('+e.id+')"><div style="position:absolute;top:8px;right:12px;font-size:11px;color:#6a6a7a;font-weight:700;font-family:\'JetBrains Mono\',monospace">#'+String(e.id).padStart(4,'0')+'</div><div style="width:96px;height:96px;margin:0 auto 8px;background:rgba(255,255,255,0.03);border-radius:12px"></div><div class="card-name">'+pokeName(e.name)+'</div></div>'
 }
@@ -2480,7 +2496,7 @@ function evoStageName(apiName){
 function renderEvoStage(node,currentId){
   const isCurrent=node.id===currentId;
   const cached=dc[node.id];
-  const sprite=(cached?.sprites?.other?.['official-artwork']?.front_default)||'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+node.id+'.png';
+  const sprite=(cached?.sprites?.other?.['official-artwork']?.front_default)||spriteFor(node.id);
   return '<div class="evo-stage'+(isCurrent?' current':'')+'" onclick="showDetail('+node.id+')">'+
     '<img src="'+sprite+'" alt="'+node.name+'" loading="lazy">'+
     '<div class="evo-name">'+evoStageName(node.name)+'</div></div>';
@@ -3044,9 +3060,10 @@ async function renderDetail(p){
   document.getElementById('list-view').style.display='none';
   document.getElementById('detail-view').style.display='';
   renderPins();
-  const mt=p.types[0]?.type?.name||'normal',c=TC[mt],img=p.sprites?.other?.['official-artwork']?.front_default||p.sprites?.front_default||'';
+  const mt=p.types[0]?.type?.name||'normal',c=TC[mt],img=periodArt(p);
   const stats=getStatsForGen(p);
-  const bst=stats.reduce((s,x)=>s+x.base_stat,0);
+  // Gen I base stat total counts Special once, because there was only one of it.
+  const bst=gen1StatRows(stats).reduce((s,x)=>s+x.base_stat,0);
   const genNum=getDataGenNum();
   const genLabel=getGenLabel();
 
@@ -3100,7 +3117,10 @@ async function renderDetail(p){
       abs='<span style="color:#5a5a6a;font-size:12px;font-style:italic">No abilities in this generation</span>';
     }
   }
-  const bars=stats.map(s=>{const l=SL[s.stat.name]||s.stat.name,v=s.base_stat,pct=Math.min(v/255*100,100),b=statBand(v);return '<div class="stat-row"><span class="stat-label">'+l+'</span><span class="stat-value">'+v+'</span><div class="stat-bar-bg" title="'+v+' &#8212; '+b.label+'"><div class="stat-bar-fill" style="width:'+pct+'%;background:'+b.color+'"></div></div></div>'}).join('');
+  /* In Generation I the stat line has five rows, not six: one Special. getStatsForGen sets both
+     halves to the same value so every consumer works unchanged, so the LIST is where the pair is
+     collapsed - showing "SPA 85 / SPD 85" would be inventing a distinction the game did not have. */
+  const bars=gen1StatRows(stats).map(s=>{const l=SL[s.stat.name]||s.stat.name,v=s.base_stat,pct=Math.min(v/255*100,100),b=statBand(v);return '<div class="stat-row"><span class="stat-label">'+l+'</span><span class="stat-value">'+v+'</span><div class="stat-bar-bg" title="'+v+' &#8212; '+b.label+'"><div class="stat-bar-fill" style="width:'+pct+'%;background:'+b.color+'"></div></div></div>'}).join('');
 
   // Defensive matchups using the gen-appropriate chart
   const chartData=getChartForGen(genNum);
@@ -4149,7 +4169,7 @@ async function renderDualMons(t1,t2,token){
   box.innerHTML=head+'<div class="dl-mon-grid">'+rows.map(function(id){
     const p=master.find(function(x){return x.id===id});
     return '<div class="dl-mon" onclick="switchTab(\'pokedex\');showDetail('+id+')">'
-      +'<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png" loading="lazy" alt="">'
+      +'<img src="'+spriteFor(id)+'" loading="lazy" alt="">'
       +capName(p.name)+'</div>';
   }).join('')+'</div>';
 }
@@ -4608,7 +4628,7 @@ async function renderEVSpots(){
     h+='</div>';
     h+='<div style="display:flex;flex-wrap:wrap;gap:4px">';
     mons.forEach(p=>{
-      const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+p.id+'.png';
+      const spr=spriteFor(p.id);
       const locList=p.locations.map(l=>capName(cleanLocName(l))).join(', ');
       const locTip=locList?'Found: '+locList:'No location data';
       h+='<div style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px 3px 3px;border-radius:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);cursor:pointer;font-size:12px;color:#c8c8d8;text-transform:capitalize" onclick="switchTab(\'pokedex\');showDetail('+p.id+')" title="'+locTip+'">';
@@ -6190,7 +6210,7 @@ function renderLocSubtab(idx){
       h+='<div class="loc-method-label">'+s.label+'</div>';
       h+='<table class="loc-enc-table"><thead><tr><th>Pok&#233;mon</th><th>Level</th><th>Chance</th></tr></thead><tbody>';
       s.rows.forEach(e=>{
-        const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+e.id+'.png';
+        const spr=spriteFor(e.id);
         const lvl=e.minLevel===e.maxLevel?'Lv '+e.minLevel:'Lv '+e.minLevel+'&#x2013;'+e.maxLevel;
         const cc=e.chance>=20?'loc-chance-high':e.chance>=5?'loc-chance-med':'loc-chance-low';
         h+='<tr><td><div class="loc-enc-pokemon" onclick="switchTab(\'pokedex\');showDetail('+e.id+')"><img src="'+spr+'" loading="lazy">'+capName(e.pokemon)+'</div></td>';
@@ -6513,7 +6533,7 @@ function onUSearch(){
   limited.forEach((item,i)=>{
     const esc=s=>s.replace(/'/g,'&#39;').replace(/"/g,'&quot;');
     if(item.type==='pokemon'){
-      const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+item.id+'.png';
+      const spr=spriteFor(item.id);
       const alreadyCompare=compareSearchMode&&compareSlots.some(s=>s.id===item.id);
       const alreadyTeam=teamSearchMode&&teamSlots.some(s=>s&&s.id===item.id);
       const already=alreadyCompare||alreadyTeam;
@@ -6726,7 +6746,7 @@ async function showAbilityPage(abilityName){
       const name=p.pokemon.name;
       const id=idFromUrl(p.pokemon.url);
       // Forms have their own sprite under their form id, so this needs no special case.
-      const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png';
+      const spr=spriteFor(id);
       const hidden=(p.is_hidden&&genNum>=5)?'<span class="hidden-pill">Hidden</span>':'';
       const form=id>10000?'<span class="ap-form-pill">'+(getFormGenRange(name)?getFormGenRange(name).label:'Form')+'</span>':'';
       h+='<div class="ap-mon" onclick="switchTab(\'pokedex\');showDetail('+id+')">';
@@ -6922,7 +6942,7 @@ function onCompareSearch(){
   const matches=master.filter(p=>p.id<=genMax&&(p.name.includes(q)||(''+p.id)===q)).slice(0,8);
   let h='';
   matches.forEach(p=>{
-    const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+p.id+'.png';
+    const spr=spriteFor(p.id);
     const already=compareSlots.some(s=>s.id===p.id);
     h+='<div class="usearch-item" style="'+(already?'opacity:0.4;pointer-events:none':'')+'" onclick="addToCompare('+p.id+')"><img src="'+spr+'" loading="lazy" style="width:28px;height:28px">'+capName(p.name)+' <span style="font-size:11px;color:#6a6a7a">#'+p.id+'</span>'+(already?'<span style="font-size:10px;color:#6a6a7a;margin-left:auto">Added</span>':'')+'</div>';
   });
@@ -6986,7 +7006,7 @@ function renderCompare(){
   compareSlots.forEach(s=>{
     const tc=TC[s.types[0]]||'#888';
     sh+='<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid '+tc+'40;background:'+tc+'15;cursor:default">';
-    sh+='<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+s.id+'.png" style="width:28px;height:28px">';
+    sh+='<img src="'+spriteFor(s.id)+'" style="width:28px;height:28px">';
     sh+='<span style="font-weight:600;text-transform:capitalize">'+formDisplayName(s.name)+'</span>';
     sh+='<span onclick="removeCompareSlot('+s.id+')" style="cursor:pointer;color:#8a8a9a;font-size:14px;margin-left:4px">&#x2715;</span>';
     sh+='</div>';
@@ -7112,7 +7132,7 @@ function renderTeamBuilder(){
   for(let i=0;i<6;i++){
     const p=teamSlots[i];
     if(p){
-      const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+p.id+'.png';
+      const spr=spriteFor(p.id);
       const tc=TC[p.types?.[0]]||'#888';
       h+='<div class="team-slot filled" onclick="teamSlotClick('+i+')" style="border-color:'+tc+'40;text-align:left;align-items:stretch;padding:14px 16px">';
       h+='<button class="team-remove" onclick="event.stopPropagation();removeTeamSlot('+i+')">&#x2715;</button>';
@@ -7627,7 +7647,7 @@ async function openTeamEditModal(idx){
   // Get pokemon moves for the current gen
   const allMoves=d.moves.map(m=>m.move.name).sort();
   
-  const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+p.id+'.png';
+  const spr=spriteFor(p.id);
   const tc=TC[p.types?.[0]]||'#888';
   
   // Natures list
@@ -8416,6 +8436,49 @@ function itemSpriteHtml(name,size){
   return '<img src="'+url+'" style="width:'+size+'px;height:'+size+'px;image-rendering:pixelated;flex-shrink:0" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" loading="lazy">'+fb;
 }
 // Keep legacy for any remaining references
+/* Period-accurate sprites. Selecting Generation I and being shown the modern artwork is the same
+   class of wrongness as showing modern base stats there - the app is claiming to represent a
+   generation and then handing you another one's picture.
+
+   Only Generations I-VII get period sprites, and that is a deliberate cut:
+     - VII and VIII also publish an `icons/` set, which is 68x56 menu icons rather than box sprites.
+       Those paths are never used.
+     - VIII (BDSP) and IX (Scarlet/Violet) are large 3D renders, 33-42 KB against roughly 1-9 KB for
+       the pixel sprites of I-VII. Mixing them in one grid looks broken. For IX the default sprite
+       already IS the Scarlet/Violet one, so nothing is lost by falling through.
+   Champions falls through to the default for the same reason.
+
+   A sprite that does not exist for a given game 404s; the listener below quietly falls back to the
+   modern sprite rather than leaving a broken image. */
+const SPRITE_ROOT='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+const GEN_SPRITE_DIR={1:'generation-i/red-blue',2:'generation-ii/crystal',3:'generation-iii/emerald',
+  4:'generation-iv/platinum',5:'generation-v/black-white',6:'generation-vi/x-y',
+  7:'generation-vii/ultra-sun-ultra-moon'};
+/* The dex card and the detail panel prefer PokeAPI's official artwork, which is modern art with no
+   per-generation variant. In a generation that has its own sprites, the period sprite IS the
+   accurate picture; outside those, the artwork is still the best image available. */
+function periodArt(p){
+  if(!p)return '';
+  const g=isChampionsMode?9:getDataGenNum();
+  if(GEN_SPRITE_DIR[g])return spriteFor(p.id,g);
+  return (p.sprites&&p.sprites.other&&p.sprites.other['official-artwork']&&p.sprites.other['official-artwork'].front_default)
+    ||(p.sprites&&p.sprites.front_default)||spriteFor(p.id,g);
+}
+function spriteFor(id,genNum){
+  const g=(genNum===undefined)?(isChampionsMode?9:getDataGenNum()):genNum;
+  const dir=GEN_SPRITE_DIR[g];
+  return dir?SPRITE_ROOT+'versions/'+dir+'/'+id+'.png':SPRITE_ROOT+id+'.png';
+}
+/* One capture-phase listener instead of an onerror on every img: a period sprite that does not
+   exist falls back to the modern one, once, and never loops. */
+document.addEventListener('error',function(e){
+  const img=e.target;
+  if(!img||img.tagName!=='IMG'||img.dataset.spriteFallback)return;
+  if(img.src.indexOf('/versions/')<0)return;
+  img.dataset.spriteFallback='1';
+  img.src=img.src.replace(/\/versions\/[^/]+\/[^/]+\//,'/');
+},true);
+
 function itemSpriteUrl(name){return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/'+name+'.png'}
 
 
@@ -8618,7 +8681,7 @@ function onTeamSearch(){
   let h='';
   if(!matches.length)h='<div class="usearch-item" style="opacity:.6;cursor:default">Nothing matches in this generation.</div>';
   matches.forEach(p=>{
-    const spr='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+p.id+'.png';
+    const spr=spriteFor(p.id);
     // A form's id (10299) is not a dex number, so showing it as "#10299" would be a wrong fact.
     // The era pill carries the useful information instead.
     const range=p.id>10000?getFormGenRange(p.name):null;
@@ -8720,7 +8783,7 @@ function renderTeamAnalysis(){
   const defAt=(p,atk)=>{let m=1;filterTypesForGen(p.types,genNum,p.id).forEach(d=>{m*=getTypeEffect(atk,d,genNum)});return m};
 
   let h='<table class="team-matrix"><thead><tr><th class="tm-corner">Takes</th>';
-  filled.forEach(p=>{h+='<th class="tm-mon" title="'+pokeName(p.name)+'"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+p.id+'.png" alt=""><span>'+pokeName(p.name)+'</span></th>'});
+  filled.forEach(p=>{h+='<th class="tm-mon" title="'+pokeName(p.name)+'"><img src="'+spriteFor(p.id)+'" alt=""><span>'+pokeName(p.name)+'</span></th>'});
   h+='<th class="tm-sum">Weak</th></tr></thead><tbody>';
   const defRows=allTypes.map(atk=>{
     const mults=filled.map(p=>defAt(p,atk));
@@ -8814,7 +8877,7 @@ async function loadOffensiveCoverage(filled,allTypes,genNum){
   let ch='<div style="grid-column:1/-1;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">';
   ch+='<div class="tm-heading">Offensive coverage</div>';
   ch+='<table class="team-matrix"><thead><tr><th class="tm-corner">Hits</th>';
-  filled.forEach(p=>{ch+='<th class="tm-mon" title="'+pokeName(p.name)+'"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+p.id+'.png" alt=""><span>'+pokeName(p.name)+'</span></th>'});
+  filled.forEach(p=>{ch+='<th class="tm-mon" title="'+pokeName(p.name)+'"><img src="'+spriteFor(p.id)+'" alt=""><span>'+pokeName(p.name)+'</span></th>'});
   ch+='<th class="tm-sum">Cover</th></tr></thead><tbody>';
   const offRows=allTypes.map(t=>{
     const per=filled.map(p=>seHits[t].filter(h2=>h2.pokemon===p.name).map(h2=>capName(h2.move.replace(/-/g,' '))));
@@ -8897,7 +8960,7 @@ async function calcPickPoke(side){
   if(!dc[m.id]){
     try{const r=await fetch('https://pokeapi.co/api/v2/pokemon/'+m.id);if(r.ok)dc[m.id]=await r.json()}catch(e){}
   }
-  img.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+m.id+'.png';
+  img.src=spriteFor(m.id);
   img.style.display='';
   if(dc[m.id]){
     const ab=(dc[m.id].abilities||[])[0]?.ability?.name||'';
@@ -9056,7 +9119,7 @@ function calcAttachAC(id,provider,onPick){
   });
 }
 function calcInitAC(){
-  const sprite=id=>'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png';
+  const sprite=id=>spriteFor(id);
   const pokeProv=q=>{
     if(!q)return[];
     const qs=q.replace(/ /g,'-');

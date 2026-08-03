@@ -108,5 +108,32 @@ GEN1_ITEMS.forEach(i => check(ITEMS[i] === 1,
 const outOfRange = Object.entries(ITEMS).filter(([, g]) => !(g >= 1 && g <= 9));
 check(outOfRange.length === 0, 'every item generation is between I and IX', outOfRange);
 
+/* ---- period-accurate sprites -------------------------------------------------------------
+   Selecting Generation I and being handed the modern artwork is the same class of wrongness as
+   showing modern base stats there. Generations I–VII get their own sprites; VIII and IX do not,
+   deliberately — both are large 3D renders that look broken beside pixel sprites, and for IX the
+   default sprite already IS the Scarlet/Violet one, so nothing is lost. */
+const dirs = src.match(/^const GEN_SPRITE_DIR=\{([\s\S]*?)\};$/m);
+check(!!dirs, 'GEN_SPRITE_DIR is present');
+if (dirs) {
+  const map = eval('({' + dirs[1] + '})');
+  check(Object.keys(map).map(Number).sort((a, b) => a - b).join(',') === '1,2,3,4,5,6,7',
+    'exactly Generations I–VII have period sprites', Object.keys(map));
+  // The icons/ sets are 68x56 menu icons, not box sprites. Using one would look like a bug.
+  const icons = Object.entries(map).filter(([, v]) => /icons/.test(v));
+  check(icons.length === 0, 'no generation points at an icons/ directory', icons);
+  check(map[7] === 'generation-vii/ultra-sun-ultra-moon',
+    'Gen VII uses the real sprites rather than its icons set', map[7]);
+  check(!(8 in map) && !(9 in map),
+    'Gen VIII and IX fall through to the default sprite on purpose');
+}
+check(/function spriteFor\(id,genNum\)\{/.test(src), 'spriteFor builds the per-generation URL');
+check(/function periodArt\(p\)\{/.test(src),
+  'periodArt overrides the official artwork where a period sprite exists');
+check(/img\.dataset\.spriteFallback/.test(src),
+  'a missing period sprite falls back to the modern one rather than breaking');
+check(/indexOf\('\/versions\/'\)</.test(src),
+  'and the fallback only fires for a versioned sprite, so it cannot loop');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
