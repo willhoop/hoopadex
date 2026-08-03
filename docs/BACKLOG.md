@@ -178,3 +178,98 @@ reintroduce fuzzy matching here — a wrong Pokémon in the team is worse than a
 **Still open.** Export in the same format (the parser exists; the emitter does not), and the calc
 does not yet apply the imported EVs, IVs, level or nature — it loads species, moves, item and
 ability, and uses the attacker fields already on screen for the rest.
+
+
+## 20. Megas, regionals and alt forms in the ability search — `open`
+
+*Added 2026-08-03.* Asked for directly: Mega Dragalge has Regenerator, base Dragalge does not, and
+the ability page does not list it.
+
+**Two separate problems. Do not conflate them.**
+
+**(a) Plumbing — solvable now.** `showAbilityPage()` filters its species list with
+`if(id<=0||id>genMax)return false`, and `getGenMaxId()` never exceeds 1025. Every form — megas,
+regionals, Gigantamax, alt forms — lives above id 10000 in PokéAPI, so they are all discarded before
+anything else runs. Fixing the filter needs: form-aware generation availability (`getFormGenRange()`
+already exists and returns `{available:g=>…, label}`), a Champions-roster decision for forms (does
+`CHAMPIONS_IDS` cover a form, or its base species?), and a check that `showDetail(id)` behaves for
+ids above 10000.
+
+**(b) Data — NOT solvable from a published artefact.** PokéAPI has no Z-A megas, so their abilities
+are hand-maintained in `CHAMP_MEGA_ABILITIES` (19 entries) and `CHAMP_NEW_ABILITIES` (4). `MEGAS_ZA`
+declares **41** megas, so **18 have no ability recorded at all**:
+
+> raichu, scolipede, scrafty, eelektross, pyroar, malamar, barbaracle, **dragalge**, zygarde,
+> golisopod, magearna, zeraora, falinks, tatsugiri, baxcalibur, staraptor, heatran, darkrai
+
+Mega Dragalge's Regenerator is in that gap. **No amount of wiring will surface it** — the fact is not
+in the app. This needs Will to supply the 18, or a source to derive them from. Counted from source
+on 2026-08-03, not by hand; re-run the count before trusting it.
+
+**This is the exact hazard the project's core principle names.** A hand-maintained table is wrong the
+moment the world changes, and nothing surfaces it — 18 missing megas render as an ability that
+simply has fewer Pokémon, which looks identical to a correct answer.
+
+## 21. Moves tab type filter — `open`
+
+*Asked for three times.* Same pattern as `filterPriority()`: filter in the DOM on each keystroke
+rather than re-rendering, and hide a group once nothing in it survives.
+
+**Do this in the same pass as item 0** — both touch the rows emitted by `renderMovesSection()`, and
+item 0 requires adding data attributes to exactly those rows.
+
+## 22. Bulk calculator — when to invest Def/SpD over HP — `open`
+
+Maximise HP × Def. Spend each point on whichever of the two current stats is lower.
+
+**VERIFY AGAINST BRUTE FORCE BEFORE SHIPPING.** Will's note: this was not verified the first time.
+The greedy rule is intuitive and not obviously correct at the boundaries — a full search over the
+66-point budget is cheap and settles it. Ship the brute-force check as a test, not as a one-off.
+
+## 23. Stat formula article — `open`
+
+Champions, level 50, fixed 31 IVs: `stat = base + 20`, **`HP = base + 75`**, then +1 per Stat Point,
+then the nature multiplier.
+
+**HP IS DIFFERENT — say so explicitly.** The article exists to stop someone applying the non-HP
+formula to HP. The Speed Tiers table and the damage calculator already use this model, so the
+article must be derived from the same constants rather than restating them by hand.
+
+## 24. Damage calculator: team selector and paste both sides — `open`
+
+Pick attacker and defender from the built team; paste a full set for either side; auto-populate all
+four moves; report Showdown-style damage ranges.
+
+Overlaps the "still open" half of item 19 — the calc does not yet apply imported EVs, IVs, level or
+nature.
+
+## 25. Megas, regionals and alt forms in Team Builder and calc pickers — `open`
+
+Same underlying gap as item 20(a), different surfaces. Worth doing together; the form-availability
+and Champions-legality questions only want answering once.
+
+## 26. Move-class articles; item changes and a patch-notes link — `open`
+
+Articles on the move classes, plus item changes surfaced in the regulation diff with a link to the
+patch notes.
+
+## 27. Team editor: clicking the backdrop silently saves — `open`
+
+*Found 2026-08-03 while fixing the stat-spread bug (3.9).* The overlay is
+`onclick="if(event.target===this)saveTeamEdit(idx)"` — there is no cancel. Clicking outside the
+dialog commits whatever state the fields are in, and there is no undo.
+
+That is what turned the 3.9 read bug from an annoyance into data loss: you did not have to press
+Done to lose a spread. The write path is correct now, but a modal whose only dismissal is "save"
+is still the wrong default for a destructive edit. Consider a real Cancel, or making backdrop
+dismissal discard.
+
+## 28. Hidden-ability pill needs a solid colour — `done` (3.8)
+
+*Asked for three times; two earlier attempts rejected.* `.ability-tag.hidden` and the ability-page
+"Hidden" badge were both `background:transparent` in both themes, so the only thing marking a hidden
+ability was a faint purple border. Both are now solid fills, verified opaque in both themes by
+computed style.
+
+**Not visually confirmed by Will at time of writing.** Screenshots did not composite in that
+session, so the colour choice itself is unverified by eye — reopen if the third attempt is wrong too.
