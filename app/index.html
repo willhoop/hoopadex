@@ -220,6 +220,8 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .team-slot:hover .team-remove{opacity:1}
 .team-slot .team-dex{position:absolute;top:6px;right:32px;height:20px;padding:0 8px;border-radius:10px;background:rgba(104,144,240,0.15);border:1px solid rgba(104,144,240,0.3);color:#6890F0;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s}
 .team-slot:hover .team-dex{opacity:1}
+.team-slot .team-calc{position:absolute;top:6px;right:70px;height:20px;padding:0 8px;border-radius:10px;background:rgba(120,200,80,0.15);border:1px solid rgba(120,200,80,0.3);color:#78C850;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s}
+.team-slot:hover .team-calc{opacity:1}
 .team-ac-dropdown{position:absolute;top:100%;left:0;right:0;z-index:1001;max-height:220px;overflow-y:auto;background:var(--bg3);border:1px solid var(--border3);border-radius:10px;margin-top:4px;box-shadow:0 12px 40px rgba(0,0,0,0.5);scrollbar-width:thin}
 .team-ac-item{display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:13px;color:var(--text);cursor:pointer;transition:background 0.1s}
 .team-ac-item:hover,.team-ac-item.active{background:var(--hover2)}
@@ -429,6 +431,19 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 /* Same validated diverging pair as the type chart. The arrow carries the direction, so meaning
    survives greyscale, printing and colour vision deficiency - colour only reinforces it. */
 .natures-table .stat-up{color:var(--eff-up);font-weight:700}
+/* Four-move comparison table. Bars are the same width scale as the single-move readout so the
+   two views are comparable; the winning row is flagged in text, not colour alone. */
+.calc-moves-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.calc-moves-table th{text-align:left;padding:5px 8px;font-size:10px;font-weight:700;color:var(--text5);letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--border2)}
+.calc-moves-table td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.calc-moves-table tr.calc-best{background:color-mix(in srgb,var(--eff-up) 10%,transparent)}
+.calc-moves-table .cm-name{font-weight:700;color:var(--text);text-transform:capitalize;white-space:nowrap}
+.calc-moves-table .cm-flag{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--eff-up);border:1px solid color-mix(in srgb,var(--eff-up) 45%,transparent);border-radius:99px;padding:1px 6px;margin-left:7px}
+.calc-moves-table .cm-num{font-family:'JetBrains Mono',monospace;text-align:right;white-space:nowrap;color:var(--text2)}
+.calc-moves-table .cm-bar{height:6px;border-radius:3px;background:var(--border2);overflow:hidden;min-width:90px}
+.calc-moves-table .cm-bar>div{height:100%;border-radius:3px;background:var(--eff-up)}
+.calc-moves-table .cm-ko{display:block;font-size:10px;color:var(--text4);margin-top:3px}
+#calc-set-banner{font-size:12px;color:var(--text2);background:rgba(104,144,240,0.08);border:1px solid rgba(104,144,240,0.22);border-radius:8px;padding:7px 10px;margin-bottom:10px}
 .natures-table .stat-down{color:var(--eff-dn);font-weight:700}
 .natures-table .dir{font-size:11px;opacity:.9;margin-right:3px}
 /* Zebra rows: the eye tracks across three columns without drifting a line. */
@@ -519,6 +534,7 @@ button,select,input{touch-action:manipulation}
   .team-slot img{width:52px;height:52px}
   .team-slot .team-remove{opacity:1}
   .team-slot .team-dex{opacity:1}
+  .team-slot .team-calc{opacity:1}
   .team-coverage-grid{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
   .usearch-overlay{padding:6vh 10px 0}
   .usearch-input{font-size:16px}
@@ -539,6 +555,7 @@ button,select,input{touch-action:manipulation}
   .card:hover{transform:none}
   .team-slot .team-remove{opacity:1}
   .team-slot .team-dex{opacity:1}
+  .team-slot .team-calc{opacity:1}
   .pinned-tab-close{width:22px;height:22px}
 }
 </style>
@@ -687,6 +704,7 @@ button,select,input{touch-action:manipulation}
     <div class="calc-row"><label><input type="checkbox" id="calc-screen" onchange="calcRun()"> Reflect / Light Screen</label></div>
   </div>
 </div>
+<div id="calc-set-banner" style="display:none;margin-top:14px"></div>
 <div id="calc-result" class="calc-panel" style="margin-top:14px;display:none"></div>
 </div>
 <div id="team-tab" style="display:none">
@@ -5809,6 +5827,7 @@ function renderTeamBuilder(){
       h+='<button class="team-remove" onclick="event.stopPropagation();removeTeamSlot('+i+')">&#x2715;</button>';
       // The slot body opens the set editor, so the trip to the full dex entry needs its own control.
       h+='<button class="team-dex" title="Open '+p.name.replace(/-/g,' ')+' in the Pokédex" onclick="event.stopPropagation();openTeamMemberInDex('+p.id+')">Dex</button>';
+      h+='<button class="team-calc" title="Damage calc with this set's moves" onclick="event.stopPropagation();calcLoadFromTeamSlot('+i+')">Calc</button>';
       
       // Top row: sprite + name/types/set info
       h+='<div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">';
@@ -7345,6 +7364,73 @@ function calcInitAC(){
     document.getElementById(id).addEventListener('change',()=>calcRun());
   });
 }
+// Run every move on the attacker's set against the current defender. "Which of my four moves does
+// the most to this thing" is the question people actually bring to a calculator; one move at a time
+// makes them ask it four times and hold the answers in their head.
+let calcMoveSet=null;   // string[] - the moves currently loaded from a team slot or a paste
+async function calcRunAllMoves(){
+  const res=document.getElementById('calc-result');
+  if(!res||!calcMoveSet||!calcMoveSet.length)return calcRun();
+  if(typeof SmogonCalc==='undefined')return calcRun();
+  const rows=[];
+  for(const mv of calcMoveSet){
+    if(!mv)continue;
+    try{const r=await calcRunSmogon(mv,true); if(r)rows.push(r)}
+    catch(e){rows.push({move:mv,skipped:'could not be calculated'})}
+  }
+  if(!rows.length)return calcRun();
+  // Best first - that is the ordering the question implies.
+  const scored=rows.filter(r=>!r.skipped), skipped=rows.filter(r=>r.skipped);
+  scored.sort((x,y)=>y.maxP-x.maxP);
+  const d=calcSel.def?dc[calcSel.def]:null;
+  let h='<div class="calc-title" style="color:#78C850">All moves vs '+(d?pokeName(d.name):'target')+'</div>';
+  h+='<table class="calc-moves-table"><thead><tr><th>Move</th><th>Type</th><th style="text-align:right">Damage</th><th style="text-align:right">% of HP</th><th>Result</th></tr></thead><tbody>';
+  scored.forEach((r,i)=>{
+    const pct=r.immune?0:Math.min(100,r.maxP);
+    const best=i===0&&!r.immune;
+    h+='<tr'+(best?' class="calc-best"':'')+'>'
+      +'<td class="cm-name">'+r.move+(best?'<span class="cm-flag">best</span>':'')+'</td>'
+      +'<td><span class="type-badge small" style="background:'+(TC[String(r.type).toLowerCase()]||'#888')+'">'+r.type+'</span></td>'
+      +'<td class="cm-num">'+(r.immune?'—':r.min+'–'+r.max)+'</td>'
+      +'<td class="cm-num">'+(r.immune?'—':r.minP.toFixed(1)+'–'+r.maxP.toFixed(1)+'%')+'</td>'
+      +'<td><div class="cm-bar"><div style="width:'+pct.toFixed(1)+'%"></div></div>'
+      +'<span class="cm-ko">'+(r.immune?'immune':(r.ko||''))+'</span></td></tr>';
+  });
+  h+='</tbody></table>';
+  if(skipped.length)h+='<div style="font-size:11px;color:var(--text4);margin-top:8px">Not shown: '+skipped.map(r=>r.move+' ('+r.skipped+')').join(', ')+'</div>';
+  h+='<div style="font-size:11px;color:var(--text4);margin-top:6px">Damage uses the attacker fields above. <a href="#" onclick="event.preventDefault();calcClearMoveSet()" style="color:#6890F0">Back to a single move</a></div>';
+  res.style.display='';
+  res.innerHTML=h;
+}
+function calcClearMoveSet(){
+  calcMoveSet=null;
+  const b=document.getElementById('calc-set-banner');
+  if(b)b.style.display='none';
+  calcRun();
+}
+// Load a Team Builder slot into the calculator: species, the four moves, item, ability and nature.
+function calcLoadFromTeamSlot(idx){
+  const p=teamSlots[idx];
+  if(!p)return;
+  switchTab('calc');
+  calcSel.atk=p.id;
+  const atkInput=document.getElementById('calc-atk');
+  if(atkInput)atkInput.value=pokeName(p.name);
+  const set=p.smogonSet||{};
+  calcMoveSet=(set.moves||[]).filter(Boolean);
+  const put=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v};
+  put('calc-atk-item',set.item);
+  put('calc-atk-abil',set.ability);
+  const banner=document.getElementById('calc-set-banner');
+  if(banner){
+    banner.style.display='';
+    banner.innerHTML=calcMoveSet.length
+      ? '<b style="text-transform:capitalize">'+pokeName(p.name)+'</b> loaded from your team · '+calcMoveSet.length+' move'+(calcMoveSet.length===1?'':'s')+(set.setName?' · '+set.setName:'')
+      : '<b style="text-transform:capitalize">'+pokeName(p.name)+'</b> loaded from your team — this slot has no moves set, so pick one below.';
+  }
+  if(calcMoveSet.length)calcRunAllMoves(); else calcRun();
+}
+
 async function calcRun(){
   const res=document.getElementById('calc-result');
   if(!res)return;
@@ -7353,23 +7439,26 @@ async function calcRun(){
   }
   return calcRunLocal();
 }
-async function calcRunSmogon(){
+// moveOverride + collect let the same setup serve the four-move view: with collect set, this
+// returns a result row instead of writing to the DOM, so there is one implementation of the
+// calculation and no way for the two views to drift apart.
+async function calcRunSmogon(moveOverride,collect){
   calcEnsureMaps();
   const res=document.getElementById('calc-result');
   const a=calcSel.atk?dc[calcSel.atk]:null,d=calcSel.def?dc[calcSel.def]:null;
-  const mvRaw=normalizeMoveName(document.getElementById('calc-move').value.toLowerCase().trim().replace(/ /g,'-'));
-  const info=document.getElementById('calc-move-info');
-  if(!a||!d||!mvRaw){res.style.display='none';return}
-  if(isChampionsMode&&!champHasMove(mvRaw)){info.innerHTML='<span style="color:#F85888">Not useable in Pok\u00e9mon Champions</span>';res.style.display='none';return}
+  const mvRaw=normalizeMoveName(String(moveOverride||document.getElementById('calc-move').value).toLowerCase().trim().replace(/ /g,'-'));
+  const info=collect?{innerHTML:''}:document.getElementById('calc-move-info');
+  if(!a||!d||!mvRaw){if(!collect)res.style.display='none';return null}
+  if(isChampionsMode&&!champHasMove(mvRaw)){info.innerHTML='<span style="color:#F85888">Not useable in Pokémon Champions</span>';if(!collect)res.style.display='none';return collect?{move:mvRaw,skipped:'not legal in Champions'}:null}
   const M=SmogonCalc,gen=CalcMaps.gen;
   const spName=CalcMaps.species[calcFlat(a.name)],dName=CalcMaps.species[calcFlat(d.name)];
   const mvName=CalcMaps.moves[calcFlat(mvRaw)];
-  if(!spName||!dName||!mvName)throw new Error('name lookup failed');
+  if(!spName||!dName||!mvName){if(collect)return{move:mvRaw,skipped:'unknown move'};throw new Error('name lookup failed')}
   const lv=Math.max(1,Math.min(100,parseInt(document.getElementById('calc-level').value)||50));
   // move meta for category-aware natures/EVs
   const probe=new M.Move(gen,mvName);
   const isPhys=probe.category==='Physical';
-  if(probe.category==='Status'){info.innerHTML=mvName+' \u2014 status move';res.style.display='none';return}
+  if(probe.category==='Status'){info.innerHTML=mvName+' — status move';if(!collect)res.style.display='none';return collect?{move:mvName,skipped:'status move'}:null}
   info.innerHTML='<span style="color:'+(TC[probe.type.toLowerCase()]||'#888')+';font-weight:800;text-transform:uppercase">'+probe.type+'</span> \u00b7 '+probe.category.toLowerCase()+' \u00b7 '+(probe.bp||'\u2014')+' BP';
   const aEv=parseInt(document.getElementById('calc-atk-ev').value)||0;
   const aNatV=document.getElementById('calc-atk-nat').value;
@@ -7434,6 +7523,7 @@ async function calcRunSmogon(){
   const mn=rolls[0],mx=rolls[rolls.length-1];
   const hp=defP.maxHP();
   if(mx===0){
+    if(collect)return{move:mvName,type:probe.type,bp:probe.bp,immune:true,min:0,max:0,minP:0,maxP:0,hp:hp};
     res.style.display='';
     res.innerHTML='<div class="calc-title" style="color:#78C850">Result</div>'
       +'<div style="font-size:14px;font-weight:700;color:var(--text);text-transform:capitalize">'+pokeName(a.name)+' '+mvName+' vs. '+pokeName(d.name)+'</div>'
@@ -7450,6 +7540,7 @@ async function calcRunSmogon(){
     const natTag=v=>v==='1.1'?'+':(v==='0.9'?'-':'');
     descTxt=aSpV+natTag(aNatV)+' SP '+(isPhys?'Atk':'SpA')+(aItem?' '+aItem:'')+' '+spName+' '+mvName+' vs. '+hpSpV+' SP HP / '+dSpV+natTag(dNatV)+' SP '+(isPhys?'Def':'SpD')+' '+dName+': '+mn+'-'+mx+' ('+mnP.toFixed(1)+' - '+mxP.toFixed(1)+'%)';
   }
+  if(collect)return{move:mvName,type:probe.type,bp:probe.bp,immune:false,min:mn,max:mx,minP:mnP,maxP:mxP,hp:hp,ko:ko,desc:descTxt};
   res.style.display='';
   res.innerHTML='<div class="calc-title" style="color:#78C850">Result</div>'
     +'<div style="font-size:14px;font-weight:700;color:var(--text)">'+descTxt+'</div>'
