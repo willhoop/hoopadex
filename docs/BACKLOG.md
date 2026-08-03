@@ -8,6 +8,31 @@ Status values: `open`, `in progress`, `blocked`, `done`.
 
 ---
 
+## 0. The moves-table sort does nothing — `open`
+
+**Found 2026-08-03 while working on v3.8. Not fixed in that pass because it is unrelated to what
+was asked for, and it deserves its own version.**
+
+`sortMovesTable()` reads every sort key through
+`cellOf = (r,key) => r.querySelector('td[data-'+key+']')?.getAttribute(...)`, but
+`renderMovesSection()` emits no `data-name`, `data-cat`, `data-type`, `data-pow`, `data-acc` or
+`data-lv` attributes on any `<td>`. Confirmed by count: the file contains zero occurrences of
+`data-pow`, `data-type` and `data-lv`, and the single `data-acc` hit is `data-accent` on the detail
+panel. Every comparison therefore reads `''` against `''`, every row ties, and the sort is a
+stable no-op.
+
+The header still toggles its `ms-asc` / `ms-desc` arrow, so the control looks like it worked. This
+shipped in 3.2 as "sortable moves".
+
+**Fix.** Emit the data attributes in `renderMovesSection()` — they are the values already being
+rendered into each cell. **Then prove it:** a test that asserts the sorted order changes, checked by
+mutation against a copy of the source, because this is precisely the class of bug the existing
+suites' own history warns about (whitepaper 5.1 — the Pokédex sort tests were passing vacuously for
+the same reason: the assertion never observed the thing it claimed to test).
+
+**Note.** Backlog item for the Moves tab type filter should be done in the same pass, since it
+touches the same rows.
+
 ## 1. Nuzlocke tracker — `open`
 
 Track a Nuzlocke run inside the dex: first-encounter per route, which encounters are used, and

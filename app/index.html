@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 3.7 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 3.8 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -79,7 +79,7 @@ body.light .missed-badge{background:transparent;color:#c03028}
    Scoped off the effect classes on purpose: `body.light .type-table td.cell` outranks
    `.type-table td.cell.eff-2` on specificity, so an unscoped rule here silently repaints every
    coloured cell grey and removes the entire chart. */
-body.light .type-table td.cell:not(.eff-2):not(.eff-half):not(.eff-0){background:#ececf2;border-color:#dcdce4;color:#6a6a7a}
+body.light .type-table td.cell:not(.eff-2):not(.eff-half):not(.eff-0){background:var(--bg2);border-color:var(--border2);color:var(--text5)}
 body.light .tc-pill{opacity:1}
 body.light .type-table td.cell:hover{outline-color:#333}
 body.light .type-table tr.tc-hi td.cell,body.light .type-table td.cell.tc-hi{box-shadow:inset 0 0 0 9999px rgba(0,0,0,0.06)}
@@ -6157,11 +6157,19 @@ const RESTATE_STOP=new Set(['the','a','an','and','or','of','to','in','is','it','
   'for','by','on','at','with','when','if','be','are','was','has','have','from','as','into','out',
   'up','down','all','any','not','no','than','then','also','will','can','may','other','each','one']);
 function isRestatement(a,b,threshold){
-  const words=s=>String(s).toLowerCase().replace(/[^a-z0-9/ ]+/g,' ').split(/\s+/)
+  // Guard before String(): String(undefined) is the word "undefined", which would then match
+  // itself on both sides and report a restatement for two missing descriptions.
+  if(typeof a!=='string'||typeof b!=='string')return false;
+  const words=s=>s.toLowerCase().replace(/[^a-z0-9/ ]+/g,' ').split(/\s+/)
     .filter(w=>w.length>1&&!RESTATE_STOP.has(w));
+  // Prefix containment rather than a fixed-length prefix: a fixed 4 characters cannot match
+  // max against maximum, because slicing a 3-letter word yields 3 characters and never equals
+  // a 4-character key. Either word may be the prefix; the shorter must still be 3+ characters
+  // so that freeze/frozen stays a non-match.
+  const same=(x,y)=>x===y||((x.length>=3||y.length>=3)&&(x.startsWith(y)||y.startsWith(x))&&Math.min(x.length,y.length)>=3);
   const short=words(a), long=words(b);
   if(!short.length||!long.length)return false;
-  const hit=short.filter(w=>{const k=w.slice(0,4);return long.some(x=>x.slice(0,4)===k)});
+  const hit=short.filter(w=>long.some(x=>same(w,x)));
   return hit.length/short.length>=(threshold===undefined?0.7:threshold);
 }
 

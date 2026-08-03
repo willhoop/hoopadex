@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 1.1 · Last updated 2026-08-03 · HoopaDex v2.9.3**
+**Version 1.2 · Last updated 2026-08-03 · HoopaDex v3.8**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -109,6 +109,25 @@ feel impossible elsewhere.
 
 Teams speak Showdown's format, so a team built here pastes straight into Showdown, Pokepaste or
 their calculator — and back again, unchanged.
+
+---
+
+## Slide 9a — Asking the type chart a question instead of reading it
+
+An 18×18 grid is a lookup table. Reading a ×4 off it means finding two cells and multiplying them
+in your head.
+
+The Defending Type Calculator asks it directly: pick a defending typing and every attacking type is
+resolved against it at once, ×4 first. As of v3.8 it also answers the other half of the question —
+who actually has that typing. Fire/Flying in Generation IX: Charizard, Moltres, Ho-Oh, Fletchinder,
+Talonflame, Oricorio-Baile.
+
+Only for two types. One type returns hundreds of species, which is a list nobody reads.
+
+And it knows what year it is, like everything else here. Ask for Electric/Steel in Generation I and
+you get nothing — Steel did not exist yet, and Magnemite was a pure Electric type until Generation
+II. That answer cannot come from asking what Magnemite is today, which is exactly why the list is
+re-checked against the historical record rather than trusted as fetched.
 
 ---
 

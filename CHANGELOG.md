@@ -12,6 +12,61 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [3.8] — 2026-08-03
+
+### Added
+- **The Defending Type Calculator lists the Pokémon that have the selected pair.** The tool resolved
+  every attacking type against a typing but never said who actually has that typing. It now does,
+  for two-type selections only — a single type returns hundreds of species, which answers nothing.
+  Membership is derived from PokéAPI's own per-type lists, the same endpoint the Pokédex type filter
+  already uses, so the two cannot disagree; a species carrying both types has exactly those two, so
+  intersecting the two sets is already an exact-typing match.
+- **The species list is generation-correct, not present-day.** Those lists carry current typing only.
+  In Gen 1 Electric/Steel now returns nothing and Magnemite appears under Electric alone; in Gen 5
+  Togetic is listed under Normal/Flying, a pair it no longer has and which no intersection of
+  current type lists could ever have found. Covered by `tests/test-dual-typing.js`.
+
+### Changed
+- **"Defending typing" is now the "Defending Type Calculator", and is a card rather than a caption.**
+  It sits under an 18×18 grid, below the fold, and was styled as a 10px grey label with two small
+  selects — it read as a footnote to the chart rather than as the tool that answers the question the
+  chart only supplies the raw material for.
+- **The ability page shows one description instead of two.** PokéAPI ships a short effect text and a
+  long one, and for most abilities the long one is the short one reworded — Aftermath said the same
+  sentence twice, in two blocks, at two sizes. The old guard compared the two strings for exact
+  inequality, which only catches character-identical text and so never fired once. A second block is
+  now shown only when it is genuinely additional text. Covered by `tests/test-ability-desc.js`.
+- **The ability page uses one type scale.** It had five font sizes plus an empty 28px spacer div; it
+  now has four, and the species chips use classes rather than per-element inline styles.
+- **The hidden-ability marker is a solid colour in both themes.** `.ability-tag.hidden` and the
+  ability-page "Hidden" badge were both `background:transparent`, so the one thing distinguishing a
+  hidden ability from a normal one was carried by a faint purple border alone. A hidden ability is a
+  different encounter, not a variant of the same one.
+
+### Fixed
+- **Light mode's type chart was washed out.** Two independent causes, both measured rather than
+  eyeballed. The neutral cell had no light-mode override at all, so it inherited the dark theme's
+  `rgba(255,255,255,0.03)` fill and `rgba(255,255,255,0.10)` border — white on white, so every ×1
+  cell and every grid line was invisible. Separately, the light-mode effectiveness fills sat at 33%
+  and 32% saturation against 50% and 39% for the same cells in dark mode. The fills are now 64% and
+  60% saturated at the same lightness, so the chart reads as coloured without going darker, and ink
+  contrast against them improved as well (5.51→5.55 and 4.89→5.04).
+
+### Notes
+- The first attempt at the neutral-cell fix repainted the entire chart grey: `body.light
+  .type-table td.cell` outranks `.type-table td.cell.eff-2` on specificity, so an unscoped rule
+  silently overrode every coloured fill. Caught by measuring computed styles in the browser, not by
+  reading the CSS. The rule is now scoped off the effect classes and the reason is recorded there.
+- `tests/test-viz-palette.js` then rejected the replacement for hard-coding hex in a rule matching
+  `.eff-`; it now uses theme variables. The suite was right and the rule stands.
+- Both new suites were verified to FAIL against deliberately broken copies of the source before
+  being trusted — removing the generation correction fails 5 assertions, and over-eager description
+  de-duplication fails the three that protect genuinely additional text. Both accept a
+  `HOOPADEX_SRC` override so that check never has to break the working tree, which the auto-commit
+  hook would otherwise commit and push.
+- Screenshots did not composite in this environment, so every visual claim above is from measured
+  computed styles rather than from seeing the page.
+
 ## [3.7] — 2026-08-03
 
 ### Fixed

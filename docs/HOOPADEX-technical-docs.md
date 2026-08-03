@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 1.1 · Last updated 2026-07-22**
+**Version 1.2 · Last updated 2026-08-03 · HoopaDex v3.8**
 Documents the published application and the local file `app/HoopaDex_1_92.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -117,10 +117,10 @@ The application reads public APIs from the browser. Those APIs permit cross-orig
 ## 3.1 File
 | Property | Value |
 |---|---|
-| File | `app/HoopaDex_1_92.html` |
-| Version | 1.92 |
-| Size | Approximately 449 KB |
-| Lines | Approximately 6,800 |
+| File | `app/index.html` (published copy; see 3.7) |
+| Version | 3.8 |
+| Size | Approximately 578 KB |
+| Lines | Approximately 8,760 |
 | Dependencies | None to install. Two web fonts load from Google Fonts. |
 | Browser storage | `localStorage` key `hoopa-theme` |
 
@@ -129,10 +129,10 @@ The application reads public APIs from the browser. Those APIs permit cross-orig
 |---|---|
 | Pokedex | Browse and filter the species list. Open a detail view. |
 | Moves | Browse moves. Includes the TM list for each game. |
-| Abilities | Browse abilities. Shows the generation that introduced each one. |
+| Abilities | Browse abilities. Shows the generation that introduced each one, and which Pokemon have it in the selected generation. |
 | Items | Browse items by category. Shows the generation that introduced each one. |
 | Locations | Find where a Pokemon appears, by game. |
-| Type Chart | Show the type effectiveness chart for the selected generation. |
+| Type Chart | Show the type effectiveness chart for the selected generation. Includes the Defending Type Calculator (3.8). |
 | Natures | Show the stat that each nature raises and lowers. |
 | Team Builder | Build a team of six. Apply competitive sets. |
 | EV Training | Show EV yields and training locations. |

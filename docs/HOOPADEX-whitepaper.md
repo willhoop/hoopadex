@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 1.1 · Last updated 2026-08-03**
+**Version 1.2 · Last updated 2026-08-03 · HoopaDex v3.8**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -100,7 +100,10 @@ one above it. Base stats and Pokémon typing are produced by diffing those files
 current Pokédex; move descriptors — contact, punch, slicing, pulse and the rest — are read at run
 time from the bundled `@smogon/calc` engine, the same engine the damage calculator uses, so the
 tags cannot disagree with the maths. The regulation-change article is a set difference over the
-roster the Pokédex itself filters by.
+roster the Pokédex itself filters by. The Defending Type Calculator's species list is the same
+move: which Pokémon have a given typing is an intersection of PokéAPI's two per-type membership
+lists — the same endpoint the Pokédex type filter already calls — rather than a table of pairs
+someone would have to keep.
 
 The principle is worth stating plainly, because it is what the project learned the hard way
 (section 5): **if a value can be derived from a published artefact, derive it.** A hand-maintained
@@ -251,6 +254,18 @@ That process caught three tests that were passing vacuously:
 
 All three are fixed. The lesson is recorded because it generalises: **the question is never whether
 the suite is green, it is whether the suite can go red.**
+
+The two suites added in v3.8 were held to that standard before being trusted. `test-dual-typing.js`
+was run against a copy of the source with the generation correction removed and failed 5 of its 18
+assertions, including the one that puts Magnemite outside Electric/Steel in Gen 1.
+`test-ability-desc.js` was run against three separate mutations — a guard that never fires, a
+missing input check, and a threshold slackened until it swallows real text — and each was caught.
+The third of those matters most, because the dangerous failure is asymmetric: wrongly calling a
+paragraph a restatement deletes information from the page, and no rendering artefact would show it.
+
+Both suites read their source through a `HOOPADEX_SRC` environment override so that the mutation
+check runs against a copy. The repository commits and pushes on a timer, so a file left broken for
+ten seconds to prove a point is a file that ships.
 
 ### 5.2 The gap this project was built to have, and no longer has
 

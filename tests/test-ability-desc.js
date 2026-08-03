@@ -1,7 +1,7 @@
 /* HoopaDex — ability description de-duplication tests
  * Run: node tests/test-ability-desc.js
  *
- * Slices the REAL restates() and its stopword set out of app/index.html.
+ * Slices the REAL isRestatement() and its stopword set out of app/index.html.
  *
  * The ability page showed PokeAPI's short effect text and its long effect text as two blocks at two
  * sizes. For most abilities the long one is the short one reworded, so every page carried the same
@@ -42,9 +42,12 @@ check(restates(AFTERMATH_SHORT, AFTERMATH_LONG) === true,
   'Aftermath: the long effect text is caught as a restatement');
 
 // --- more real paraphrase pairs --------------------------------------------------------
+// Magma Armor is deliberately asserted the OTHER way: the long text adds "existing freezing is
+// also cured", which the short line does not say. Keeping it is correct, and this pins that the
+// guard is not simply flagging every pair that shares a topic word.
 check(restates('Prevents the Pokémon from being frozen.',
-                    'This Pokémon cannot be frozen. Existing freezing is also cured.') === true,
-  'Magma Armor: paraphrase caught');
+                    'This Pokémon cannot be frozen. Existing freezing is also cured.') === false,
+  'Magma Armor: the long text cures an existing freeze, so it is kept');
 check(restates('Raises the Pokémon\'s Speed one stage when it is hit by an attack.',
                     'Whenever this Pokémon is hit by an attack, its Speed rises by one stage.') === true,
   'a straightforward reword is caught');
@@ -64,11 +67,11 @@ check(restates(undefined, undefined) === false, 'undefined input does not throw'
 check(restates('the a of to in is it', 'completely unrelated wording here') === false,
   'a string that is nothing but stopwords is not a restatement');
 
-// --- the stemming the guard depends on -------------------------------------------------
+// --- the prefix stemming the guard depends on -------------------------------------------
 check(restates('damages maximum', 'damage max') === true,
-  'damages/damage and maximum/max are matched on a four-character prefix');
+  'damages/damage and max/maximum are matched by prefix containment');
 check(restates('poison burn freeze', 'poisoned burned frozen') === false,
-  'a four-character prefix does not stretch to freeze/frozen, so partial overlap stays below the bar');
+  'freeze/frozen is not a prefix pair, so partial overlap stays below the bar');
 
 // --- the threshold is a real boundary, not decoration ----------------------------------
 check(restates('alpha bravo charlie delta', 'alpha bravo charlie delta') === true,
