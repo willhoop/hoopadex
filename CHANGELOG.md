@@ -12,6 +12,35 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [3.9] — 2026-08-03
+
+### Fixed
+- **The team editor was still destroying imported stat spreads.** Reported again after 3.4. The
+  editor addresses its inputs by short names (`atk`, `spe`); a stored spread uses PokéAPI keys
+  (`attack`, `speed`). `hp` is the only key the two spellings share, so looking a short name up in a
+  canonical-keyed object returned undefined for every other stat, the fields loaded as 0, and
+  `saveTeamEdit`'s `if(v>0)` then dropped them. Opening a slot and pressing Done — or clicking the
+  backdrop, which also saves — turned `2 HP / 32 Atk / 32 Spe` into `2 HP`.
+
+  3.4 fixed the **write** side of exactly this and left the **read** side, so the bug returned
+  unchanged. The editor now reads through `readStatObj`, which already existed for this purpose and
+  was being used elsewhere but never here.
+
+  Guarded by `tests/test-team-edit-stats.js`, which takes the read expression **out of the shipped
+  source** rather than re-implementing it — a round-trip test that models the code instead of
+  running it passes against the broken version, which is how this survived a release. Against the
+  pre-fix source the suite fails 7 assertions and reproduces the reported output exactly
+  (`{"hp":2}`).
+
+### Changed
+- **Type names in the Defending Type Calculator's dropdowns are capitalised.** They read `flying`
+  and `fire` while the badges directly beneath them read FLYING and FIRE. The option label is
+  capitalised in the string rather than by CSS, because `text-transform` on `<option>` is not
+  honoured consistently across browsers; the option *value* stays lowercase, since it is the key
+  used against the type chart and capitalising it would break every lookup.
+
+---
+
 ## [3.8] — 2026-08-03
 
 ### Added

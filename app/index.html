@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 3.8 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 3.9 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -3787,7 +3787,10 @@ function natCross(td){
    head; this asks the question directly - pick a defender's typing and every attacking type is
    resolved against it at once, x4 first. */
 function renderDualLookup(cd){
-  const opts=t=>cd.types.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
+  // Label capitalised, value left lowercase - the value is the key used against the chart, and
+  // capitalising it would break every lookup. Option text does not reliably honour
+  // text-transform across browsers, so it is capitalised in the string rather than in CSS.
+  const opts=t=>cd.types.map(x=>'<option value="'+x+'">'+capName(x)+'</option>').join('');
   return '<div class="dual-lookup">'
    +'<div class="dl-head">Defending Type Calculator</div>'
    +'<div class="dl-sub">Pick a defender\u2019s typing and every attacking type is resolved against it at once.</div>'
@@ -7320,8 +7323,16 @@ async function openTeamEditModal(idx){
   // EVs
   h+='<div style="margin-bottom:16px"><div style="font-size:12px;font-weight:800;color:#8a8a9a;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">'+statBudget().label+' <span id="team-edit-ev-total" style="color:#6890F0;font-weight:600"></span></div>';
   h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+  /* Read through readStatObj for the same reason saveTeamEdit writes through EDIT_STAT_KEY. The
+     inputs are addressed by the short names (atk, spe); the stored spread uses PokeAPI keys
+     (attack, speed). Looking a short name up in a canonical-keyed object returns undefined for
+     every stat except hp - the one key both spellings share - so the fields loaded as 0, and
+     saveTeamEdit's `if(v>0)` then dropped them. Opening a slot and pressing Done - or clicking the
+     backdrop, which also saves - turned "2 HP / 32 Atk / 32 Spe" into "2 HP".
+     3.4 fixed the write side of this and left the read side, so the bug came straight back. */
+  const evsIn=readStatObj(s.evs);
   statNames.forEach((stat,i)=>{
-    const val=s.evs?.[stat]||0;
+    const val=evsIn[EDIT_STAT_KEY[stat]]||0;
     h+='<div style="text-align:center"><label style="font-size:10px;color:#8a8a9a;font-weight:700">'+statLabels[i]+'</label>';
     h+='<input type="number" id="team-edit-ev-'+stat+'" value="'+val+'" min="0" max="'+statBudget().perStat+'" step="'+statBudget().step+'" style="width:100%;padding:4px 6px;border-radius:4px;border:1px solid var(--border2);background:var(--bg2);color:var(--text1);font-size:12px;text-align:center;box-sizing:border-box" oninput="updateEVTotal()"></div>';
   });
