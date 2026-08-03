@@ -22,6 +22,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import shutil
 import tempfile
 
@@ -89,10 +90,19 @@ def via_browser(html, out):
     cmd = [exe, "--headless", "--disable-gpu", "--no-pdf-header-footer",
            f"--user-data-dir={os.path.join(tmp, 'profile')}",
            f"--print-to-pdf={os.path.abspath(out)}", "file:///" + src.replace("\\", "/")]
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-    if not os.path.exists(out) or os.path.getsize(out) == 0:
-        raise RuntimeError(f"{os.path.basename(exe)} produced no PDF\n{r.stderr[-800:]}")
-    return os.path.basename(exe)
+    # Headless Chrome/Edge occasionally exits before the PDF lands, and a leftover instance from a
+    # previous run can make the first attempt produce nothing at all. Observed once while building
+    # the engineering review: the same command failed, then succeeded unchanged. A build step that
+    # works on the second try is a build step that will fail in CI, so retry deliberately rather
+    # than leaving it to luck.
+    last = ""
+    for attempt in range(3):
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+        if os.path.exists(out) and os.path.getsize(out) > 0:
+            return os.path.basename(exe) + ("" if attempt == 0 else f", attempt {attempt + 1}")
+        last = r.stderr[-500:]
+        time.sleep(1.5)
+    raise RuntimeError(f"{os.path.basename(exe)} produced no PDF after 3 attempts\n{last}")
 
 
 def main():

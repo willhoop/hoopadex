@@ -29,8 +29,14 @@ const lines = fs.readFileSync(SRC, 'utf8').split(/\r?\n/);
 const start = lines.findIndex(l => l.startsWith('function calcLocalCritMult('));
 const end = lines.findIndex((l, i) => i > start && l.startsWith('async function calcRunLocal('));
 if (start < 0 || end < 0) throw new Error('could not locate calcLocalRolls in index.html');
-const app = (0, eval)(lines.slice(start, end).join('\n') + '\n;({calcLocalRolls,calcLocalCritMult,calcLocalStab})');
+// eff() is the chart lookup calcLocalEffectiveness sits on. Slice the real one rather than
+// restating it, so a broken lookup cannot be hidden by a correct copy living in this file.
+const effStart = lines.findIndex(l => l.startsWith('function eff('));
+if (effStart < 0) throw new Error('could not locate eff() in index.html');
+const app = (0, eval)(lines[effStart] + '\n' + lines.slice(start, end).join('\n') +
+  '\n;({calcLocalRolls,calcLocalCritMult,calcLocalStab,calcLocalEffectiveness})');
 const rollsOf = app.calcLocalRolls, critMult = app.calcLocalCritMult, stabOf = app.calcLocalStab;
+const effOf = app.calcLocalEffectiveness;
 
 let pass = 0, fail = 0;
 function check(ok, label, detail) {
@@ -77,6 +83,26 @@ check(roll({ eff: 0.25 })[15] === 11, 'double resistance quarters it, floored (4
 check(roll({ eff: 0 }).every(v => v === 0), 'an immunity deals zero, not the one-damage minimum');
 check(roll({ eff: 0.25, power: 1, atk: 1, def: 500 }).every(v => v >= 1),
   'a non-immune hit never deals less than 1, however resisted');
+
+// --- type effectiveness against a DUAL-TYPED defender ----------------------------------------
+// An engineering review replaced the multiplication below with Math.max in the shipped file and
+// all 27 suites stayed green. test-dual-typing.js does not cover this: despite the name it tests
+// filtering the dex by dual type, not computing damage against one. Two types multiply.
+const ty2 = ns => ns.map(n => ({ type: { name: n } }));
+const CHART = { fighting: { ice: 2, rock: 2, flying: 0.5 }, fire: { water: 0.5, dragon: 0.5 }, normal: { ghost: 0 } };
+check(effOf(ty2(['ice', 'rock']), 'fighting', CHART) === 4,
+  'Fighting into Ice/Rock is 4x — the two lookups MULTIPLY, they are not maxed',
+  effOf(ty2(['ice', 'rock']), 'fighting', CHART));
+check(effOf(ty2(['water', 'dragon']), 'fire', CHART) === 0.25,
+  'Fire into Water/Dragon is 0.25x, not 0.5x', effOf(ty2(['water', 'dragon']), 'fire', CHART));
+check(effOf(ty2(['ice', 'flying']), 'fighting', CHART) === 1,
+  'a 2x and a 0.5x cancel to neutral', effOf(ty2(['ice', 'flying']), 'fighting', CHART));
+check(effOf(ty2(['ghost', 'ice']), 'normal', CHART) === 0,
+  'an immunity on either type makes the whole hit 0', effOf(ty2(['ghost', 'ice']), 'normal', CHART));
+check(effOf(ty2(['ice']), 'fighting', CHART) === 2, 'a single type is just its own multiplier');
+check(effOf([], 'fighting', CHART) === 1, 'a typeless defender is neutral, not zero');
+check(effOf(undefined, 'fighting', CHART) === 1, 'missing type data is neutral rather than throwing');
+check(effOf(ty2(['grass']), 'fighting', CHART) === 1, 'a type absent from the chart row is neutral');
 
 // --- spread reduction ----------------------------------------------------------------------
 // This assertion is what the deleted-0.75 mutation defeated.

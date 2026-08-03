@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 1.4 · Last updated 2026-08-03 · HoopaDex v5.10**
+**Version 1.5 · Last updated 2026-08-03 · HoopaDex v5.11**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the

@@ -22,7 +22,10 @@ const slice = (a, b) => {
 
 const registry = slice('const CHAMPIONS_REGS=[', 'let CHAMPIONS_IDS=LATEST_REG.ids();')
               + 'let CHAMPIONS_IDS=LATEST_REG.ids();';
-const reader   = slice('const _initHash=(location.hash', '  applyFilters();');
+const reader   = slice('const _initHash=hashPath();', '  applyFilters();');
+// The real hashPath(), sliced rather than restated: this suite exists to test the '#' handling,
+// so a copy of it living in the harness would test the copy.
+const hashPathFn = slice('function hashPath()', '\n');
 
 const harness = `
 const CHAMPIONS_IDS_MA=new Set([1,2,3]);
@@ -34,13 +37,19 @@ const _sel={'data-gen-num':{value:'champions'},'data-game':{value:'',style:{},in
 const document={getElementById:id=>_sel[id]};
 function populateGameDropdown(){ if(isChampionsMode) _sel['data-game'].value=regByShort(championsReg).key; }
 let location={hash:''};
+${hashPathFn}
 
 function run(hash){
   isChampionsMode=true; selectedGenNum=9;
   championsReg=LATEST_REG.short; CHAMPIONS_IDS=LATEST_REG.ids();
   _sel['data-gen-num'].value='champions'; _sel['data-game'].value=''; specificGame=false;
   populateGameDropdown();          // init() does this before parsing the hash
-  location.hash=hash;
+  // A browser's location.hash ALWAYS carries the leading '#', and is '' only when there is no
+  // fragment at all. This harness used to assign the bare string, so the reader's
+  // .replace(/^#/,'') was never exercised: an engineering review deleted that strip - which breaks
+  // every deep link in the app - and this suite stayed green. Cases below are written in the bare
+  // form for readability and prefixed here, exactly as a browser would deliver them.
+  location.hash=hash?(hash.charAt(0)==='#'?hash:'#'+hash):'';
 ${reader}
   return {champ:isChampionsMode, gen:selectedGenNum, reg:championsReg,
           genSel:_sel['data-gen-num'].value, gameSel:_sel['data-game'].value,
@@ -65,6 +74,13 @@ function t(name, hash, exp) {
 t('bare URL opens Champions + newest regulation', '',
   {champ:true, reg:'m-b', genSel:'champions', gameSel:'reg-mb', ids:5});
 
+// The '#' itself, asserted explicitly rather than left to the harness. Every real deep link
+// arrives with one, and the strip that removes it had no coverage at all until 2026-08-03.
+t('a link written with an explicit # routes identically', '#pokedex/g9/gm:reg-ma',
+  {champ:true, reg:'m-a', genSel:'champions', gameSel:'reg-ma', ids:3});
+t('a lone # is treated as no fragment', '#',
+  {champ:true, reg:'m-b', genSel:'champions', gameSel:'reg-mb', ids:5});
+
 // The regression this suite exists for. saveHash() used to emit g9 while in
 // Champions mode, and the reader treated g9 as "leave Champions mode".
 t('legacy g9 link stays in Champions', 'pokedex/g9/gm:reg-mb',
@@ -87,6 +103,43 @@ t('Gen IX game link leaves Champions', 'pokedex/g9/gm:scarlet-violet|scarlet',
 // An unknown regulation must degrade to the newest, never to a blank dex.
 t('unknown regulation falls back to newest', 'pokedex/gchampions/gm:reg-zz',
   {champ:true, reg:'m-b', genSel:'champions'});
+
+/* --- the OTHER hash reader -----------------------------------------------------------------
+   Everything above tests the parser inside init(). It is not the only one. restoreHash() has its
+   own copy of the same loop, and it is the one that restores the TAB — so it is the reader that
+   decides where a shared link actually lands.
+
+   An engineering review on 2026-08-03 deleted the '#' strip from restoreHash and measured the
+   result: all 27 suites green, the mutation check green, and in a real browser
+   "#calc/gchampions/gm:reg-mb" opened on the Pokédex with the title still reading "HoopaDex".
+   The suite named after hash routing did not cover the half of hash routing that routes.
+
+   The '#' strip is now a single function, hashPath(), used by both. These assertions pin that:
+   there must be exactly one definition, no caller may re-implement it, and every reader must go
+   through it. Structural rather than behavioural, because restoreHash is async, touches the DOM
+   and awaits network calls — a behavioural harness for it is worth building and is recorded as
+   open work rather than faked here. */
+function check(ok, label, detail) {
+  if (ok) { pass++; console.log('pass  ' + label); }
+  else { fail++; console.log('FAIL  ' + label + '  ' + (detail === undefined ? '' : detail)); }
+}
+
+const inlineStrips = (src.match(/\(location\.hash\|\|''\)\.replace\(\/\^#\//g) || []).length;
+const hashPathDefs = (src.match(/function hashPath\(\)/g) || []).length;
+const hashPathUses = (src.match(/hashPath\(\)/g) || []).length;
+
+check(hashPathDefs === 1, 'hashPath() is defined exactly once', hashPathDefs);
+check(inlineStrips === 1,
+  "the '#' strip exists in exactly one place — hashPath() itself, not copied into a caller",
+  `${inlineStrips} inline strips found`);
+check(hashPathUses >= 3, 'both readers go through hashPath()', `${hashPathUses} references`);
+
+// restoreHash must still be the reader that handles the tab; if that moves, the note above is
+// stale and whoever moved it should say so.
+const restore = slice('async function restoreHash()', 'function renderTC()');
+check(/const parts=h\.split\('\/'\)/.test(restore), 'restoreHash still splits the path into tokens');
+check(/const tab=parts\[0\]/.test(restore), 'restoreHash still takes the tab from the first token');
+check(/hashPath\(\)/.test(restore), 'restoreHash gets its path from hashPath(), not its own strip');
 
 // The registry is the single edit point for a new regulation.
 t('newest regulation is first in the registry', '',

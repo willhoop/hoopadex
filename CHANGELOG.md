@@ -12,6 +12,56 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.11] — 2026-08-03
+
+### Notes
+- **Engineering review.** Full findings in `docs/ENGINEERING-REVIEW-2026-08-03.md` (and `.pdf`).
+  The architecture review of 5.9 proved that five of ten deliberate bugs walked through the suites,
+  and 5.10 fixed those. This review asked the next question: of the 27 suites, how many have ever
+  been proven to fail? **Nine.** The other eighteen were mutated one at a time. Two real holes fell
+  out, both in code the suites appeared to cover.
+
+### Fixed
+- **Dual-type damage was never tested, and taking the maximum instead of the product survived every
+  suite.** Replacing `effMult*=eff(...)` with `Math.max` in the shipped file left all 27 suites and
+  the mutation check green. Fighting into Ice/Rock would have read 2× instead of 4×; Fire into
+  Water/Dragon 0.5× instead of 0.25×. `test-dual-typing.js` does not cover this — despite the name
+  it tests filtering the dex *by* dual type, never damage against one. The computation is now
+  `calcLocalEffectiveness()` with eight assertions, and it was left in the DOM handler by 5.9's
+  extraction for exactly the reason 5.9 recorded about STAB: moving the arithmetic somewhere
+  testable is not finished until every decision it depends on comes too.
+- **There were two hash readers, and only one was tested.** `restoreHash()` carried its own copy of
+  the parser, including its own `'#'` strip, and it is the reader that restores the **tab**.
+  Deleting that strip left all 27 suites green, the mutation check green — and in a real browser
+  `#calc/gchampions/gm:reg-mb` opened on the Pokédex with the title unchanged. Every shared deep
+  link would have landed on the wrong tab. There is now one `hashPath()`, and
+  `test-hash-routing.js` fails if a caller re-implements it.
+- **The hash-routing harness fed the parser input a browser never produces.** It assigned
+  `location.hash` without the leading `#`, so the strip had no coverage at all. It now prefixes it
+  the way a browser does, with `#`-carrying links asserted explicitly.
+- **A failed PokéAPI call left a spinner running forever.** Blocking `pokeapi.co` and opening the
+  Items tab produced "Loading held items…" indefinitely: `renderItemsTab` rejected, nothing caught
+  it, and the reader saw a convincing lie that work was in progress. It now shows what failed, says
+  the rest of the app still works, and offers a retry. Verified by blocking the host in the browser.
+
+### Removed
+- **Eleven functions that nothing called** — not from JavaScript, not from an inline handler.
+  `onSearchChange`, `renderArrowDown`, `onTMInput`, `onTMKeydown`, `onAbilityTabSearch`,
+  `onCompareSearch`, `itemSpriteUrl`, `getItemNamesForDatalist`, then `updateSuggestHighlight`,
+  `showTMSuggestions` and `tmSwitchGenAndAdd`, which only the first eight referenced. Removed to a
+  fixpoint, brace-matched rather than line-counted, 4.1 KB. For scale: that is 11 of 338 functions,
+  so the file is dense rather than bloated.
+
+### Changed
+- **`build/mutation-check.js` grows from 11 mutations to 24**, covering **21 of 27 suites** against
+  9 before. The thirteen new ones are the defects found while testing the untested suites: EVs
+  landing on the wrong stat in the team editor and in paste import, Adamant raising the wrong stat,
+  the bulk HP constant, a lost type, a broken form-name split, a dropped regulation item, a
+  relabelled speed column, a weakened restatement threshold, and the two above.
+  Six suites still have no proven-failing mutation and are named in the review.
+
+---
+
 ## [5.10] — 2026-08-03
 
 ### Notes

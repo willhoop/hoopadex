@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.10 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.11 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1608,7 +1608,7 @@ async function init(){
   }catch(e){ formsIndex=[]; }   // no forms in search is a degradation, not a failure
   document.getElementById('loading-indicator').style.display='none';
   // Restore gen/game state from hash BEFORE first applyFilters
-  const _initHash=(location.hash||'').replace(/^#/,'');
+  const _initHash=hashPath();
   if(_initHash){
     // Legacy links wrote "g9/gm:reg-mb" while in Champions mode. Detect the
     // regulation token first so the stale gen number cannot override it.
@@ -2189,11 +2189,6 @@ function smartSelect(idx){
   else if(item.type==='item'){goToItem(item.name);afterNav()}
 }
 
-function tmSwitchGenAndAdd(gen,moveName){
-  document.getElementById('data-gen-num').value=gen;
-  onGenNumChange();
-  selectTMSuggestion(moveName);
-}
 function switchToGen(gen){
   document.getElementById('data-gen-num').value=gen;
   onGenNumChange();
@@ -2223,7 +2218,6 @@ document.addEventListener('click',e=>{
   }
 });
 
-function onSearchChange(){onSmartSearch()}
 function onFilterChange(){
   if(vm==='detail'){vm='list';adId=null}
   const t=document.getElementById('type-filter').value;
@@ -2536,11 +2530,6 @@ function renderArrow(method){
     '<div class="evo-arrow-icon">&#x2192;</div></div>';
 }
 
-function renderArrowDown(method){
-  return '<div class="evo-arrow" style="flex-direction:column">'+
-    '<div class="evo-arrow-down">&#x2193;</div>'+
-    '<div class="evo-method">'+method.replace(/\n/g,'<br>')+'</div></div>';
-}
 
 function getSpeciesIntroGen(speciesId){
   if(speciesId<=151)return 1;
@@ -4037,8 +4026,18 @@ function updateTitle(){
   document.title=t;
 }
 
+/* The one place that turns location.hash into a routable path.
+   It existed twice, identically, in init() and in restoreHash() below. An engineering review on
+   2026-08-03 deleted the '#' strip from the restoreHash copy: every one of the 27 suites stayed
+   green and the mutation check stayed green, while in the browser every shared deep link opened on
+   the wrong tab - "#calc/..." landed on the Pokedex with the title unchanged. tests/test-hash-
+   routing.js slices only the init() copy, so the reader that actually restores the tab had no
+   coverage at all.
+
+   Two copies of one decision is the shape of bug this project keeps finding. Now there is one. */
+function hashPath(){return (location.hash||'').replace(/^#/,'')}
 async function restoreHash(){
-  const h=(location.hash||'').replace(/^#/,'');
+  const h=hashPath();
   if(!h)return;
   _restoring=true;
   const parts=h.split('/');
@@ -4967,68 +4966,9 @@ async function fetchTMMoveDetail(moveName){
   }catch{return null}
 }
 
-function onTMInput(){
-  const q=(document.getElementById('search-input')?.value||'').toLowerCase().trim();
-  if(q.length<2){hideTMSuggest();return}
-  showTMSuggestions(q);
-}
 
-function onTMKeydown(e){
-  const el=document.getElementById('tm-suggest');
-  if(!el)return;
-  const items=el.querySelectorAll('.tm-suggest-item');
-  if(e.key==='ArrowDown'){
-    e.preventDefault();
-    tmSuggestIdx=Math.min(tmSuggestIdx+1,items.length-1);
-    updateSuggestHighlight(items);
-  }else if(e.key==='ArrowUp'){
-    e.preventDefault();
-    tmSuggestIdx=Math.max(tmSuggestIdx-1,0);
-    updateSuggestHighlight(items);
-  }else if(e.key==='Enter'){
-    e.preventDefault();
-    if(tmSuggestIdx>=0&&items[tmSuggestIdx]){
-      items[tmSuggestIdx].click();
-    }else if(items.length>0){
-      items[0].click();
-    }
-  }else if(e.key==='Escape'){
-    hideTMSuggest();
-  }
-}
 
-function updateSuggestHighlight(items){
-  items.forEach((it,i)=>it.classList.toggle('active',i===tmSuggestIdx));
-  if(items[tmSuggestIdx])items[tmSuggestIdx].scrollIntoView({block:'nearest'});
-}
 
-async function showTMSuggestions(q){
-  await ensureTMMoveIndex();
-  const {vg,altVgs}=getTMMovesForGen();
-  // Filter moves matching query
-  const genNum=getDataGenNum();
-  let pool=tmMoveIndex.filter(m=>m.includes(q.replace(/ /g,'-'))&&getMoveIntroGen(m)<=genNum&&!tmCriteria.some(c=>c.name===m));
-  let notChamp=[];
-  if(isChampionsMode){notChamp=pool.filter(m=>!champHasMove(m)).slice(0,5);pool=pool.filter(m=>champHasMove(m))}
-  const matches=pool.slice(0,15);
-  const el=document.getElementById('tm-suggest');
-  if(!el){return}
-  if(matches.length===0&&notChamp.length===0){hideTMSuggest();return}
-  tmSuggestIdx=-1;
-  el.innerHTML=matches.map(m=>{
-    const md=moveCache[m];
-    const type=md?getMoveTypeForGen(md):null;
-    return '<div class="tm-suggest-item" onclick="selectTMSuggestion(\''+m+'\')">'
-      +m.replace(/-/g,' ')
-      +(type?'<span class="tm-sg-type" style="background:'+TC[type]+'">'+type+'</span>':'')
-      +'</div>';
-  }).join('');
-  if(notChamp.length){
-    el.innerHTML+='<div style="padding:6px 12px;font-size:10px;color:#F08030;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;border-top:1px solid rgba(255,255,255,0.08)">Not in Pok\u00e9mon Champions</div>'
-      +notChamp.map(m=>'<div class="tm-suggest-item" style="opacity:0.6" onclick="tmSwitchGenAndAdd(9,\''+m+'\')">'+m.replace(/-/g,' ')+'<span style="font-size:9px;color:#F08030;margin-left:auto;font-weight:700">GEN IX</span></div>').join('');
-  }
-  el.style.display='';
-}
 
 function hideTMSuggest(){
   const el=document.getElementById('tm-suggest');
@@ -7060,7 +7000,6 @@ function renderAbilityList(externalQuery){
   container.innerHTML=h;
 }
 
-function onAbilityTabSearch(){renderAbilityList()}
 
 // === TEAM BUILDER ===
 let teamSlots=[null,null,null,null,null,null];
@@ -7101,20 +7040,6 @@ function removeCompareSlot(id){
   renderCompare();
 }
 
-function onCompareSearch(){
-  const q=document.getElementById('compare-search').value.trim().toLowerCase();
-  const res=document.getElementById('compare-search-results');
-  if(q.length<2){res.innerHTML='';return}
-  const genMax=getGenMaxId();
-  const matches=master.filter(p=>p.id<=genMax&&(p.name.includes(q)||(''+p.id)===q)).slice(0,8);
-  let h='';
-  matches.forEach(p=>{
-    const spr=spriteFor(p.id);
-    const already=compareSlots.some(s=>s.id===p.id);
-    h+='<div class="usearch-item" style="'+(already?'opacity:0.4;pointer-events:none':'')+'" onclick="addToCompare('+p.id+')"><img src="'+spr+'" loading="lazy" style="width:28px;height:28px">'+capName(p.name)+' <span style="font-size:11px;color:#6a6a7a">#'+p.id+'</span>'+(already?'<span style="font-size:10px;color:#6a6a7a;margin-left:auto">Added</span>':'')+'</div>';
-  });
-  res.innerHTML=h;
-}
 
 // Ability matchup modifier maps (shared between detail view and compare view)
 const ABILITY_IMMUNE_MAP={'volt-absorb':'electric','motor-drive':'electric','lightning-rod':'electric',
@@ -8564,8 +8489,25 @@ async function renderItemsTab(force){
   if(itemsRendered&&!force)return;
   const container=document.getElementById('items-container');
   container.innerHTML='<div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading held items...</div>';
-  
-  const items=await loadAllItems();
+
+  /* PokeAPI is the only runtime data source this app has, and it is a free public service that can
+     be slow, rate-limited or down. When it failed here the await simply threw: renderItemsTab
+     rejected, nothing caught it, and the reader was left looking at "Loading held items..." with a
+     spinner, forever. Not an error, not a retry - a permanent, convincing lie that work was in
+     progress. Measured on 2026-08-03 by blocking pokeapi.co in the browser.
+     A failure the user can see and act on is worth more than a spinner. */
+  let items;
+  try{ items=await loadAllItems(); }
+  catch(e){
+    console.warn('[HoopaDex] item load failed',e);
+    container.innerHTML='<div style="text-align:center;padding:40px;color:var(--text2)">'
+      +'<div style="font-weight:700;color:#F85888;margin-bottom:6px">Could not load items</div>'
+      +'<div style="font-size:13px">PokeAPI did not respond. It is a free service and is sometimes '
+      +'rate-limited or down; the rest of the app still works.</div>'
+      +'<button class="filter-select" style="margin-top:14px;cursor:pointer" onclick="renderItemsTab(true)">Try again</button>'
+      +'</div>';
+    return;
+  }
   itemsRendered=true;
   
   const genNum=getDataGenNum();
@@ -8663,7 +8605,6 @@ document.addEventListener('error',function(e){
   img.src=img.src.replace(/\/versions\/[^/]+\/[^/]+\//,'/');
 },true);
 
-function itemSpriteUrl(name){return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/'+name+'.png'}
 
 
 function renderItemsList(groups,items,filter=''){
@@ -8844,10 +8785,6 @@ function closeItemDetail(){
 }
 
 // Build item name list for team edit modal datalist
-async function getItemNamesForDatalist(){
-  if(!allItemsLoaded)await loadAllItems();
-  return itemsCache?itemsCache.map(i=>i.name):[];
-}
 
 /* Base species first, then alternate forms. Forms were unreachable here entirely: the search only
    ever consulted `master`, which stops at 1025, so there was no way to put a Mega or a regional
@@ -9657,6 +9594,25 @@ function calcLocalCritMult(gen){return gen>=6?1.5:2}
 function calcLocalStab(attackerTypes,moveType){
   return (attackerTypes||[]).some(function(t){return t.type.name===moveType})?1.5:1;
 }
+/* Type effectiveness against a defender, which for two types is the PRODUCT of both lookups and
+   not the larger of them. Fighting into Ice/Rock is 4x, not 2x; Fire into Water/Dragon is 0.25x,
+   not 0.5x.
+
+   Extracted 2026-08-03 by an engineering review. It replaced this exact multiplication with
+   Math.max in the shipped file and every one of the 27 suites stayed green — including
+   test-dual-typing.js, which despite the name covers filtering the dex BY dual type
+   (dualTypeMatchesGen, filterTypesForGen) and never touches damage. A suite named after the thing
+   you broke is not the same as a suite that tests it.
+
+   This is the second time the same mistake was found in this function: the earlier audit pulled
+   the roll loop out but left both STAB and this computation behind in the DOM handler, where no
+   test could reach them. Extracting the arithmetic is not finished until every decision it depends
+   on comes with it. */
+function calcLocalEffectiveness(defenderTypes,moveType,chart){
+  let m=1;
+  (defenderTypes||[]).forEach(function(t){m*=eff(moveType,t.type.name,chart)});
+  return m;
+}
 function calcLocalRolls(o){
   const critM=o.crit?calcLocalCritMult(o.gen):1;
   const base=Math.floor(Math.floor(Math.floor(2*o.lv/5+2)*o.power*o.atk/o.def)/50)+2;
@@ -9702,7 +9658,7 @@ async function calcRunLocal(){
 
   const hp=calcHPStat(calcBase(d,'hp'),lv,parseInt(document.getElementById('calc-def-hpev').value));
   const chart=getChartForGen(getDataGenNum()).chart;
-  let effMult=1;(d.types||[]).forEach(t=>{effMult*=eff(type,t.type.name,chart)});
+  const effMult=calcLocalEffectiveness(d.types,type,chart);
   const stab=calcLocalStab(a.types,type);
   let itemMult=1; // items handled by Smogon engine; local fallback ignores them
   const w=document.getElementById('calc-weather').value;
