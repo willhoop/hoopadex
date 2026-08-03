@@ -12,7 +12,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 /* Theme variables */
 :root{color-scheme:dark;--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#35699f;--eff-dn-solid:#9e4a45;--eff-zero:#9a9a96;--eff-zero-ink:#15151f;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
-body.light{color-scheme:light;--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#8fadc6;--eff-dn-solid:#c9a096;--eff-zero:#c9c9d6;--eff-zero-ink:#2f2f45;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
+body.light{color-scheme:light;--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#74b0e0;--eff-dn-solid:#e29a8a;--eff-zero:#b9b9c8;--eff-zero-ink:#2f2f45;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
 /* Colourblind mode. Declared AFTER body.light so it wins in dark mode by source order, with an
    explicit body.light.cvd rule that beats both on specificity - an earlier version sat above
    body.light and was silently overridden whenever the light theme was on. */
@@ -73,6 +73,11 @@ body.light .evo-method{color:#4a4a5a}
 body.light .evo-name{color:#1a1a2a}
 body.light .missed-move-row{background:transparent}
 body.light .missed-badge{background:transparent;color:#c03028}
+/* The neutral cell had no light-mode override, so it kept the dark theme's rgba(255,255,255,0.03)
+   fill and rgba(255,255,255,0.10) border - white on white. Every x1 cell and every grid line was
+   invisible, which is what made the whole chart read as washed out rather than merely pale. */
+body.light .type-table td.cell{background:#ececf2;border-color:#dcdce4;color:#6a6a7a}
+body.light .tc-pill{opacity:1}
 body.light .type-table td.cell:hover{outline-color:#333}
 body.light .type-table tr.tc-hi td.cell,body.light .type-table td.cell.tc-hi{box-shadow:inset 0 0 0 9999px rgba(0,0,0,0.06)}
 body.light .type-table thead th{background:#f0f0f5}
@@ -496,10 +501,15 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .moves-table th.ms.ms-asc::after{content:'91';opacity:.9}
 .moves-table th.ms.ms-desc::after{content:'93';opacity:.9}
 /* Dual-type lookup */
-.dual-lookup{margin-top:18px;padding-top:14px;border-top:1px solid var(--border2);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.dl-head{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text5);margin-right:2px}
-.dual-lookup select{max-width:150px;font-size:12px;padding:5px 8px}
-.dl-out{flex-basis:100%;margin-top:10px}
+/* This sits under an 18x18 grid, so it was below the fold and styled like a footnote - a 10px grey
+   label and two small selects. It is the tool that answers the question the grid only supplies the
+   raw material for, so it is now a titled card rather than a caption. */
+.dual-lookup{margin-top:26px;padding:20px 22px;border:1px solid var(--border3);border-radius:14px;
+  background:var(--card-bg);display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.dl-head{flex-basis:100%;font-size:19px;font-weight:800;letter-spacing:.01em;color:var(--text);margin-bottom:2px}
+.dl-sub{flex-basis:100%;font-size:12.5px;color:var(--text4);margin:-4px 0 8px}
+.dual-lookup select{max-width:200px;font-size:14px;padding:9px 12px;font-weight:700}
+.dl-out{flex-basis:100%;margin-top:14px}
 .dl-for{display:flex;gap:5px;margin-bottom:12px}
 .dl-group{margin-bottom:10px}
 .dl-label{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
@@ -511,6 +521,17 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .dl-label.dm-sweak{color:var(--eff-dn)}
 .dl-badges{display:flex;flex-wrap:wrap;gap:5px}
 .dl-none{font-size:12px;color:var(--text4);font-style:italic}
+/* Who actually has this typing. Only ever shown for a two-type selection - a single type returns
+   hundreds of species, which is a list nobody reads. */
+.dl-mons{margin-top:16px;padding-top:14px;border-top:1px solid var(--border2)}
+.dl-mons-head{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.dl-mon-grid{display:flex;flex-wrap:wrap;gap:6px}
+.dl-mon{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 4px;border:1px solid var(--border3);
+  border-radius:999px;background:var(--input-bg);cursor:pointer;font-size:12.5px;font-weight:700;
+  color:var(--text2);text-transform:capitalize;transition:border-color .15s,color .15s}
+.dl-mon:hover{border-color:var(--eff-up);color:var(--text)}
+.dl-mon img{width:30px;height:30px;flex-shrink:0;image-rendering:pixelated}
+.dl-mon-note{font-size:11.5px;color:var(--text4);font-style:italic;margin-top:8px}
 .pri-tools{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .pri-tools #pri-filter{max-width:280px}
 .pri-count{font-size:12px;color:var(--text4)}
@@ -3739,7 +3760,8 @@ function natCross(td){
 function renderDualLookup(cd){
   const opts=t=>cd.types.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
   return '<div class="dual-lookup">'
-   +'<div class="dl-head">Defending typing</div>'
+   +'<div class="dl-head">Defending Type Calculator</div>'
+   +'<div class="dl-sub">Pick a defender\u2019s typing and every attacking type is resolved against it at once.</div>'
    +'<select id="dl-t1" class="filter-select" onchange="runDualLookup()"><option value="">Type 1\u2026</option>'+opts()+'</select>'
    +'<select id="dl-t2" class="filter-select" onchange="runDualLookup()"><option value="">Type 2 (optional)</option>'+opts()+'</select>'
    +'<div id="dl-out" class="dl-out"></div></div>';
@@ -3772,7 +3794,70 @@ function runDualLookup(){
       +'<div class="dl-badges">'+list.map(function(t){return '<span class="type-badge" style="--tc:'+TC[t]+'">'+t+'</span>'}).join('')+'</div></div>';
   });
   if(!any)h+='<div class="dl-none">Everything hits this typing neutrally.</div>';
+  // Only a two-type selection gets a species list. One type returns hundreds of rows, which answers
+  // nothing; the pair is the case where "who actually is this?" is a short, useful answer.
+  if(defs.length===2)h+='<div class="dl-mons" id="dl-mons"><div class="dl-mons-head">Pokémon with this typing</div><div class="dl-mon-note">Looking…</div></div>';
   out.innerHTML=h;
+  if(defs.length===2)renderDualMons(defs[0],defs[1],++dualMonToken);
+}
+
+/* Which species actually have the selected pair. Derived from PokeAPI's own per-type membership
+   lists rather than a hand-kept table - the same endpoint the dex type filter already uses, so the
+   two can never disagree. A species carrying both types has exactly those two, so intersecting the
+   two sets is already an exact-typing match; no third-type check is needed.
+
+   The intersection is CURRENT typing, so it is then re-resolved through filterTypesForGen: in Gen 1
+   Magnemite is pure Electric, so Electric/Steel must not list it and Electric alone must. Species
+   whose historical typing matches but whose current typing does not are added back from the same
+   POKEMON_PAST_TYPES table for the same reason. */
+// The whole correctness question in one place, so it can be tested without a DOM or a network:
+// does species `id`, AS OF `genNum`, have exactly the typing {t1,t2}? `current` is the species'
+// present-day type list, which for an intersection hit is the pair itself.
+function dualTypeMatchesGen(id,genNum,t1,t2,current){
+  const wanted=[t1,t2].slice().sort().join('/');
+  return filterTypesForGen(current,genNum,id).slice().sort().join('/')===wanted;
+}
+// Does the past-types table override this species in this generation? Only then is its historical
+// list authoritative; otherwise filterTypesForGen falls through to its current-typing branch.
+function hasPastTypeOverride(id,genNum){
+  const r=POKEMON_PAST_TYPES[id];
+  return !!r&&Object.keys(r).map(Number).some(function(c){return genNum<c});
+}
+
+let dualMonToken=0;
+async function renderDualMons(t1,t2,token){
+  const genNum=getDataGenNum(), genMax=getGenMaxId();
+  const [s1,s2]=await Promise.all([resolveDexIds('type',t1),resolveDexIds('type',t2)]);
+  if(token!==dualMonToken)return;              // selection changed while the fetch was in flight
+  const box=document.getElementById('dl-mons');
+  if(!box)return;
+  const hits=[];
+  if(s1&&s2){
+    const smaller=s1.size<=s2.size?s1:s2, larger=smaller===s1?s2:s1;
+    smaller.forEach(function(id){
+      if(!larger.has(id))return;
+      if(dualTypeMatchesGen(id,genNum,t1,t2,[t1,t2]))hits.push(id);
+    });
+  }
+  // Species that HAD this typing in the selected generation but do not now.
+  Object.keys(POKEMON_PAST_TYPES).forEach(function(k){
+    const id=+k;
+    if(hits.indexOf(id)>=0)return;
+    if(!hasPastTypeOverride(id,genNum))return;
+    if(dualTypeMatchesGen(id,genNum,t1,t2,[]))hits.push(id);
+  });
+  const rows=hits.filter(function(id){
+      return id<=genMax&&(!isChampionsMode||CHAMPIONS_IDS.has(id))&&master.some(function(p){return p.id===id});
+    }).sort(function(a,b){return a-b});
+  const head='<div class="dl-mons-head">Pokémon with this typing <span style="opacity:.7">('+rows.length+')</span></div>';
+  if(!s1||!s2){box.innerHTML=head+'<div class="dl-mon-note">Could not reach PokéAPI, so the species list is unavailable. The matchups above are computed locally and are unaffected.</div>';return}
+  if(!rows.length){box.innerHTML=head+'<div class="dl-mon-note">No Pokémon has this typing'+(isChampionsMode?' in this Champions regulation.':' in this generation.')+'</div>';return}
+  box.innerHTML=head+'<div class="dl-mon-grid">'+rows.map(function(id){
+    const p=master.find(function(x){return x.id===id});
+    return '<div class="dl-mon" onclick="switchTab(\'pokedex\');showDetail('+id+')">'
+      +'<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/'+id+'.png" loading="lazy" alt="">'
+      +capName(p.name)+'</div>';
+  }).join('')+'</div>';
 }
 
 // Highlight the hovered cell's whole row and column, and both of its type headers. Tracing one
