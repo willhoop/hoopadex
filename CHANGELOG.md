@@ -12,6 +12,27 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [4.7] — 2026-08-03
+
+### Fixed
+- **The move table's sort arrows rendered as the literal text "95".** The CSS said `content:'95'`
+  (↕), but a previous Python edit wrote it into a non-raw string, where `` is an octal escape —
+  so the file held control character 0x11 followed by "95". Same for the ascending and descending
+  arrows, "91" and "93". They now render as ↕ ↑ ↓. Reported as overlapping text on the moves screen.
+- **The variable-power table (Water Spout, Eruption, and the rest) threw its numbers across the
+  page.** The table was `width:100%`, so the value column absorbed all the slack in the panel and
+  each number ended up an arm's length from the condition it belonged to. It is a compact two-column
+  pair now.
+- **The type chart tooltip said "super effective" in green while the chart said blue.** Left over
+  from the palette retired in 1.99: `showChartTip` hardcoded `#3BA53B` and `#c62828` rather than the
+  theme variables. A tooltip that contradicts the cell under the cursor — and the legend directly
+  above it — is worse than no tooltip. It uses `--eff-up`/`--eff-dn` now, which also means
+  colourblind mode reaches it, which it never did.
+
+### Notes
+- All three were found by looking at the running app, not by reading code or running tests. The
+  escape corruption in particular is invisible in a diff and passes every suite.
+
 ## [4.6] — 2026-08-03
 
 ### Fixed
