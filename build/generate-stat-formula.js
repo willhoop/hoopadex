@@ -129,9 +129,9 @@ At 0 Stat Points and a neutral nature:
 | Pokémon | base HP → HP | base Def → Def | base Spe → Spe |
 |---|---|---|---|
 ${EXAMPLES.map(p => row(p.name, [
-  `${p.hp} → **${bulkStat(p.hp, 0, true, 1)}**`,
-  `${p.def} → ${bulkStat(p.def, 0, false, 1)}`,
-  `${p.spe} → ${bulkStat(p.spe, 0, false, 1)}`,
+  `${p.hp} → **${stat(p.hp, 0, true, 1)}**`,
+  `${p.def} → ${stat(p.def, 0, false, 1)}`,
+  `${p.spe} → ${stat(p.spe, 0, false, 1)}`,
 ])).join('\n')}
 
 Blissey is the clearest illustration: base HP ${EXAMPLES[0].hp} becomes

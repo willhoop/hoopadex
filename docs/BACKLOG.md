@@ -226,14 +226,23 @@ combinations; swapped for the greedy rule it fails with 32,298 misses.
 defence, because HP starts 55 points higher (`base+75` vs `base+20`) and the two are nowhere near
 balanced to begin with. The interesting cases are the already-lopsided ones.
 
-## 23. Stat formula article — `open`
+## 23. Stat formula article — `done` (4.2)
+
+*Shipped 2026-08-03 as `docs/STAT-FORMULA.md`.*
 
 Champions, level 50, fixed 31 IVs: `stat = base + 20`, **`HP = base + 75`**, then +1 per Stat Point,
-then the nature multiplier.
+then the nature multiplier — and **natures never apply to HP**. The article leads with that
+difference, because applying the non-HP formula to HP is out by 55 before a point is spent, and that
+is the whole reason it exists.
 
-**HP IS DIFFERENT — say so explicitly.** The article exists to stop someone applying the non-HP
-formula to HP. The Speed Tiers table and the damage calculator already use this model, so the
-article must be derived from the same constants rather than restating them by hand.
+**Generated, not written.** `build/generate-stat-formula.js` slices the app's own `bulkStat()` and
+`SPEED_COLS` and computes every figure from them, so the article cannot state a formula the app does
+not use. `tests/test-stat-formula-doc.js` recomputes the headline numbers and asserts the document
+still says them — change the HP constant without rerunning the generator and it fails on four
+assertions.
+
+It also documents the floored nature multiplier: a hindering nature makes the first Stat Point worth
+zero, which is the mechanism behind item 22's finding.
 
 ## 24. Damage calculator: team selector and paste both sides — `open`
 
