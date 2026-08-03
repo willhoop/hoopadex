@@ -11,8 +11,8 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 /* Theme variables */
-:root{--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
-body.light{--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
+:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-zero:#3a3a5c;--eff-zero-ink:#e8e8f0;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
+body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-zero:#d6d6e4;--eff-zero-ink:#2a2a3a;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
 body{min-height:100vh;background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg1) 100%);color:var(--text);font-family:'Nunito','Segoe UI',system-ui,sans-serif}
 body.light .header{background:linear-gradient(135deg,#fff,#f8f8fc);border-bottom-color:rgba(0,0,0,0.1)}
 #universal-search-bar{background:#12121e}
@@ -59,11 +59,8 @@ body.light .evo-method{color:#4a4a5a}
 body.light .evo-name{color:#1a1a2a}
 body.light .missed-move-row{background:rgba(200,0,0,0.03)}
 body.light .missed-badge{background:rgba(200,60,60,0.1);color:#c03028}
-body.light .type-table td.cell{border-color:rgba(0,0,0,0.18);background:rgba(0,0,0,0.04);color:#999}
-body.light .type-table td.cell.eff-2{background:#2d8a2d;color:#fff}
-body.light .type-table td.cell.eff-half{background:#b82020;color:#fff}
-body.light .type-table td.cell.eff-0{background:#5a5a7a;color:#fff}
 body.light .type-table td.cell:hover{outline-color:#333}
+body.light .type-table tr.tc-hi td.cell,body.light .type-table td.cell.tc-hi{box-shadow:inset 0 0 0 9999px rgba(0,0,0,0.06)}
 body.light .type-table thead th{background:#f0f0f5}
 body.light .type-table th.corner{color:#4a4a5a}
 body.light .type-table td.row-header{border-right:1px solid rgba(0,0,0,0.1)}
@@ -359,12 +356,24 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .type-table th.corner{font-size:8px;color:#5a5a6a;width:48px}
 .type-table th.col-header{padding:0}
 .type-table td.row-header{padding:0;width:48px;border:none}
-.type-table td.cell{text-align:center;font-weight:800;font-size:12px;cursor:default;font-family:'JetBrains Mono',monospace;padding:0;height:24px;line-height:24px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.02);color:#2a2a3a;transition:outline 0.1s}
-.type-table td.cell:hover{outline:2px solid #fff;z-index:20;position:relative}
-.type-table td.cell.eff-2{background:#2d8a2d;color:#fff}
-.type-table td.cell.eff-half{background:#b82020;color:#fff;font-size:16px}
-.type-table td.cell.eff-0{background:#45456a;color:#bbb}
-.tc-pill{display:block;font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;text-align:center;text-shadow:0 1px 1px rgba(0,0,0,0.3);line-height:24px;padding:0;border-radius:0}
+/* Neutral (1x) cells carry no fill - a hairline only. Over half the grid says nothing, and
+   letting it recede is what makes the signal legible without turning the signal up. */
+.type-table td.cell{text-align:center;font-weight:700;font-size:10px;cursor:default;font-family:'JetBrains Mono',monospace;padding:0;height:24px;line-height:24px;border:1px solid var(--border2);background:transparent;color:var(--text5);transition:outline 0.1s}
+.type-table td.cell:hover{outline:2px solid var(--text);z-index:20;position:relative}
+/* Crosshair - the single biggest readability win in an 18x18 matrix. */
+.type-table tr.tc-hi td.cell,.type-table td.cell.tc-hi{box-shadow:inset 0 0 0 9999px rgba(255,255,255,0.07)}
+.type-table tr.tc-hi td.row-header .tc-pill,.type-table th.col-header.tc-hi .tc-pill{outline:2px solid var(--text);outline-offset:-1px}
+/* Every cell carries a glyph, so colour reinforces and is never the only encoding. */
+.type-table td.cell.eff-2{background:color-mix(in srgb,var(--eff-up) 22%,transparent);color:var(--eff-up);border-color:color-mix(in srgb,var(--eff-up) 48%,transparent)}
+.type-table td.cell.eff-half{background:color-mix(in srgb,var(--eff-dn) 20%,transparent);color:var(--eff-dn);border-color:color-mix(in srgb,var(--eff-dn) 45%,transparent)}
+/* Immunity is categorically different from 'less effective' - the rarest and most decision-relevant
+   cell, so it gets the solid treatment rather than the dullest one. */
+.type-table td.cell.eff-0{background:var(--eff-zero);color:var(--eff-zero-ink);font-weight:800}
+/* Type identity is a label, not data. A thin colour chip over neutral text stops 18 saturated
+   pills competing with the layer that actually carries meaning. */
+.tc-pill{display:block;font-size:9px;font-weight:800;color:var(--text2);text-transform:uppercase;text-align:center;line-height:12px;padding:2px 0 0;border-radius:0}
+.tc-pill i{display:block;height:3px;border-radius:2px;margin:0 3px 2px}
+.type-table td.row-header{position:sticky;left:0;z-index:9;background:var(--bg2)}
 .chart-tip{position:fixed;z-index:9999;background:#1e1e38;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700;color:#e0e0e8;box-shadow:0 6px 24px rgba(0,0,0,0.5);pointer-events:none;white-space:nowrap}
 .result-count{font-size:12px;color:#5a5a6a;margin-bottom:12px;font-weight:600}
 /* TM/HM tab */
@@ -3118,7 +3127,8 @@ function renderTC(){
   const genLabel=getGenLabel();
   const abbr={normal:'NOR',fire:'FIR',water:'WAT',electric:'ELE',grass:'GRA',ice:'ICE',fighting:'FIG',poison:'POI',ground:'GRO',flying:'FLY',psychic:'PSY',bug:'BUG',rock:'ROC',ghost:'GHO',dragon:'DRA',dark:'DAR',steel:'STE',fairy:'FAI'};
   const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
-  const pill=(t)=>'<span class="tc-pill" style="background:'+TC[t]+'">'+(abbr[t]||t.slice(0,3))+'</span>';
+  const pill=(t)=>'<span class="tc-pill"><i style="background:'+TC[t]+'"></i>'+(abbr[t]||t.slice(0,3))+'</span>';
+  const key=(sw,label)=>'<span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;'+sw+'"></span><span style="color:var(--text3)">'+label+'</span></span>';
   let h='<div style="font-size:11px;margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="color:#5DBB3E;font-weight:700">'+genLabel+'</span><span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:12px;height:12px;background:#3BA53B;border-radius:2px"></span><span style="color:#8a8a9a">Super Effective (2&#xD7;)</span></span><span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:12px;height:12px;background:#c62828;border-radius:2px"></span><span style="color:#8a8a9a">Not Very Effective (½&#xD7;)</span></span><span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:12px;height:12px;background:#45456a;border-radius:2px"></span><span style="color:#8a8a9a">Immune (0&#xD7;)</span></span></div>';
   h+='<table class="type-table"><thead><tr><th class="corner"><span style="font-size:8px;font-weight:800;color:#6890F0">DEF &#x2192;</span><br><span style="font-size:8px;font-weight:800;color:#F85888">ATK &#x2193;</span></th>';
   cd.types.forEach(t=>{h+='<th class="col-header">'+pill(t)+'</th>'});
@@ -4403,10 +4413,13 @@ async function loadLocations(){
     return;
   }
 
-  // Check if Pok&#233;API has data for this region (Gen 8+ has limited/no data)
-  const UNSUPPORTED_VERSIONS=['sword','shield','brilliant-diamond','shining-pearl','legends-arceus','scarlet','violet'];
+  // Games PokeAPI genuinely carries no encounter data for. Verified against the API on 2026-08-02:
+  // Sword and Shield DO have encounters (Galar is region 8, 92 locations, plus the Isle of Armor
+  // and Crown Tundra version entries), and were wrongly listed here - the app was hiding real data.
+  // Re-check before adding to this list; do not assume by generation.
+  const UNSUPPORTED_VERSIONS=['brilliant-diamond','shining-pearl','legends-arceus','scarlet','violet'];
   if(UNSUPPORTED_VERSIONS.includes(locVersion)){
-    document.getElementById('loc-list').innerHTML='<div style="color:#8a8a9a;font-size:13px;padding:16px;line-height:1.5">&#x26A0; Location encounter data is not available for <b style="color:#c8c8d8">'+capName(locVersion)+'</b>.<br><br><span style="font-size:11px;color:#5a5a6a">Pok&#233;API does not yet have encounter data for Gen VIII&#x2013;IX games.</span></div>';
+    document.getElementById('loc-list').innerHTML='<div style="color:#8a8a9a;font-size:13px;padding:16px;line-height:1.5">&#x26A0; Location encounter data is not available for <b style="color:#c8c8d8">'+capName(locVersion)+'</b>.<br><br><span style="font-size:11px;color:#5a5a6a">Pok&#233;API has no encounter data for Brilliant Diamond, Shining Pearl, Legends: Arceus, Scarlet or Violet. Sword and Shield are supported.</span></div>';
     document.getElementById('loc-detail').innerHTML='';
     return;
   }
