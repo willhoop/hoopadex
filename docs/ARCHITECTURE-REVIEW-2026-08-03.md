@@ -1,6 +1,6 @@
 # HoopaDex — Architecture Review
 
-**Date** 2026-08-03 · **Reviewed at** v5.8 · **Shipped as** v5.9
+**Date** 2026-08-03 · **Reviewed at** v5.8 · **Findings shipped as** v5.9 · **Fixes shipped as** v5.10
 **Repository** `willhoop/hoopadex` · **Live** https://willhoop.github.io/hoopadex/app/
 
 Every number in this document came from running something. Where a figure could not be reproduced,
@@ -48,18 +48,34 @@ All eleven mutations are now caught, including one added to cover the stale-copy
   200. It predated every data fix this project has made. It is removed, and a test now fails if any
   page other than `index.html` appears in `app/`.
 
-### What is still broken
+Everything below was written at v5.9, when the findings were recorded but most were still open. The
+fixes landed in **v5.10** and each finding carries its own status. The headline change is that
+**the unattended publisher is gone** — process killed, Startup shortcut removed, and both the script
+and its installer now refuse to run. HoopaDex publishes through `build/publish.sh`, which runs the
+suites and refuses to push on red.
 
-- **Nothing enforces the boundary between working and published.** A hidden background script
-  (`Projects/auto-publish.bat`, launched from a Startup shortcut) runs `git add -A && git commit &&
-  git push` on this repository every ten minutes, with no test gate. It committed and pushed this
-  review's own changes twice while the review was in progress. Details in finding **F1**.
-- **The "one portable HTML file, no dependencies" claim is false.** The app is four files including
-  a 480 KB vendored copy of `@smogon/calc` whose version is recorded nowhere.
-- **The Bulk tab's objective is a modelling choice presented as a derivation**, and the alternative
-  model picks a different answer for 135 of 208 Pokémon. Finding **F4**.
-- Two published statistics could not be reproduced and have been withdrawn.
-- Three documents are stale: the plain-English deck is at version 1.3 against an app at 5.9.
+The mutation set is committed as `build/mutation-check.js` and runs in CI, so the central finding of
+this review cannot quietly stop being true.
+
+### What is still open
+
+- **The Bulk tab's objective is a modelling choice, not a derivation**, and the alternative model
+  picks a different answer for 135 of 208 Pokémon. The claim is corrected and the tab now states its
+  model, but **the recommendation is unchanged** — which model to serve is a product decision.
+  Finding **F4**.
+- **`@smogon/calc` still has no known version.** It is now pinned by SHA-256 so it cannot change
+  unnoticed, but a checksum pins the artefact, not its provenance. Finding **F8**.
+- **Two published statistics were withdrawn as unreproducible.** Section 4.
+- **Nothing tests what the app looks like.** Screenshots would not composite in this environment;
+  every visual claim here rests on reading the DOM. Section 6.
+
+### A correction to this review
+
+Finding **F10** originally reported the white paper and deck as badly stale. That was wrong — it
+measured each document's own revision number instead of the app version it describes, and both were
+current. The false finding, why it happened, and the check that now measures the right number are in
+F10. It is the same error as the withdrawn statistics in section 4, from the other direction: a
+figure that is easy to grep for is not the figure you wanted.
 
 ### What I could not verify
 
@@ -118,11 +134,53 @@ made during this review were internally consistent:
 Both happened to land on clean boundaries. That is luck. The timer has no knowledge of whether an
 edit is finished.
 
-**Status: NOT FIXED.** Deliberately. The script is outside this repository, it publishes five other
-projects, and disabling it is a decision with consequences beyond HoopaDex. Its own header comments
-record the lesson already learned the hard way — *"One repo, one publisher"* — after two publishers
-on ABRA produced 312 failed pushes and a wedged rebase. HoopaDex still has two publishers: this timer
-and any human or agent running `git push`. The recommended fix is in section 7, rule **R1**.
+**Status: FIXED in 5.10 — the script is dead.**
+
+The script existed for a reason I did not know when I wrote the paragraph above: Claude Cowork would
+not push to GitHub itself, so for some sessions the timer was the *only* route to the live site.
+That is a real problem and a timer is a reasonable answer to it, so my first fix kept the timer and
+gated it. Will then confirmed he is not using Cowork again, which removes the only argument for an
+unattended publisher.
+
+It is now retired in four places so it cannot return: the running process killed, the
+`CHOMP-autopublish.lnk` Startup shortcut removed, and both `auto-publish.bat` and its installer
+`START-AUTO-PUBLISH.bat` exit immediately with an explanation of why and what to use instead. The
+original script body is preserved beneath the new header, because its comments record what two
+publishers on one repository cost.
+
+The gate built for that intermediate fix survives as `Projects\publish-gate.js` and remains useful
+on its own — `node publish-gate.js <repo-dir>` reports whether a repository is safe to publish. It
+runs the repository's suites **and** separately checks that `app/index.html` parses — separately,
+because a green suite does not imply a page that runs: the suites slice text out of the file, and
+text slices perfectly well when it cannot execute. That is exactly how the blank page shipped. On
+failure it writes the reason to `autopublish.log` and skips the push.
+
+Verified two ways. It passes all five published repositories as they stand, so adding it stops
+nothing that works today:
+
+```
+portfolio                PASS (safe to publish)
+Pokemon/HoopaDex         PASS (safe to publish)
+Pokemon/CHOMP            PASS (safe to publish)
+Pokemon/KaizoDex         PASS (safe to publish)
+jeopardy-wagering        PASS (safe to publish)
+```
+
+And it blocks a copy of this app with one closing brace removed — the blank-page failure — with the
+batch block tested in real `cmd`, not merely reasoned about:
+
+```
+RESULT=BLOCKED
+[Mon 08/03/2026 18:07:55.87] testrepo: NOT PUBLISHED - app/index.html does not parse:
+  Unexpected token ')' | suite failed: tests/test-syntax.js
+```
+
+A repository with no `tests/` and no `app/index.html` is published exactly as before, so this cannot
+strand a project that never had tests.
+
+`build/publish.sh` is added for sessions that *can* push directly: parse check, suites, size guard,
+push, then verify the commit reached origin and that Pages actually served the new version. One repo,
+one publisher — with the timer as the gated fallback rather than an ungated competitor.
 
 ---
 
@@ -379,14 +437,30 @@ Recommended approach in section 7, rule **R4**.
 
 **Severity: low for readers of the app, high for anyone inheriting the project.**
 
-**How I proved it.** Highest version string mentioned in each document, measured:
+**CORRECTED 5.10 — this finding was substantially wrong, and the error is instructive.**
 
-| Document | Version referenced | App version |
+I first measured it by taking the highest version-like string in each document. That produced a
+table showing the white paper at 5.3 and the deck at 1.3 against an app at 5.9, and I reported the
+deck as roughly fifty versions stale.
+
+It was not. `1.3` is the **deck's own revision number**, which is a different and perfectly
+legitimate number. Measuring the stamp that actually names the app:
+
+| Document | App version it claims to describe | App version at review |
 |---|---|---|
-| `docs/HOOPADEX-technical-docs.md` | 5.8 → now 5.9 | 5.9 |
-| `docs/HOOPADEX-whitepaper.md` | 5.3 | 5.9 |
-| `README.md` | 3.6 | 5.9 |
-| `docs/HOOPADEX-deck-plain-english.md` | 1.3 | 5.9 |
+| `docs/HOOPADEX-whitepaper.md` | HoopaDex v5.8 | 5.8 — **current** |
+| `docs/HOOPADEX-deck-plain-english.md` | HoopaDex v5.8 | 5.8 — **current** |
+| `docs/HOOPADEX-technical-docs.md` | HoopaDex v5.8 | 5.8 — **current** |
+| `README.md` | no app version stamp at all | — |
+
+All three were current when this review began. They went stale only because *this review* bumped the
+version. I published a false accusation against correct documents, and it is the same error the
+project has met twice before: **a number that is easy to grep for is not the same as the number you
+want.** The bulk figures in section 4 failed the same way, from the other direction.
+
+What survives of the finding is narrower and still true: the rule had no check, `README.md` carried
+no stamp to check, and the white paper's §5 did contain a genuinely false claim — that every suite
+had been mutation-checked, which section 2 disproves.
 
 `CLAUDE.md` requires white paper, deck and technical documentation to be updated in the same pass as
 any change. `check_projects.py` verifies those files *exist* and that the CHANGELOG version matches
@@ -405,8 +479,12 @@ HoopaDex passes; CHOMP fails; the script exits 1. Followed literally, `CLAUDE.md
 HoopaDex until CHOMP is fixed. In practice that trains you to walk past the gate — which is why the
 version/CHANGELOG assertion has been duplicated into `tests/test-syntax.js`, where it must pass.
 
-**Status: PARTIALLY FIXED.** Technical docs and README corrected. The white paper and deck are still
-stale; see section 6.
+**Status: FIXED in 5.10.** `tests/test-doc-versions.js` requires the white paper, deck and technical
+documentation each to carry a `HoopaDex vX.Y` stamp equal to line 2 of the app, and to keep their own
+revision number distinguishable from it. The white paper's §5 has been rewritten and §5.2 added; the
+deck's slide 12 carried the same false claim and the same stale counts, and now carries neither. This
+does not prove a document's *contents* are current — nothing automated can — but the checkable part
+of the rule is now checked, so R8 and the documentation half of R11 move from preference to rule.
 
 ---
 
@@ -432,13 +510,13 @@ Test results before and after:
 | | Suites | Assertions | Mutations caught |
 |---|---|---|---|
 | **Before** | 23 | 778 | 5 of 10 |
-| **After** | 25 | 844 | 11 of 11 |
+| **After** | 27 | 871 | 11 of 11, re-run in CI |
 
 All 25 suites pass. Command and output:
 
 ```
 $ for f in tests/test-*.js; do node "$f"; done
-suites: 25   failing: 0   total assertions: 844
+suites: 27   failing: 0   total assertions: 871
 ```
 
 | File | Change | Why |
@@ -473,7 +551,7 @@ the previous session and is *not* rewritten; it is listed here so the discrepanc
 | HP/(2×Def), range | 0.43 – 5.50 | **0.41 – 1.42** | same three | same |
 | HP/(Def+SpD) at the optimum, mean | 0.90 | **0.890** | same three | Reproduced. Now carries its provenance. |
 | Critical-hit multiplier, Gens II–V | 1.5 | **2** | `app/index.html` | Fixed in code |
-| Suites / assertions | 23 / 778 | **25 / 844** | `README.md`, `docs/HANDOFF.md` | Measured this review |
+| Suites / assertions | 23 / 778 | **27 / 871** | `README.md`, `docs/HANDOFF.md` | Measured this review |
 | `PAST_STATS` species covered | (untracked) | **58, all derived** | `data/past-stats.json` | New |
 | Pre-1.96 `PAST_STATS` accuracy | "10 of 43 correct" | **7 of 42 agree with Showdown** | `docs/HANDOFF.md`, `CHANGELOG.md` | See section 5 |
 

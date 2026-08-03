@@ -19,21 +19,25 @@ comment on line 2 of `app/index.html`.
   itself is updated in the same pass, including a correction to one of its own findings.
 
 ### Fixed
-- **The publisher now has a gate.** `Projects\auto-publish.bat` ran `git add -A && git commit &&
+- **The unattended publisher is dead.** `Projects\auto-publish.bat` ran `git add -A && git commit &&
   git push` across six repositories every ten minutes with no test run anywhere in it — whatever
   was in the working tree at the ten-minute mark became the live public site. It published a
   HoopaDex left as a syntax error, a completely blank page, with all 18 suites of the day still
   green, and during the 5.9 review it committed and pushed that review's own half-finished work
-  twice. It now calls `Projects\publish-gate.js` first, which runs the repo's suites **and** checks
-  that `app/index.html` parses, and refuses to publish on either failure with the reason written to
-  `autopublish.log`.
+  twice, under Will's name, so the history cannot tell a decision from a timer firing.
 
-  The script was not removed. It exists because Claude Cowork would not push to GitHub itself, so
-  the timer is the only route some sessions have to the live site — that is a real problem and the
-  timer is a reasonable answer to it. What it lacked was any notion of finished. Repositories with
-  no tests are published exactly as before, so this cannot stop a project that never had them.
-  Verified: the gate passes all five published repositories today, and blocks a copy of this app
-  with one brace removed.
+  It is retired in four places, so it cannot come back: the running process is killed, the
+  `CHOMP-autopublish.lnk` Startup shortcut is removed, and both `auto-publish.bat` and its installer
+  `START-AUTO-PUBLISH.bat` now exit immediately with an explanation. The original script body is
+  preserved beneath its new header, so the hard-won comments about the ten-minute interval and the
+  90 MB guard survive.
+
+  It existed because Claude Cowork would not push to GitHub itself, which made a timer the only
+  route some sessions had to the live site. Will is no longer using Cowork, so the reason is gone
+  and the script goes with it. An intermediate version of this change gated the timer instead of
+  removing it; that gate is kept as `Projects\publish-gate.js`, which reports whether any repository
+  is safe to publish (`node publish-gate.js <repo-dir>`) and is useful on its own. Verified: it
+  passes all five repositories as they stand, and blocks a copy of this app with one brace removed.
 - **`build/publish.sh`** for anyone who *can* push directly: parse check, suites, size guard, push,
   then verify the commit landed on origin and that Pages actually served the new version. Modelled
   on ABRA's publisher and the same "one repo, one publisher" rule.
