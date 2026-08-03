@@ -12,6 +12,30 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.3] — 2026-08-03
+
+### Fixed
+- **The team editor showed a 510 EV budget in Champions mode.** Champions replaces EVs with Stat
+  Points — 0–32 per stat, 66 total, whole steps — and the damage calculator already knew that, but
+  the editor did not: it offered a 510 budget, capped each stat at 252, and stepped in fours. The
+  rules are now declared once in `statBudget()` and read by both, so they cannot disagree again.
+  The label switches between "SP" and "EVs" with the mode.
+
+### Changed
+- **Team weaknesses, resistances and offensive coverage are now two matrices.** They were three
+  lists of comma-separated names that ran down the page. Rows are the eighteen types and columns
+  are your team, so "who folds to this?" and "who covers this?" are a glance down a column instead
+  of a paragraph to parse. Defensive rows sort by quad-weaknesses first, offensive rows sort holes
+  first, and ×4 / ×¼ cells carry a ring rather than a different hue so the diverging pair keeps its
+  meaning. Cell colours are the type chart's, so the app speaks one visual language.
+- **Team slot moves sit in a fixed 2×2 grid.** Flex-wrap gave four across on short names and 3+1 on
+  long ones, so cards read ragged. Every card now has the same geometry regardless of move length.
+
+### Notes
+- The two matrices share a row axis deliberately: a type with no tick in the offensive matrix and a
+  column of ×2 in the defensive one is the same problem seen from both sides.
+
+
 ## [2.2] — 2026-08-03
 
 ### Fixed
