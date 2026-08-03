@@ -12,6 +12,69 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.9] — 2026-08-03
+
+### Notes
+- **Architecture review.** Full findings in `docs/ARCHITECTURE-REVIEW-2026-08-03.md` (and `.pdf`).
+  The method was mutation testing: break the shipped code on purpose, run all 23 suites, and see
+  whether anything notices. Five of ten deliberate bugs passed the entire battery undetected. What
+  follows is what that exposed.
+
+### Fixed
+- **The damage calculator had no numeric test.** Three separate corruptions of the shipped damage
+  arithmetic — critical hits at 2.5×, STAB at 1.9×, and the spread-move reduction deleted outright
+  — each left all 23 suites green. Nothing in the battery ever computed a damage number. The
+  arithmetic is now a pure function (`calcLocalRolls`, `calcLocalStab`, `calcLocalCritMult`) with
+  `tests/test-damage-formula.js`, 43 assertions whose expected values are worked by hand from the
+  damage formula rather than read back out of the app. All three mutations now fail it.
+- **Critical hits were generation-blind.** The local calculator multiplied by 1.5 in every
+  generation. A critical hit was ×2 from Generation II through V and became ×1.5 in VI, so every
+  pre-VI critical hit read 25% low — in a dex whose stated purpose is generation accuracy. Now
+  `calcLocalCritMult(gen)`, and pinned in both directions.
+- **A version 1.92 copy of the app was live.** `app/HoopaDex_1_92.html` was published at
+  `/app/HoopaDex_1_92.html` and returned HTTP 200. It predated the historical base-stat fix (44
+  species against today's 58, no Krookodile), the Gen I type chart fix and the item generation
+  fix — a dex that was wrong in every way this project has spent versions correcting, and it looked
+  exactly as authoritative as the real one. Removed from the published tree; git history keeps it.
+  `tests/test-syntax.js` now fails if any page other than `index.html` appears in `app/`.
+- **Two derived tables had no drift check.** `data/mega-abilities.json` and `data/regulations.json`
+  were generated, committed, and then never compared to the app again. Changing Mega Barbaracle's
+  ability to Levitate, and deleting Venusaur from the Regulation M-A roster, both passed all 23
+  suites. New `tests/test-mega-abilities.js` compares every pairing against the Showdown-derived
+  file; `tests/test-champions-roster.js` gains an anchor outside the app. Both now fail on those
+  mutations.
+- **The roster suite could only check the rosters against each other.** Every assertion in it was
+  relational, so deleting an id shrank M-A and M-B together and `M-B == M-A + additions` still
+  held. A uniformly wrong roster was undetectable.
+
+### Changed
+- **The Bulk tab states its model.** The tool maximises HP × (Def + SpD), which is the right
+  objective when an opponent is entirely physical or entirely special with an even chance of each.
+  It is *not* the right objective against an attacker that mixes both within one battle — that one
+  maximises HP × Def × SpD / (Def + SpD). Measured across all 208 Pokémon of Regulation M-B at
+  32 SP, cap 32, neutral nature, the two disagree for **135 of 208 (64.9%)**; Avalugg (95/184/46) is
+  the worst case, where the shipped 32/0/0 survives 10.49% fewer mixed hits than 0/0/32. The
+  recommendation is unchanged — which model to serve is a product decision, not a defect — but the
+  tab now says which question it answers, and no longer claims a point of HP "is worth about twice
+  what a single defence point is", which is the folk rule the tool exists to replace.
+- `tests/test-syntax.js` also asserts that the version on line 2 matches the newest CHANGELOG
+  entry. `check_projects.py` already does this, but it lives in another repository and currently
+  exits non-zero because of an unrelated project, so in practice it is walked past.
+- `tests/test-champions-roster.js` accepts `HOOPADEX_SRC`, which the handoff note claimed every
+  suite already did. Nine of twenty-three did not.
+
+### Removed
+- **Two published figures, withdrawn as unreproducible.** `docs/BACKLOG.md` stated that at the
+  exact bulk optimum, HP/(2×Def) averages 1.30 and ranges 0.43–5.50. Against the Regulation M-B
+  roster the tool actually serves, it averages **0.919** and ranges **0.41–1.42**. Ten combinations
+  of budget, cap and nature were swept; none produced a mean near 1.30 or a maximum above 1.52, and
+  a maximum of 5.50 needs a Chansey- or Blissey-class stat line that is not in the roster. The
+  companion figure HP/(Def+SpD) ≈ 0.90 *did* reproduce, at 0.890. The population behind the
+  original numbers was never recorded, which is why they could not be checked. Every figure in that
+  section now names its roster, budget, cap and nature.
+
+---
+
 ## [5.8] — 2026-08-03
 
 ### Added

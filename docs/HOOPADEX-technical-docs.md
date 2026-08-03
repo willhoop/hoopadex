@@ -1,7 +1,7 @@
 # HoopaDex — Technical Documentation
 
-**Version 1.3 · Last updated 2026-08-03 · HoopaDex v5.8**
-Documents the published application and the local file `app/HoopaDex_1_92.html`.
+**Version 1.4 · Last updated 2026-08-03 · HoopaDex v5.9**
+Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
 ---
@@ -36,7 +36,7 @@ generation that you select**. It does not show only the current values.
 *Learn HoopaDex.*
 
 ## 1.1 Open the application
-1. Double-click `app/HoopaDex_1_92.html`.
+1. Double-click `app/index.html`.
 2. The application opens in your browser.
 
 Installation is not necessary. An internet connection is necessary. See Part 3.4.
@@ -97,8 +97,8 @@ This rule is written on line 2 of the HTML file. Obey it.
 
 1. Edit the file.
 2. Increase the version number in the comment on line 2.
-3. Rename the file to agree with the comment. For example, change `HoopaDex_1_92.html` to
-   `HoopaDex_1_93.html`.
+3. The published copy stays named `index.html`, because GitHub Pages serves it as the site entry
+   point. The comment on line 2 is its authoritative version marker.
 4. Record the change in `CHANGELOG.md`.
 
 **Caution:** The version in the comment and the version in the file name must always agree.
@@ -298,7 +298,7 @@ regulation and not legal in another. Always check `legalIn` for the regulation t
 is a breaking change. Increase the version when you change it.
 
 ## 3.7 Published version (GitHub Pages)
-The published version is newer than the local file `app/HoopaDex_1_92.html`. It adds three things.
+The published version is `app/index.html`. It adds three things over version 1.92.
 
 **Live site:** `https://willhoop.github.io/hoopadex/`
 **Repository:** `https://github.com/willhoop/hoopadex`
@@ -306,7 +306,7 @@ The published version is newer than the local file `app/HoopaDex_1_92.html`. It 
 | File | Size | Purpose |
 |---|---|---|
 | `index.html` | ~494 KB | The application. |
-| `calc-engine.js` | ~481 KB | The `@smogon/calc` damage engine. |
+| `calc-engine.js` | ~481 KB | The `@smogon/calc` damage engine. Vendored; no version is recorded — see the architecture review. |
 | `champions-learnsets.json` | ~1.4 MB | The legality export. See Part 3.6. |
 
 ### Additions over version 1.92
@@ -414,7 +414,7 @@ The Champions export is a separate JSON file, not embedded in the HTML. Two reas
    If the data were embedded in the HTML, CHOMP would need its own copy, and the two copies would
    become different over time.
 
-**Note on version 1.92.** The local file `app/HoopaDex_1_92.html` does not contain Champions mode
+**Note on version 1.92.** That superseded version did not contain Champions mode
 and does not produce this export. Champions mode, the damage calculator, and the export are in the
 published version. See Part 3.7.
 

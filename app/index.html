@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.8 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.9 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -4466,8 +4466,17 @@ function renderBulk(){
      one setting it opens on. The real question is how to divide the portion of the budget you can
      spare for bulk after Attack and Speed have taken theirs. */
   const budEl=document.getElementById('bulk-budget'), budVal=budEl?parseInt(budEl.value):32;
-  let h='<p class="bulk-intro">Damage taken scales with HP &times; defence. A point of HP multiplies <i>both</i> defences, '
-    +'so it is worth about twice what a single defence point is &mdash; every spread below is the exact optimum, searched rather than guessed.</p>';
+  /* The wording here states the model, because the model is a choice and not a derivation.
+     Maximising HP x (Def + SpD) maximises EXPECTED hits survived when the opponent is entirely
+     physical or entirely special, an even chance of each. If instead you take a mixture of both
+     within one battle, the quantity to maximise is HP x Def x SpD / (Def + SpD), and that picks a
+     different spread for 135 of the 208 Pokemon in Regulation M-B. See docs/BACKLOG.md. Until
+     v5.9 this paragraph asserted that a point of HP "is worth about twice what a single defence
+     point is", which is the folk rule the tool exists to replace. */
+  let h='<p class="bulk-intro">Damage taken scales with HP &times; defence, and a point of HP multiplies <i>both</i> defences. '
+    +'Every spread below is the exact optimum, searched rather than guessed, for the case where an opponent is '
+    +'either fully physical or fully special &mdash; an even chance of each. Against an attacker that mixes both in one '
+    +'battle, shore up the <i>weaker</i> defence more than these rows suggest.</p>';
   h+='<div class="bulk-controls">'
     +'<input id="bulk-search" class="filter-input" placeholder="Find a Pokémon…" value="'+(window._bulkQuery||'')+'" oninput="onBulkSearch()" autocomplete="off">'
     +'<select id="bulk-nature" class="filter-select" onchange="renderBulk()">'

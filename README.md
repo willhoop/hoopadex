@@ -18,13 +18,12 @@ a six-slot team builder with importable competitive sets, and a light/dark theme
 | | Where | Notes |
 |---|---|---|
 | **Published (current)** | [willhoop.github.io/hoopadex](https://willhoop.github.io/hoopadex/) · [repo](https://github.com/willhoop/hoopadex) | Adds **Champions mode**, a **damage calculator** built on the official `@smogon/calc` engine, and the **SP stat system** (0–32 per stat, 66 budget, fixed 31 IVs, level 50). |
-| Local snapshot | `app/HoopaDex_1_92.html` | Version 1.92. No Champions mode. |
 
 Both need an internet connection — they read live data from PokéAPI.
 
 ## Versioning rule
 The version is recorded on line 2 of the HTML file. **When you edit the file, increment that
-version and rename the file to match** (`HoopaDex_1_92.html` → `HoopaDex_1_93.html`), then record
+version** on line 2 of `app/index.html`, then record
 the change in `CHANGELOG.md`.
 
 ## Documentation

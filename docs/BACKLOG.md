@@ -248,15 +248,48 @@ point. The obvious repair, highest marginal gain, is up to 41% worse. Shipped as
 of HP multiplies *both* defences. Against a mixed attacker HP is worth about twice as much, so the
 old advice — everything into the defence — was backwards for most of the roster.
 
-Derived: total hits survived scales with HP × (Def + SpD), so one HP point gains (Def+SpD) and one
-defence point gains HP. **The target is HP = Def + SpD, not HP = 2 × Def.** The two coincide when
-the defences are close, which is why the folk rule survives; it fails on lopsided defenders like
-Skarmory (140/70 wants HP near 210, not 280). At the exact optimum HP/(Def+SpD) averages 0.90 while
-HP/(2×Def) averages 1.30 and ranges 0.43–5.50.
+Derived: one HP point gains (Def+SpD) and one defence point gains HP. **The target is
+HP = Def + SpD, not HP = 2 × Def.** The two coincide when the defences are close, which is why the
+folk rule survives; it fails on lopsided defenders like Skarmory (140/70 wants HP near 210,
+not 280).
+
+### Corrected 5.9 — the objective is a modelling choice, not a derivation
+
+The architecture review of 2026-08-03 re-derived this and found the sentence it originally opened
+with — *"total hits survived scales with HP × (Def + SpD)"* — is true only under one model, and was
+stated as though it were the only mathematics. Both of these are correct, and they disagree:
+
+| Model of the opponent | Quantity to maximise | Shipped? |
+|---|---|---|
+| Fully physical **or** fully special, even chance of each — maximise *expected* hits survived | HP × (Def + SpD) | yes |
+| A mixture of both **within one battle** — maximise hits actually survived | HP × Def × SpD / (Def + SpD) | no |
+
+The first is an average over two separate battles; the second is one battle. They are not the same
+question and they do not have the same answer. Measured over all 208 Pokémon of Regulation M-B at
+32 SP, cap 32, neutral nature, the two objectives pick **different spreads for 135 of 208 (64.9%)**.
+Mean shortfall in hits survived under the mixed model is 0.95%; the worst case is Avalugg
+(95/184/46), where the shipped answer 32/0/0 survives **10.49% fewer** mixed hits than 0/0/32.
+
+The reason is that HP × (Def + SpD) is dominated by the *larger* defence, so it over-rewards HP;
+real survivability is bottlenecked by the *weaker* one.
+
+The tool still ships the first model — that is a product decision, not a bug, and it is now stated
+in the Bulk tab rather than left implicit. What was wrong was the claim that it followed from the
+mathematics alone.
+
+**Figures withdrawn.** The published averages could not be reproduced. Against the Regulation M-B
+roster the tool actually serves, at 32 SP / cap 32 / neutral, HP/(Def+SpD) averages **0.890**
+(consistent with the published 0.90), but HP/(2×Def) averages **0.919, not 1.30**, and ranges
+**0.41–1.42, not 0.43–5.50**. Ten combinations of budget (12–66), cap (32, 66) and nature
+(0.9, 1.0, 1.1) were swept and none produced a mean near 1.30 or a maximum above 1.52. A maximum of
+5.50 needs a Chansey- or Blissey-class stat line, and neither is in the Champions roster. The
+population behind the original figures was never recorded, so they cannot be checked — which is the
+finding. Every figure above now names its roster, budget, cap and nature.
 
 **The lesson is the objective, not the arithmetic.** 4.2 was rigorous about solving the wrong
-problem — brute-forced, tested against 294,912 combinations, and confidently wrong. Checking the
-maths does not check that you asked the right question.
+problem — brute-forced, tested against 294,912 combinations, and confidently wrong. 5.0 fixed the
+objective but described it as a derivation. Checking the maths does not check that you asked the
+right question, and *stating* the question is part of answering it.
 
 ## 23. Stat formula article — `done` (4.2)
 

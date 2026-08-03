@@ -62,5 +62,28 @@ check(!!ver, 'the version comment on line 2 is present and parseable', ver && ve
 const line2 = src.split(/\r?\n/)[1] || '';
 check(/HOOPADEX VERSION:/.test(line2), 'and it is genuinely on line 2, where CLAUDE.md says it lives');
 
+// --- the version stamped here must be the one the CHANGELOG announces ----------------------
+// check_projects.py enforces this too, but it lives in another repository and it currently exits
+// non-zero because of an unrelated project, so in practice it gets skipped. A gate that is always
+// red teaches you to walk past it. This is the same assertion, inside the suite that must pass.
+const changelog = fs.readFileSync(path.join(__dirname, '..', 'CHANGELOG.md'), 'utf8');
+const topVer = changelog.match(/^## \[([\d.]+)\]/m);
+check(!!topVer, 'the CHANGELOG has a parseable newest version', topVer && topVer[1]);
+if (ver && topVer) check(ver[1] === topVer[1],
+  'the app version and the newest CHANGELOG entry agree',
+  `index.html ${ver[1]}, CHANGELOG ${topVer[1]}`);
+
+// --- nothing stale is published alongside it -------------------------------------------------
+// GitHub Pages serves everything in app/. A copy of the app from version 1.92 sat there until
+// 5.9, reachable at /app/HoopaDex_1_92.html and returning HTTP 200. It predated the historical
+// base-stat fix, the Gen I type chart fix and the item generation fix, so a reader who opened it
+// got a dex that was wrong in every way this project has since spent versions correcting — and it
+// looked exactly as authoritative as the real one.
+const appDir = path.join(__dirname, '..', 'app');
+const strays = fs.readdirSync(appDir).filter(f => /\.html?$/i.test(f) && f !== 'index.html');
+check(strays.length === 0,
+  'app/ publishes index.html and no other page — a stale copy is a wrong dex with a live URL',
+  strays.join(', '));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
