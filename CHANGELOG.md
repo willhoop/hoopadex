@@ -12,6 +12,19 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [3.6] — 2026-08-03
+
+### Changed
+- **Search results carry type, category, power and accuracy.** A fuzzy match previously showed a
+  bare name, so searching "bug" returned Headbutt and Bubble Beam with no clue why they matched or
+  which of five similar moves was wanted. The whole value of a forgiving search is being able to
+  browse the near-misses — that only works if you can tell them apart without opening each one.
+
+### Notes
+- Metadata comes from whatever is already in the move cache, so it appears for moves the app has
+  loaded and is simply absent otherwise, rather than blocking the dropdown on a fetch per keystroke.
+
+
 ## [3.5] — 2026-08-03
 
 ### Added

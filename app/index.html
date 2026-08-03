@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 3.5 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 3.6 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -525,6 +525,12 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 /* Regulation changes: a diff, laid out as one. Added and removed are rows, not cards. */
 .abil-tag{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:1px 5px;margin-left:7px;border:1px solid var(--border2);color:var(--text4)}
 .abil-tag.abil-new{color:var(--eff-up);border-color:color-mix(in srgb,var(--eff-up) 40%,transparent)}
+.us-meta{display:inline-flex;align-items:center;gap:6px;margin-left:10px;vertical-align:middle}
+.us-type{font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#fff;padding:1px 6px;border-radius:4px;text-shadow:0 1px 1px rgba(0,0,0,.3)}
+.us-meta [class^="us-cat-"]{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:1px 5px;border-radius:4px;border:1px solid var(--border2);color:var(--text4)}
+.us-cat-physical{color:var(--eff-dn)!important;border-color:color-mix(in srgb,var(--eff-dn) 40%,transparent)!important}
+.us-cat-special{color:var(--eff-up)!important;border-color:color-mix(in srgb,var(--eff-up) 40%,transparent)!important}
+.us-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text4)}
 .speed-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
 .speed-table th{position:sticky;top:0;background:var(--bg2);padding:6px 8px;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text5);border-bottom:1px solid var(--border2);text-align:right;cursor:pointer;white-space:nowrap}
 .speed-table th.sp-mon{text-align:left;cursor:default}
@@ -1876,7 +1882,7 @@ function onSmartSearch(){
           const desc=item.desc?'<span style="font-size:11px;color:#6a6a7a;margin-left:6px">'+item.desc.slice(0,60)+'</span>':'';
           h+='<div class="usearch-item" data-idx="'+idx+'" onclick="smartSelect('+idx+')" style="text-transform:capitalize;padding:8px 16px">'+item.name.replace(/-/g,' ')+desc+'<span class="usearch-cat">Ability</span></div>';
         }else if(item.type==='move'){
-          h+='<div class="usearch-item" data-idx="'+idx+'" onclick="smartSelect('+idx+')" style="text-transform:capitalize;padding:8px 16px">'+item.name.replace(/-/g,' ')+'<span class="usearch-cat">Move</span></div>';
+          h+='<div class="usearch-item" data-idx="'+idx+'" onclick="smartSelect('+idx+')" style="text-transform:capitalize;padding:8px 16px">'+item.name.replace(/-/g,' ')+searchMoveMeta(item.name)+'<span class="usearch-cat">Move</span></div>';
         }else if(item.type==='location'){
           h+='<div class="usearch-item" data-idx="'+idx+'" onclick="smartSelect('+idx+')" style="text-transform:capitalize;padding:8px 16px">'+capName(cleanLocName(item.name))+'<span class="usearch-cat">Location</span></div>';
         }else if(item.type==='item'){
@@ -6732,6 +6738,20 @@ function readStatObj(o){
     out[k]=e[1];
   });
   return out;
+}
+
+// Search results showed a bare name, so a fuzzy match gave no clue why it matched or which of five
+// similar moves you actually wanted. Type, category, power and accuracy answer that in place -
+// the point of a forgiving search is to browse the near-misses without clicking each one.
+function searchMoveMeta(name){
+  const md=moveCache[name]||moveCache[String(name).toLowerCase().replace(/\s+/g,'-')];
+  if(!md)return '';
+  const t=getMoveTypeForGen(md), cat=getMoveCatForGen(md);
+  let bits='<span class="us-type" style="background:'+(TC[t]||'#888')+'">'+t+'</span>'
+          +'<span class="us-cat-'+cat+'">'+cat.slice(0,4)+'</span>';
+  if(md.power)bits+='<span class="us-num">'+md.power+' BP</span>';
+  if(md.accuracy)bits+='<span class="us-num">'+md.accuracy+'%</span>';
+  return '<span class="us-meta">'+bits+'</span>';
 }
 
 function statBudget(){
