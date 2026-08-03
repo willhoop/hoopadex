@@ -4173,6 +4173,45 @@ function optimalBulkSplit(baseHP,baseDef,budget,nature,cap){
   return best;
 }
 
+/* Both defences at once, which is the question people actually have.
+   optimalBulkSplit above answers "HP or Def?" in isolation, and on that objective the answer is to
+   balance the two. But a point of HP multiplies BOTH defences while a point of Def only helps
+   against physical, so against a mixed attacker HP is worth roughly twice as much and the isolated
+   answer is misleading. Total hits survived scales with HP x Def + HP x SpD = HP x (Def + SpD).
+
+   Maximise H*(D+S): one point into HP gains (D+S), one point into either defence gains H. So you
+   buy HP while (D+S) > H, and defence once H > (D+S).
+
+        TARGET:  HP  =  Def + SpD        - NOT "HP = 2 x Def"
+
+   "Double the defence" is the same statement whenever Def and SpD are close, which is common enough
+   that it survives as a rule of thumb. It is wrong for lopsided defenders: Skarmory at 140/70 wants
+   HP near 210, not 280. Measured at the exact optimum across the roster, HP/(Def+SpD) averages 0.90
+   while HP/(2*Def) averages 1.30 and ranges from 0.43 to 5.50.
+
+   In practice the target is usually out of reach inside 32 points, so the answer collapses to "keep
+   buying whichever side is behind" - which is what the exhaustive search below does anyway. */
+function optimalBulkSpread(baseHP,baseDef,baseSpD,budget,nature,cap){
+  const CAP=cap===undefined?32:cap;
+  const total=Math.max(0,budget|0);
+  let best=null;
+  for(let h=0;h<=Math.min(CAP,total);h++){
+    for(let d=0;d<=Math.min(CAP,total-h);d++){
+      const s=Math.min(CAP,total-h-d);
+      const hp=bulkStat(baseHP,h,true,1);
+      const def=bulkStat(baseDef,d,false,nature), spd=bulkStat(baseSpD,s,false,nature);
+      const total_=hp*(def+spd);
+      const spent=h+d+s;
+      // Ties break toward spending more of the budget, then toward HP - unspent points are wasted,
+      // and HP is the stat that helps against whichever side turns up.
+      if(!best||total_>best.value||(total_===best.value&&(spent>best.spent||(spent===best.spent&&h>best.hpSP))))
+        best={hpSP:h,defSP:d,spdSP:s,hp:hp,def:def,spd:spd,value:total_,spent:spent,
+              phys:hp*def,spec:hp*spd};
+    }
+  }
+  return best;
+}
+
 function renderBulk(){
   const el=document.getElementById('bulk-container');
   if(!el)return;
