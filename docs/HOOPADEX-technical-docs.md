@@ -188,6 +188,25 @@ It must restore rather than subtract: deleting a type that did not exist yet is 
 that type was ADDED to a species. Where Fairy REPLACED a type it loses one — Togetic and Togekiss
 were Normal/Flying and rendered as pure Flying in Gens II-V until 1.98.
 
+### The Champions roster is the one table still hand-maintained
+`CHAMPIONS_IDS_MA` and `REG_MB_NEW` are ~200 National Dex numbers written by hand. Everything else
+generation-aware in this app is derived — base stats and typing from Showdown's mod data, move
+descriptors from the bundled calc engine, the regulation diff by set difference. This one is not,
+because no machine-readable Champions roster is published.
+
+A wrong number here is invisible: the dex renders, the filter filters, the article generates, and
+all of them are quietly wrong about legality. Two things guard it:
+
+- `tests/test-champions-roster.js` runs on every test pass and checks what needs no network —
+  valid dex numbers, no duplicates **in the source literal** (a repeat inside `new Set([...])` is
+  silently collapsed, leaving the roster one short while every count still agrees), each regulation
+  a superset of its predecessor, and `M-B size == M-A + REG_MB_NEW`.
+- `build/audit-champions-roster.js` answers the evolution-stage question against PokéAPI, cached in
+  `data/evolution-cache.json`. As of 2026-08-03: no baby Pokémon, and exactly three entries that are
+  not a final stage — Pikachu, Qwilfish (evolves only as its Hisuian form) and Floette (present as
+  its Mega, the Eternal Flower, which cannot evolve). Those three are pinned in the test, so a
+  fourth arriving is a failure someone has to justify rather than a silent addition.
+
 ### Regulation changes are generated, not written
 `docs/REGULATIONS.md` and `data/regulations.json` are produced by `build/generate-regulations.js`,
 which reads the `CHAMPIONS_REGS` registry out of `app/index.html` and takes the set difference

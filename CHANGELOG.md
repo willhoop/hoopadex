@@ -12,6 +12,53 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.9.3] — 2026-08-03
+
+### Changed
+- **The type chart's fills are softer.** 2.2 swung from washed-out tints straight back to full
+  saturation, and across a 324-cell grid that is a lot of loud colour to sit in front of — the
+  correction overshot in the other direction. The fills are now muted steps that still clear every
+  gate: dark `#2f5f96`/`#9e4a45` (CVD ΔE 13.0, normal-vision 20.1) and light `#3d72ab`/`#b05a55`
+  (ΔE 13.3, all checks pass), carrying near-white text at 6.6:1 and 6.0:1. The immune cell came down
+  with them, and the eighteen type pills sit at 82% opacity so the axes stop competing with the grid
+  — their canonical colours are unchanged.
+- The palette validator warns that these fills fall below 3:1 against the page surface. That warning
+  demands visible labels or a table view as relief, and both are already true: this *is* a table and
+  every non-neutral cell carries its glyph. The warning is answered, not waived.
+
+### Notes
+- This is the first change made after actually *seeing* the chart. Every visual decision before it
+  today came from reading computed styles, because the browser pane never composited a frame — which
+  is exactly how 1.99 shipped a chart that measured correct and read as unusable.
+
+
+## [2.9.2] — 2026-08-03
+
+### Added
+- **`tests/test-champions-roster.js`** (19 assertions) and **`build/audit-champions-roster.js`**.
+  The Champions roster was the last table in the app neither generated from a published source nor
+  validated against one — ~200 hand-typed dex numbers, where a wrong entry is invisible because the
+  dex still renders and the filter still filters.
+  - The test checks what needs no network: valid dex numbers, each regulation a superset of its
+    predecessor, `M-B size == M-A + REG_MB_NEW`, unique keys, and **no duplicates in the source
+    literal**. That last one matters because a number repeated inside `new Set([...])` is silently
+    collapsed, leaving the roster one Pokémon short while every count in the app still agrees with
+    itself. Both failure modes were confirmed by mutation.
+  - The audit script answers the evolution-stage question against PokéAPI, cached so reruns are
+    offline.
+
+### Notes
+- **The roster is clean.** No duplicates, nothing out of range, M-B a strict superset of M-A,
+  **no baby Pokémon at all**, and only three entries that are not a final stage: Pikachu, Qwilfish
+  and Floette. All three look deliberate — Qwilfish evolves only as its Hisuian form, and Floette is
+  present as its Mega (Eternal Flower), which cannot evolve. Those three are pinned in the test, so
+  a fourth arriving is a failure that has to be justified rather than a silent addition.
+- This closes the question of which generation-aware tables are unverified: none of them are now.
+  `PAST_STATS`, `POKEMON_PAST_TYPES` and the regulation diff are generated; the type charts, move
+  descriptors and this roster are tested. `ITEM_INTRO_GEN`, `EVO_OVERRIDES` and `REGIONAL` remain
+  unaudited and are still recorded as backlog item 16.
+
+
 ## [2.9.1] — 2026-08-03
 
 ### Added
