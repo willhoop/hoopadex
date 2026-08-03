@@ -74,10 +74,27 @@ SPEED_COLS.forEach(c => {
   const row = '| ' + c.label + ' | ' + c.hint + ' | ' + c.f(100) + ' | ' + c.f(130) + ' |';
   check(doc.includes(row), 'the speed row for "' + c.label + '" matches the app', row);
 });
-// Jolteon is the row the model was originally checked against; keep that check alive.
-check(SPEED_COLS.map(c => c.f(130)).join('/') === '300/200/182/150/130/135',
-  'Jolteon (base 130) still gives 300/200/182/150/130/135',
-  SPEED_COLS.map(c => c.f(130)).join('/'));
+/* Jolteon is the row the model was originally checked against; keep that check alive.
+   Reordered in 5.13 to follow Pikalytics' column layout, and a seventh column added: a Choice Scarf
+   holder with a NEUTRAL nature, which this table previously could not express. Asserted by column
+   KEY rather than by position, so the next reordering does not read as a change to the maths. */
+const at = (k, b) => (SPEED_COLS.find(c => c.key === k) || { f: () => NaN }).f(b);
+const JOLTEON = { base: 130, maxnat: 200, maxsp: 182, neutral: 150, min: 135, scarf: 300, scarfn: 273 };
+Object.entries(JOLTEON).forEach(([k, want]) =>
+  check(at(k, 130) === want, `Jolteon (base 130): ${k} = ${want}`, at(k, 130)));
+
+// The new column is a Scarf WITHOUT a boosting nature, so it must sit between the neutral maximum
+// and the boosting-nature Scarf. Computing it from the wrong base would break this ordering.
+check(at('maxsp', 130) < at('scarfn', 130) && at('scarfn', 130) < at('scarf', 130),
+  'a neutral Scarf beats no Scarf and loses to a boosting-nature Scarf',
+  `${at('maxsp', 130)} < ${at('scarfn', 130)} < ${at('scarf', 130)}`);
+
+/* Pikalytics publishes Mega Aerodactyl (base 150) as 150 / 222 / 202 / 170 / 153 / 333 / 303 for
+   exactly these seven columns. An independently published table using the same model is worth
+   pinning against, because every other check here compares this app to itself. */
+const AERO = { base: 150, maxnat: 222, maxsp: 202, neutral: 170, min: 153, scarf: 333, scarfn: 303 };
+Object.entries(AERO).forEach(([k, want]) =>
+  check(at(k, 150) === want, `Mega Aerodactyl (base 150): ${k} = ${want}, as Pikalytics publishes`, at(k, 150)));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -100,12 +100,13 @@ shipped definitions:
 
 | Column | Meaning | Base 100 | Base 130 |
 |---|---|---|---|
-| Scarf | max SP, + nature, Choice Scarf | 250 | 300 |
-| Max +nat | 32 SP and a speed-boosting nature | 167 | 200 |
-| Max SP | 32 SP, neutral nature | 152 | 182 |
-| Neutral | no SP, neutral nature | 120 | 150 |
 | Base | the base stat itself | 100 | 130 |
-| Min | no SP, speed-reducing nature | 108 | 135 |
+| Max Speed | 32 SP and a speed-boosting nature | 167 | 200 |
+| Neutral +32 | 32 SP, neutral nature | 152 | 182 |
+| Neutral 0 | no SP, neutral nature | 120 | 150 |
+| −Spe 0 | no SP, speed-reducing nature | 108 | 135 |
+| Max + Scarf | 32 SP, boosting nature, Choice Scarf | 250 | 300 |
+| Neutral +32 + Scarf | 32 SP, neutral nature, Choice Scarf | 228 | 273 |
 
 Base 130 is Jolteon, which is the row this model was originally checked against.
 

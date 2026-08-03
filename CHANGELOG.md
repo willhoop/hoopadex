@@ -12,6 +12,53 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.13] — 2026-08-03
+
+### Fixed
+- **Two different Pokémon were sharing one name.** Will looked at the new Speed Tiers table and said
+  he did not believe Scarf Garchomp was the fastest thing in the game. He was right to doubt it, and
+  the numbers turned out to be correct — the **label** was wrong.
+
+  `absol-mega` and `absol-mega-z` are different Pokémon: the Generation VI Mega and the
+  **Legends: Z-A** Mega. Three species have both — Absol, Garchomp and Lucario, the ones whose Z-A
+  stones are `absolite-z`, `garchompite-z` and `lucarionite-z`. `formDisplayName()` had cases for
+  `-mega-x` and `-mega-y` but none for `-mega-z`, so both formes rendered as "Absol (Mega)". The
+  table showed two rows with identical names and different numbers, which reads as a bug in the
+  table.
+
+  Mega Garchomp is a good example of why it mattered: the Gen VI one has **92** base Speed, *slower*
+  than base Garchomp, while the Z-A one has **151**. Both were called "Garchomp (Mega)". They now
+  read "Garchomp (Mega)" and "Garchomp (Mega Z-A)" — called Z-A rather than Z so it does not look
+  like a third sibling of Mega X and Mega Y.
+
+  Fixed in `formDisplayName()`, the single definition of a form's on-screen name, so the Pokédex,
+  the ability page, the calculator and Speed Tiers were all corrected by the one change.
+
+### Changed
+- **Speed Tiers follows the Pikalytics column layout**, which is the page people actually use to
+  answer "what outspeeds what", and which Will asked for by name. Columns now read outward from the
+  raw stat: **Base · Max Speed · Neutral +32 · Neutral 0 · −Spe 0 · Max + Scarf · Neutral +32 + Scarf**.
+- **Added the one column Pikalytics had and this table did not: a Choice Scarf holder with a
+  NEUTRAL nature.** The only Scarf figure here previously assumed a speed-boosting nature, which
+  overstates what most Scarf holders actually reach. Mega Aerodactyl now reads
+  `150 / 222 / 202 / 170 / 153 / 333 / 303`, matching Pikalytics on all seven columns.
+- `docs/STAT-FORMULA.md` regenerated from the shipped code by `build/generate-stat-formula.js`.
+
+### Added
+- `tests/test-form-names.js` gains the Z-A cases and, more importantly, an assertion that the Gen VI
+  and Z-A megas of each affected species **do not share a display name**. That one catches the next
+  collision too, whatever suffix causes it.
+- `tests/test-stat-formula-doc.js` asserts the speed columns by **key rather than position**, so a
+  future reordering does not read as a change to the arithmetic, and pins Mega Aerodactyl against
+  the figures Pikalytics publishes — an independent source, where every other check in that suite
+  compares the app to itself.
+
+### Notes
+- The Bulk tab still filters `CHAMPIONS_IDS` and so still omits every Mega. The same one-line change
+  applies; it was left out of this pass because the naming defect above was the live problem.
+
+---
+
 ## [5.12] — 2026-08-03
 
 ### Fixed

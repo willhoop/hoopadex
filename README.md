@@ -3,7 +3,7 @@
 A complete Pokédex that runs from a folder of static files. No build step, no server, no install —
 open `app/index.html` and it runs.
 
-**Version 5.12 · 2026-08-03**
+**Version 5.13 · 2026-08-03**
 
 > Precisely: `app/index.html` is the application, and it is genuinely self-contained apart from two
 > siblings it loads — `calc-engine.js` (the vendored `@smogon/calc` damage engine) and

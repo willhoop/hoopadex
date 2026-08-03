@@ -90,6 +90,22 @@ check(baseOf('') === 0, 'an empty name returns 0', baseOf(''));
 check(label('slowbro-galar') === 'Slowbro (Galarian)', 'Galarian label', label('slowbro-galar'));
 check(label('rattata-alola') === 'Rattata (Alolan)', 'Alolan label', label('rattata-alola'));
 check(label('charizard-mega-x') === 'Charizard (Mega X)', 'Mega X keeps its letter', label('charizard-mega-x'));
+
+/* Legends: Z-A megas. Three species have BOTH a Gen VI mega and a Z-A one - Absol, Garchomp and
+   Lucario, whose Z-A stones are absolite-z, garchompite-z and lucarionite-z. Until 5.13 there was
+   no case for the -mega-z suffix, so both formes rendered as "Absol (Mega)". The Speed Tiers table
+   then showed two rows with identical names and different numbers, and the Z-A Absol (base 151
+   Speed against the Gen VI Absol's 115) sat at the top of the table looking like a bug.
+   The distinctness assertion below is the one that matters: it catches the NEXT collision too,
+   whatever suffix causes it. */
+check(label('absol-mega-z') === 'Absol (Mega Z-A)', 'a Z-A mega is named as one', label('absol-mega-z'));
+check(label('garchomp-mega-z') === 'Garchomp (Mega Z-A)', "and so is Garchomp's", label('garchomp-mega-z'));
+check(label('lucario-mega-z') === 'Lucario (Mega Z-A)', "and Lucario's", label('lucario-mega-z'));
+['absol', 'garchomp', 'lucario'].forEach(sp =>
+  check(label(sp + '-mega') !== label(sp + '-mega-z'),
+    `${sp}: the Gen VI mega and the Z-A mega get different names`,
+    label(sp + '-mega') + ' vs ' + label(sp + '-mega-z')));
+check(label('absol-mega-z') !== label('charizard-mega-x'), 'Z-A is not confused with an X/Y sibling');
 check(label('charizard-mega-y') === 'Charizard (Mega Y)', 'Mega Y keeps its letter', label('charizard-mega-y'));
 check(label('raichu') === 'Raichu', 'a base species is unchanged', label('raichu'));
 

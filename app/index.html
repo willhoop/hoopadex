@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.12 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.13 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -3038,7 +3038,14 @@ function formDisplayName(rawName){
   for(const suf of DEFAULT_FORM_SUFFIXES){
     if(lower.endsWith(suf)){displayName=pokeName(name.slice(0,name.length-suf.length));break}
   }
-  if(name.includes('-mega'))displayName=pokeName(name.split('-mega')[0])+' (Mega'+(name.includes('-mega-x')?' X':name.includes('-mega-y')?' Y':'')+')';
+  /* -mega-z is a Legends: Z-A Mega, and three species have BOTH it and their original Gen VI Mega:
+     Absol, Garchomp and Lucario. Their Z-A stones are the giveaway - absolite-z, garchompite-z,
+     lucarionite-z. Until 5.13 this branch had no case for it, so both formes rendered as
+     "Absol (Mega)" and the Speed Tiers table showed two identical names with different numbers.
+     The Z-A Absol is base 151 Speed against the Gen VI Absol's 115, so the pair looked like a bug
+     in the table when it was a bug in the label. Called "Z-A" rather than "Z" so it does not read
+     as a third sibling of Mega X and Mega Y. */
+  if(name.includes('-mega'))displayName=pokeName(name.split('-mega')[0])+' (Mega'+(name.includes('-mega-x')?' X':name.includes('-mega-y')?' Y':name.includes('-mega-z')?' Z-A':'')+')';
   else if(name.includes('-alola'))displayName=pokeName(name.replace('-alola',''))+' (Alolan)';
   else if(name.includes('-galar'))displayName=pokeName(name.replace('-galar',''))+' (Galarian)';
   else if(name.includes('-hisui'))displayName=pokeName(name.replace('-hisui',''))+' (Hisuian)';
@@ -3774,20 +3781,30 @@ function switchOtherSub(sub){
    calculator uses - at level 50 with fixed 31 IVs a stat is base+20, then +1 per Stat Point, then
    the nature multiplier - so a number here cannot disagree with a number there.
 
-     Scarf      floor(floor((base+20+32) * 1.1) * 1.5)
-     Max +nat   floor((base+20+32) * 1.1)
-     Max SP     base+20+32
-     Neutral    base+20                 (no SP, no nature)
-     Base       the raw base stat
-     Min        floor((base+20) * 0.9)  (no SP, speed-reducing nature)
+     Base                    the raw base stat
+     Max Speed               floor((base+20+32) * 1.1)
+     Neutral +32             base+20+32
+     Neutral 0               base+20                 (no SP, no nature)
+     -Spe 0                  floor((base+20) * 0.9)  (no SP, speed-reducing nature)
+     Max + Scarf             floor(floor((base+20+32) * 1.1) * 1.5)
+     Neutral +32 + Scarf     floor((base+20+32) * 1.5)
 */
+/* Column set and order follow Pikalytics' Champions speed tiers, which is the page people actually
+   use to answer "what outspeeds what" and is the layout Will asked for. Reading left to right it
+   goes from the raw stat outward: the base stat, then the fastest that stat can be, then the
+   ordinary investments, then the two Choice Scarf numbers.
+
+   The one Pikalytics column this table did not have is NEUTRAL +32 + SCARF - a Scarf user that did
+   NOT spend its nature on Speed. That is a common real spread, and without it the only Scarf number
+   here assumed a boosting nature, which overstates what most Scarf holders actually reach. */
 const SPEED_COLS=[
-  {key:'scarf', label:'Scarf',    hint:'max SP, + nature, Choice Scarf', f:b=>Math.floor(Math.floor((b+20+32)*1.1)*1.5)},
-  {key:'maxnat',label:'Max +nat', hint:'32 SP and a speed-boosting nature', f:b=>Math.floor((b+20+32)*1.1)},
-  {key:'maxsp', label:'Max SP',   hint:'32 SP, neutral nature', f:b=>b+20+32},
-  {key:'neutral',label:'Neutral', hint:'no SP, neutral nature', f:b=>b+20},
-  {key:'base',  label:'Base',     hint:'the base stat itself', f:b=>b},
-  {key:'min',   label:'Min',      hint:'no SP, speed-reducing nature', f:b=>Math.floor((b+20)*0.9)},
+  {key:'base',   label:'Base',        hint:'the base stat itself', f:b=>b},
+  {key:'maxnat', label:'Max Speed',   hint:'32 SP and a speed-boosting nature', f:b=>Math.floor((b+20+32)*1.1)},
+  {key:'maxsp',  label:'Neutral +32', hint:'32 SP, neutral nature', f:b=>b+20+32},
+  {key:'neutral',label:'Neutral 0',   hint:'no SP, neutral nature', f:b=>b+20},
+  {key:'min',    label:'−Spe 0', hint:'no SP, speed-reducing nature', f:b=>Math.floor((b+20)*0.9)},
+  {key:'scarf',  label:'Max + Scarf', hint:'32 SP, boosting nature, Choice Scarf', f:b=>Math.floor(Math.floor((b+20+32)*1.1)*1.5)},
+  {key:'scarfn', label:'Neutral +32 + Scarf', hint:'32 SP, neutral nature, Choice Scarf', f:b=>Math.floor((b+20+32)*1.5)},
 ];
 /* Speed Tiers and Bulk both walk the whole regulation and can only use what is already in `dc`.
    Nothing ever put it there, so the tables showed whichever Pokemon you happened to have opened -
