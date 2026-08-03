@@ -32,7 +32,13 @@ const APP = path.join(ROOT, 'app', 'index.html');
 const OUT = path.join(ROOT, 'data', 'past-stats.json');
 
 const BASE = 'https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/';
-const MODS = [6, 7, 8];               // Gen 9 is current; Gens 1-5 predate any stat revision here
+/* Mods 5 through 8. The app records cutoffs 6..9 only, because base stats were stable from
+   Generation II through V, and a value Showdown records in its genN mod is stored under key N+1 —
+   so gen5 is the mod that supplies the key-6 entries. Leaving gen5 out on the first run made 29 of
+   the app's 58 species look unsourced when in fact they are changes that happened AT Generation VI:
+   Krookodile's 70 Defence is in the gen5 mod, not the gen6 one. Gens 1-4 are not fetched: the gen1
+   and gen2 files predate the Special split and would report every species as "changed". */
+const MODS = [5, 6, 7, 8];
 const STAT = { hp: 'hp', atk: 'attack', def: 'defense', spa: 'special-attack', spd: 'special-defense', spe: 'speed' };
 
 function get(url) {

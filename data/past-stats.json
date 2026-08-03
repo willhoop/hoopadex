@@ -1,0 +1,316 @@
+{
+ "source": "https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/mods/gen{6,7,8}/pokedex.ts",
+ "generated": "by build/generate-past-stats.js — do not edit by hand",
+ "convention": "key N holds the value used in generations below N (the generation the stat changed in)",
+ "speciesCount": 58,
+ "revisionsPerMod": {
+  "gen5": 29,
+  "gen6": 25,
+  "gen7": 1,
+  "gen8": 3
+ },
+ "stats": {
+  "12": {
+   "6": {
+    "special-attack": 80
+   }
+  },
+  "15": {
+   "6": {
+    "attack": 80
+   }
+  },
+  "18": {
+   "6": {
+    "speed": 91
+   }
+  },
+  "24": {
+   "7": {
+    "attack": 85
+   }
+  },
+  "25": {
+   "6": {
+    "defense": 30,
+    "special-defense": 40
+   }
+  },
+  "26": {
+   "6": {
+    "speed": 100
+   }
+  },
+  "31": {
+   "6": {
+    "attack": 82
+   }
+  },
+  "34": {
+   "6": {
+    "attack": 92
+   }
+  },
+  "36": {
+   "6": {
+    "special-attack": 85
+   }
+  },
+  "40": {
+   "6": {
+    "special-attack": 75
+   }
+  },
+  "45": {
+   "6": {
+    "special-attack": 100
+   }
+  },
+  "51": {
+   "7": {
+    "attack": 80
+   }
+  },
+  "62": {
+   "6": {
+    "attack": 85
+   }
+  },
+  "65": {
+   "6": {
+    "special-defense": 85
+   }
+  },
+  "71": {
+   "6": {
+    "special-defense": 60
+   }
+  },
+  "76": {
+   "6": {
+    "attack": 110
+   }
+  },
+  "83": {
+   "7": {
+    "attack": 65
+   }
+  },
+  "85": {
+   "7": {
+    "speed": 100
+   }
+  },
+  "101": {
+   "7": {
+    "speed": 140
+   }
+  },
+  "103": {
+   "7": {
+    "special-defense": 65
+   }
+  },
+  "164": {
+   "7": {
+    "special-attack": 76
+   }
+  },
+  "168": {
+   "7": {
+    "special-defense": 60
+   }
+  },
+  "181": {
+   "6": {
+    "defense": 75
+   }
+  },
+  "182": {
+   "6": {
+    "defense": 85
+   }
+  },
+  "184": {
+   "6": {
+    "special-attack": 50
+   }
+  },
+  "189": {
+   "6": {
+    "special-defense": 85
+   }
+  },
+  "211": {
+   "7": {
+    "defense": 75
+   }
+  },
+  "219": {
+   "7": {
+    "hp": 50,
+    "special-attack": 80
+   }
+  },
+  "222": {
+   "7": {
+    "hp": 55,
+    "defense": 85,
+    "special-defense": 85
+   }
+  },
+  "226": {
+   "7": {
+    "hp": 65
+   }
+  },
+  "267": {
+   "6": {
+    "special-attack": 90
+   }
+  },
+  "277": {
+   "7": {
+    "special-attack": 50
+   }
+  },
+  "279": {
+   "7": {
+    "special-attack": 85
+   }
+  },
+  "284": {
+   "7": {
+    "special-attack": 80,
+    "speed": 60
+   }
+  },
+  "295": {
+   "6": {
+    "special-defense": 63
+   }
+  },
+  "301": {
+   "7": {
+    "speed": 70
+   }
+  },
+  "313": {
+   "7": {
+    "defense": 55,
+    "special-defense": 75
+   }
+  },
+  "314": {
+   "7": {
+    "defense": 55,
+    "special-defense": 75
+   }
+  },
+  "337": {
+   "7": {
+    "hp": 70
+   }
+  },
+  "338": {
+   "7": {
+    "hp": 70
+   }
+  },
+  "358": {
+   "7": {
+    "hp": 65,
+    "defense": 70,
+    "special-defense": 80
+   }
+  },
+  "398": {
+   "6": {
+    "special-defense": 50
+   }
+  },
+  "407": {
+   "6": {
+    "defense": 55
+   }
+  },
+  "488": {
+   "9": {
+    "defense": 120,
+    "special-defense": 130
+   }
+  },
+  "508": {
+   "6": {
+    "attack": 100
+   }
+  },
+  "521": {
+   "6": {
+    "attack": 105
+   }
+  },
+  "526": {
+   "6": {
+    "special-defense": 70
+   }
+  },
+  "527": {
+   "7": {
+    "hp": 55
+   }
+  },
+  "537": {
+   "6": {
+    "attack": 85
+   }
+  },
+  "542": {
+   "6": {
+    "special-defense": 70
+   }
+  },
+  "545": {
+   "6": {
+    "attack": 90
+   }
+  },
+  "553": {
+   "6": {
+    "defense": 70
+   }
+  },
+  "558": {
+   "7": {
+    "attack": 95
+   }
+  },
+  "614": {
+   "7": {
+    "attack": 110
+   }
+  },
+  "615": {
+   "7": {
+    "hp": 70,
+    "defense": 30
+   }
+  },
+  "681": {
+   "8": {
+    "defense": 150,
+    "special-defense": 150
+   }
+  },
+  "888": {
+   "9": {
+    "attack": 130
+   }
+  },
+  "889": {
+   "9": {
+    "attack": 130
+   }
+  }
+ }
+}

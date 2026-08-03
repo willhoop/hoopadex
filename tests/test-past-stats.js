@@ -23,7 +23,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const file = path.join(__dirname, '..', 'app', 'index.html');
+const ROOT = path.join(__dirname, '..');
+const file = process.env.HOOPADEX_SRC || path.join(ROOT, 'app', 'index.html');
 const src = fs.readFileSync(file, 'utf8');
 const lines = src.split(/\r?\n/);
 
@@ -127,6 +128,53 @@ check(statAt(999999, 5, 'attack') === 50, 'twice-revised species: gen 5 takes th
 check(statAt(999999, 5, 'defense') === 20, 'twice-revised species: gen 5 keeps a stat only the older cutoff sets', `got ${statAt(999999, 5, 'defense')}`);
 check(statAt(999999, 7, 'attack') === 100, 'twice-revised species: gen 7 is unmodified', `got ${statAt(999999, 7, 'attack')}`);
 delete PAST_STATS[999999];
+
+// --- 6. the whole table against its derivation ---------------------------------------
+// Everything above pins 8 species out of 58. An architecture review on 2026-08-03 changed
+// Zacian's Generation IX Attack from 130 to 170 — an unpinned species — and all 23 suites stayed
+// green. Sampling 8 entries cannot defend a 58-entry table, and this is the table that was
+// measured at 10 of 43 correct before 1.96.
+//
+// data/past-stats.json is derived from Showdown's genN/pokedex.ts mods by
+// build/generate-past-stats.js. Those mods record only what differs from the current game, so a
+// baseStats line in the gen5 mod IS the Generation V value. On the run that introduced this check
+// the derivation reproduced all 58 species with zero disagreements. Regenerate, never hand-edit.
+const DERIVED = path.join(ROOT, 'data', 'past-stats.json');
+if (!fs.existsSync(DERIVED)) {
+  check(false, 'data/past-stats.json exists — run node build/generate-past-stats.js', DERIVED);
+} else {
+  const d = JSON.parse(fs.readFileSync(DERIVED, 'utf8'));
+  const D = d.stats;
+  const appIds = Object.keys(PAST_STATS).map(Number).sort((a, b) => a - b);
+  const derIds = Object.keys(D).map(Number).sort((a, b) => a - b);
+
+  check(appIds.length === derIds.length,
+    'the app ships exactly as many species as the derivation found',
+    `app ${appIds.length}, derived ${derIds.length}`);
+
+  const extra = appIds.filter(i => !D[i]);
+  const missing = derIds.filter(i => !PAST_STATS[i]);
+  check(extra.length === 0, 'no species in the app is absent from the derivation', extra.join(' '));
+  check(missing.length === 0, 'no derived species was dropped on the way into the app', missing.join(' '));
+
+  // Value-by-value. A count check would survive a swapped number, which is the whole failure mode.
+  const drift = [];
+  for (const id of appIds) {
+    if (!D[id]) continue;
+    const a = PAST_STATS[id], b = D[id];
+    for (const gen of new Set([...Object.keys(a), ...Object.keys(b)])) {
+      const av = a[gen] || {}, bv = b[gen] || {};
+      for (const st of new Set([...Object.keys(av), ...Object.keys(bv)]))
+        if (av[st] !== bv[st]) drift.push(`${id} gen<${gen} ${st}: app=${av[st]} derived=${bv[st]}`);
+    }
+  }
+  check(drift.length === 0,
+    'every historical stat matches Showdown — regenerate, do not edit',
+    drift.slice(0, 8).join(' | '));
+
+  check(/generate-past-stats\.js/.test(d.generated || ''),
+    'the derivation says which generator produced it', d.generated);
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
