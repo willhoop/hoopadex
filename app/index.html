@@ -3684,7 +3684,40 @@ const SPEED_COLS=[
   {key:'base',  label:'Base',     hint:'the base stat itself', f:b=>b},
   {key:'min',   label:'Min',      hint:'no SP, speed-reducing nature', f:b=>Math.floor((b+20)*0.9)},
 ];
+/* Speed Tiers and Bulk both walk the whole regulation and can only use what is already in `dc`.
+   Nothing ever put it there, so the tables showed whichever Pokemon you happened to have opened -
+   60 of 208 - beneath a line reading "148 still loading". Nothing was loading. That count made an
+   incomplete table look like one mid-fetch, which is worse than an obviously empty one: a speed
+   tier list missing three quarters of the format will quietly tell you that you outspeed things
+   you do not.
+   Fetches in batches and re-renders as each lands, so the table fills in front of you. */
+let _rosterLoading=false;
+async function ensureRosterLoaded(rerender){
+  if(_rosterLoading)return;
+  const missing=[...CHAMPIONS_IDS].filter(id=>!dc[id]);
+  if(!missing.length)return;
+  _rosterLoading=true;
+  try{
+    for(let i=0;i<missing.length;i+=20){
+      const batch=missing.slice(i,i+20);
+      const res=await Promise.all(batch.map(id=>
+        fetch('https://pokeapi.co/api/v2/pokemon/'+id).then(r=>r.ok?r.json():null).catch(()=>null)));
+      res.forEach(p=>{if(p)dc[p.id]=p});
+      if(rerender)rerender();
+    }
+  } finally { _rosterLoading=false; }
+}
+
 let speedSortCol='maxnat';
+let speedQuery='', speedTeamOnly=false;
+function onSpeedSearch(){
+  const b=document.getElementById('speed-search');
+  speedQuery=b?b.value:'';
+  renderSpeedTiers();
+  const n=document.getElementById('speed-search');
+  if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}
+}
+function toggleSpeedTeamOnly(){ speedTeamOnly=!speedTeamOnly; renderSpeedTiers(); }
 function renderSpeedTiers(){
   const el=document.getElementById('speed-container');
   if(!el)return;
@@ -3692,10 +3725,17 @@ function renderSpeedTiers(){
     el.innerHTML='<p class="regs-intro">Speed tiers are built for the Champions Stat Point system. Switch the generation selector to Champions to see them.</p>';
     return;
   }
+  // Actually fetch what is missing, rather than reporting it as "still loading" forever.
+  ensureRosterLoaded(renderSpeedTiers);
   const roster=master.filter(function(p){return CHAMPIONS_IDS.has(p.id)});
+  // Prep for a specific game: narrow to your team, or to whatever you type.
+  const q=(speedQuery||'').toLowerCase().trim();
+  const teamIds=new Set(teamSlots.filter(Boolean).map(function(t){return t.id}));
   const rows=roster.map(function(p){
     const d=dc[p.id];
     if(!d)return null;
+    if(speedTeamOnly&&!teamIds.has(p.id))return null;
+    if(q&&p.name.indexOf(q)<0)return null;
     const b=(getStatsForGen(d).find(function(x){return x.stat.name==='speed'})||{}).base_stat;
     if(b===undefined)return null;
     const r={id:p.id,name:pokeName(p.name),base:b};
