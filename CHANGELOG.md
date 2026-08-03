@@ -12,6 +12,26 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [3.3] — 2026-08-03
+
+### Fixed
+- **Immunity was a third shade of blue.** `#5f5f85` sat 1.06:1 from the super-effective fill and
+  2.96:1 from the navy page — close to both. Immunity is a categorically different state, so it now
+  uses a neutral grey that belongs to neither family: 6.4:1 against the page, 2.0:1 against the blue.
+- **Team cards call the stat budget SP in Champions.** Showdown's format says "EVs:" in every mode,
+  so a Champions paste still reads that way. The paste keeps their word so it round-trips; the card
+  now uses ours, via the same `statBudget()` the editor and calculator share.
+
+### Notes
+- **The paste parser is not dropping stat values.** Running the exact Blaziken block —
+  `EVs: 2 HP / 32 Atk / 32 Spe` — returns `{hp:2, attack:32, speed:32}`, all three. A team showing
+  only "2 HP" is a stale autosave from before the import, not a parse failure; re-importing corrects
+  it. Verified rather than assumed, because the obvious guess was that the parser was at fault.
+- **The Showdown calculator cannot be given a team by link.** Its query string carries only `gen`
+  and `mode`; imported sets live in its own `localStorage`, which is cross-origin and not writable
+  from here. The button copies the paste and opens the page, which is the whole of what is possible.
+
+
 ## [3.2] — 2026-08-03
 
 ### Added

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 3.2 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 3.3 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -11,12 +11,12 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 /* Theme variables */
-:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#35699f;--eff-dn-solid:#9e4a45;--eff-zero:#5f5f85;--eff-zero-ink:#ffffff;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
+:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#35699f;--eff-dn-solid:#9e4a45;--eff-zero:#9a9a96;--eff-zero-ink:#15151f;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
 body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#8fadc6;--eff-dn-solid:#c9a096;--eff-zero:#c9c9d6;--eff-zero-ink:#2f2f45;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
 /* Colourblind mode. Declared AFTER body.light so it wins in dark mode by source order, with an
    explicit body.light.cvd rule that beats both on specificity - an earlier version sat above
    body.light and was silently overridden whenever the light theme was on. */
-body.cvd{--eff-up:#3987e5;--eff-dn:#e08c2f;--eff-up-solid:#3987e5;--eff-dn-solid:#d9822b;--eff-zero:#5f5f85;--eff-zero-ink:#ffffff}
+body.cvd{--eff-up:#3987e5;--eff-dn:#e08c2f;--eff-up-solid:#3987e5;--eff-dn-solid:#d9822b;--eff-zero:#9a9a96;--eff-zero-ink:#15151f}
 body.cvd .type-table td.cell.eff-2{color:#0d1420}
 body.cvd .type-table td.cell.eff-half{color:#1a1206}
 body.light.cvd{--eff-up:#1f66b8;--eff-dn:#a86a12;--eff-up-solid:#7fb2df;--eff-dn-solid:#e0aa5c;--eff-zero:#c9c9d6;--eff-zero-ink:#2f2f45}
@@ -6446,7 +6446,10 @@ function renderTeamBuilder(){
         }
         // EVs
         if(s.evs&&Object.keys(s.evs).length){
-          h+='<div style="font-size:11px;color:#8a8a9a">'+Object.entries(s.evs).map(([k,v])=>v+' '+k.toUpperCase()).join(' / ')+'</div>';
+          // Showdown's format calls them EVs in every mode, so a Champions paste still says "EVs:".
+          // The paste keeps their word for round-tripping; the card uses ours.
+          const _u={hp:'HP',attack:'Atk',defense:'Def','special-attack':'SpA','special-defense':'SpD',speed:'Spe'};
+          h+='<div style="font-size:11px;color:#8a8a9a">'+statBudget().label+': '+Object.entries(s.evs).map(([k,v])=>v+' '+(_u[k]||k.toUpperCase())).join(' / ')+'</div>';
         }
         // HP IVs note (Gen 2-7 only)
         const gn=getDataGenNum();
