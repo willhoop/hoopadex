@@ -12,7 +12,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const src = fs.readFileSync(path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
+const src = fs.readFileSync(process.env.HOOPADEX_SRC || path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
 const lines = src.split(/\r?\n/);
 const start = lines.findIndex(l => l.startsWith('const DEX_TYPES='));
 const end = lines.findIndex((l, i) => i > start && l.startsWith('function onDexSortChange'));

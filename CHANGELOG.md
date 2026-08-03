@@ -12,6 +12,79 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.10] — 2026-08-03
+
+### Notes
+- **Acting on the architecture review.** 5.9 recorded the findings; this closes them. The review
+  itself is updated in the same pass, including a correction to one of its own findings.
+
+### Fixed
+- **The publisher now has a gate.** `Projects\auto-publish.bat` ran `git add -A && git commit &&
+  git push` across six repositories every ten minutes with no test run anywhere in it — whatever
+  was in the working tree at the ten-minute mark became the live public site. It published a
+  HoopaDex left as a syntax error, a completely blank page, with all 18 suites of the day still
+  green, and during the 5.9 review it committed and pushed that review's own half-finished work
+  twice. It now calls `Projects\publish-gate.js` first, which runs the repo's suites **and** checks
+  that `app/index.html` parses, and refuses to publish on either failure with the reason written to
+  `autopublish.log`.
+
+  The script was not removed. It exists because Claude Cowork would not push to GitHub itself, so
+  the timer is the only route some sessions have to the live site — that is a real problem and the
+  timer is a reasonable answer to it. What it lacked was any notion of finished. Repositories with
+  no tests are published exactly as before, so this cannot stop a project that never had them.
+  Verified: the gate passes all five published repositories today, and blocks a copy of this app
+  with one brace removed.
+- **`build/publish.sh`** for anyone who *can* push directly: parse check, suites, size guard, push,
+  then verify the commit landed on origin and that Pages actually served the new version. Modelled
+  on ABRA's publisher and the same "one repo, one publisher" rule.
+- **The item-generation derivation was circular.** `build/generate-item-gens.js` took its list of
+  items from the `ITEM_INTRO_GEN` table in the app — the table it exists to validate — so it could
+  only ever re-derive what it already knew. The drift check compared 325 against 325 and passed
+  while the app loaded **370** items at runtime; the 45 Legends Z-A mega stones PokéAPI has added
+  since were invisible to both sides. The generator now enumerates from `HELD_ITEM_CATEGORIES`, the
+  same source the app uses, so it can see the universe grow.
+
+  PokéAPI has no `game_indices` for those 45, so they genuinely cannot be dated and are recorded as
+  `unresolved` rather than guessed at. Writing them into the app as `undefined` was tried and
+  reverted — absence is better than a placeholder. No reader-visible data changed: all 45 are mega
+  stones, and `ITEM_CAT_GENS[44]` already pins that category to Generations VI, VII and IX.
+- **`getItemIntroGen` no longer defaults silently.** An unknown item still resolves to Generation IX,
+  which is correct for every item currently affected, but now warns once per item in the console.
+  An item PokéAPI adds to an *older* category would otherwise vanish from every generation before
+  IX with nothing said.
+
+### Added
+- **`build/mutation-check.js`, wired into CI.** Eleven deliberate defects, each naming the suite
+  that must catch it; the run fails if any survives or if an anchor no longer matches. A mutation
+  check performed once by hand decays into a claim about the past, which is exactly what the white
+  paper's verification section had become.
+- **`tests/test-vendor-pins.js` and `data/vendor-pins.json`.** `app/calc-engine.js` is a ~480 KB
+  vendored build of `@smogon/calc` — the primary damage engine, the one whose numbers the reader
+  actually sees — with no version, lockfile, upstream commit, checksum or test. It is now pinned by
+  SHA-256, along with the 1.4 MB Champions learnset export, and the suite fails if either changes
+  or if a new local script is added to `app/` unpinned. **Its version is still unknown**; the file
+  carries no version string. A checksum pins the artefact, not its provenance, and the pin file says
+  so. The tightest bound available is that it contains Ivy Cudgel and Hospitality, so it postdates
+  the Teal Mask DLC of September 2023.
+- **`tests/test-doc-versions.js`.** Each of the white paper, deck and technical documentation must
+  carry a `HoopaDex vX.Y` stamp equal to line 2 of the app. This does not prove their contents are
+  current — nothing automated can — but it makes the checkable part of the rule checked.
+- All **27** suites now accept `HOOPADEX_SRC`, so any of them can be pointed at a mutated copy. The
+  5.9 handoff claimed this was already true of every suite; nine of twenty-three did not have it.
+
+### Changed
+- White paper §5 rewritten and §5.2 added: it claimed every suite had been mutation-checked, which
+  the review disproved. The deck's slide 12 carried the same claim and the same stale counts.
+- **A correction to the 5.9 review.** It reported the white paper and deck as badly stale — the deck
+  "at version 1.3 against an app at 5.9". That was measured by taking the highest version-like
+  string in each file, which picked up each *document's own* revision number rather than the app
+  version it describes. Both correctly said "HoopaDex v5.8", which was current when they were
+  written. The finding was wrong, it is corrected in the review, and `test-doc-versions.js` now
+  measures the right number. It is the same error the project keeps meeting: a figure that is easy
+  to grep for is not the figure you wanted.
+
+---
+
 ## [5.9] — 2026-08-03
 
 ### Notes

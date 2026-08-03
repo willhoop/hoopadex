@@ -1,0 +1,25 @@
+{
+  "note": "Checksums for the binary-ish assets shipped alongside app/index.html. Verified by tests/test-vendor-pins.js on every run. If a pin fails, either the file was replaced deliberately — in which case update this file in the same pass and say what changed in the CHANGELOG — or it was replaced by accident, which is exactly what this exists to catch.",
+  "why": "An architecture review on 2026-08-03 found app/calc-engine.js was a ~480 KB vendored build of @smogon/calc with no version recorded anywhere, no lockfile, no upstream commit, no checksum and no test. It is the primary damage engine: whatever it says is what the reader is told. A file in that position that can be swapped without anything noticing is the same class of risk as a hand-maintained table.",
+  "limitation": "A checksum pins the artefact, not its provenance. It proves the file has not changed since 2026-08-03; it does NOT prove which upstream version it came from, and that is still unknown. See docs/ARCHITECTURE-REVIEW-2026-08-03.md finding F8.",
+  "files": [
+    {
+      "path": "app/calc-engine.js",
+      "bytes": 480730,
+      "sha256": "4da93e78b4878f6c4d9476862d4c1c7c47b7aab629b04435a8b0bc10f4ad8d71",
+      "what": "@smogon/calc, bundled. Exposes the global SmogonCalc.",
+      "upstream": "https://github.com/smogon/calc",
+      "version": "UNKNOWN — the bundle carries no version string.",
+      "dated": "Contains Ivy Cudgel and Hospitality, which arrived with the Teal Mask DLC in September 2023, so the build is later than that. That is the tightest bound available without diffing against candidate upstream builds."
+    },
+    {
+      "path": "app/champions-learnsets.json",
+      "bytes": 1423832,
+      "sha256": "980d4f01b17123e0ee9ade765cfa2ab95b9aad080133695cbc736c5b46084820",
+      "what": "Pokémon Champions learnsets, exported by CHOMP.",
+      "upstream": "CHOMP (willhoop/chomp), not yet a published repository",
+      "version": "UNKNOWN — the export carries no version or generation stamp.",
+      "known_issue": "Some entries are tagged with a TM method, which drives a \"(TM)\" badge in the app. Champions has no TMs; each Pokémon learns its moveset with VP. The flag is an artefact of how the export was generated and belongs fixed in CHOMP at the source, not patched here."
+    }
+  ]
+}

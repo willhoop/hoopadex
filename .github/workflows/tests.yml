@@ -20,3 +20,10 @@ jobs:
             node "$f" || status=1
           done
           exit $status
+      - name: Mutation check
+        # A green suite proves the code has not changed, not that it is right. On 2026-08-03 the
+        # battery was 23 suites and 778 assertions, all green, and five deliberate bugs walked
+        # straight through it — three of them in the damage calculator, which had no test that
+        # computed a damage number. This step breaks the app on purpose and fails if the suite
+        # that claims to cover each bug stays green.
+        run: node build/mutation-check.js

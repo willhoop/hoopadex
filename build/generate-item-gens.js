@@ -65,10 +65,46 @@ function introGenOf(item) {
   return gens.length ? Math.min(...gens) : null;
 }
 
+/* The universe of items the APP ACTUALLY LOADS at runtime.
+ *
+ * This function exists because of a circularity found on 2026-08-03. The generator used to take its
+ * list of items from the ITEM_INTRO_GEN table already in the app — the very table it is supposed to
+ * validate. It could therefore only ever re-derive the items it already knew about, and was
+ * structurally incapable of discovering a new one. The drift check in test-generation-tables.js
+ * compared 325 against 325 and passed, while the app was loading 370 items at runtime: 45 Legends
+ * Z-A mega stones that PokéAPI had added since, every one of them falling through
+ * `ITEM_INTRO_GEN[name] || 9` and being silently assigned Generation IX.
+ *
+ * A check that compares two artefacts drawn from the same seed proves consistency, not correctness.
+ * The list now comes from the same place the app gets it — the held-item categories in
+ * HELD_ITEM_CATEGORIES — so the derivation can see the universe grow.
+ */
+async function loadedItemSlugs(src) {
+  const m = src.match(/^const HELD_ITEM_CATEGORIES=\[([^\]]*)\];/m);
+  if (!m) throw new Error('could not locate HELD_ITEM_CATEGORIES in app/index.html');
+  const cats = m[1].split(',').map(s => Number(s.trim())).filter(n => Number.isInteger(n));
+  const seen = new Set();
+  for (const c of cats) {
+    const d = await getJSON('https://pokeapi.co/api/v2/item-category/' + c + '/');
+    if (d && d.items) d.items.forEach(i => seen.add(i.name));
+  }
+  return { slugs: seen, categories: cats.length };
+}
+
 (async () => {
   const { src, table } = readTable();
-  const slugs = Object.keys(table).sort();
-  console.log('items in the app table: ' + slugs.length);
+
+  const { slugs: loaded, categories } = await loadedItemSlugs(src);
+  const inTableOnly = Object.keys(table).filter(s => !loaded.has(s));
+  // Union, not replacement: an item the app no longer loads may still be referenced elsewhere, and
+  // dropping entries is not this script's job.
+  const slugs = [...new Set([...loaded, ...Object.keys(table)])].sort();
+
+  console.log('items in the app table      : ' + Object.keys(table).length);
+  console.log('items the app loads live    : ' + loaded.size + '  (from ' + categories + ' held-item categories)');
+  console.log('newly discovered            : ' + [...loaded].filter(s => !(s in table)).length);
+  if (inTableOnly.length) console.log('in the table but not loaded : ' + inTableOnly.length + ' (kept)');
+  console.log('deriving                    : ' + slugs.length);
 
   let cache = {};
   if (!REFRESH && fs.existsSync(CACHE)) {

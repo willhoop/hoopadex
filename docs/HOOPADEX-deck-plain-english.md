@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 1.3 · Last updated 2026-08-03 · HoopaDex v5.8**
+**Version 1.4 · Last updated 2026-08-03 · HoopaDex v5.10**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -162,12 +162,24 @@ stale as the last time you ran it.
 
 ## Slide 12 — What we don't claim
 
-Ten test suites and 252 assertions now cover the historical data, and each one has been checked
-by deliberately breaking the code to confirm the test goes red. Three tests were found to be
-passing without testing anything, and fixed.
+Twenty-seven test suites and 870 assertions now cover the data, the damage formula and the
+files we did not write ourselves.
 
-**But nothing tests what the app looks like.** Layout, light mode and phones are unverified — and
-that has already cost us: a type chart that passed every colour and contrast measurement was
+**That number used to be the wrong thing to be proud of.** This slide previously said every test
+had been checked by deliberately breaking the code. In August 2026 someone actually did that,
+properly, to all of them — and **five out of ten deliberate bugs walked straight through the whole
+suite**. Three were in the damage calculator, which had no test that worked out a damage number.
+It only checked that a function with the right name existed.
+
+The pattern was worth more than the bugs. Every table we *generate* from published data was
+defended, because we compare the two on every run. Every table we *typed* was defended only by
+whichever handful of entries someone remembered to check — for historical stats, 8 out of 58.
+
+All ten now fail the way they should, plus an eleventh. The bugs are kept in the repository and
+re-run automatically, because a check done once by hand quietly turns into a story about the past.
+
+**And nothing still tests what the app looks like.** Layout, light mode and phones are unverified —
+and that has already cost us: a type chart that passed every colour and contrast measurement was
 genuinely unpleasant to read, and only a human looking at it caught that.
 
 That is now the biggest gap, it is written down in the white paper, and it is the next thing to

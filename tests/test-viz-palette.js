@@ -18,7 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const src = fs.readFileSync(path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
+const src = fs.readFileSync(process.env.HOOPADEX_SRC || path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
 let pass = 0, fail = 0;
 function check(ok, label, detail) {
   if (ok) { pass++; console.log('pass  ' + label); }

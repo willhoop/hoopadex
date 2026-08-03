@@ -13,7 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const lines = fs.readFileSync(path.join(__dirname, '..', 'app', 'index.html'), 'utf8').split(/\r?\n/);
+const lines = fs.readFileSync(process.env.HOOPADEX_SRC || path.join(__dirname, '..', 'app', 'index.html'), 'utf8').split(/\r?\n/);
 const start = lines.findIndex(l => l.startsWith('function regulationDiffs()'));
 const end = lines.findIndex((l, i) => i > start && l.startsWith('function regRosterName'));
 if (start < 0 || end < 0) throw new Error('could not locate regulationDiffs in index.html');

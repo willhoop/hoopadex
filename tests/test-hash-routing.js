@@ -11,7 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const src = fs.readFileSync(path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
+const src = fs.readFileSync(process.env.HOOPADEX_SRC || path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
 const slice = (a, b) => {
   const i = src.indexOf(a);
   if (i < 0) throw new Error('anchor not found in index.html: ' + a);

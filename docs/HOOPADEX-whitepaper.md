@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 1.3 · Last updated 2026-08-03 · HoopaDex v5.8**
+**Version 1.4 · Last updated 2026-08-03 · HoopaDex v5.10**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -244,9 +244,10 @@ configuration block.
 
 ## 5. Verification
 
-Ten suites, 252 assertions, run on every push. They cover URL routing, historical base stats,
-historical typing, the visualisation palette, the Showdown paste format, move descriptors, the
-multi-criteria search, the regulation diff and the Champions roster.
+Twenty-seven suites, 870 assertions, run on every push. They cover URL routing, historical base
+stats, historical typing, the visualisation palette, the Showdown paste format, move descriptors,
+the multi-criteria search, the regulation diff, the Champions roster, the damage formula, the
+vendored asset checksums and the documentation version stamps.
 
 Every suite slices the **real** function out of `app/index.html` rather than copying it, so a test
 cannot pass against a stale duplicate of the code it claims to check.
@@ -315,6 +316,50 @@ composition checked against PokéAPI.
 3. The `C2` and `CM` type charts are tested only where they differ from `C1`.
 4. The Champions roster's *membership* cannot be validated — no machine-readable list is published.
    Its structure is checked; its contents are taken on trust.
+
+
+### 5.2 What mutation testing found when it was done properly (2026-08-03)
+
+The paragraph above was, until this revision, an overstatement. It said every suite had been checked
+by mutation. An architecture review tested that claim by applying ten deliberate defects to the
+shipped code and running the entire battery — then 23 suites and 778 assertions, all green — against
+each one.
+
+**Five of the ten survived undetected.**
+
+| Deliberate defect | Battery result |
+|---|---|
+| Critical hits multiply by 2.5× instead of 1.5× | all 23 green |
+| STAB becomes 1.9× instead of 1.5× | all 23 green |
+| The 0.75 spread-move reduction is deleted | all 23 green |
+| A species' historical base stat is changed | all 23 green |
+| A Pokémon is deleted from a tournament roster | all 23 green |
+
+Three of the five were in the damage calculator, which is the most numeric output the app produces
+and which had no test that computed a damage number at all. Its coverage consisted of regular
+expressions asserting that functions with certain names existed.
+
+The failure was structural rather than careless, and it has a general form worth stating: **the
+suites defended every table that had a derivation, and nothing else.** Where a value was generated
+from a published source and committed to `data/`, a drift check compared the two on every run and
+caught its mutation immediately. Where a table had no derivation, it was defended only by whichever
+entries someone had thought to pin by hand — for historical base stats, 8 species out of 58.
+
+Two further observations generalise beyond this project:
+
+1. **A check that compares two artefacts drawn from the same source proves consistency, not
+   correctness.** The item-generation drift check compared 325 entries against 325 and passed, while
+   the app loaded 370 items at runtime. The generator took its list of items from the very table it
+   was validating, so it could not discover an item that table did not already contain.
+
+2. **A test that samples a table does not defend the table.** This is the same error as the
+   folk-rule critique in §2: a measurement over part of a population, reported as though it
+   characterised the whole.
+
+All ten defects, plus one added for a stale published copy, are now caught. The mutation set itself
+is committed as `build/mutation-check.js` and runs in continuous integration, because a mutation
+check performed once by hand decays into a claim about the past — which is precisely what the
+previous version of this section had become.
 
 
 ## 6. Known limitations

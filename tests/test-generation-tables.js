@@ -71,15 +71,50 @@ const CACHE = path.join(ROOT, 'data', 'item-intro-gens.json');
 check(fs.existsSync(CACHE), 'the derived item generations are committed alongside the app');
 if (fs.existsSync(CACHE)) {
   const derived = JSON.parse(fs.readFileSync(CACHE, 'utf8'));
-  check(derived.unresolved.length === 0,
-    'every item in the table could be dated from PokéAPI', derived.unresolved);
   const mismatched = Object.keys(ITEMS).filter(k => derived.gens[k] && derived.gens[k] !== ITEMS[k]);
   check(mismatched.length === 0,
     'ITEM_INTRO_GEN still matches the derivation — regenerate rather than editing by hand',
     mismatched.map(k => k + ': table=' + ITEMS[k] + ' derived=' + derived.gens[k]));
-  check(Object.keys(derived.gens).length === Object.keys(ITEMS).length,
-    'the derivation covers every entry in the table',
-    { derived: Object.keys(derived.gens).length, table: Object.keys(ITEMS).length });
+
+  /* Until 2026-08-03 the two assertions here were `unresolved.length === 0` and
+     `derived.gens.length === ITEMS.length`. Both passed, at 325 === 325, while the app was loading
+     370 items at runtime. The generator took its list of items FROM the table it was validating, so
+     it could only ever re-derive what it already knew; the 45 Legends Z-A mega stones PokéAPI had
+     added since were invisible to both sides of the comparison. Two artefacts drawn from the same
+     seed can only prove consistency, never correctness.
+
+     The generator now enumerates from HELD_ITEM_CATEGORIES — the same source the app uses at
+     runtime — so it sees the universe grow. PokéAPI has no game_indices for those 45, so they
+     genuinely cannot be dated and are recorded in `unresolved` rather than guessed at. Writing them
+     into the app as `undefined` was tried and reverted: it is worse than absence.
+
+     What matters is not that `unresolved` is empty. It is that every unresolved item is one the
+     CATEGORY filter already confines to the right generations, so `ITEM_INTRO_GEN[name] || 9`
+     cannot put it in the wrong era. Every one is currently a mega stone, and ITEM_CAT_GENS pins
+     category 44 to [6,7,9]. An unresolved item in any OTHER category would be a real defect — it
+     would default to Generation IX and vanish from every earlier generation — and that is what
+     this now fails on. */
+  const catGensSrc = src.match(/const ITEM_CAT_GENS=\{[\s\S]*?\n\};/);
+  check(!!catGensSrc, 'ITEM_CAT_GENS is present to bound the undatable items');
+  const MEGA_STONE_CAT = 44;
+  const megaRange = catGensSrc && eval('(' + catGensSrc[0].replace('const ITEM_CAT_GENS=', '').replace(/;$/, '') + ')')[MEGA_STONE_CAT];
+  check(Array.isArray(megaRange) && megaRange.length > 2,
+    'mega stones are pinned to explicit generations, not an open range', JSON.stringify(megaRange));
+
+  const unresolved = derived.unresolved || [];
+  const notAMegaStone = unresolved.filter(n => !/ite$|ite-[xyz]$|nite$/i.test(n));
+  check(notAMegaStone.length === 0,
+    'every item PokéAPI cannot date is a mega stone, whose generations the category filter already pins — anything else would silently become Gen IX',
+    notAMegaStone.join(', '));
+  console.log(`      note: ${unresolved.length} items have no PokéAPI game_indices; all are mega stones, bounded by ITEM_CAT_GENS[44]=${JSON.stringify(megaRange)}`);
+
+  // The app must still ship every item the derivation COULD date. This is the assertion that the
+  // old count check was reaching for, expressed as containment rather than equality.
+  const datable = Object.keys(derived.gens).filter(k => derived.gens[k] != null);
+  const absent = datable.filter(k => !(k in ITEMS));
+  check(absent.length === 0,
+    'every item the derivation could date is in the app table',
+    absent.slice(0, 10).join(', '));
 }
 
 /* The two systematic errors the audit found, asserted individually. These are the ones that would
