@@ -12,6 +12,26 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.5] — 2026-08-03
+
+### Fixed
+- **The calculator's team picker did not say which team it was picking from.** It listed the working
+  team's six Pokémon under "Load from my team", which is ambiguous the moment more than one team is
+  saved — the names alone do not tell you which team you are looking at. It now lists **every** saved
+  team, each under its own heading ("Current team (in the builder)", then each by name), and the
+  banner names the source: *Tyranitar loaded as defender from "Sand Team"*. Reported by Will.
+- **"How do I click calculate?"** — there is no calculate button, and nothing said so. The result
+  panel sits below both columns, so on a laptop a finished calculation lands off the bottom of the
+  screen and nothing visibly changes. Two fixes: the description now states outright that the result
+  updates as you fill the fields, and the panel scrolls itself into view when it first appears —
+  on that transition only, never on every recalculation, which would yank the page around while you
+  are still typing.
+
+  The calculation itself was working the whole time. This was entirely a matter of the answer being
+  somewhere you could not see.
+
+---
+
 ## [5.4] — 2026-08-03
 
 ### Fixed

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.4 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.5 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -991,7 +991,7 @@ button,select,input{touch-action:manipulation}
 </div>
 </div>
 <div id="calc-tab" style="display:none">
-<p style="font-size:13px;color:#8a8a9a;margin-bottom:14px">Damage calculator powered by the official Smogon damage calc engine (@smogon/calc) &#8212; abilities, items, weather, and terrain all supported. In Champions mode it uses the new Stat Point system (0&#8211;32 SP per stat, +1 stat each, 66 total budget) with fixed 31 IVs and level 50; other generations use classic EVs/IVs. In Champions mode, Pok&#233;mon and moves are limited to the Champions roster and battles are level 50.</p>
+<p style="font-size:13px;color:#8a8a9a;margin-bottom:14px">Damage calculator powered by the official Smogon damage calc engine (@smogon/calc) &#8212; abilities, items, weather, and terrain all supported. In Champions mode it uses the new Stat Point system (0&#8211;32 SP per stat, +1 stat each, 66 total budget) with fixed 31 IVs and level 50; other generations use classic EVs/IVs. In Champions mode, Pok&#233;mon and moves are limited to the Champions roster and battles are level 50. <b>There is no calculate button</b> &#8212; the result updates as you fill the fields, and appears below.</p>
 <div class="calc-grid">
   <div class="calc-panel">
     <div class="calc-title" style="color:#F8A060">Attacker</div>
@@ -9102,16 +9102,37 @@ function calcSyncNatures(){
     if(sel)sel.value=String(calcNatureMultiplier(name,side));
   });
 }
+/* Every saved team, grouped and named - not just the one in the builder.
+   The first version listed the working team's six Pokemon under "Load from my team", which is
+   ambiguous the moment you have more than one team saved: the names alone do not tell you which
+   team you are looking at. Each group is labelled, and values carry their source so a Pokemon that
+   appears in two teams still loads the right set. */
+function calcTeamGroups(){
+  const groups=[];
+  const working=teamSlots.map(function(p,i){return {p:p,i:i}}).filter(function(x){return x.p});
+  if(working.length)groups.push({label:'Current team (in the builder)',key:'cur',members:working});
+  const store=loadTeamStore();
+  (store.saved||[]).forEach(function(t,ti){
+    const mem=(t.slots||[]).map(function(p,i){return {p:p,i:i}}).filter(function(x){return x.p});
+    if(mem.length)groups.push({label:t.name,key:'s'+ti,members:mem});
+  });
+  return groups;
+}
 function calcRefreshTeamPickers(){
+  const groups=calcTeamGroups();
   ['atk','def'].forEach(function(side){
     const sel=document.getElementById('calc-team-'+side);
     if(!sel)return;
-    const filled=teamSlots.map(function(p,i){return {p:p,i:i}}).filter(function(x){return x.p});
     const keep=sel.value;
-    sel.innerHTML='<option value="">'+(filled.length?'Load from my team…':'No team saved yet')+'</option>'
-      +filled.map(function(x){return '<option value="'+x.i+'">'+formDisplayName(x.p.name)+'</option>'}).join('');
+    sel.innerHTML='<option value="">'+(groups.length?'Load from a team…':'No team saved yet')+'</option>'
+      +groups.map(function(g){
+        return '<optgroup label="'+String(g.label).replace(/"/g,'&quot;')+'">'
+          +g.members.map(function(x){
+            return '<option value="'+g.key+':'+x.i+'">'+formDisplayName(x.p.name)+'</option>'}).join('')
+          +'</optgroup>';
+      }).join('');
     if(keep&&sel.querySelector('option[value="'+keep+'"]'))sel.value=keep;
-    sel.disabled=!filled.length;
+    sel.disabled=!groups.length;
   });
 }
 /* One implementation of "put this set on this side", shared by the team picker and the paste box.
@@ -9195,10 +9216,14 @@ async function runCalcPaste(side){
 
 async function calcLoadTeamMember(side){
   const sel=document.getElementById('calc-team-'+side);
-  if(!sel||sel.value==='')return;
-  const p=teamSlots[parseInt(sel.value)];
-  if(!p)return;
-  await calcApplySet(side,p.name,p.smogonSet||{},'your team');
+  if(!sel||!sel.value)return;
+  const parts=String(sel.value).split(':');
+  const group=calcTeamGroups().filter(function(g){return g.key===parts[0]})[0];
+  if(!group)return;
+  const entry=group.members.filter(function(x){return String(x.i)===parts[1]})[0];
+  if(!entry)return;
+  // Name the team in the banner, so it is never a guess which set was loaded.
+  await calcApplySet(side,entry.p.name,entry.p.smogonSet||{},'“'+group.label+'”');
 }
 
 function calcBase(p,name){const s=(p.stats||[]).find(x=>x.stat.name===name);return s?s.base_stat:80}
@@ -9362,13 +9387,28 @@ function calcLoadFromTeamSlot(idx){
   if(calcMoveSet.length)calcRunAllMoves(); else calcRun();
 }
 
+/* The result panel sits below both columns, so on a laptop a completed calculation lands off the
+   bottom of the screen and nothing on screen changes. That is why "how do I click calculate?" is
+   the obvious question: there is no button, the answer just was not visible.
+   Scroll it into view on the transition from hidden to shown - not on every recalculation, which
+   would yank the page around while you are still typing. */
+function calcRevealResult(wasHidden){
+  const res=document.getElementById('calc-result');
+  if(!res||!wasHidden||res.style.display==='none')return;
+  const r=res.getBoundingClientRect();
+  if(r.top>window.innerHeight-80||r.bottom<0)res.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 async function calcRun(){
   const res=document.getElementById('calc-result');
   if(!res)return;
+  const wasHidden=res.style.display==='none';
+  const reveal=function(){calcRevealResult(wasHidden)};
   if(typeof SmogonCalc!=='undefined'){
-    try{await calcRunSmogon();return}catch(e){console.warn('smogon calc failed, falling back',e)}
+    try{const r=await calcRunSmogon();reveal();return r}catch(e){console.warn('smogon calc failed, falling back',e)}
   }
-  return calcRunLocal();
+  const out=await calcRunLocal();
+  reveal();
+  return out;
 }
 // moveOverride + collect let the same setup serve the four-move view: with collect set, this
 // returns a result row instead of writing to the DOM, so there is one implementation of the
