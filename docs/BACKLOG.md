@@ -201,13 +201,30 @@ all eighteen, so no option can match nothing. Filtering is done in the DOM like 
 because re-rendering would discard the current sort. The filter persists across tab switches and the
 count is per-tab.
 
-## 22. Bulk calculator — when to invest Def/SpD over HP — `open`
+## 22. Bulk calculator — when to invest Def/SpD over HP — `done` (4.2)
 
-Maximise HP × Def. Spend each point on whichever of the two current stats is lower.
+*Shipped 2026-08-03 as the Bulk tab under Other.*
 
-**VERIFY AGAINST BRUTE FORCE BEFORE SHIPPING.** Will's note: this was not verified the first time.
-The greedy rule is intuitive and not obviously correct at the boundaries — a full search over the
-66-point budget is cheap and settles it. Ship the brute-force check as a test, not as a one-off.
+**The rule specified here was wrong, and the brute force is what said so.** The entry said
+"maximise HP × Def; spend each point on whichever CURRENT stat is lower", with the instruction
+"VERIFY AGAINST BRUTE FORCE BEFORE SHIPPING — I did not." Verified before writing any of it:
+
+- **Neutral nature: the rule is exactly optimal.** 260,100 combinations, zero misses. A neutral stat
+  gains exactly +1 per point, so comparing current levels and comparing marginal gains are the same
+  comparison.
+- **With a nature: not optimal** — wrong in 13–26% of cases, by up to 1.3%.
+  `Math.floor((base+20+sp)*nature)` does not step by 1. A hindering nature wastes the first point
+  outright and a boosting one occasionally pays 2.
+- **"Spend where the marginal gain is highest" is much worse** — up to 41% off — because a zero-gain
+  first point stops it ever starting on a defence. Kept as a test so it is not reintroduced.
+
+Shipped as an exact search over all ≤33 splits instead. `tests/test-bulk-split.js` re-derives every
+one of those claims and confirms the shipped function equals brute force across 294,912
+combinations; swapped for the greedy rule it fails with 32,298 misses.
+
+**The substantive finding.** For most of the roster the optimum is to put *everything* into the
+defence, because HP starts 55 points higher (`base+75` vs `base+20`) and the two are nowhere near
+balanced to begin with. The interesting cases are the already-lopsided ones.
 
 ## 23. Stat formula article — `open`
 

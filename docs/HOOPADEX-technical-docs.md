@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 1.3 · Last updated 2026-08-03 · HoopaDex v4.1**
+**Version 1.3 · Last updated 2026-08-03 · HoopaDex v4.2**
 Documents the published application and the local file `app/HoopaDex_1_92.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -118,7 +118,7 @@ The application reads public APIs from the browser. Those APIs permit cross-orig
 | Property | Value |
 |---|---|
 | File | `app/index.html` (published copy; see 3.7) |
-| Version | 4.1 |
+| Version | 4.2 |
 | Size | Approximately 578 KB |
 | Lines | Approximately 8,760 |
 | Dependencies | None to install. Two web fonts load from Google Fonts. |
@@ -136,7 +136,7 @@ The application reads public APIs from the browser. Those APIs permit cross-orig
 | Natures | Show the stat that each nature raises and lowers. |
 | Team Builder | Build a team of six. Apply competitive sets. |
 | EV Training | Show EV yields and training locations. |
-| Other | Move priority, the physical/special split, compare, EV yields, training spots. |
+| Other | Move priority, the physical/special split, regulation changes, speed tiers, bulk allocation. |
 
 ## 3.3 Generation-aware data tables
 The application holds these tables. They let it show historical data correctly.

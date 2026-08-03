@@ -12,6 +12,44 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [4.2] — 2026-08-03
+
+### Added
+- **Bulk, under Other.** Damage taken scales with HP × defence, so "should this point go into
+  Defence or HP?" has an exact answer for a given budget. The table gives the optimal split for
+  physical and special bulk for every Pokémon in the regulation, at a chosen budget and nature.
+
+  The answer is more one-sided than expected and worth stating: for most of the roster the optimum
+  is to put **everything into the defence**, because HP starts 55 points higher (`base+75` against
+  `base+20`), so the two are nowhere near balanced to begin with. Venusaur at 32 SP wants 0 HP / 32
+  Def. Only the already-lopsided cases — Blastoise's special side, anything with a hindering
+  nature — start buying HP.
+
+### Notes
+- **The rule this was going to ship with is wrong, and the brute force is what said so.** The
+  backlog specified "maximise HP × Def; spend each point on whichever current stat is lower", with
+  the note "VERIFY AGAINST BRUTE FORCE BEFORE SHIPPING — I did not." Verified first, before writing
+  any of it. That rule is:
+  - **exactly optimal on a neutral nature** — 260,100 combinations, zero misses. A neutral stat
+    gains exactly +1 per point, so comparing levels and comparing marginal gains are the same
+    comparison.
+  - **not optimal once a nature applies** — wrong in 13–26% of cases, by up to 1.3%.
+    `Math.floor((base+20+sp)*nature)` does not step by 1: a hindering nature wastes the first point
+    outright (step 0) and a boosting one occasionally pays 2, so levels and gains stop agreeing.
+
+  The obvious repair — spend where the marginal gain is highest — is far **worse**, up to 41% off,
+  because a hindering nature makes the first Defence point worth exactly zero, so that rule never
+  starts on Defence at all and dumps the whole budget into HP. It is kept as a test so nobody
+  "fixes" the code back to it.
+
+  So no shortcut is used. There are at most 33 splits and the exact optimum is found by checking
+  all of them. `tests/test-bulk-split.js` re-derives all three of those claims rather than trusting
+  the comment, and confirms the shipped function equals brute force across 294,912 combinations.
+  Swapped for the greedy rule, it fails with 32,298 misses.
+- **The default budget is 32, not 66.** 66 is the whole-Pokémon budget but only 32 can go into any
+  one stat, so at 66 both defences simply cap and every row read "32 / 32" — the tool answered
+  nothing at the one setting it opened on. Caught by looking at the rendered table, not the code.
+
 ## [4.1] — 2026-08-03
 
 ### Fixed

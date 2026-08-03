@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 4.1 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 4.2 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -363,6 +363,23 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .moves-tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
 .moves-tab{padding:6px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#6a6a7a;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s}
 .moves-tab.active{background:transparent;color:#6890F0;border-color:rgba(104,144,240,0.3)}
+.bulk-intro{font-size:13px;color:var(--text3);margin-bottom:12px;max-width:78ch;line-height:1.5}
+.bulk-controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.bulk-controls .filter-input{max-width:220px}
+.bulk-controls select{max-width:180px}
+.bulk-note{font-size:13px;color:var(--text4);font-style:italic;padding:14px 0}
+.bulk-table{width:100%;border-collapse:collapse;font-size:13px}
+.bulk-table th{text-align:left;padding:7px 10px;font-size:10px;font-weight:800;color:var(--text5);
+  letter-spacing:.07em;text-transform:uppercase;border-bottom:1px solid var(--border2)}
+.bulk-table td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.bulk-table tr:hover{background:var(--hover)}
+.bulk-mon a{color:var(--text2);font-weight:700;text-decoration:none;text-transform:capitalize}
+.bulk-mon a:hover{color:var(--eff-up)}
+.bulk-base{display:block;font-size:10.5px;color:var(--text5);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.bulk-split{font-weight:700;color:var(--text2);white-space:nowrap}
+.bulk-res{font-family:'JetBrains Mono',monospace;color:var(--text4);white-space:nowrap}
+.bulk-count{font-size:11.5px;color:var(--text5);margin-bottom:10px}
+.bulk-foot{font-size:11.5px;color:var(--text5);margin-top:14px;max-width:78ch;line-height:1.55}
 .moves-filter{display:flex;align-items:center;gap:10px;margin:0 0 12px}
 .moves-filter select{max-width:170px;font-size:12.5px;padding:6px 10px;font-weight:700}
 .moves-filter-count{font-size:12px;color:var(--text4)}
@@ -4006,6 +4023,115 @@ function showChartTip(e,atk,def,effVal){
   chartTipEl.style.left=x+'px';chartTipEl.style.top=y+'px';
 }
 function hideChartTip(){if(chartTipEl)chartTipEl.style.display='none'}
+
+/* ── Bulk: when to put Stat Points into a defence instead of HP ──────────────────────────
+   How much damage you absorb scales with the PRODUCT of HP and the relevant defence, so
+   "Def or HP?" has an exact answer for a given budget.
+
+   The intuitive rule is "spend each point on whichever current stat is lower", which balances the
+   two. That rule was brute-forced against every possible split BEFORE any of this was written, and
+   the result is worth recording because it is not what it looks like:
+
+     - On a NEUTRAL nature it is exactly optimal. 260,100 combinations checked, zero misses. A
+       neutral stat gains exactly +1 per point, so comparing current levels and comparing marginal
+       gains are the same comparison.
+     - With a nature applied it is NOT optimal - suboptimal in 13-26% of cases, though never by
+       much: worst 1.3%, average 0.4%. `Math.floor((base+20+sp)*nature)` does not step by 1. A
+       hindering nature wastes the first point outright (step 0) and a boosting one occasionally
+       pays 2, so levels and gains stop being the same question.
+     - "Spend where the marginal gain is highest" looks like the natural fix and is far WORSE - up
+       to 41% off - because a hindering nature makes the first Def point worth exactly zero, so that
+       rule never starts on Def at all and dumps the whole budget into HP.
+
+   So no shortcut is used. There are at most 33 possible splits; the exact optimum is found by
+   checking all of them. Cheap, and it cannot be subtly wrong. */
+function bulkStat(base,sp,isHP,nature){
+  return isHP ? base+75+sp : Math.floor((base+20+sp)*(nature||1));
+}
+function optimalBulkSplit(baseHP,baseDef,budget,nature,cap){
+  const CAP=cap===undefined?32:cap;
+  const total=Math.max(0,budget|0);
+  let best=null;
+  const maxH=Math.min(CAP,total);
+  for(let h=0;h<=maxH;h++){
+    const d=Math.min(CAP,total-h);
+    const hp=bulkStat(baseHP,h,true,1), df=bulkStat(baseDef,d,false,nature);
+    const product=hp*df;
+    // Ties break toward spending more of the budget, then toward HP: unspent points are strictly
+    // wasted, and HP is the stat that also helps against the other attacking category.
+    if(!best||product>best.product||(product===best.product&&(h+d>best.spent||(h+d===best.spent&&h>best.hpSP))))
+      best={hpSP:h,defSP:d,hp:hp,def:df,product:product,spent:h+d};
+  }
+  return best;
+}
+
+function renderBulk(){
+  const el=document.getElementById('bulk-container');
+  if(!el)return;
+  if(!isChampionsMode){
+    el.innerHTML='<div class="bulk-note">Stat Points are a Champions system. Switch the generation selector to Champions to use this.</div>';
+    return;
+  }
+  const natEl=document.getElementById('bulk-nature'), natVal=natEl?parseFloat(natEl.value):1;
+  /* Default 32, not 66. 66 is the whole-Pokemon budget, but only 32 can go into each stat, so at
+     66 both defences simply cap and every row reads "32 / 32" - the tool answers nothing at the
+     one setting it opens on. The real question is how to divide the portion of the budget you can
+     spare for bulk after Attack and Speed have taken theirs. */
+  const budEl=document.getElementById('bulk-budget'), budVal=budEl?parseInt(budEl.value):32;
+  let h='<p class="bulk-intro">Damage taken scales with HP &times; defence, so a point is worth the same in either only when the two are balanced. '
+    +'Every split below is the exact optimum for that budget.</p>';
+  h+='<div class="bulk-controls">'
+    +'<input id="bulk-search" class="filter-input" placeholder="Find a Pokémon…" value="'+(window._bulkQuery||'')+'" oninput="onBulkSearch()" autocomplete="off">'
+    +'<select id="bulk-nature" class="filter-select" onchange="renderBulk()">'
+      +'<option value="1"'+(natVal===1?' selected':'')+'>Neutral nature</option>'
+      +'<option value="1.1"'+(natVal===1.1?' selected':'')+'>Boosting (+10%)</option>'
+      +'<option value="0.9"'+(natVal===0.9?' selected':'')+'>Hindering (−10%)</option>'
+    +'</select>'
+    +'<select id="bulk-budget" class="filter-select" onchange="renderBulk()">'
+      +[12,20,26,32,40,50,64].map(b=>'<option value="'+b+'"'+(budVal===b?' selected':'')+'>'+b+' SP for bulk</option>').join('')
+    +'</select></div>';
+  // Same sourcing as the speed tiers table: walk the roster, use whatever stats are already
+  // cached, and say plainly how many are still loading rather than pretending the list is whole.
+  const q=(window._bulkQuery||'').toLowerCase().trim();
+  const roster=master.filter(function(m){return CHAMPIONS_IDS.has(m.id)});
+  const loaded=roster.filter(function(m){return dc[m.id]});
+  const rows=loaded.filter(function(m){return !q||m.name.includes(q)}).map(function(m){return m.id}).slice(0,60);
+  h+='<p class="bulk-count">'+roster.length+' Pokémon in this regulation'
+    +(loaded.length<roster.length?', '+(roster.length-loaded.length)+' still loading':'')
+    +(rows.length&&rows.length<loaded.length?' — showing '+rows.length:'')+'.</p>';
+  if(!rows.length){
+    h+='<div class="bulk-note">'+(q?'No loaded Pokémon matches that.'
+      :'Nothing loaded yet — open the Pokédex tab once and come back.')+'</div>';
+    el.innerHTML=h;return;
+  }
+  h+='<table class="bulk-table"><thead><tr><th>Pokémon</th><th>Physical</th><th>HP × Def</th>'
+    +'<th>Special</th><th>HP × SpD</th></tr></thead><tbody>';
+  rows.forEach(id=>{
+    const p=dc[id], st=getStatsForGen(p);
+    const g=n=>((st.find(x=>x.stat.name===n)||{}).base_stat)||0;
+    const bh=g('hp'), bd=g('defense'), bs=g('special-defense');
+    const phys=optimalBulkSplit(bh,bd,budVal,natVal), spec=optimalBulkSplit(bh,bs,budVal,natVal);
+    h+='<tr><td class="bulk-mon"><a href="#" onclick="event.preventDefault();switchTab(\'pokedex\');showDetail('+id+')">'+capName(p.name)+'</a>'
+      +'<span class="bulk-base">'+bh+'/'+bd+'/'+bs+'</span></td>'
+      +'<td class="bulk-split">'+phys.hpSP+' HP / '+phys.defSP+' Def</td>'
+      +'<td class="bulk-res">'+phys.hp+' × '+phys.def+'</td>'
+      +'<td class="bulk-split">'+spec.hpSP+' HP / '+spec.defSP+' SpD</td>'
+      +'<td class="bulk-res">'+spec.hp+' × '+spec.def+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  if(budVal>=64)h+='<p class="bulk-note">At 64 or more every row reads 32 / 32: the per-stat cap is 32, so both defences simply fill up and there is no decision left to make. Lower the budget to see the trade-off.</p>';
+  h+='<p class="bulk-foot">The balancing rule most people use — add to whichever stat is currently lower — is exactly right on a '
+    +'neutral nature and drifts up to 1.3% off once a nature applies, because the nature multiplier is floored and so does not buy '
+    +'a clean point per Stat Point. These splits are searched rather than reasoned, so they do not inherit that.</p>';
+  el.innerHTML=h;
+}
+function onBulkSearch(){
+  const b=document.getElementById('bulk-search');
+  window._bulkQuery=b?b.value:'';
+  renderBulk();
+  const n=document.getElementById('bulk-search');
+  if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}
+}
 
 // === EV YIELDS TABLE ===
 let evSort={col:'id',asc:true};
