@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 3.3 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 3.4 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -6643,6 +6643,21 @@ function restoreCVD(){
     if(b){b.style.color='var(--eff-up)';b.style.borderColor='var(--eff-up)'}}
 }
 
+// The team editor addressed stats as hp/atk/def/spa/spd/spe while the paste parser stores PokeAPI
+// keys (hp/attack/defense/special-attack/special-defense/speed). `hp` is the ONLY key the two
+// spellings share, so opening a slot's editor and saving silently dropped every other stat - an
+// imported "2 HP / 32 Atk / 32 Spe" became "2 HP". One canonical form now, translated at the edges.
+const EDIT_STAT_KEY={hp:'hp',atk:'attack',def:'defense',spa:'special-attack',spd:'special-defense',spe:'speed'};
+function readStatObj(o){
+  // Accept either spelling on the way in, so older saved teams keep their values.
+  const out={};
+  Object.entries(o||{}).forEach(function(e){
+    const k=EDIT_STAT_KEY[e[0]]||e[0];
+    out[k]=e[1];
+  });
+  return out;
+}
+
 function statBudget(){
   return isChampionsMode
     ? {label:'SP',  perStat:32,  total:66,  step:1}
@@ -7116,7 +7131,7 @@ function saveTeamEdit(idx){
   ['hp','atk','def','spa','spd','spe'].forEach(s=>{
     const el=document.getElementById('team-edit-ev-'+s);
     const v=parseInt(el?.value)||0;
-    if(v>0)evs[s]=v;
+    if(v>0)evs[EDIT_STAT_KEY[s]]=v;   // store the canonical key, not the input's short name
   });
   
   if(!p.smogonSet)p.smogonSet={};
@@ -7201,9 +7216,10 @@ async function applySmogonPreset(slotIdx,key){
   // Populate EVs from preset
   let evs=set.evs||{};
   if(Array.isArray(evs))evs=evs[0]||{};
+  const _evs=readStatObj(evs);
   ['hp','atk','def','spa','spd','spe'].forEach(stat=>{
     const el=document.getElementById('team-edit-ev-'+stat);
-    if(el)el.value=evs[stat]||0;
+    if(el)el.value=_evs[EDIT_STAT_KEY[stat]]||0;
   });
   updateEVTotal();
   

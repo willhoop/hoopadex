@@ -12,6 +12,25 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [3.4] — 2026-08-03
+
+### Fixed
+- **The team editor was silently destroying imported stat spreads.** It addressed stats as
+  `hp/atk/def/spa/spd/spe` while the paste parser stores PokéAPI keys
+  (`hp/attack/defense/special-attack/special-defense/speed`). **`hp` is the only key the two
+  spellings share**, so opening a slot's editor and saving kept HP and dropped everything else — an
+  imported `2 HP / 32 Atk / 32 Spe` became `2 HP`, with no error and no indication anything had been
+  lost. Stats are stored in one canonical form now and translated at the editor's edge; older saved
+  teams are read in either spelling so nothing already stored is lost.
+
+### Notes
+- This is the failure this whole project keeps producing: **two representations of the same thing,
+  agreeing on exactly one value.** It looked like a paste-parser bug, and the parser was fine — I
+  confirmed that by running the exact Blaziken block through it before touching anything. What gave
+  it away was that Dragonite kept all four values from an identically-shaped line while Meowscarada
+  kept one: the difference was not the data, it was whether that slot's editor had been opened.
+
+
 ## [3.3] — 2026-08-03
 
 ### Fixed
