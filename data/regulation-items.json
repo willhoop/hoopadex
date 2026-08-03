@@ -1,0 +1,165 @@
+{
+ "source": "https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/mods/championsregma/items.ts (overrides on champions)",
+ "generated": "by build/generate-regulation-items.js — do not edit by hand",
+ "note": "championsregma has no moves.ts/abilities.ts/learnsets.ts, so nothing but items differs.",
+ "from": "reg-ma",
+ "to": "reg-mb",
+ "added": [
+  {
+   "key": "barbaracite",
+   "name": "Barbaracite",
+   "reason": "Future"
+  },
+  {
+   "key": "bigroot",
+   "name": "Big Root",
+   "reason": "Past"
+  },
+  {
+   "key": "blazikenite",
+   "name": "Blazikenite",
+   "reason": "Past"
+  },
+  {
+   "key": "damprock",
+   "name": "Damp Rock",
+   "reason": "Past"
+  },
+  {
+   "key": "dragalgite",
+   "name": "Dragalgite",
+   "reason": "Future"
+  },
+  {
+   "key": "eelektrossite",
+   "name": "Eelektrossite",
+   "reason": "Future"
+  },
+  {
+   "key": "expertbelt",
+   "name": "Expert Belt",
+   "reason": "Past"
+  },
+  {
+   "key": "falinksite",
+   "name": "Falinksite",
+   "reason": "Future"
+  },
+  {
+   "key": "heatrock",
+   "name": "Heat Rock",
+   "reason": "Past"
+  },
+  {
+   "key": "icyrock",
+   "name": "Icy Rock",
+   "reason": "Past"
+  },
+  {
+   "key": "ironball",
+   "name": "Iron Ball",
+   "reason": "Past"
+  },
+  {
+   "key": "lifeorb",
+   "name": "Life Orb",
+   "reason": "Past"
+  },
+  {
+   "key": "lightclay",
+   "name": "Light Clay",
+   "reason": "Past"
+  },
+  {
+   "key": "malamarite",
+   "name": "Malamarite",
+   "reason": "Future"
+  },
+  {
+   "key": "mawilite",
+   "name": "Mawilite",
+   "reason": "Past"
+  },
+  {
+   "key": "metagrossite",
+   "name": "Metagrossite",
+   "reason": "Past"
+  },
+  {
+   "key": "metronome",
+   "name": "Metronome",
+   "reason": "Past"
+  },
+  {
+   "key": "muscleband",
+   "name": "Muscle Band",
+   "reason": "Past"
+  },
+  {
+   "key": "pyroarite",
+   "name": "Pyroarite",
+   "reason": "Future"
+  },
+  {
+   "key": "raichunitex",
+   "name": "Raichunite X",
+   "reason": "Future"
+  },
+  {
+   "key": "raichunitey",
+   "name": "Raichunite Y",
+   "reason": "Future"
+  },
+  {
+   "key": "sceptilite",
+   "name": "Sceptilite",
+   "reason": "Past"
+  },
+  {
+   "key": "scolipite",
+   "name": "Scolipite",
+   "reason": "Future"
+  },
+  {
+   "key": "scraftinite",
+   "name": "Scraftinite",
+   "reason": "Future"
+  },
+  {
+   "key": "shedshell",
+   "name": "Shed Shell",
+   "reason": "Past"
+  },
+  {
+   "key": "smoothrock",
+   "name": "Smooth Rock",
+   "reason": "Past"
+  },
+  {
+   "key": "staraptite",
+   "name": "Staraptite",
+   "reason": "Future"
+  },
+  {
+   "key": "swampertite",
+   "name": "Swampertite",
+   "reason": "Past"
+  },
+  {
+   "key": "widelens",
+   "name": "Wide Lens",
+   "reason": "Past"
+  },
+  {
+   "key": "wiseglasses",
+   "name": "Wise Glasses",
+   "reason": "Past"
+  },
+  {
+   "key": "zoomlens",
+   "name": "Zoom Lens",
+   "reason": "Past"
+  }
+ ],
+ "removed": []
+}
