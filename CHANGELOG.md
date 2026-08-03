@@ -12,6 +12,34 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [4.9] — 2026-08-03
+
+### Fixed
+- **Speed Tiers was showing 60 of 208 Pokémon and calling the rest "still loading".** Nothing was
+  loading them. The table only ever used what happened to be in the cache, which meant it showed
+  whichever Pokémon you had opened — Mudsdale was missing because you had never clicked it. The
+  count made an incomplete table look like one mid-fetch, which is worse than an obviously empty
+  one: a speed tier list missing three quarters of the format will quietly tell you that you
+  outspeed things you do not. It now fetches the roster in batches and fills in as they land.
+- **The Bulk tab had the same gap**, because it copied the pattern. Fixed by the same function.
+- **The damage calculator's move box stopped offering anything for a form.** A regression from 4.4:
+  forms became selectable, but a form's learnset lives under its **base species** — the Champions
+  export is keyed by species, and a Mega learns what its base learns. Picking Mega Blaziken gave an
+  empty move list, so typing "close" matched nothing. It resolves through the base species now:
+  Mega Blaziken offers 78 moves including Close Combat.
+
+### Added
+- **Speed Tiers can be narrowed to what you care about** — a search box, and a "My team only"
+  toggle. Prepping for a game means comparing your six against a handful of expected threats, not
+  reading 208 rows.
+
+### Changed
+- **Form names are capitalised in the calculator.** The picker and the field both read
+  "tyranitar mega"; they now read "Tyranitar (Mega)", using the same `formDisplayName` as everywhere
+  else.
+
+---
+
 ## [4.8] — 2026-08-03
 
 ### Fixed

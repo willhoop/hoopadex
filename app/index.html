@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 4.8 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 4.9 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -363,6 +363,13 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .moves-tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
 .moves-tab{padding:6px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#6a6a7a;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s}
 .moves-tab.active{background:transparent;color:#6890F0;border-color:rgba(104,144,240,0.3)}
+.speed-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.speed-tools .filter-input{max-width:220px}
+.speed-team-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border3);background:transparent;
+  color:var(--text3);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.speed-team-btn:hover{border-color:var(--eff-up);color:var(--text2)}
+.speed-team-btn.on{border-color:var(--eff-up);color:var(--eff-up);background:color-mix(in srgb,var(--eff-up) 12%,transparent)}
+.speed-hint{font-size:11.5px;color:var(--text5);font-style:italic}
 .bulk-intro{font-size:13px;color:var(--text3);margin-bottom:12px;max-width:78ch;line-height:1.5}
 .bulk-controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .bulk-controls .filter-input{max-width:220px}
@@ -3743,8 +3750,17 @@ function renderSpeedTiers(){
     return r;
   }).filter(Boolean).sort(function(x,y){return y[speedSortCol]-x[speedSortCol]||x.name.localeCompare(y.name)});
 
+  const loaded=roster.filter(function(p){return dc[p.id]}).length;
   let h='<p class="regs-intro">Every column uses the same model as the damage calculator: at level 50 with fixed 31 IVs a stat is base+20, then +1 per Stat Point, then the nature multiplier. '
-   +roster.length+' Pok\u00e9mon in this regulation'+(rows.length<roster.length?', '+(roster.length-rows.length)+' still loading':'')+'.</p>';
+   +roster.length+' Pok\u00e9mon in this regulation'
+   +(loaded<roster.length?' \u2014 loading '+(roster.length-loaded)+' more':'')
+   +((q||speedTeamOnly)?' \u2014 showing '+rows.length:'')+'.</p>';
+  h+='<div class="speed-tools">'
+    +'<input id="speed-search" class="filter-input" placeholder="Find a Pok\u00e9mon\u2026" value="'+(speedQuery||'').replace(/"/g,'&quot;')+'" oninput="onSpeedSearch()" autocomplete="off">'
+    +'<button class="speed-team-btn'+(speedTeamOnly?' on':'')+'" onclick="toggleSpeedTeamOnly()">'
+      +(speedTeamOnly?'\u2713 My team only':'My team only')+'</button>'
+    +(teamIds.size?'':'<span class="speed-hint">Add Pok\u00e9mon to your team to use that filter.</span>')
+    +'</div>';
   h+='<table class="speed-table"><thead><tr><th class="sp-mon">Pok\u00e9mon</th>';
   SPEED_COLS.forEach(function(c){
     h+='<th class="sp-col'+(c.key===speedSortCol?' sp-active':'')+'" title="'+c.hint+'" onclick="setSpeedSort(\''+c.key+'\')">'+c.label+'</th>';
@@ -4185,6 +4201,7 @@ function renderBulk(){
   // Same sourcing as the speed tiers table: walk the roster, use whatever stats are already
   // cached, and say plainly how many are still loading rather than pretending the list is whole.
   const q=(window._bulkQuery||'').toLowerCase().trim();
+  ensureRosterLoaded(renderBulk);   // same gap as the speed tiers had
   const roster=master.filter(function(m){return CHAMPIONS_IDS.has(m.id)});
   const loaded=roster.filter(function(m){return dc[m.id]});
   const rows=loaded.filter(function(m){return !q||m.name.includes(q)}).map(function(m){return m.id}).slice(0,60);
@@ -8769,7 +8786,7 @@ async function calcPickPoke(side){
   const img=document.getElementById('calc-'+side+'-img');
   if(!m){calcSel[side]=null;img.style.display='none';calcRun();return}
   calcSel[side]=m.id;
-  inp.value=pokeName(m.name);
+  inp.value=formDisplayName(m.name);
   if(!dc[m.id]){
     try{const r=await fetch('https://pokeapi.co/api/v2/pokemon/'+m.id);if(r.ok)dc[m.id]=await r.json()}catch(e){}
   }
@@ -8782,7 +8799,19 @@ async function calcPickPoke(side){
   }
   if(side==='atk'&&dc[m.id]){
     if(isChampionsMode){try{await ensureChampLS()}catch(e){}}
-    const mv=getMovesForGen(dc[m.id]);
+    /* A form's learnset lives under its BASE SPECIES. The Champions export is keyed by species, and
+       so is PokeAPI's move list for practical purposes - a Mega learns what its base learns. 4.4
+       made forms selectable here without this, so picking Mega Blaziken gave an empty move list and
+       the move box silently stopped offering anything. Fall back to the base species. */
+    let moveSrc=dc[m.id];
+    if(m.id>10000){
+      const baseId=baseSpeciesId(m.name);
+      if(baseId){
+        if(!dc[baseId]){try{const r=await fetch('https://pokeapi.co/api/v2/pokemon/'+baseId);if(r.ok)dc[baseId]=await r.json()}catch(e){}}
+        if(dc[baseId])moveSrc=dc[baseId];
+      }
+    }
+    const mv=getMovesForGen(moveSrc);
     window._calcMoves=[...new Set([...(mv.useable||[]),...mv.levelup,...mv.tm,...mv.egg,...mv.tutor].map(x=>x.name))].sort();
   }
   calcRun();
@@ -8855,7 +8884,7 @@ function calcInitAC(){
     if(!q)return[];
     const qs=q.replace(/ /g,'-');
     return calcRoster().filter(p=>p.name.includes(qs)||pokeName(p.name).toLowerCase().includes(q)||String(p.id)===q)
-      .map(p=>({label:calcTitle(pokeName(p.name)),sprite:sprite(p.id),id:p.id}));
+      .map(p=>({label:formDisplayName(p.name),sprite:sprite(p.id),id:p.id}));
   };
   calcAttachAC('calc-atk',pokeProv,()=>calcPickPoke('atk'));
   calcAttachAC('calc-def',pokeProv,()=>calcPickPoke('def'));
