@@ -217,6 +217,13 @@ all of them are quietly wrong about legality. Two things guard it:
   valid dex numbers, no duplicates **in the source literal** (a repeat inside `new Set([...])` is
   silently collapsed, leaving the roster one short while every count still agrees), each regulation
   a superset of its predecessor, and `M-B size == M-A + REG_MB_NEW`.
+- **An anchor outside the app.** Every check in the list above is *relational* — it compares the
+  rosters to one another. Because M-B is built as M-A plus additions, deleting an id shrinks both
+  sides together and every one of those assertions still holds; the architecture review of
+  2026-08-03 deleted Venusaur and all 23 suites of the day stayed green. Each regulation's size is
+  now also compared against `data/regulations.json`. That file is generated *from* this registry, so
+  it cannot prove the roster is correct — only that it cannot change without the committed artefact
+  changing in the same pass. Regenerate with `node build/generate-regulations.js`.
 - `build/audit-champions-roster.js` answers the evolution-stage question against PokéAPI, cached in
   `data/evolution-cache.json`. As of 2026-08-03: no baby Pokémon, and exactly three entries that are
   not a final stage — Pikachu, Qwilfish (evolves only as its Hisuian form) and Floette (present as
@@ -305,9 +312,14 @@ The published version is `app/index.html`. It adds three things over version 1.9
 
 | File | Size | Purpose |
 |---|---|---|
-| `index.html` | ~494 KB | The application. |
+| `index.html` | ~633 KB | The application. |
 | `calc-engine.js` | ~481 KB | The `@smogon/calc` damage engine. Vendored; no version is recorded — see the architecture review. |
 | `champions-learnsets.json` | ~1.4 MB | The legality export. See Part 3.6. |
+
+`calc-engine.js` and `champions-learnsets.json` are checksummed in `data/vendor-pins.json` and
+verified by `tests/test-vendor-pins.js` on every run. Neither carries a version number, so the
+checksum is what stops either being swapped or truncated unnoticed. A checksum pins the artefact,
+not its provenance: the engine's upstream version is still unknown.
 
 ### Additions over version 1.92
 1. **Champions mode.** A `Champions` option in the generation selector. In this mode the
@@ -380,6 +392,61 @@ one at a time.
 
 # PART 4 - EXPLANATION
 *Why the design is like this.*
+
+## 3.8 Publishing, and how the tests are verified
+
+### How it is published
+`bash build/publish.sh`. It checks that `app/index.html` parses, runs every suite, refuses to push
+if either fails, guards against a file GitHub will reject, pushes, then verifies that the commit
+reached `origin/main` **and** that GitHub Pages actually served the new version number.
+
+Until 2026-08-03 this repository was published by `Projectsuto-publish.bat`, a hidden background
+loop that ran `git add -A && git commit && git push` across six repositories every ten minutes with
+no test run of any kind. It published a copy of this app left as a syntax error — a blank page —
+with every suite of the day still green, and it committed and pushed an architecture review's own
+half-finished work while that review was being written. It existed because Claude Cowork would not
+push to GitHub itself; that is no longer a constraint, and the script is retired.
+
+`Projects\publish-gate.js` survives from an intermediate version of that fix and is useful on its
+own: `node publish-gate.js <repo-dir>` reports whether any repository is safe to publish.
+
+### How the tests are verified
+`node build/mutation-check.js`, and it runs in continuous integration.
+
+It applies eleven deliberate defects to the shipped code — a wrong critical-hit multiplier, a wrong
+STAB, a missing spread-move reduction, a corrupted historical stat, a deleted roster entry, and so
+on — and asserts that the suite which claims to cover each one goes red. The run fails if any defect
+survives, and also if an anchor no longer matches, because a mutation that no longer applies is not
+a pass.
+
+This exists because the claim it replaces turned out to be false. Part 5 of the white paper stated
+that every suite had been mutation-checked. When that was tested on 2026-08-03 against 23 suites and
+778 assertions, **five of ten deliberate defects survived undetected**, three of them in the damage
+calculator, which had no test that computed a damage number. A mutation check performed once by hand
+decays into a claim about the past; running it automatically is the only version of it that stays
+true.
+
+### The build scripts
+| Script | Produces |
+|---|---|
+| `build/generate-past-stats.js` | `data/past-stats.json` — historical base stats from Showdown's per-generation mods |
+| `build/generate-gen1-special.js` | `data/gen1-special.json` — the single Generation I Special stat |
+| `build/generate-item-gens.js` | `data/item-intro-gens.json` — item introduction generations from PokéAPI |
+| `build/generate-mega-abilities.js` | `data/mega-abilities.json` — Legends Z-A mega abilities |
+| `build/generate-regulations.js` | `data/regulations.json` and `docs/REGULATIONS.md` |
+| `build/generate-regulation-items.js` | `data/regulation-items.json` — per-regulation item legality |
+| `build/generate-stat-formula.js` | `docs/STAT-FORMULA.md`, every figure computed by the shipped code |
+| `build/audit-champions-roster.js` | Evolution-stage audit of the Champions roster |
+| `build/mutation-check.js` | Pass or fail — the tests' own test |
+| `build/publish.sh` | A verified deployment |
+| `build/omnibus.py` | A PDF from a Markdown report |
+
+Every generated table is compared to its committed derivation by a suite on every run, so the app
+and the data cannot drift apart silently. Seven of the ten files in `data/` are checked this way;
+the exceptions are the two caches (`evolution-cache.json`, `species-names.json`) and the raw
+Showdown extract that `generate-mega-abilities.js` reads.
+
+---
 
 ## 4.1 Why the application is one file
 One HTML file has no build step, no dependency tree, and no version conflicts. You can email it,

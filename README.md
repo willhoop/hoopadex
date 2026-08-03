@@ -1,6 +1,16 @@
 # HoopaDex
 
-A complete Pokédex in **one HTML file**. No build step, no server, no install — open it and it runs.
+A complete Pokédex that runs from a folder of static files. No build step, no server, no install —
+open `app/index.html` and it runs.
+
+**Version 5.10 · 2026-08-03**
+
+> Precisely: `app/index.html` is the application, and it is genuinely self-contained apart from two
+> siblings it loads — `calc-engine.js` (the vendored `@smogon/calc` damage engine) and
+> `champions-learnsets.json`. Open `index.html` on its own and everything works except that the
+> damage calculator falls back to a simpler built-in engine, which ignores held items. It also
+> pulls a webfont from Google, so it is not fully offline. The project described itself as "one
+> HTML file, no dependencies" until an architecture review on 2026-08-03 measured it.
 
 Its distinguishing feature is that it is **generation-aware**: it shows the type chart, base stats,
 types, abilities, items, and evolution chains *as they were in the generation you select*, not only
@@ -14,7 +24,7 @@ EV Training · Other (move priority, physical/special split, compare, EV yields,
 Plus fuzzy search, pinning and side-by-side comparison, per-game encounter locations, TM lists,
 a six-slot team builder with importable competitive sets, and a light/dark theme.
 
-## Two versions
+## Where it lives
 | | Where | Notes |
 |---|---|---|
 | **Published (current)** | [willhoop.github.io/hoopadex](https://willhoop.github.io/hoopadex/) · [repo](https://github.com/willhoop/hoopadex) | Adds **Champions mode**, a **damage calculator** built on the official `@smogon/calc` engine, and the **SP stat system** (0–32 per stat, 66 budget, fixed 31 IVs, level 50). |
@@ -22,9 +32,26 @@ a six-slot team builder with importable competitive sets, and a light/dark theme
 Both need an internet connection — they read live data from PokéAPI.
 
 ## Versioning rule
-The version is recorded on line 2 of the HTML file. **When you edit the file, increment that
-version** on line 2 of `app/index.html`, then record
-the change in `CHANGELOG.md`.
+The version is recorded on line 2 of `app/index.html`. **Every edit increments it**, and the newest
+`CHANGELOG.md` entry must match — `tests/test-syntax.js` fails if they disagree, and
+`tests/test-doc-versions.js` fails if the white paper, deck or technical documentation are stamped
+for a different version.
+
+## Running the tests, and publishing
+
+```
+for f in tests/test-*.js; do node "$f"; done   # 27 suites
+node build/mutation-check.js                   # the tests' own test
+bash build/publish.sh                          # test, push, verify it deployed
+```
+
+`mutation-check.js` breaks the app on purpose in eleven specific ways and fails if the suite that
+claims to cover each one stays green. It exists because on 2026-08-03, with 23 suites and 778
+assertions all passing, five of ten deliberate defects went undetected — three of them in the damage
+calculator, which had no test that computed a damage number. A green suite proves the code has not
+changed, not that it is right.
+
+`publish.sh` is the only publisher. It refuses to push a red suite or an app that does not parse.
 
 ## Documentation
 `docs/HOOPADEX-technical-docs.md` — full technical documentation (ASD-STE100, Diátaxis).

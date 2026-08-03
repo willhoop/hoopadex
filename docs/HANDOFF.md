@@ -2,8 +2,29 @@
 
 REPO   `C:\Users\willj\Projects\Pokemon\HoopaDex`  (willhoop/hoopadex)
 LIVE   https://willhoop.github.io/hoopadex/app/
-STATE  v5.8, tree clean, local == origin/main, 23 suites / 778 assertions green.
-ARCH   One HTML file, no build step, no dependencies. `app/index.html` is ~645 KB.
+STATE  v5.10, tree clean, local == origin/main, 27 suites / 871 assertions green,
+       11 of 11 mutations caught (`node build/mutation-check.js`, also in CI).
+ARCH   `app/index.html` (~633 KB) plus two siblings it loads: `calc-engine.js` (vendored
+       `@smogon/calc`) and `champions-learnsets.json`. No build step. It also pulls a webfont
+       from Google, so it is not fully offline. This line used to read "one HTML file, no
+       dependencies", which was not true.
+
+> **Superseded in parts — read `ARCHITECTURE-REVIEW-2026-08-03.md` alongside this.**
+> This file is kept as the record of the session that produced v5.8. The review that followed
+> tested its claims, and three did not survive:
+>
+> - *"Every suite accepts a `HOOPADEX_SRC` env override."* Nine of twenty-three did not. All 27
+>   do now.
+> - *"An auto-commit hook commits AND PUSHES the working tree every few minutes."* The behaviour
+>   was real but it was not a hook — `.git/hooks/` was empty. It was `Projects\auto-publish.bat`
+>   on a Startup shortcut, and looking for a hook wasted time. **That script is now dead**, and
+>   publishing goes through `build/publish.sh`, which runs the suites and refuses on red.
+> - The bulk figures below (HP/(2×Def) averaging 1.30, ranging 0.43–5.50) could not be reproduced
+>   and are withdrawn. See section 4 of the review.
+>
+> The central lesson below — that the real bugs were found by opening the page, not by testing —
+> still stands, and the review adds a second: a green suite proves the code has not changed, not
+> that it is right. Five of ten deliberate bugs passed all 23 suites.
 
 READ FIRST: `CLAUDE.md` in the repo root. Non-negotiable rules:
   - Bump the version comment on line 2 of `app/index.html` on EVERY edit.
