@@ -9610,6 +9610,46 @@ async function calcRunSmogon(moveOverride,collect){
     +'<div style="font-size:13px;color:var(--text2)">'+mn+' \u2013 '+mx+' damage \u00b7 '+mnP.toFixed(1)+'% \u2013 '+mxP.toFixed(1)+'% of '+hp+' HP'+(ko?' \u00b7 <span style="font-weight:800;color:#F8A060">'+ko+'</span>':'')+'</div>'
     +'<div style="font-size:10px;color:#6a6a7a;margin-top:6px">Rolls: '+rolls.join(', ')+'</div>';
 }
+/* The damage arithmetic of the local fallback calculator, as a pure function.
+   It was inline in calcRunLocal() until 2026-08-03. An architecture audit mutated it three ways —
+   critical hits at 2.5x, STAB at 1.9x, and the spread reduction removed entirely — and all 23
+   suites stayed green each time, because nothing in the battery ever computed a damage number.
+   Pulling it out of the DOM handler is what makes it testable; see tests/test-damage-formula.js.
+
+   This path matters more than "fallback" suggests. index.html is published as a portable single
+   file, and calc-engine.js is a separate 480 KB sibling. Open index.html on its own and SmogonCalc
+   is undefined, so THIS is the calculator the reader gets.
+
+   gen is honoured because a critical hit was a x2 multiplier in Generations II-V and became x1.5
+   in Generation VI. It was hardcoded to 1.5 for every generation until the same audit, which made
+   every pre-VI critical hit read 25% low in a dex whose stated purpose is generation accuracy. */
+function calcLocalCritMult(gen){return gen>=6?1.5:2}
+/* Same-type attack bonus. Extracted alongside the roll loop because the first attempt at this
+   refactor left the DERIVATION of stab in the DOM handler while moving only its APPLICATION into
+   the pure function — and the 1.9x mutation went straight back to passing. Moving a value into a
+   testable function is not the same as moving the decision that produces it. */
+function calcLocalStab(attackerTypes,moveType){
+  return (attackerTypes||[]).some(function(t){return t.type.name===moveType})?1.5:1;
+}
+function calcLocalRolls(o){
+  const critM=o.crit?calcLocalCritMult(o.gen):1;
+  const base=Math.floor(Math.floor(Math.floor(2*o.lv/5+2)*o.power*o.atk/o.def)/50)+2;
+  const rolls=[];
+  for(let r=85;r<=100;r++){
+    let dm=Math.floor(base*o.spread);
+    dm=Math.floor(dm*o.weather);
+    dm=Math.floor(dm*critM);
+    dm=Math.floor(dm*r/100);
+    dm=Math.floor(dm*o.stab);
+    dm=Math.floor(dm*o.eff);
+    dm=Math.floor(dm*o.burn);
+    dm=Math.floor(dm*o.screen);
+    dm=Math.floor(dm*o.item);
+    if(o.eff>0)dm=Math.max(1,dm);
+    rolls.push(dm);
+  }
+  return rolls;
+}
 async function calcRunLocal(){
   const res=document.getElementById('calc-result');
   if(!res)return;
@@ -9637,7 +9677,7 @@ async function calcRunLocal(){
   const hp=calcHPStat(calcBase(d,'hp'),lv,parseInt(document.getElementById('calc-def-hpev').value));
   const chart=getChartForGen(getDataGenNum()).chart;
   let effMult=1;(d.types||[]).forEach(t=>{effMult*=eff(type,t.type.name,chart)});
-  const stab=(a.types||[]).some(t=>t.type.name===type)?1.5:1;
+  const stab=calcLocalStab(a.types,type);
   let itemMult=1; // items handled by Smogon engine; local fallback ignores them
   const w=document.getElementById('calc-weather').value;
   let wMult=1;
@@ -9646,22 +9686,8 @@ async function calcRunLocal(){
   const spread=document.getElementById('calc-spread').checked?0.75:1;
   const burn=(document.getElementById('calc-burn').checked&&cat==='physical')?0.5:1;
   const screen=(document.getElementById('calc-screen').checked&&!crit)?0.5:1;
-  const critM=crit?1.5:1;
-  const base=Math.floor(Math.floor(Math.floor(2*lv/5+2)*md.power*atkStat/defStat)/50)+2;
-  const rolls=[];
-  for(let r=85;r<=100;r++){
-    let dm=Math.floor(base*spread);
-    dm=Math.floor(dm*wMult);
-    dm=Math.floor(dm*critM);
-    dm=Math.floor(dm*r/100);
-    dm=Math.floor(dm*stab);
-    dm=Math.floor(dm*effMult);
-    dm=Math.floor(dm*burn);
-    dm=Math.floor(dm*screen);
-    dm=Math.floor(dm*itemMult);
-    if(effMult>0)dm=Math.max(1,dm);
-    rolls.push(dm);
-  }
+  const rolls=calcLocalRolls({lv:lv,power:md.power,atk:atkStat,def:defStat,gen:getDataGenNum(),
+    spread:spread,weather:wMult,crit:crit,stab:stab,eff:effMult,burn:burn,screen:screen,item:itemMult});
   const mn=rolls[0],mx=rolls[15];
   const mnP=mn/hp*100,mxP=mx/hp*100;
   let ko;

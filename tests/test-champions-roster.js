@@ -15,7 +15,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const lines = fs.readFileSync(path.join(__dirname, '..', 'app', 'index.html'), 'utf8').split(/\r?\n/);
+const ROOT = path.join(__dirname, '..');
+const SRC = process.env.HOOPADEX_SRC || path.join(ROOT, 'app', 'index.html');
+const lines = fs.readFileSync(SRC, 'utf8').split(/\r?\n/);
 const a = lines.findIndex(l => l.startsWith('const CHAMPIONS_IDS_MA='));
 const b = lines.findIndex((l, i) => i > a && l.startsWith('const LATEST_REG='));
 if (a < 0 || b < 0) throw new Error('could not locate the Champions registry');
@@ -68,6 +70,31 @@ check(REG_MB_NEW.every(id => !CHAMPIONS_IDS_MA.has(id)),
   'nothing in REG_MB_NEW was already in M-A', REG_MB_NEW.filter(id => CHAMPIONS_IDS_MA.has(id)));
 check([...CHAMPIONS_IDS_MA].every(id => CHAMPIONS_IDS_MB.has(id)),
   'M-B contains every M-A entry — nothing was dropped', '');
+
+// --- an anchor outside the app ------------------------------------------------------------
+// Every check above this line is RELATIONAL: it compares the rosters to each other. An audit on
+// 2026-08-03 deleted Venusaur from CHAMPIONS_IDS_MA and all 23 suites stayed green, because M-B is
+// built from M-A — both sides shrank together and `M-B == M-A + additions` still held. Relational
+// checks cannot detect a roster that is uniformly wrong.
+//
+// data/regulations.json is generated FROM this registry, so it is not an independent source of
+// truth and cannot tell us the roster is CORRECT. What it can do is refuse to let the roster change
+// without the committed artefact changing in the same pass. Regenerate with
+// `node build/generate-regulations.js` when a roster legitimately changes.
+const REGDATA = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'regulations.json'), 'utf8'));
+const sizeOf = {};
+REGDATA.regulations.forEach(r => { sizeOf[r.label] = r.size; });
+for (const reg of CHAMPIONS_REGS) {
+  const recorded = sizeOf[reg.label];
+  check(recorded !== undefined, `${reg.label} appears in data/regulations.json`, Object.keys(sizeOf).join(', '));
+  if (recorded !== undefined)
+    check(reg.ids().size === recorded,
+      `${reg.label} still has the ${recorded} entries the derivation recorded — regenerate if this changed on purpose`,
+      `app ${reg.ids().size}, data/regulations.json ${recorded}`);
+}
+check(REGDATA.regulations.length === CHAMPIONS_REGS.length,
+  'the app ships exactly the regulations the derivation knows about',
+  `app ${CHAMPIONS_REGS.length}, derived ${REGDATA.regulations.length}`);
 
 // --- registry shape ----------------------------------------------------------------------
 check(CHAMPIONS_REGS.every(r => r.key && r.short && r.label && typeof r.ids === 'function'),
