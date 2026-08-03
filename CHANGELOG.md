@@ -12,6 +12,32 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [4.8] — 2026-08-03
+
+### Fixed
+- **Champions has no TMs, and the app was showing Scarlet/Violet's TM list anyway.** In Champions
+  each Pokémon simply has a moveset it can learn, taught with VP — which the Pokédex move panel
+  already said in as many words. The TM controls were never gated on mode, so `GEN_TMS[9]` rendered
+  SV's list, numbering and all, under a Champions banner. Current-generation data presented as
+  another era's is the precise failure this app exists to prevent, and it was sitting in the middle
+  of the Moves tab. Confirmed with Will before changing. The TM list and its toggle are hidden in
+  Champions, and the tab's description says what actually applies.
+- **Regulation Changes was offered outside Champions.** The regulations *are* Champions
+  regulations, so the sub-tab was showing a Champions-only article while the selector read Gen III.
+  It is hidden now rather than emptied — an empty panel invites you to wonder what you did wrong —
+  and if it was the open sub-tab when you switch generation, you land on one that still applies.
+
+### Notes
+- Both are the same shape of bug, so they share one function: `applyModeVisibility()` decides what
+  exists in the current selection, and runs on the only two events that can change the answer —
+  switching tab and switching generation.
+- **Open question recorded, not changed:** the Champions learnset export still carries a `TM`
+  method on some entries, which is what drives the "(TM)" badge on a move. If Champions has no TMs
+  that flag is an artefact of how the export was generated, and the fix belongs at the source rather
+  than in the display. Logged rather than papered over.
+
+---
+
 ## [4.7] — 2026-08-03
 
 ### Fixed

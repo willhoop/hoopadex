@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 1.3 · Last updated 2026-08-03 · HoopaDex v4.7**
+**Version 1.3 · Last updated 2026-08-03 · HoopaDex v4.8**
 Documents the published application and the local file `app/HoopaDex_1_92.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -118,7 +118,7 @@ The application reads public APIs from the browser. Those APIs permit cross-orig
 | Property | Value |
 |---|---|
 | File | `app/index.html` (published copy; see 3.7) |
-| Version | 4.7 |
+| Version | 4.8 |
 | Size | Approximately 578 KB |
 | Lines | Approximately 8,760 |
 | Dependencies | None to install. Two web fonts load from Google Fonts. |

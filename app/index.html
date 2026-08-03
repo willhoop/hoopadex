@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 4.7 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 4.8 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -913,7 +913,7 @@ button,select,input{touch-action:manipulation}
 <div id="items-container"><div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading items...</div></div>
 </div>
 <div id="tms-tab" style="display:none">
-<p style="font-size:14px;color:#8a8a9a;margin-bottom:12px">Find Pok&#233;mon that can learn specific moves. Search any move &#x2013; TMs, HMs, level-up, egg, or tutor moves.</p>
+<p style="font-size:14px;color:#8a8a9a;margin-bottom:12px"><span id="moves-intro-text">Find Pok&#233;mon that can learn specific moves. Search any move &#x2013; TMs, HMs, level-up, egg, or tutor moves.</span></p>
 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px">
 <div id="tm-criteria" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
 <button id="clear-all-btn" onclick="clearAllCriteria()" style="display:none;font-size:11px;color:#F85888;background:none;border:1px solid rgba(248,88,136,0.3);border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:700;white-space:nowrap">Clear All</button>
@@ -1379,6 +1379,7 @@ function onGenNumChange(){
   specificGame=false;
   document.getElementById('data-game').value='';
   populateGameDropdown();
+  applyModeVisibility();   // TMs and regulation changes only exist in some selections
   if(isChampionsMode){CHAMPIONS_IDS=regByShort(championsReg).ids()}
   triggerDataRefresh();
 }
@@ -3623,6 +3624,7 @@ function switchTab(tab){
   else searchInput.placeholder='Search Pok\u00e9mon, moves, abilities...';
   if(tab==='types')renderTC();
   if(tab==='tms')renderHMBar();
+  applyModeVisibility();
   if(tab==='locations')initLocations();
   if(tab==='other'){renderPriorityTab();renderSplit()}
   if(tab==='evs')renderEVTable();
@@ -4881,7 +4883,36 @@ function clearAllTM(){
 }
 
 let tmListOpen=false;
+/* Champions has no TMs. Each Pokemon simply has a moveset it can learn, taught with VP - which is
+   what the Pokedex move panel already says in as many words ("any of these can be taught, 100 VP
+   each"). The TM controls were never gated, so in Champions the app rendered Scarlet/Violet's TM
+   list, numbering and all, under a Champions banner: current-generation data presented as another
+   era's, which is the exact failure this app exists to avoid.
+   Confirmed by Will 2026-08-03. */
+function tmsExistHere(){ return !isChampionsMode; }
+
+/* Regulation changes are a Champions concept too - the regulations ARE Champions regulations - so
+   the sub-tab was offering a Champions-only article while the selector said Gen III. Hidden rather
+   than emptied: an empty panel invites you to wonder what you did wrong.
+   Both of these run on tab switch and on generation change, which are the only two ways the answer
+   can change. */
+function applyModeVisibility(){
+  const tmBar=document.getElementById('tm-list-toggle');
+  if(tmBar)tmBar.style.display=tmsExistHere()?'flex':'none';
+  const list=document.getElementById('tm-full-list');
+  if(list&&!tmsExistHere()){list.style.display='none';tmListOpen=false}
+  const intro=document.getElementById('moves-intro-text');
+  if(intro)intro.innerHTML=tmsExistHere()
+    ? 'Find Pokémon that can learn specific moves. Search any move – TMs, HMs, level-up, egg, or tutor moves.'
+    : 'Find Pokémon that can learn specific moves. Champions has no TMs — each Pokémon simply has a moveset it can learn, taught with VP.';
+  const regBtn=document.getElementById('other-sub-regs');
+  if(regBtn)regBtn.style.display=isChampionsMode?'':'none';
+  // If the hidden sub-tab was the one on screen, move somewhere that still applies.
+  if(!isChampionsMode&&currentOtherSub==='regs')switchOtherSub('priority');
+}
+
 function toggleTMList(){
+  if(!tmsExistHere())return;
   tmListOpen=!tmListOpen;
   const el=document.getElementById('tm-full-list');
   const btn=document.getElementById('tm-list-btn');
