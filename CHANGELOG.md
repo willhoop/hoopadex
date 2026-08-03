@@ -12,6 +12,39 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [3.2] — 2026-08-03
+
+### Added
+- **Dual-type lookup under the type chart.** Reading a ×4 off an 18×18 grid means finding two cells
+  and multiplying them in your head. Pick a defending typing and every attacking type resolves
+  against it at once, worst first. Water/Ground returns Grass ×4, Electric ×0, and four ×0.5s.
+- **Sortable columns on move tables.** A 73-move list had no way to ask for it by category or by
+  power. Clicking a header sorts; clicking again reverses. Category sorts Physical, Special, Status
+  in that order rather than alphabetically — that is the order people think in, and alphabetical
+  would give the same answer by accident and break the moment a fourth category existed.
+
+### Fixed
+- **Champions showed Smogon singles sets as if they were legal.** It loaded `gen9.json`, so a
+  Blastoise in Champions offered **UU** and **Godly Gift** sets with 252 EV spreads — a format that
+  does not exist here, presented with full confidence. Champions is doubles, so it now reads the
+  **VGC** set file, and the section says what it is: the closest published reference, with a note
+  that Champions uses SP rather than EVs.
+- **Move descriptor tags only appeared after visiting the damage calculator.** The flags come from
+  the calc engine, whose lookup maps are built lazily by that tab, so Aura Sphere showed no
+  Ballistic or Pulse tag on the Moves tab — which is where anyone would look for it. The maps are
+  now initialised on demand.
+- **Berries sit above the Mega Stones** in the Items tab. Berries are chosen for a set; Mega Stones
+  are a long species-locked list you scroll past.
+
+### Changed
+- **Light mode is greyer and the cells are rounded.** Both were asked for to soften a chart that
+  read as harsh. Worth recording the cost honestly: desaturating drops the two fills to a
+  normal-vision ΔE of 9.7, below the 15 floor, so hue alone no longer separates them reliably even
+  for full colour vision. That is acceptable **only** because every cell carries its own number and
+  a colourblind mode exists — the glyph is doing the work the colour used to. If the glyphs were
+  ever removed, this palette would have to go back.
+
+
 ## [3.1] — 2026-08-03
 
 ### Fixed
