@@ -1,0 +1,865 @@
+{
+ "source": "https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/pokedex.ts",
+ "formes": [
+  {
+   "key": "venusaurmega",
+   "name": "Venusaur-Mega",
+   "base": "venusaur",
+   "forme": "Mega",
+   "abilities": [
+    "Thick Fat"
+   ]
+  },
+  {
+   "key": "charizardmegax",
+   "name": "Charizard-Mega-X",
+   "base": "charizard",
+   "forme": "Mega-X",
+   "abilities": [
+    "Tough Claws"
+   ]
+  },
+  {
+   "key": "charizardmegay",
+   "name": "Charizard-Mega-Y",
+   "base": "charizard",
+   "forme": "Mega-Y",
+   "abilities": [
+    "Drought"
+   ]
+  },
+  {
+   "key": "blastoisemega",
+   "name": "Blastoise-Mega",
+   "base": "blastoise",
+   "forme": "Mega",
+   "abilities": [
+    "Mega Launcher"
+   ]
+  },
+  {
+   "key": "beedrillmega",
+   "name": "Beedrill-Mega",
+   "base": "beedrill",
+   "forme": "Mega",
+   "abilities": [
+    "Adaptability"
+   ]
+  },
+  {
+   "key": "pidgeotmega",
+   "name": "Pidgeot-Mega",
+   "base": "pidgeot",
+   "forme": "Mega",
+   "abilities": [
+    "No Guard"
+   ]
+  },
+  {
+   "key": "raichumegax",
+   "name": "Raichu-Mega-X",
+   "base": "raichu",
+   "forme": "Mega-X",
+   "abilities": [
+    "Electric Surge"
+   ]
+  },
+  {
+   "key": "raichumegay",
+   "name": "Raichu-Mega-Y",
+   "base": "raichu",
+   "forme": "Mega-Y",
+   "abilities": [
+    "No Guard"
+   ]
+  },
+  {
+   "key": "clefablemega",
+   "name": "Clefable-Mega",
+   "base": "clefable",
+   "forme": "Mega",
+   "abilities": [
+    "Magic Bounce"
+   ]
+  },
+  {
+   "key": "alakazammega",
+   "name": "Alakazam-Mega",
+   "base": "alakazam",
+   "forme": "Mega",
+   "abilities": [
+    "Trace"
+   ]
+  },
+  {
+   "key": "victreebelmega",
+   "name": "Victreebel-Mega",
+   "base": "victreebel",
+   "forme": "Mega",
+   "abilities": [
+    "Innards Out"
+   ]
+  },
+  {
+   "key": "slowbromega",
+   "name": "Slowbro-Mega",
+   "base": "slowbro",
+   "forme": "Mega",
+   "abilities": [
+    "Shell Armor"
+   ]
+  },
+  {
+   "key": "gengarmega",
+   "name": "Gengar-Mega",
+   "base": "gengar",
+   "forme": "Mega",
+   "abilities": [
+    "Shadow Tag"
+   ]
+  },
+  {
+   "key": "kangaskhanmega",
+   "name": "Kangaskhan-Mega",
+   "base": "kangaskhan",
+   "forme": "Mega",
+   "abilities": [
+    "Parental Bond"
+   ]
+  },
+  {
+   "key": "starmiemega",
+   "name": "Starmie-Mega",
+   "base": "starmie",
+   "forme": "Mega",
+   "abilities": [
+    "Huge Power"
+   ]
+  },
+  {
+   "key": "pinsirmega",
+   "name": "Pinsir-Mega",
+   "base": "pinsir",
+   "forme": "Mega",
+   "abilities": [
+    "Aerilate"
+   ]
+  },
+  {
+   "key": "gyaradosmega",
+   "name": "Gyarados-Mega",
+   "base": "gyarados",
+   "forme": "Mega",
+   "abilities": [
+    "Mold Breaker"
+   ]
+  },
+  {
+   "key": "aerodactylmega",
+   "name": "Aerodactyl-Mega",
+   "base": "aerodactyl",
+   "forme": "Mega",
+   "abilities": [
+    "Tough Claws"
+   ]
+  },
+  {
+   "key": "dragonitemega",
+   "name": "Dragonite-Mega",
+   "base": "dragonite",
+   "forme": "Mega",
+   "abilities": [
+    "Multiscale"
+   ]
+  },
+  {
+   "key": "mewtwomegax",
+   "name": "Mewtwo-Mega-X",
+   "base": "mewtwo",
+   "forme": "Mega-X",
+   "abilities": [
+    "Steadfast"
+   ]
+  },
+  {
+   "key": "mewtwomegay",
+   "name": "Mewtwo-Mega-Y",
+   "base": "mewtwo",
+   "forme": "Mega-Y",
+   "abilities": [
+    "Insomnia"
+   ]
+  },
+  {
+   "key": "meganiummega",
+   "name": "Meganium-Mega",
+   "base": "meganium",
+   "forme": "Mega",
+   "abilities": [
+    "Mega Sol"
+   ]
+  },
+  {
+   "key": "feraligatrmega",
+   "name": "Feraligatr-Mega",
+   "base": "feraligatr",
+   "forme": "Mega",
+   "abilities": [
+    "Dragonize"
+   ]
+  },
+  {
+   "key": "ampharosmega",
+   "name": "Ampharos-Mega",
+   "base": "ampharos",
+   "forme": "Mega",
+   "abilities": [
+    "Mold Breaker"
+   ]
+  },
+  {
+   "key": "steelixmega",
+   "name": "Steelix-Mega",
+   "base": "steelix",
+   "forme": "Mega",
+   "abilities": [
+    "Sand Force"
+   ]
+  },
+  {
+   "key": "scizormega",
+   "name": "Scizor-Mega",
+   "base": "scizor",
+   "forme": "Mega",
+   "abilities": [
+    "Technician"
+   ]
+  },
+  {
+   "key": "heracrossmega",
+   "name": "Heracross-Mega",
+   "base": "heracross",
+   "forme": "Mega",
+   "abilities": [
+    "Skill Link"
+   ]
+  },
+  {
+   "key": "skarmorymega",
+   "name": "Skarmory-Mega",
+   "base": "skarmory",
+   "forme": "Mega",
+   "abilities": [
+    "Stalwart"
+   ]
+  },
+  {
+   "key": "houndoommega",
+   "name": "Houndoom-Mega",
+   "base": "houndoom",
+   "forme": "Mega",
+   "abilities": [
+    "Solar Power"
+   ]
+  },
+  {
+   "key": "tyranitarmega",
+   "name": "Tyranitar-Mega",
+   "base": "tyranitar",
+   "forme": "Mega",
+   "abilities": [
+    "Sand Stream"
+   ]
+  },
+  {
+   "key": "sceptilemega",
+   "name": "Sceptile-Mega",
+   "base": "sceptile",
+   "forme": "Mega",
+   "abilities": [
+    "Lightning Rod"
+   ]
+  },
+  {
+   "key": "blazikenmega",
+   "name": "Blaziken-Mega",
+   "base": "blaziken",
+   "forme": "Mega",
+   "abilities": [
+    "Speed Boost"
+   ]
+  },
+  {
+   "key": "swampertmega",
+   "name": "Swampert-Mega",
+   "base": "swampert",
+   "forme": "Mega",
+   "abilities": [
+    "Swift Swim"
+   ]
+  },
+  {
+   "key": "gardevoirmega",
+   "name": "Gardevoir-Mega",
+   "base": "gardevoir",
+   "forme": "Mega",
+   "abilities": [
+    "Pixilate"
+   ]
+  },
+  {
+   "key": "sableyemega",
+   "name": "Sableye-Mega",
+   "base": "sableye",
+   "forme": "Mega",
+   "abilities": [
+    "Magic Bounce"
+   ]
+  },
+  {
+   "key": "mawilemega",
+   "name": "Mawile-Mega",
+   "base": "mawile",
+   "forme": "Mega",
+   "abilities": [
+    "Huge Power"
+   ]
+  },
+  {
+   "key": "aggronmega",
+   "name": "Aggron-Mega",
+   "base": "aggron",
+   "forme": "Mega",
+   "abilities": [
+    "Filter"
+   ]
+  },
+  {
+   "key": "medichammega",
+   "name": "Medicham-Mega",
+   "base": "medicham",
+   "forme": "Mega",
+   "abilities": [
+    "Pure Power"
+   ]
+  },
+  {
+   "key": "manectricmega",
+   "name": "Manectric-Mega",
+   "base": "manectric",
+   "forme": "Mega",
+   "abilities": [
+    "Intimidate"
+   ]
+  },
+  {
+   "key": "sharpedomega",
+   "name": "Sharpedo-Mega",
+   "base": "sharpedo",
+   "forme": "Mega",
+   "abilities": [
+    "Strong Jaw"
+   ]
+  },
+  {
+   "key": "cameruptmega",
+   "name": "Camerupt-Mega",
+   "base": "camerupt",
+   "forme": "Mega",
+   "abilities": [
+    "Sheer Force"
+   ]
+  },
+  {
+   "key": "altariamega",
+   "name": "Altaria-Mega",
+   "base": "altaria",
+   "forme": "Mega",
+   "abilities": [
+    "Pixilate"
+   ]
+  },
+  {
+   "key": "banettemega",
+   "name": "Banette-Mega",
+   "base": "banette",
+   "forme": "Mega",
+   "abilities": [
+    "Prankster"
+   ]
+  },
+  {
+   "key": "chimechomega",
+   "name": "Chimecho-Mega",
+   "base": "chimecho",
+   "forme": "Mega",
+   "abilities": [
+    "Levitate"
+   ]
+  },
+  {
+   "key": "absolmega",
+   "name": "Absol-Mega",
+   "base": "absol",
+   "forme": "Mega",
+   "abilities": [
+    "Magic Bounce"
+   ]
+  },
+  {
+   "key": "glaliemega",
+   "name": "Glalie-Mega",
+   "base": "glalie",
+   "forme": "Mega",
+   "abilities": [
+    "Refrigerate"
+   ]
+  },
+  {
+   "key": "salamencemega",
+   "name": "Salamence-Mega",
+   "base": "salamence",
+   "forme": "Mega",
+   "abilities": [
+    "Aerilate"
+   ]
+  },
+  {
+   "key": "metagrossmega",
+   "name": "Metagross-Mega",
+   "base": "metagross",
+   "forme": "Mega",
+   "abilities": [
+    "Tough Claws"
+   ]
+  },
+  {
+   "key": "latiasmega",
+   "name": "Latias-Mega",
+   "base": "latias",
+   "forme": "Mega",
+   "abilities": [
+    "Levitate"
+   ]
+  },
+  {
+   "key": "latiosmega",
+   "name": "Latios-Mega",
+   "base": "latios",
+   "forme": "Mega",
+   "abilities": [
+    "Levitate"
+   ]
+  },
+  {
+   "key": "rayquazamega",
+   "name": "Rayquaza-Mega",
+   "base": "rayquaza",
+   "forme": "Mega",
+   "abilities": [
+    "Delta Stream"
+   ]
+  },
+  {
+   "key": "staraptormega",
+   "name": "Staraptor-Mega",
+   "base": "staraptor",
+   "forme": "Mega",
+   "abilities": [
+    "Contrary"
+   ]
+  },
+  {
+   "key": "lopunnymega",
+   "name": "Lopunny-Mega",
+   "base": "lopunny",
+   "forme": "Mega",
+   "abilities": [
+    "Scrappy"
+   ]
+  },
+  {
+   "key": "garchompmega",
+   "name": "Garchomp-Mega",
+   "base": "garchomp",
+   "forme": "Mega",
+   "abilities": [
+    "Sand Force"
+   ]
+  },
+  {
+   "key": "lucariomega",
+   "name": "Lucario-Mega",
+   "base": "lucario",
+   "forme": "Mega",
+   "abilities": [
+    "Adaptability"
+   ]
+  },
+  {
+   "key": "abomasnowmega",
+   "name": "Abomasnow-Mega",
+   "base": "abomasnow",
+   "forme": "Mega",
+   "abilities": [
+    "Snow Warning"
+   ]
+  },
+  {
+   "key": "gallademega",
+   "name": "Gallade-Mega",
+   "base": "gallade",
+   "forme": "Mega",
+   "abilities": [
+    "Inner Focus"
+   ]
+  },
+  {
+   "key": "froslassmega",
+   "name": "Froslass-Mega",
+   "base": "froslass",
+   "forme": "Mega",
+   "abilities": [
+    "Snow Warning"
+   ]
+  },
+  {
+   "key": "heatranmega",
+   "name": "Heatran-Mega",
+   "base": "heatran",
+   "forme": "Mega",
+   "abilities": [
+    "Flash Fire",
+    "Flame Body"
+   ]
+  },
+  {
+   "key": "darkraimega",
+   "name": "Darkrai-Mega",
+   "base": "darkrai",
+   "forme": "Mega",
+   "abilities": [
+    "Bad Dreams"
+   ]
+  },
+  {
+   "key": "emboarmega",
+   "name": "Emboar-Mega",
+   "base": "emboar",
+   "forme": "Mega",
+   "abilities": [
+    "Mold Breaker"
+   ]
+  },
+  {
+   "key": "excadrillmega",
+   "name": "Excadrill-Mega",
+   "base": "excadrill",
+   "forme": "Mega",
+   "abilities": [
+    "Piercing Drill"
+   ]
+  },
+  {
+   "key": "audinomega",
+   "name": "Audino-Mega",
+   "base": "audino",
+   "forme": "Mega",
+   "abilities": [
+    "Healer"
+   ]
+  },
+  {
+   "key": "scolipedemega",
+   "name": "Scolipede-Mega",
+   "base": "scolipede",
+   "forme": "Mega",
+   "abilities": [
+    "Shell Armor"
+   ]
+  },
+  {
+   "key": "scraftymega",
+   "name": "Scrafty-Mega",
+   "base": "scrafty",
+   "forme": "Mega",
+   "abilities": [
+    "Intimidate"
+   ]
+  },
+  {
+   "key": "eelektrossmega",
+   "name": "Eelektross-Mega",
+   "base": "eelektross",
+   "forme": "Mega",
+   "abilities": [
+    "Eelevate"
+   ]
+  },
+  {
+   "key": "chandeluremega",
+   "name": "Chandelure-Mega",
+   "base": "chandelure",
+   "forme": "Mega",
+   "abilities": [
+    "Infiltrator"
+   ]
+  },
+  {
+   "key": "golurkmega",
+   "name": "Golurk-Mega",
+   "base": "golurk",
+   "forme": "Mega",
+   "abilities": [
+    "Unseen Fist"
+   ]
+  },
+  {
+   "key": "chesnaughtmega",
+   "name": "Chesnaught-Mega",
+   "base": "chesnaught",
+   "forme": "Mega",
+   "abilities": [
+    "Bulletproof"
+   ]
+  },
+  {
+   "key": "delphoxmega",
+   "name": "Delphox-Mega",
+   "base": "delphox",
+   "forme": "Mega",
+   "abilities": [
+    "Levitate"
+   ]
+  },
+  {
+   "key": "greninjamega",
+   "name": "Greninja-Mega",
+   "base": "greninja",
+   "forme": "Mega",
+   "abilities": [
+    "Protean"
+   ]
+  },
+  {
+   "key": "pyroarmega",
+   "name": "Pyroar-Mega",
+   "base": "pyroar",
+   "forme": "Mega",
+   "abilities": [
+    "Fire Mane"
+   ]
+  },
+  {
+   "key": "floettemega",
+   "name": "Floette-Mega",
+   "base": "floette",
+   "forme": "Mega",
+   "abilities": [
+    "Fairy Aura"
+   ]
+  },
+  {
+   "key": "meowsticmmega",
+   "name": "Meowstic-M-Mega",
+   "base": "meowstic",
+   "forme": "M-Mega",
+   "abilities": [
+    "Trace"
+   ]
+  },
+  {
+   "key": "meowsticfmega",
+   "name": "Meowstic-F-Mega",
+   "base": "meowstic",
+   "forme": "F-Mega",
+   "abilities": [
+    "Trace"
+   ]
+  },
+  {
+   "key": "malamarmega",
+   "name": "Malamar-Mega",
+   "base": "malamar",
+   "forme": "Mega",
+   "abilities": [
+    "Contrary"
+   ]
+  },
+  {
+   "key": "barbaraclemega",
+   "name": "Barbaracle-Mega",
+   "base": "barbaracle",
+   "forme": "Mega",
+   "abilities": [
+    "Tough Claws"
+   ]
+  },
+  {
+   "key": "dragalgemega",
+   "name": "Dragalge-Mega",
+   "base": "dragalge",
+   "forme": "Mega",
+   "abilities": [
+    "Regenerator"
+   ]
+  },
+  {
+   "key": "hawluchamega",
+   "name": "Hawlucha-Mega",
+   "base": "hawlucha",
+   "forme": "Mega",
+   "abilities": [
+    "No Guard"
+   ]
+  },
+  {
+   "key": "zygardemega",
+   "name": "Zygarde-Mega",
+   "base": "zygarde",
+   "forme": "Mega",
+   "abilities": [
+    "Aura Break"
+   ]
+  },
+  {
+   "key": "dianciemega",
+   "name": "Diancie-Mega",
+   "base": "diancie",
+   "forme": "Mega",
+   "abilities": [
+    "Magic Bounce"
+   ]
+  },
+  {
+   "key": "crabominablemega",
+   "name": "Crabominable-Mega",
+   "base": "crabominable",
+   "forme": "Mega",
+   "abilities": [
+    "Iron Fist"
+   ]
+  },
+  {
+   "key": "golisopodmega",
+   "name": "Golisopod-Mega",
+   "base": "golisopod",
+   "forme": "Mega",
+   "abilities": [
+    "Emergency Exit"
+   ]
+  },
+  {
+   "key": "drampamega",
+   "name": "Drampa-Mega",
+   "base": "drampa",
+   "forme": "Mega",
+   "abilities": [
+    "Berserk"
+   ]
+  },
+  {
+   "key": "magearnamega",
+   "name": "Magearna-Mega",
+   "base": "magearna",
+   "forme": "Mega",
+   "abilities": [
+    "Soul-Heart"
+   ]
+  },
+  {
+   "key": "magearnaoriginalmega",
+   "name": "Magearna-Original-Mega",
+   "base": "magearna",
+   "forme": "Original-Mega",
+   "abilities": [
+    "Soul-Heart"
+   ]
+  },
+  {
+   "key": "zeraoramega",
+   "name": "Zeraora-Mega",
+   "base": "zeraora",
+   "forme": "Mega",
+   "abilities": [
+    "Volt Absorb"
+   ]
+  },
+  {
+   "key": "falinksmega",
+   "name": "Falinks-Mega",
+   "base": "falinks",
+   "forme": "Mega",
+   "abilities": [
+    "Defiant"
+   ]
+  },
+  {
+   "key": "scovillainmega",
+   "name": "Scovillain-Mega",
+   "base": "scovillain",
+   "forme": "Mega",
+   "abilities": [
+    "Spicy Spray"
+   ]
+  },
+  {
+   "key": "glimmoramega",
+   "name": "Glimmora-Mega",
+   "base": "glimmora",
+   "forme": "Mega",
+   "abilities": [
+    "Adaptability"
+   ]
+  },
+  {
+   "key": "tatsugiricurlymega",
+   "name": "Tatsugiri-Curly-Mega",
+   "base": "tatsugiri",
+   "forme": "Curly-Mega",
+   "abilities": [
+    "Commander",
+    "Storm Drain"
+   ]
+  },
+  {
+   "key": "tatsugiridroopymega",
+   "name": "Tatsugiri-Droopy-Mega",
+   "base": "tatsugiri",
+   "forme": "Droopy-Mega",
+   "abilities": [
+    "Commander",
+    "Storm Drain"
+   ]
+  },
+  {
+   "key": "tatsugiristretchymega",
+   "name": "Tatsugiri-Stretchy-Mega",
+   "base": "tatsugiri",
+   "forme": "Stretchy-Mega",
+   "abilities": [
+    "Commander",
+    "Storm Drain"
+   ]
+  },
+  {
+   "key": "baxcaliburmega",
+   "name": "Baxcalibur-Mega",
+   "base": "baxcalibur",
+   "forme": "Mega",
+   "abilities": [
+    "Thermal Exchange",
+    "Ice Body"
+   ]
+  },
+  {
+   "key": "crucibellemega",
+   "name": "Crucibelle-Mega",
+   "base": "crucibelle",
+   "forme": "Mega",
+   "abilities": [
+    "Magic Guard"
+   ]
+  }
+ ]
+}
