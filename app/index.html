@@ -1522,6 +1522,15 @@ async function init(){
   document.getElementById('loading-indicator').style.display='';
   try{const r=await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025&offset=0');const d=await r.json();master=d.results.map((p,i)=>({id:i+1,name:p.name}))}
   catch(e){console.error(e);for(let i=1;i<=1025;i++)master.push({id:i,name:'pokemon-'+i})}
+  /* Alternate forms are a second page of the same endpoint - ids above 10000, 326 of them at the
+     time of writing. They are deliberately NOT put in `master`: master backs the Pokedex list, and
+     a dex that lists Charizard three times is not a dex. Search surfaces them instead, which is
+     where asking for "mega" and getting the megas is the whole point. One extra request, once. */
+  try{
+    const r=await fetch('https://pokeapi.co/api/v2/pokemon?limit=500&offset=1025');
+    const d=await r.json();
+    formsIndex=d.results.map(p=>({id:idFromUrl(p.url),name:p.name})).filter(p=>p.id>10000);
+  }catch(e){ formsIndex=[]; }   // no forms in search is a degradation, not a failure
   document.getElementById('loading-indicator').style.display='none';
   // Restore gen/game state from hash BEFORE first applyFilters
   const _initHash=(location.hash||'').replace(/^#/,'');
@@ -2878,6 +2887,28 @@ function baseSpeciesId(formName){
     if(hit)return hit.id;
   }
   return 0;
+}
+
+/* One rule for whether a Pokemon - base species or alternate form - belongs in the current
+   selection. The ability page, the team builder search and the calculator picker all ask it, and
+   three copies would drift; the ability page keeping its own copy is exactly why forms were absent
+   from the other two.
+
+   A form is gated on TWO eras, not one. Its base species must exist in the selected generation and
+   so must the form: Alolan Rattata is a Generation VII form of a Generation I species, so checking
+   the species alone would put it in Gen I. A null range means the app does not date that form
+   separately - a cosmetic or battle forme that shipped with its species - and the species check
+   already covers it. */
+function formAllowed(name,id,genNum,genMax){
+  const baseId=id>10000?baseSpeciesId(name):id;
+  if(!baseId||baseId>genMax)return false;
+  // The Champions roster names species, not formes, so a form is legal exactly when its base is.
+  if(isChampionsMode&&!CHAMPIONS_IDS.has(baseId))return false;
+  if(id>10000){
+    const range=getFormGenRange(name);
+    if(range&&!range.available(genNum))return false;
+  }
+  return true;
 }
 
 /* One definition of how a form is named on screen. The Pokedex detail panel and the ability page
@@ -6465,20 +6496,9 @@ async function showAbilityPage(abilityName){
     const pokemonList=(d.pokemon||[]).filter(p=>{
       const id=idFromUrl(p.pokemon.url)||0;
       if(id<=0)return false;
-      const name=p.pokemon.name;
-      const baseId=id>10000?baseSpeciesId(name):id;
-      if(!baseId||baseId>genMax)return false;
-      // Champions is a fixed roster, not a generation range. Without this the page listed Riolu,
-      // Impidimp, Morgrem and other non-fully-evolved Pokemon that are not legal in the format -
-      // the same class of bug as the generation filter being ignored in applyFilters().
-      // A form is legal exactly when its base species is: the roster names species, not formes.
-      if(isChampionsMode&&!CHAMPIONS_IDS.has(baseId))return false;
-      // The form's own era. Null means the form is not one this app dates - a cosmetic or battle
-      // forme that shipped with its species - so the base species check above already covers it.
-      if(id>10000){
-        const range=getFormGenRange(name);
-        if(range&&!range.available(genNum))return false;
-      }
+      // Generation, Champions legality and form era all live in formAllowed, shared with the team
+      // builder search and the calculator picker so the three cannot disagree about what exists.
+      if(!formAllowed(p.pokemon.name,id,genNum,genMax))return false;
       // Hidden abilities didn't exist before Gen 5; exclude Pokemon that only have this ability as hidden
       if(p.is_hidden&&genNum<5)return false;
       return true;
