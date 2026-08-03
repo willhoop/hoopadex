@@ -95,5 +95,58 @@ eq(app.parseStatLine('nonsense'), {}, 'an unparseable stat line yields nothing r
 eq(app.parseShowdownPaste(''), [], 'empty text yields no sets');
 eq(app.parseShowdownPaste('\n\n  \n'), [], 'whitespace-only text yields no sets');
 
+// --- export, and the round trip ---------------------------------------------------------
+// The exporter is the importer's inverse. A team that survives import → export unchanged can be
+// handed to Showdown's teambuilder, Pokepaste or their calculator without loss, which is the whole
+// point of speaking their format rather than inventing one.
+const expStart = lines.findIndex(l => l.startsWith('const showdownName='));
+const expEnd = lines.findIndex((l, i) => i > expStart && l.startsWith('async function copyTeamPaste'));
+if (expStart < 0 || expEnd < 0) throw new Error('could not locate the exporter in index.html');
+const exp = eval(lines.slice(expStart, expEnd).join('\n') + '\n;({toShowdownPaste,showdownName,statLineOut})');
+
+eq(exp.showdownName('garchomp'), 'Garchomp', 'a plain species name title-cases');
+eq(exp.showdownName('urshifu-rapid-strike'), 'Urshifu-Rapid-Strike', 'every forme segment title-cases');
+eq(exp.showdownName('ho-oh'), 'Ho-Oh', 'a hyphenated real name title-cases');
+
+// EVs omit zeroes; IVs omit 31s. Emitting "0 HP" or "31 Atk" is legal but noisy, and Showdown
+// itself omits them, so a round trip against a Showdown-authored paste would otherwise differ.
+eq(exp.statLineOut({ attack: 252, hp: 0, speed: 252 }, 0), '252 Atk / 252 Spe', 'zero EVs are omitted');
+eq(exp.statLineOut({ 'special-attack': 0, attack: 31 }, 31), '0 SpA', '31 IVs are omitted, 0 is kept');
+eq(exp.statLineOut(null, 0), '', 'a missing stat block yields nothing');
+eq(exp.statLineOut({}, 0), '', 'an empty stat block yields nothing');
+
+const exportTeam = [{ name: 'garchomp', smogonSet: { item: 'Life Orb', ability: 'Rough Skin', level: 50,
+  tera: 'Fire', evs: { attack: 252, 'special-defense': 4, speed: 252 }, ivs: { 'special-attack': 0 },
+  nature: 'Jolly', moves: ['Earthquake', 'Dragon Claw', 'Fire Fang', 'Swords Dance'] } }];
+const out = exp.toShowdownPaste(exportTeam);
+check(out.split('\n')[0] === 'Garchomp @ Life Orb', 'the species line carries the item', out.split('\n')[0]);
+check(/^Ability: Rough Skin$/m.test(out), 'ability line emitted', '');
+check(/^Tera Type: Fire$/m.test(out), 'tera line emitted', '');
+check(/^Jolly Nature$/m.test(out), 'nature line emitted', '');
+check(/^EVs: 252 Atk \/ 4 SpD \/ 252 Spe$/m.test(out), 'EV line in canonical stat order', out);
+check(/^IVs: 0 SpA$/m.test(out), 'IV line emitted', '');
+check((out.match(/^- /gm) || []).length === 4, 'all four moves emitted', '');
+
+// Level 100 is the default and Showdown omits it; emitting it would break round-tripping.
+const lvl100 = exp.toShowdownPaste([{ name: 'ditto', smogonSet: { level: 100, moves: [] } }]);
+check(!/Level:/.test(lvl100), 'level 100 is omitted as the default', lvl100);
+
+// The actual round trip: parse what we emit and get the same thing back.
+const reparsed = app.parseShowdownPaste(out)[0];
+eq(reparsed.species, 'Garchomp', 'round trip preserves species');
+eq(reparsed.item, 'Life Orb', 'round trip preserves item');
+eq(reparsed.tera, 'Fire', 'round trip preserves tera type');
+eq(reparsed.nature, 'Jolly', 'round trip preserves nature');
+eq(reparsed.evs, { attack: 252, 'special-defense': 4, speed: 252 }, 'round trip preserves EVs');
+eq(reparsed.ivs, { 'special-attack': 0 }, 'round trip preserves IVs');
+eq(reparsed.moves, ['Earthquake', 'Dragon Claw', 'Fire Fang', 'Swords Dance'], 'round trip preserves moves');
+
+// Multi-member teams keep their blank-line separator.
+const two = exp.toShowdownPaste([{ name: 'ditto', smogonSet: { moves: ['Transform'] } },
+                                 { name: 'garchomp', smogonSet: { moves: ['Earthquake'] } }]);
+eq(app.parseShowdownPaste(two).length, 2, 'a two-member export re-parses as two members');
+eq(exp.toShowdownPaste([]), '', 'an empty team exports as nothing');
+eq(exp.toShowdownPaste([null, null]), '', 'a team of empty slots exports as nothing');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

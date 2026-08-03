@@ -12,6 +12,36 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.6] — 2026-08-03
+
+### Added
+- **Teams survive a reload.** `teamSlots` lived in memory only, so refreshing the page lost the
+  team — the real gap behind "you can save teams". The working team now autosaves to
+  `localStorage` on every change and is restored on load, and teams can be saved under a name,
+  reloaded from a dropdown, and deleted. Up to 30 are kept. Nothing leaves the browser.
+- **Export as a Showdown paste**, the inverse of the importer, so a team round-trips to Showdown's
+  teambuilder, Pokepaste and the damage calculators without loss. Verified byte-for-byte: a paste
+  imported and re-exported comes back identical, including the forme name `Urshifu-Rapid-Strike`,
+  the Tera line and a `0 SpA` IV.
+- **"Showdown calc ↗"** copies the paste and opens their calculator, in Champions mode when you
+  are in Champions mode.
+
+### Notes
+- **Their calculator cannot be preloaded from a URL.** I said earlier that it might be, having
+  found `URLSearchParams` in their `shared_controls.js`. Reading the surrounding code, it uses the
+  query string only for `gen` and `mode`; team data goes through their import box and their own
+  localStorage. So the button copies and opens, and you paste once on their side. Saying that
+  plainly beats a button that pretends to be automatic.
+- Zero EVs and 31 IVs are omitted on export because Showdown omits them. Emitting them is legal but
+  would make a round trip against a Showdown-authored paste differ, which is exactly what the new
+  tests check.
+- If the clipboard is refused — some browsers block it outside a user gesture — the paste is put
+  into the import box and selected rather than failing silently.
+- `tests/test-paste-import.js` grew from 32 to 57 assertions, covering the exporter and a real
+  parse-of-emit round trip. Two mutations confirm it bites: emitting default stat values, and
+  dropping forme segments from the species name, both fail the suite.
+
+
 ## [2.5] — 2026-08-03
 
 ### Added

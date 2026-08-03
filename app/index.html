@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 2.5 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 2.6 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -777,10 +777,16 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn active" id="team-sub-builder" onclick="switchTeamSub('builder')">Team Builder</button>
 <button class="tab-btn" id="team-sub-compare" onclick="switchTeamSub('compare')">Compare Pok&#233;mon</button>
 <div style="flex:1"></div>
+<select id="team-load-select" onchange="onTeamLoadSelect()" class="filter-select" style="max-width:190px;font-size:11px;padding:5px 8px;margin-right:6px"><option value="">No saved teams</option></select>
+<button id="team-delete-btn" onclick="onTeamDelete()" title="Delete the selected saved team" style="display:none;padding:5px 9px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text4);font-size:11px;cursor:pointer;margin-right:6px">Delete</button>
+<button onclick="saveNamedTeam()" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(120,200,80,0.3);background:rgba(120,200,80,0.08);color:#78C850;font-size:11px;font-weight:700;cursor:pointer;margin-right:6px">Save team</button>
+<button onclick="copyTeamPaste()" style="padding:5px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:11px;font-weight:700;cursor:pointer;margin-right:6px">Copy paste</button>
+<button onclick="openInShowdownCalc()" title="Copies the paste, then opens the Showdown calculator - paste it into their Import box" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(104,144,240,0.3);background:rgba(104,144,240,0.08);color:#6890F0;font-size:11px;font-weight:700;cursor:pointer;margin-right:6px">Showdown calc ↗</button>
 <button id="team-import-btn" onclick="togglePasteBox()" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(104,144,240,0.3);background:rgba(104,144,240,0.08);color:#6890F0;font-size:11px;font-weight:700;cursor:pointer;margin-right:6px">Import paste</button>
 <button id="team-clear-all-btn" onclick="clearAllTeam()" style="display:none;padding:5px 12px;border-radius:8px;border:1px solid rgba(248,88,136,0.3);background:rgba(248,88,136,0.08);color:#F85888;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s">Clear All</button>
 </div>
 <div id="team-builder-sub">
+<div id="team-store-status" style="font-size:12px;min-height:16px;margin-bottom:6px;color:var(--text3)"></div>
 <p style="font-size:13px;color:#8a8a9a;margin-bottom:16px">Build a team of up to 6 Pok&#233;mon and analyze type coverage. Click a slot to add from your Pok&#233;dex.</p>
 <div id="team-paste-box" style="display:none;margin-bottom:16px;padding:12px;border:1px solid rgba(104,144,240,0.22);background:rgba(104,144,240,0.05);border-radius:10px"><div style="font-size:12px;color:var(--text2);margin-bottom:8px">Paste a Showdown export or Pokepaste block. Build the team in Showdown's teambuilder, hit <b>Import/Export</b>, and paste it here.</div><textarea id="team-paste-input" spellcheck="false" placeholder="Garchomp @ Life Orb&#10;Ability: Rough Skin&#10;EVs: 252 Atk / 4 SpD / 252 Spe&#10;Jolly Nature&#10;- Earthquake&#10;- Dragon Claw" style="width:100%;min-height:150px;background:var(--bg1);color:var(--text);border:1px solid var(--border2);border-radius:8px;padding:10px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.5;resize:vertical"></textarea><div style="display:flex;gap:8px;align-items:center;margin-top:8px"><button onclick="runPasteImport()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(120,200,80,0.35);background:rgba(120,200,80,0.12);color:#78C850;font-size:12px;font-weight:700;cursor:pointer">Import team</button><button onclick="togglePasteBox()" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text3);font-size:12px;cursor:pointer">Cancel</button><span id="team-paste-status" style="font-size:12px;color:var(--text3)"></span></div></div>
 <div class="team-grid" id="team-grid"></div>
@@ -1323,6 +1329,11 @@ async function init(){
     });
   }
   applyFilters();
+  // Team restoration sits AFTER applyFilters on purpose: the hash reader ends at that call,
+  // and tests/test-hash-routing.js slices exactly that range out of this file. Putting team
+  // code inside it dragged unrelated functions into the harness and broke the suite.
+  if(restoreWorkingTeam()){renderTeamBuilder();renderTeamAnalysis()}
+  renderTeamStoreUI();
   applyTabVisibility();  // the app opens in Champions mode, so this has to run before first paint
   await restoreHash();
   // Pre-load search indexes for universal search
@@ -6093,6 +6104,8 @@ function startCompareSearch(){
 function renderTeamBuilder(){
   const grid=document.getElementById('team-grid');
   if(!grid)return;
+  // Every mutation path re-renders, so this is the one place autosave has to live.
+  autosaveTeam();
   let h='';
   for(let i=0;i<6;i++){
     const p=teamSlots[i];
@@ -6334,6 +6347,145 @@ function statBudget(){
     : {label:'EVs', perStat:252, total:510, step:4};
 }
 
+/* ── Team persistence & export ──────────────────────────────────────────────────────────
+   teamSlots lived in memory only, so a reload lost the team. Teams are now kept in
+   localStorage: the working team autosaves on every change, and named teams can be saved and
+   reloaded. Nothing leaves the browser.
+
+   Export emits the Showdown block - the same format the importer reads - so a team round-trips
+   to Showdown's teambuilder, Pokepaste and the damage calculators.
+
+   On the handoff: calc.pokemonshowdown.com reads only `gen` and `mode` from its query string
+   (checked against their shared_controls.js), so there is no way to preload a team by URL. The
+   button copies the paste and opens the calculator; one paste on their side is the honest
+   shortest path, and saying so beats pretending it is automatic.                              */
+const TEAM_STORE_KEY='hoopadex-teams';
+function loadTeamStore(){
+  try{const raw=localStorage.getItem(TEAM_STORE_KEY);if(!raw)return{saved:[],working:null};
+      const d=JSON.parse(raw);return{saved:Array.isArray(d.saved)?d.saved:[],working:d.working||null}}
+  catch{return{saved:[],working:null}}
+}
+function writeTeamStore(store){
+  try{localStorage.setItem(TEAM_STORE_KEY,JSON.stringify(store))}catch{/* quota or private mode - not fatal */}
+}
+function autosaveTeam(){
+  const store=loadTeamStore();
+  store.working=teamSlots.map(p=>p||null);
+  writeTeamStore(store);
+}
+function restoreWorkingTeam(){
+  const store=loadTeamStore();
+  if(!store.working||!store.working.some(Boolean))return false;
+  teamSlots=store.working.slice(0,6);
+  while(teamSlots.length<6)teamSlots.push(null);
+  return true;
+}
+function saveNamedTeam(){
+  const filled=teamSlots.filter(Boolean);
+  if(!filled.length)return teamStatus('Nothing to save.', 'warn');
+  const suggested=filled.map(p=>pokeName(p.name)).slice(0,2).join(' + ')+(filled.length>2?' +'+(filled.length-2):'');
+  const name=prompt('Name this team:',suggested);
+  if(name===null)return;
+  const store=loadTeamStore();
+  const clean=String(name).trim()||suggested;
+  store.saved=store.saved.filter(t=>t.name!==clean);
+  store.saved.unshift({name:clean,slots:teamSlots.map(p=>p||null),savedAt:new Date().toISOString()});
+  store.saved=store.saved.slice(0,30);
+  writeTeamStore(store);
+  renderTeamStoreUI();
+  teamStatus('Saved as "'+clean+'".','ok');
+}
+function loadNamedTeam(name){
+  const t=loadTeamStore().saved.find(x=>x.name===name);
+  if(!t)return;
+  teamSlots=t.slots.slice(0,6);
+  while(teamSlots.length<6)teamSlots.push(null);
+  autosaveTeam();
+  renderTeamBuilder();renderTeamAnalysis();renderTeamStoreUI();
+  teamStatus('Loaded "'+name+'".','ok');
+}
+function deleteNamedTeam(name){
+  const store=loadTeamStore();
+  store.saved=store.saved.filter(t=>t.name!==name);
+  writeTeamStore(store);renderTeamStoreUI();
+  teamStatus('Deleted "'+name+'".','warn');
+}
+function teamStatus(msg,kind){
+  const el=document.getElementById('team-store-status');
+  if(!el)return;
+  el.textContent=msg;
+  el.style.color=kind==='ok'?'#78C850':kind==='warn'?'#F8A060':'var(--text3)';
+  clearTimeout(teamStatus._t);
+  teamStatus._t=setTimeout(()=>{el.textContent=''},2600);
+}
+
+// Species slugs are PokeAPI's ("urshifu-rapid-strike"); Showdown wants title case per segment.
+const showdownName=slug=>String(slug).split('-').map(w=>w?w[0].toUpperCase()+w.slice(1):w).join('-');
+const SD_STATKEY={hp:'HP',attack:'Atk',defense:'Def','special-attack':'SpA','special-defense':'SpD',speed:'Spe'};
+const SD_ORDER=['hp','attack','defense','special-attack','special-defense','speed'];
+function statLineOut(obj,skipDefault){
+  if(!obj)return '';
+  const parts=SD_ORDER.filter(k=>obj[k]!==undefined&&obj[k]!==null&&obj[k]!==skipDefault)
+                      .map(k=>obj[k]+' '+SD_STATKEY[k]);
+  return parts.join(' / ');
+}
+function toShowdownPaste(slots){
+  return (slots||[]).filter(Boolean).map(p=>{
+    const set=p.smogonSet||{};
+    const lines=[];
+    let head=showdownName(p.name);
+    if(set.item)head+=' @ '+set.item;
+    lines.push(head);
+    if(set.ability)lines.push('Ability: '+set.ability);
+    if(set.level&&set.level!==100)lines.push('Level: '+set.level);
+    if(set.tera)lines.push('Tera Type: '+set.tera);
+    const evs=statLineOut(set.evs,0);
+    if(evs)lines.push('EVs: '+evs);
+    if(set.nature)lines.push(set.nature+' Nature');
+    const ivs=statLineOut(set.ivs,31);
+    if(ivs)lines.push('IVs: '+ivs);
+    (set.moves||[]).filter(Boolean).forEach(m=>lines.push('- '+m));
+    return lines.join('\n');
+  }).join('\n\n');
+}
+async function copyTeamPaste(){
+  const txt=toShowdownPaste(teamSlots);
+  if(!txt)return teamStatus('Nothing to export.','warn');
+  try{ await navigator.clipboard.writeText(txt); teamStatus('Paste copied to clipboard.','ok'); }
+  catch{ // clipboard can be refused; showing the text is better than a silent failure
+    togglePasteBox();
+    const box=document.getElementById('team-paste-input');
+    if(box){box.value=txt;box.select()}
+    teamStatus('Clipboard blocked - the paste is in the box, copy it manually.','warn');
+  }
+}
+async function openInShowdownCalc(){
+  await copyTeamPaste();
+  const url=isChampionsMode
+    ? 'https://calc.pokemonshowdown.com/champions.html?mode=champions'
+    : 'https://calc.pokemonshowdown.com/?gen='+selectedGenNum;
+  window.open(url,'_blank','noopener');
+}
+
+function renderTeamStoreUI(){
+  const sel=document.getElementById('team-load-select');
+  if(!sel)return;
+  const saved=loadTeamStore().saved;
+  sel.innerHTML='<option value="">'+(saved.length?'Load saved team\u2026':'No saved teams')+'</option>'
+    +saved.map(t=>'<option value="'+t.name.replace(/"/g,'&quot;')+'">'+t.name+'</option>').join('');
+  sel.disabled=!saved.length;
+  const del=document.getElementById('team-delete-btn');
+  if(del)del.style.display=saved.length?'':'none';
+}
+function onTeamLoadSelect(){
+  const sel=document.getElementById('team-load-select');
+  if(sel&&sel.value)loadNamedTeam(sel.value);
+}
+function onTeamDelete(){
+  const sel=document.getElementById('team-load-select');
+  if(sel&&sel.value&&confirm('Delete the saved team "'+sel.value+'"?'))deleteNamedTeam(sel.value);
+}
+
 function togglePasteBox(){
   const b=document.getElementById('team-paste-box');
   if(!b)return;
@@ -6356,7 +6508,7 @@ async function runPasteImport(){
   // Replace the team rather than appending - a paste is a whole team, not an addition.
   teamSlots=[null,null,null,null,null,null];
   imported.forEach((p,i)=>{teamSlots[i]=p});
-  renderTeamBuilder();renderTeamAnalysis();
+  renderTeamBuilder();renderTeamAnalysis();renderTeamStoreUI();
   // Anything that could not be resolved is named, never silently dropped.
   status.style.color=failed.length?'#F8A060':'#78C850';
   status.textContent='Imported '+imported.length+' Pokémon'+(failed.length?' · skipped: '+failed.join(', '):'.');
