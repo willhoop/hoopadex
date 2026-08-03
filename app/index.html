@@ -928,6 +928,7 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn" id="other-sub-split" onclick="switchOtherSub('split')">Phys / Spec Split</button>
 <button class="tab-btn" id="other-sub-regs" onclick="switchOtherSub('regs')">Regulation Changes</button>
 <button class="tab-btn" id="other-sub-speed" onclick="switchOtherSub('speed')">Speed Tiers</button>
+<button class="tab-btn" id="other-sub-bulk" onclick="switchOtherSub('bulk')">Bulk</button>
 </div>
 <div id="other-priority-sub">
 <p style="font-size:12px;color:var(--text4);margin-bottom:8px">Higher priority acts first regardless of Speed.</p>
@@ -941,6 +942,9 @@ button,select,input{touch-action:manipulation}
 </div>
 <div id="other-speed-sub" style="display:none">
 <div id="speed-container"></div>
+</div>
+<div id="other-bulk-sub" style="display:none">
+<div id="bulk-container"></div>
 </div>
 </div>
 <div id="calc-tab" style="display:none">
@@ -3580,7 +3584,7 @@ function switchTab(tab){
 let currentOtherSub='priority';
 function switchOtherSub(sub){
   currentOtherSub=sub;
-  ['priority','split','regs','speed'].forEach(function(k){
+  ['priority','split','regs','speed','bulk'].forEach(function(k){
     const panel=document.getElementById('other-'+k+'-sub');
     if(panel)panel.style.display=sub===k?'':'none';
     const btn=document.getElementById('other-sub-'+(k==='regs'?'regs':k));
@@ -3590,6 +3594,7 @@ function switchOtherSub(sub){
   if(sub==='split')renderSplit();
   if(sub==='regs')renderRegulationChanges();
   if(sub==='speed')renderSpeedTiers();
+  if(sub==='bulk')renderBulk();
 }
 
 /* ── Regulation changes ─────────────────────────────────────────────────────────────────
