@@ -12,6 +12,39 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [3.1] — 2026-08-03
+
+### Fixed
+- **Light mode was using dark fills with white text on a near-white page**, so every filled cell read
+  as a heavy island. Light themes want the inverse: the fills are now light tints (`#7fb0d8`,
+  `#dc9086`) carrying dark ink at 5.2:1 and 4.3:1. Picking them needed care — the first attempt was
+  so pale it measured a normal-vision ΔE of 5.3, well under the 15 floor, meaning *full-colour*
+  readers would have struggled to tell the two states apart. The shipped pair measures 16.4.
+- **Colourblind mode did nothing in light mode.** `body.cvd` was declared *above* `body.light`, so
+  with both classes present the light theme won on source order and silently overrode it. The mode
+  now sits after `body.light`, with an explicit `body.light.cvd` rule that beats both on specificity.
+- **Immune cells were invisible in dark mode** — `#33334d` measured **1.47:1** against the page.
+  Now `#5f5f85` at 2.96:1.
+- **The type chart's corner label was red**, the same red as "not very effective", so an axis label
+  read as a legend key. Both axis labels are neutral now.
+- **"Gen V — Physical / Special Split"** claimed the split happened in the generation you had
+  selected. It happened in Generation IV. The heading states the rule; the generation is context.
+- The natures matrix was left-aligned in a full-width column and is now centred.
+
+### Changed
+- **Move Priority fits on one screen.** It is a mid-game reference and it was scrolling — the
+  bracket description took its own line, which was most of the height. It now sits inline with the
+  moves: 368px against a 720px viewport, all eleven brackets visible at once.
+- The Showdown handoff button is on the **damage calculator** as well as the Team Builder. It only
+  existed on Team Builder, which is not where it gets looked for.
+
+### Notes
+- The immune fix nearly shipped broken: the replacement targeted a value an earlier edit had already
+  changed, so it silently matched nothing. It was caught by reading the computed colour back out of
+  the browser rather than by trusting the edit. Every replacement in this pass now asserts its match
+  count — the ones that did not are exactly the ones that failed.
+
+
 ## [3.0] — 2026-08-03
 
 ### Added
