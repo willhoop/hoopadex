@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.5 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.6 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -9152,8 +9152,10 @@ async function calcApplySet(side,name,set,sourceLabel){
   if(side==='atk'){
     put('calc-atk-ev',String(Math.max(evs['attack']||0,evs['special-attack']||0)));
     const ns=document.getElementById('calc-atk-nat'); if(ns)ns.value=String(nat);
-    // A pasted set names its four moves. Offer those rather than the whole learnset - the point of
-    // pasting a set is that you want to know what THAT set does.
+    /* A set names four moves, so run all four rather than one. calcRunAllMoves already existed for
+       the Team Builder's Calc button; the picker and the paste box were only ever running the
+       first move, so the same set answered differently depending on how it was loaded. */
+    calcMoveSet=(set.moves||[]).filter(Boolean);
     if(set.moves&&set.moves.length){
       const slugs=set.moves.filter(Boolean).map(function(m){return normalizeMoveName(String(m).toLowerCase().replace(/\s+/g,'-'))});
       window._calcMoves=[...new Set(slugs)].sort();
@@ -9164,7 +9166,7 @@ async function calcApplySet(side,name,set,sourceLabel){
          silently falls back to a neutral guess - which is how a Jolly attacker looked correct on a
          physical move and wrong on a special one. */
       Promise.all([...new Set(slugs)].map(function(n){return ensureMoveData(n).catch(function(){})}))
-        .then(function(){calcSyncNatures();calcRun()});
+        .then(function(){calcSyncNatures();calcRunAllMoves()});
     }
   }else{
     put('calc-def-hpev',String(evs['hp']||0));
@@ -9181,7 +9183,7 @@ async function calcApplySet(side,name,set,sourceLabel){
       +(side==='atk'?'attacker':'defender')+' from '+(sourceLabel||'your team')+' · '+spread
       +(set.nature?' · '+set.nature:'');
   }
-  calcRun();
+  if(calcMoveSet&&calcMoveSet.length)calcRunAllMoves(); else calcRun();
 }
 
 function toggleCalcPaste(side){
@@ -9364,27 +9366,14 @@ function calcClearMoveSet(){
   if(b)b.style.display='none';
   calcRun();
 }
-// Load a Team Builder slot into the calculator: species, the four moves, item, ability and nature.
+/* The Team Builder's Calc button goes through calcApplySet like everything else. It used to have
+   its own copy of the load logic, which is how it ended up being the only route that ran all four
+   moves while the picker and the paste box ran one. */
 function calcLoadFromTeamSlot(idx){
   const p=teamSlots[idx];
   if(!p)return;
   switchTab('calc');
-  calcSel.atk=p.id;
-  const atkInput=document.getElementById('calc-atk');
-  if(atkInput)atkInput.value=pokeName(p.name);
-  const set=p.smogonSet||{};
-  calcMoveSet=(set.moves||[]).filter(Boolean);
-  const put=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v};
-  put('calc-atk-item',set.item);
-  put('calc-atk-abil',set.ability);
-  const banner=document.getElementById('calc-set-banner');
-  if(banner){
-    banner.style.display='';
-    banner.innerHTML=calcMoveSet.length
-      ? '<b style="text-transform:capitalize">'+pokeName(p.name)+'</b> loaded from your team · '+calcMoveSet.length+' move'+(calcMoveSet.length===1?'':'s')+(set.setName?' · '+set.setName:'')
-      : '<b style="text-transform:capitalize">'+pokeName(p.name)+'</b> loaded from your team — this slot has no moves set, so pick one below.';
-  }
-  if(calcMoveSet.length)calcRunAllMoves(); else calcRun();
+  calcApplySet('atk',p.name,p.smogonSet||{},'your team');
 }
 
 /* The result panel sits below both columns, so on a laptop a completed calculation lands off the

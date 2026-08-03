@@ -12,6 +12,24 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.6] — 2026-08-03
+
+### Fixed
+- **Loading a set now runs all four of its moves, whichever way you load it.** The four-move view
+  already existed — the Team Builder's Calc button has used it since 2.0 — but the team picker and
+  the paste box added in 5.1 and 5.4 each ran only the first move. The same set therefore answered
+  differently depending on how it was loaded, which is worse than either behaviour on its own.
+
+  Cause: `calcLoadFromTeamSlot` had its own copy of the load logic rather than sharing one. That
+  copy is gone; every route — the Calc button, the team picker and the paste box — now goes through
+  `calcApplySet`, so there is one implementation and nothing left to drift.
+
+  Blaziken's four moves against Tyranitar now come back ranked best first: Close Combat 226–266%,
+  Flare Blitz 28–33%, Rock Slide 24–28%, with Protect correctly dropped as a status move.
+- **Changing the defender re-runs all four moves** rather than falling back to the single-move view.
+
+---
+
 ## [5.5] — 2026-08-03
 
 ### Fixed
