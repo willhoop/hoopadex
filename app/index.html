@@ -554,6 +554,12 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .dl-label.dm-sweak{color:var(--eff-dn)}
 .dl-badges{display:flex;flex-wrap:wrap;gap:5px}
 .dl-none{font-size:12px;color:var(--text4);font-style:italic}
+.cov-lookup{margin-top:18px}
+.cov-verdict{font-size:13px;line-height:1.55;padding:10px 12px;border-radius:10px;margin-bottom:14px;max-width:80ch}
+.cov-gap{background:color-mix(in srgb,var(--eff-dn) 10%,transparent);border:1px solid color-mix(in srgb,var(--eff-dn) 35%,transparent);color:var(--text2)}
+.cov-clean{background:color-mix(in srgb,var(--eff-up) 10%,transparent);border:1px solid color-mix(in srgb,var(--eff-up) 35%,transparent);color:var(--text2)}
+.cov-count{font-family:'JetBrains Mono',monospace;opacity:.7;margin-left:4px}
+.cov-foot{font-size:11.5px;color:var(--text5);margin-top:12px;max-width:80ch;line-height:1.55}
 /* Who actually has this typing. Only ever shown for a two-type selection - a single type returns
    hundreds of species, which is a list nobody reads. */
 .dl-mons{margin-top:16px;padding-top:14px;border-top:1px solid var(--border2)}
@@ -4111,6 +4117,7 @@ function renderTC(){
   });
   h+='</tbody></table>';
   h+=renderDualLookup(cd);
+  h+=renderCoverage(cd);
   const cc=document.getElementById('chart-container');
   cc.innerHTML=h;
   cc.onmouseleave=()=>tcCross(null);
@@ -4130,6 +4137,79 @@ function natCross(td){
 /* Dual-type lookup. Reading a x4 off the grid means finding two cells and multiplying them in your
    head; this asks the question directly - pick a defender's typing and every attacking type is
    resolved against it at once, x4 first. */
+/* Attacking Type Calculator - the mirror of the defending one above, and placed with it because
+   they answer the two halves of the same question.
+
+   Coverage is really a question about GAPS: the useful output is not "these types you hit hard",
+   it is "nothing in these four moves is super effective against Steel". So the gap is stated first,
+   named, and only then the full breakdown.
+
+   A defending type is scored by the BEST of the chosen attacking types, because in a battle you
+   pick the move that works - the total is not a sum, it is a maximum. */
+const COVERAGE_SLOTS=4;
+function renderCoverage(cd){
+  const opts=cd.types.map(function(x){return '<option value="'+x+'">'+capName(x)+'</option>'}).join('');
+  let h='<div class="dual-lookup cov-lookup">'
+   +'<div class="dl-head">Attacking Type Calculator</div>'
+   +'<div class="dl-sub">Pick the types of your moves and see what they hit — and, more usefully, what they cannot.</div>';
+  for(let i=0;i<COVERAGE_SLOTS;i++){
+    h+='<select id="cov-t'+i+'" class="filter-select" onchange="runCoverage()">'
+      +'<option value="">Move '+(i+1)+'…</option>'+opts+'</select>';
+  }
+  h+='<div id="cov-out" class="dl-out"></div></div>';
+  return h;
+}
+function runCoverage(){
+  const out=document.getElementById('cov-out');
+  if(!out)return;
+  const genNum=getDataGenNum(), cd=getChartForGen(genNum);
+  const picked=[];
+  for(let i=0;i<COVERAGE_SLOTS;i++){
+    const el=document.getElementById('cov-t'+i);
+    const v=el?el.value:'';
+    if(v&&picked.indexOf(v)<0)picked.push(v);
+  }
+  if(!picked.length){out.innerHTML='';return}
+  // Best multiplier available against each defending type.
+  const best={};
+  cd.types.forEach(function(def){
+    let b=0;
+    picked.forEach(function(atk){const m=eff(atk,def,cd.chart); if(m>b)b=m});
+    best[def]=b;
+  });
+  const bucket=function(m){return m>=2?'se':(m===1?'neutral':(m===0?'immune':'resist'))};
+  const groups={se:[],neutral:[],resist:[],immune:[]};
+  cd.types.forEach(function(def){groups[bucket(best[def])].push(def)});
+
+  const badge=function(t){return '<span class="type-badge" style="--tc:'+TC[t]+'">'+t+'</span>'};
+  let h='<div class="dl-for">'+picked.map(function(t){return '<span class="type-badge small" style="--tc:'+TC[t]+'">'+t+'</span>'}).join('')+'</div>';
+
+  // The gap first. This is the reason to open the tool.
+  const gaps=groups.neutral.concat(groups.resist,groups.immune);
+  h+='<div class="cov-verdict '+(gaps.length?'cov-gap':'cov-clean')+'">'
+    +(gaps.length
+      ? '<b>'+gaps.length+' of '+cd.types.length+' types '+(gaps.length===1?'is':'are')+' not hit super effectively.</b> '
+        +(groups.immune.length?'<b>'+groups.immune.length+'</b> of them '+(groups.immune.length===1?'is':'are')+' immune outright. ':'')
+        +'Against those you are relying on raw power, not the matchup.'
+      : '<b>Every type is hit super effectively.</b> There is no defensive typing this set cannot pressure.')
+    +'</div>';
+
+  const rows=[['se','Super effective','×2 or better','dm-sweak'],
+              ['neutral','Neutral','×1','dm-weak'],
+              ['resist','Resisted','×½ or worse','dm-res'],
+              ['immune','Immune','×0','dm-immune']];
+  rows.forEach(function(r){
+    const list=groups[r[0]];
+    if(!list.length)return;
+    h+='<div class="dl-group"><div class="dl-label '+r[3]+'">'+r[1]+' <span>('+r[2]+')</span> '
+      +'<span class="cov-count">'+list.length+'</span></div>'
+      +'<div class="dl-badges">'+list.map(badge).join('')+'</div></div>';
+  });
+  h+='<p class="cov-foot">Each type is scored by the best of your picks, because in a battle you use the move that works — '
+    +'coverage is a maximum, not a total. Dual types compound: a type resisted here is resisted harder alongside a second resist.</p>';
+  out.innerHTML=h;
+}
+
 function renderDualLookup(cd){
   // Label capitalised, value left lowercase - the value is the key used against the chart, and
   // capitalising it would break every lookup. Option text does not reliably honour
