@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 2.1 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 2.2 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -11,8 +11,8 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 /* Theme variables */
-:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#2a6fc4;--eff-dn-solid:#c0403c;--eff-zero:#3a3a5c;--eff-zero-ink:#e8e8f0;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
-body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#2a6fc4;--eff-dn-solid:#c0403c;--eff-zero:#d6d6e4;--eff-zero-ink:#2a2a3a;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
+:root{--eff-up:#3987e5;--eff-dn:#e66767;--eff-up-solid:#2a6fc4;--eff-dn-solid:#c0403c;--eff-zero:#45456a;--eff-zero-ink:#e8e8f0;--bg1:#0d0d1a;--bg2:#151528;--bg3:#1a1a2e;--bg4:#16162a;--text:#e0e0e8;--text2:#c8c8d8;--text3:#8a8a9a;--text4:#6a6a7a;--text5:#5a5a6a;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.08);--border3:rgba(255,255,255,0.1);--hover:rgba(255,255,255,0.03);--hover2:rgba(255,255,255,0.06);--card-bg:rgba(255,255,255,0.03);--input-bg:rgba(255,255,255,0.04);--select-bg:#1a1a2e;--table-head-bg:#151528;--tooltip-bg:#1e1e38}
+body.light{--eff-up:#2a78d6;--eff-dn:#e34948;--eff-up-solid:#2a6fc4;--eff-dn-solid:#c0403c;--eff-zero:#5a5a7a;--eff-zero-ink:#ffffff;--bg1:#f0f0f5;--bg2:#e8e8f0;--bg3:#ffffff;--bg4:#f8f8fc;--text:#1a1a2a;--text2:#2a2a3a;--text3:#4a4a5a;--text4:#5a5a6a;--text5:#6a6a7a;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.1);--border3:rgba(0,0,0,0.15);--hover:rgba(0,0,0,0.03);--hover2:rgba(0,0,0,0.06);--card-bg:rgba(0,0,0,0.02);--input-bg:rgba(0,0,0,0.03);--select-bg:#fff;--table-head-bg:#f0f0f5;--tooltip-bg:#fff}
 body{min-height:100vh;background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg1) 100%);color:var(--text);font-family:'Nunito','Segoe UI',system-ui,sans-serif}
 body.light .header{background:linear-gradient(135deg,#fff,#f8f8fc);border-bottom-color:rgba(0,0,0,0.1)}
 #universal-search-bar{background:#12121e}
@@ -369,7 +369,7 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .type-table td.cell.eff-half{background:var(--eff-dn-solid);color:#fff;border-color:var(--eff-dn-solid);font-size:15px}
 /* Immunity is categorically different from 'less effective' - the rarest and most decision-relevant
    cell, so it gets the solid treatment rather than the dullest one. */
-.type-table td.cell.eff-0{background:#45456a;color:#e8e8f0;font-weight:800}
+.type-table td.cell.eff-0{background:var(--eff-zero);color:var(--eff-zero-ink);font-weight:800}
 /* The type pills ARE the axes. Eighteen saturated labels anchoring a grid is what makes it
    scannable; reducing them to a hairline chip destroyed that. Identity stays loud. */
 .tc-pill{display:block;font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;text-align:center;text-shadow:0 1px 1px rgba(0,0,0,0.35);line-height:24px;padding:0;border-radius:0}
@@ -431,6 +431,21 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 /* Same validated diverging pair as the type chart. The arrow carries the direction, so meaning
    survives greyscale, printing and colour vision deficiency - colour only reinforces it. */
 .natures-table .stat-up{color:var(--eff-up);font-weight:700}
+/* Nature matrix: raised stat down the side, lowered stat across the top, the nature in the cell.
+   Deliberately plain - an aligned grid and one accent colour. No pills, no cards, no icons. */
+.nature-matrix{border-collapse:collapse;font-size:13px;margin-top:6px}
+.nature-matrix th,.nature-matrix td{border:1px solid var(--border2);padding:0}
+.nature-matrix th.corner{width:96px;padding:5px 8px;text-align:left;font-size:9px;font-weight:800;letter-spacing:.06em;line-height:1.5}
+.nature-matrix .nm-dn{color:var(--eff-dn)}
+.nature-matrix .nm-up{color:var(--eff-up)}
+.nature-matrix th.nm-col{padding:6px 12px;font-size:11px;font-weight:800;color:var(--eff-dn);text-align:center;letter-spacing:.03em;white-space:nowrap}
+.nature-matrix td.nm-row{padding:6px 12px;font-size:11px;font-weight:800;color:var(--eff-up);white-space:nowrap;text-align:right}
+.nature-matrix td.nm-cell{padding:7px 14px;text-align:center;color:var(--text);font-weight:600;white-space:nowrap;cursor:default}
+.nature-matrix td.nm-cell.nm-neutral{color:var(--text5);background:rgba(255,255,255,0.03)}
+.nature-matrix tr.nm-hi td.nm-cell,.nature-matrix td.nm-cell.nm-hi{background:rgba(255,255,255,0.06)}
+.nature-matrix tr.nm-hi td.nm-row,.nature-matrix th.nm-col.nm-hi{color:var(--text)}
+body.light .nature-matrix td.nm-cell.nm-neutral{background:rgba(0,0,0,0.03)}
+body.light .nature-matrix tr.nm-hi td.nm-cell,body.light .nature-matrix td.nm-cell.nm-hi{background:rgba(0,0,0,0.05)}
 /* Four-move comparison table. Bars are the same width scale as the single-move readout so the
    two views are comparable; the winning row is flagged in text, not colour alone. */
 .calc-moves-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
@@ -1125,6 +1140,14 @@ function applyTabVisibility(){
   for(const tab of Object.keys(TAB_RELEVANCE)){
     const btn=document.getElementById('tab-'+tab);
     if(btn)btn.style.display=isTabRelevant(tab)?'':'none';
+  }
+  // The generation filter is meaningless against the Champions roster: it is a fixed, deliberately
+  // cross-generation list, so filtering it by debut generation only fragments it. Reset as well as
+  // hide, or a stale selection keeps filtering an invisible control.
+  const gf=document.getElementById('gen-filter');
+  if(gf){
+    gf.style.display=isChampionsMode?'none':'';
+    if(isChampionsMode&&gf.value){gf.value='';}
   }
   // If the open tab just stopped applying, fall back to the Pokedex rather than leaving the user
   // on a pane with no content and no visible way back to it.
@@ -3151,7 +3174,7 @@ function renderTC(){
   const genLabel=getGenLabel();
   const abbr={normal:'NOR',fire:'FIR',water:'WAT',electric:'ELE',grass:'GRA',ice:'ICE',fighting:'FIG',poison:'POI',ground:'GRO',flying:'FLY',psychic:'PSY',bug:'BUG',rock:'ROC',ghost:'GHO',dragon:'DRA',dark:'DAR',steel:'STE',fairy:'FAI'};
   const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
-  const pill=(t)=>'<span class="tc-pill"><i style="background:'+TC[t]+'"></i>'+(abbr[t]||t.slice(0,3))+'</span>';
+  const pill=(t)=>'<span class="tc-pill" style="background:'+TC[t]+'">'+(abbr[t]||t.slice(0,3))+'</span>';
   const key=(sw,label)=>'<span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;'+sw+'"></span><span style="color:var(--text3)">'+label+'</span></span>';
   let h='<div style="font-size:11px;margin-bottom:6px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+'<span style="color:#5DBB3E;font-weight:700">'+genLabel+'</span>'+key('background:color-mix(in srgb,var(--eff-up) 22%,transparent);border:1px solid var(--eff-up)','×2 super effective')+key('background:color-mix(in srgb,var(--eff-dn) 20%,transparent);border:1px solid var(--eff-dn)','×½ not very effective')+key('background:var(--eff-zero)','×0 immune')+'<span style="color:var(--text5)">blank = ×1 neutral</span></div>';
   h+='<table class="type-table"><thead><tr><th class="corner"><span style="font-size:8px;font-weight:800;color:#6890F0">DEF &#x2192;</span><br><span style="font-size:8px;font-weight:800;color:#F85888">ATK &#x2193;</span></th>';
@@ -3172,6 +3195,17 @@ function renderTC(){
   const cc=document.getElementById('chart-container');
   cc.innerHTML=h;
   cc.onmouseleave=()=>tcCross(null);
+}
+
+// Same crosshair as the type chart - find the nature at the intersection without losing the row.
+function natCross(td){
+  const tbl=document.querySelector('.nature-matrix');
+  if(!tbl)return;
+  tbl.querySelectorAll('.nm-hi').forEach(x=>x.classList.remove('nm-hi'));
+  if(!td)return;
+  td.parentElement.classList.add('nm-hi');
+  tbl.querySelectorAll('td.nm-cell[data-col="'+td.dataset.col+'"],th.nm-col:nth-child('+(+td.dataset.col+2)+')')
+     .forEach(x=>x.classList.add('nm-hi'));
 }
 
 // Highlight the hovered cell's whole row and column, and both of its type headers. Tracing one
@@ -3524,29 +3558,30 @@ function renderNatures(){
 
   // Main table - just nature, up, down - two columns side by side
   let h='<p style="font-size:13px;color:#8a8a9a;margin-bottom:12px">Natures affect stats by increasing one stat by 10% and decreasing another by 10%. <span style="color:#6a6a7a">Neutral natures have no effect.</span></p>';
-  h+='<div style="display:flex;gap:24px;flex-wrap:wrap">';
-
-  // Split into two columns
-  const half=Math.ceil(NATURES.length/2);
-  [0,1].forEach(col=>{
-    const start=col*half;
-    const end=Math.min(start+half,NATURES.length);
-    // "Raises / Lowers" says what the column does; the 10% is already stated in the line above.
-    h+='<table class="natures-table" style="flex:1;min-width:280px"><thead><tr><th>Nature</th><th>Raises</th><th>Lowers</th></tr></thead><tbody>';
-    for(let i=start;i<end;i++){
-      const n=NATURES[i];
-      if(!n.up)continue;  // neutral natures are summarised once, under both columns
-      h+='<tr>';
-      h+='<td class="nature-name">'+n.name+'</td>';
-      h+='<td class="stat-up"><span class="dir">&#x25B2;</span>'+STAT_NAMES[n.up]+'</td>';
-      h+='<td class="stat-down"><span class="dir">&#x25BC;</span>'+STAT_NAMES[n.down]+'</td>';
-      h+='</tr>';
-    }
-    h+='</tbody></table>';
+  // A 5x5 matrix is the real shape of this data: 5 raised stats x 5 lowered, with the diagonal
+  // (raise == lower) being the five natures that do nothing. It turns "I want +Speed -Sp. Atk"
+  // into a single lookup instead of a scan down 25 rows, and it uses the same idiom as the type
+  // chart, so a reader who has learned one has learned both.
+  const NSTATS=['attack','defense','special-attack','special-defense','speed'];
+  const natAt=(u,d)=>NATURES.find(n=>n.up===u&&n.down===d);
+  const neutralNames=NATURES.filter(n=>!n.up).map(n=>n.name);
+  h+='<table class="nature-matrix"><thead><tr><th class="corner"><span class="nm-dn">LOWERS →</span><br><span class="nm-up">RAISES ↓</span></th>';
+  NSTATS.forEach(d=>{h+='<th class="nm-col">'+STAT_NAMES[d]+'</th>'});
+  h+='</tr></thead><tbody>';
+  NSTATS.forEach((u,ri)=>{
+    h+='<tr><td class="nm-row">'+STAT_NAMES[u]+'</td>';
+    NSTATS.forEach((d,ci)=>{
+      if(u===d){
+        h+='<td class="nm-cell nm-neutral" data-col="'+ci+'" onmouseenter="natCross(this)" title="A nature cannot raise and lower the same stat">—</td>';
+      }else{
+        const n=natAt(u,d);
+        h+='<td class="nm-cell" data-col="'+ci+'" onmouseenter="natCross(this)" title="'+(n?n.name+': +10% '+STAT_NAMES[u]+', −10% '+STAT_NAMES[d]:'')+'">'+(n?n.name:'')+'</td>';
+      }
+    });
+    h+='</tr>';
   });
-  h+='</div>';
-  // Ten em-dashes read as missing data. One line reads as a fact.
-  h+='<p style="font-size:12px;color:var(--text4);margin-top:10px;font-style:italic">'+NATURES.filter(n=>!n.up).map(n=>n.name).join(', ')+' — no stat effect.</p>';
+  h+='</tbody></table>';
+  h+='<p style="font-size:12px;color:var(--text4);margin-top:10px;font-style:italic">The diagonal is empty because a nature cannot raise and lower the same stat — those five are '+neutralNames.join(', ')+', which have no effect.</p>';
 
   // Flavor reference at bottom
   h+='<div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06)">';

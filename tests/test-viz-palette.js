@@ -40,8 +40,10 @@ for (const hex of RETIRED) {
 // The rules that ENCODE effectiveness or stat direction must come from variables. Chrome in the
 // same components (hover outline, header background, the corner label) may stay literal — it
 // carries no meaning, so it cannot mislead.
+// Only the fill and border carry the encoding. White ink sitting on top of a solid fill is
+// legibility, not meaning, so `color:#fff` is allowed and does not need a variable.
 const encodingRules = componentRules.split('\n').filter(l => /\.eff-|\.stat-up|\.stat-down/.test(l));
-const hardCoded = encodingRules.filter(l => /:\s*#[0-9a-f]{3,6}/i.test(l));
+const hardCoded = encodingRules.filter(l => /(background|border-color)\s*:\s*#[0-9a-f]{3,6}/i.test(l));
 check(encodingRules.length >= 5, 'found the encoding rules to check', `${encodingRules.length} found`);
 check(hardCoded.length === 0, 'every encoding colour comes from a theme variable',
   hardCoded.slice(0, 3).join(' | '));
@@ -57,24 +59,34 @@ for (const [name, block, want] of [['dark', rootBlock, '#3987e5'], ['light', lig
 
 // --- colour must never be the only encoding -------------------------------------------
 // Type chart: every non-neutral state carries a glyph.
-check(/cls='eff-2';tx='×2'/.test(src), 'type chart labels ×2 super effective', '');
-check(/cls='eff-half';tx='×½'/.test(src), 'type chart labels ×½ not very effective', '');
-check(/cls='eff-0';tx='×0'/.test(src), 'type chart labels ×0 immune', '');
-// Natures: direction arrows survive greyscale and CVD.
-check(/class="dir">&#x25B2;/.test(src), 'natures raise carries an up arrow', '');
-check(/class="dir">&#x25BC;/.test(src), 'natures lower carries a down arrow', '');
+// Bare glyphs, with the multiplier spelled out in the legend — they read better than "×2" in a
+// 24px cell. What matters is that a glyph exists at all, so the grid survives colour removal.
+check(/cls='eff-2';tx='2'/.test(src), 'type chart marks super effective with a glyph', '');
+check(/cls='eff-half';tx='½'/.test(src), 'type chart marks not-very-effective with a glyph', '');
+check(/cls='eff-0';tx='0'/.test(src), 'type chart marks immune with a glyph', '');
+// Natures: the matrix encodes direction by POSITION — row is the raised stat, column is the
+// lowered one. That is a stronger non-colour encoding than a glyph, since it survives even a
+// reader who cannot see the axis labels' colour at all. Assert the axes are actually labelled.
+check(/<span class="nm-dn">LOWERS/.test(src), 'natures matrix labels its lowered-stat axis', '');
+check(/<span class="nm-up">RAISES/.test(src), 'natures matrix labels its raised-stat axis', '');
+check(/const NSTATS=\['attack','defense','special-attack','special-defense','speed'\]/.test(src),
+  'natures matrix is built over the five real stats', '');
+check(/natAt=\(u,d\)=>NATURES\.find/.test(src),
+  'matrix cells are looked up from NATURES, not transcribed', '');
 
 // --- the components consume the variables rather than literals -------------------------
-check(/\.type-table td\.cell\.eff-2\{background:color-mix\(in srgb,var\(--eff-up\)/.test(src),
-  'type chart ×2 cell is built from --eff-up', '');
-check(/\.type-table td\.cell\.eff-half\{background:color-mix\(in srgb,var\(--eff-dn\)/.test(src),
-  'type chart ×½ cell is built from --eff-dn', '');
+check(/\.type-table td\.cell\.eff-2\{background:var\(--eff-up-solid\)/.test(src),
+  'type chart ×2 cell is built from --eff-up-solid', '');
+check(/\.type-table td\.cell\.eff-half\{background:var\(--eff-dn-solid\)/.test(src),
+  'type chart ×½ cell is built from --eff-dn-solid', '');
 check(/\.natures-table \.stat-up\{color:var\(--eff-up\)/.test(src), 'natures raise is built from --eff-up', '');
 check(/\.natures-table \.stat-down\{color:var\(--eff-dn\)/.test(src), 'natures lower is built from --eff-dn', '');
 
 // --- neutral cells must stay recessive -------------------------------------------------
-check(/\.type-table td\.cell\{[^}]*background:transparent/.test(src),
-  'neutral (×1) type chart cells carry no fill', '');
+// Neutral cells recede but must still read as cells — with no fill at all the matrix stopped
+// reading as a matrix. Recessive, not invisible.
+check(/\.type-table td\.cell\{[^}]*background:rgba\(255,255,255,0\.0[0-9]\)/.test(src),
+  'neutral (×1) type chart cells are recessive but still drawn', '');
 
 // --- the crosshair exists --------------------------------------------------------------
 check(/function tcCross\(/.test(src), 'type chart has a row/column crosshair', '');

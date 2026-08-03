@@ -12,6 +12,34 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [2.2] — 2026-08-03
+
+### Fixed
+- **The type chart redesign in 1.99 made it worse, and this reverses that part of it.** Softening
+  was right for the neutral cells and wrong for everything else: the tinted fills washed out, and
+  reducing the type labels to a hairline chip destroyed scannability. The eighteen type pills *are*
+  the axes — loud identity anchors are what make a matrix readable — so they are back at full
+  saturation, and the effectiveness cells are solid again with white text. Neutral cells keep a
+  faint fill rather than none: with nothing drawn, the grid stopped reading as a grid and rows
+  became impossible to track. Glyphs are back to bare `2` / `½` / `0`, which read better than
+  `×2` at 24px, with the multiplier spelled out in the legend.
+  - The accessibility fix is untouched. Solid fills use `#2a6fc4` / `#c0403c`, validated on this
+    app's surfaces (CVD ΔE 21.0, normal-vision 28.5, contrast ≥3:1, all pass) and carrying white
+    text at 5.0:1 and 5.2:1. Colour still never encodes alone.
+
+### Changed
+- **The natures table is now a 5×5 matrix.** That is the real shape of the data — five raised stats
+  against five lowered — and it turns "I want +Speed −Sp. Atk" into a single lookup instead of a
+  scan down twenty-five rows. The diagonal is empty because a nature cannot raise and lower the
+  same stat, which is also the honest explanation of why there are five neutral natures. It uses
+  the same crosshair idiom as the type chart, so learning one teaches the other.
+
+### Fixed
+- **The generation filter is hidden in Champions mode.** The Champions roster is a fixed,
+  deliberately cross-generation list, so filtering it by debut generation only fragments it. The
+  control is reset as well as hidden — otherwise a stale selection carries on filtering from a
+  control that is no longer on screen.
+
 ## [2.1] — 2026-08-02
 
 ### Fixed
