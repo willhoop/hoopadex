@@ -2586,12 +2586,25 @@ async function getSpeciesForms(pokemonId){
 async function showDetail(id,shouldScroll){
   if(shouldScroll!==false)window.scrollTo({top:0,behavior:'instant'});
   if(!dc[id]){try{const r=await fetch('https://pokeapi.co/api/v2/pokemon/'+id);dc[id]=await r.json()}catch{return}}
-  adId=id;vm='detail';addPin(dc[id]);await renderDetail(dc[id]);saveHash();
+  adId=id;vm='detail';addPin(dc[id]);
+  // Restore the form last chosen for this species, if it is still loaded. Falls through to the
+  // default when it is not, rather than blocking the panel on a refetch.
+  const remembered=lastFormBySpecies[id];
+  await renderDetail((remembered&&remembered!==id&&dc[remembered])?dc[remembered]:dc[id]);
+  saveHash();
   if(shouldScroll!==false){scrollToDetail();setTimeout(scrollToDetail,150);setTimeout(scrollToDetail,400);}
 }
 
+/* Which form was last chosen for a species, so leaving a multi-form Pokemon and coming back does
+   not silently drop you on the default. Picking Rotom-Wash, opening something else and returning
+   handed you plain Rotom again, with nothing to show that a choice had been discarded.
+   Keyed on the species (`adId`), which showForm deliberately does not change - a form is a view of
+   the species, not a separate entry, and both the pins and the hash track the species. Session
+   only: this is a navigation convenience, not a preference worth persisting. */
+const lastFormBySpecies={};
 async function showForm(formId){
   if(!dc[formId]){try{const r=await fetch('https://pokeapi.co/api/v2/pokemon/'+formId);dc[formId]=await r.json()}catch{return}}
+  if(adId)lastFormBySpecies[adId]=formId;
   await renderDetail(dc[formId]);
   scrollToDetail();setTimeout(scrollToDetail,150);setTimeout(scrollToDetail,400);
 }

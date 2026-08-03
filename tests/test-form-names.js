@@ -163,5 +163,20 @@ check(allowed('charizard-mega-x', 10034, 9, GEN_MAX_9) === false,
 setChampions(false);
 check(allowed('charizard', 6, 9, GEN_MAX_9) === true, 'leaving Champions mode restores the species');
 
+/* --- the selected form survives navigation ------------------------------------------------
+   showForm renders a form but deliberately does not move `adId`, because a form is a view of the
+   species rather than a separate entry. That is also why the choice used to be lost: returning to
+   the species re-rendered the default, with nothing to show that a choice had been discarded.
+   Asserted against the shipped source — the behaviour itself is DOM-bound and was verified in the
+   browser against Rotom, the case the backlog named. */
+check(lines.some(l => l.startsWith('const lastFormBySpecies={};')),
+  'the selected form is remembered per species');
+check(lines.some(l => l.includes('if(adId)lastFormBySpecies[adId]=formId;')),
+  'showForm records the chosen form against the species');
+check(lines.some(l => l.includes('const remembered=lastFormBySpecies[id];')),
+  'showDetail looks the remembered form up again');
+check(lines.some(l => l.includes('remembered&&remembered!==id&&dc[remembered]')),
+  'and only restores it when it is still loaded, so the panel never blocks on a refetch');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
