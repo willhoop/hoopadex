@@ -75,8 +75,11 @@ body.light .missed-move-row{background:transparent}
 body.light .missed-badge{background:transparent;color:#c03028}
 /* The neutral cell had no light-mode override, so it kept the dark theme's rgba(255,255,255,0.03)
    fill and rgba(255,255,255,0.10) border - white on white. Every x1 cell and every grid line was
-   invisible, which is what made the whole chart read as washed out rather than merely pale. */
-body.light .type-table td.cell{background:#ececf2;border-color:#dcdce4;color:#6a6a7a}
+   invisible, which is what made the whole chart read as washed out rather than merely pale.
+   Scoped off the effect classes on purpose: `body.light .type-table td.cell` outranks
+   `.type-table td.cell.eff-2` on specificity, so an unscoped rule here silently repaints every
+   coloured cell grey and removes the entire chart. */
+body.light .type-table td.cell:not(.eff-2):not(.eff-half):not(.eff-0){background:#ececf2;border-color:#dcdce4;color:#6a6a7a}
 body.light .tc-pill{opacity:1}
 body.light .type-table td.cell:hover{outline-color:#333}
 body.light .type-table tr.tc-hi td.cell,body.light .type-table td.cell.tc-hi{box-shadow:inset 0 0 0 9999px rgba(0,0,0,0.06)}
