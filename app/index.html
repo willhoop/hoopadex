@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.25 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.26 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -693,6 +693,13 @@ body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
 .speed-table td.sp-mon a:hover{color:var(--text)}
 .speed-table td.sp-active{color:var(--text);font-weight:800}
 .speed-table tbody tr:hover td{background:rgba(255,255,255,0.04)}
+/* The article is the answer; the lists beneath it are the reference. Sized and spaced like prose
+   rather than like a data row, because that difference is the whole point of the change. */
+.regs-article{margin:10px 0 16px;max-width:78ch}
+.regs-article p{font-size:13.5px;line-height:1.65;color:var(--text2);margin:0 0 9px}
+.regs-article p:last-child{margin-bottom:0}
+.regs-article b{color:var(--text);font-weight:700}
+.regs-loading{color:var(--text4);font-style:italic}
 .regs-intro{font-size:13px;color:var(--text3);margin-bottom:18px;max-width:60ch;line-height:1.55}
 .regs-none{font-size:13px;color:var(--text4);font-style:italic}
 .regs-block{border-top:1px solid var(--border2);padding-top:14px;margin-bottom:22px}
@@ -4162,15 +4169,165 @@ function regulationMoveDiff(fromKey,toKey){
   return {shared:both.size,gained:gained.sort(byName),lost:lost.sort(byName)};
 }
 
+/* ── Regulation changes, written as an article ──────────────────────────────────
+   The old view was a chip wall: ADDED 22, then twenty-two "#0045 Vileplume" tokens, then thirty
+   item pills. Every fact was on screen and none of them was a sentence, so reading it told you
+   what changed and never what it meant.
+
+   Every clause below is still derived - counts, types, stat outliers, which stones arrived with
+   which species - and nothing is written by hand. What changed is that the derivation now produces
+   prose. Where the data needed for a clause has not loaded, that clause is omitted rather than
+   guessed at, so the article gets longer as the roster arrives instead of stating something it
+   cannot support. */
+const NUMWORD=['no','one','two','three','four','five','six','seven','eight','nine','ten','eleven',
+  'twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+const NUMTENS=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+function numWord(n){
+  if(n<NUMWORD.length)return NUMWORD[n];
+  if(n<100){const t=NUMTENS[Math.floor(n/10)],u=n%10;return u?t+'-'+NUMWORD[u]:t}
+  return String(n);   // past ninety-nine the digits read better than the words
+}
+/* Roster names arrive lowercase and hyphenated ("pyroar-male"), which is right for a chip and wrong
+   in a sentence. formDisplayName handles the forme suffixes the app knows about; this also strips
+   the gender suffix, which is not a forme anyone says out loud. */
+function proseName(n){
+  const clean=String(n).replace(/[\s-](male|female)$/i,'');   // arrives space-separated, not only hyphenated
+  return clean.replace(/(^|[\s-])([a-z])/g,function(m,a,b){return a+b.toUpperCase()});
+}
+function sentenceCase(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+/* Oxford comma on purpose: "Blaziken, Metagross and Annihilape" is a list of three, but
+   "Vileplume, Qwilfish and Sceptile" read alongside a stat clause needs the separation. */
+function joinList(a){
+  if(!a.length)return'';
+  if(a.length===1)return a[0];
+  if(a.length===2)return a[0]+' and '+a[1];
+  return a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+}
+
+/* A Mega Stone names its species: Blazikenite -> Blaziken, Metagrossite -> Metagross. Matching the
+   stone back to an arriving species is what turns "+ Blazikenite" into "Blaziken arrives with its
+   Mega Stone", which is the sentence a teambuilder actually wants. Prefix matching rather than a
+   table: the stones are named after their species by construction, and a table would be one more
+   hand-maintained mapping to go stale. */
+function stoneOwner(itemName,names){
+  const flat=String(itemName).toLowerCase().replace(/[^a-z]/g,'');
+  if(!/ite$|itex$|itey$|itez$/.test(flat))return null;
+  let best=null;
+  names.forEach(function(n){
+    const f=String(n).toLowerCase().replace(/[^a-z]/g,'');
+    if(f.length>3&&flat.indexOf(f.slice(0,Math.min(f.length,5)))===0){
+      if(!best||f.length>best.length)best=n;
+    }
+  });
+  return best;
+}
+
+function regulationArticle(d){
+  const added=d.added,removed=d.removed,net=d.size-d.prevSize;
+  const names=added.map(regRosterName);
+  const loaded=added.filter(function(id){return dc[id]});
+  const paras=[];
+
+  /* 1. What happened, in one sentence. */
+  let open;
+  if(added.length&&!removed.length){
+    open=sentenceCase(numWord(added.length))+' Pokémon joined and none left, taking '+d.to.label
+      +' from '+d.prevSize+' to '+d.size+'.';
+  }else if(added.length&&removed.length){
+    open=sentenceCase(numWord(added.length))+' Pokémon joined and '+numWord(removed.length)
+      +' left, a net '+(net>0?'gain':'loss')+' of '+Math.abs(net)+'.';
+  }else if(removed.length){
+    open=sentenceCase(numWord(removed.length))+' Pokémon left and none joined, cutting the roster to '+d.size+'.';
+  }else{
+    open='The roster is identical in both regulations — all '+d.size+' Pokémon carry over unchanged.';
+  }
+  paras.push(open);
+
+  /* 2. What the additions are made of. Types first, because "heavily physical" or "three new Steels"
+        is the shape of the answer someone building a team is after. */
+  if(loaded.length>=Math.max(3,added.length*0.6)){
+    const typeCount={};
+    loaded.forEach(function(id){
+      (dc[id].types||[]).forEach(function(t){typeCount[t.type.name]=(typeCount[t.type.name]||0)+1});
+    });
+    const ranked=Object.entries(typeCount).sort(function(a,b){return b[1]-a[1]});
+    const top=ranked.filter(function(x){return x[1]>=2}).slice(0,3);
+    if(top.length){
+      paras.push('By typing, the arrivals lean '+joinList(top.map(function(x){
+        return '<b>'+x[0]+'</b> ('+x[1]+')'}))+'.');
+    }
+    /* Stat outliers, because a speed tier or a wall is the reason a Pokemon changes a format. */
+    const withStats=loaded.map(function(id){
+      const st=getStatsForGen(dc[id]);
+      const g=function(n){return (st.find(function(x){return x.stat.name===n})||{}).base_stat||0};
+      return {id:id,name:proseName(regRosterName(id)),spe:g('speed'),bst:st.reduce(function(a,x){return a+x.base_stat},0)};
+    });
+    const fastest=withStats.slice().sort(function(a,b){return b.spe-a.spe})[0];
+    const biggest=withStats.slice().sort(function(a,b){return b.bst-a.bst})[0];
+    if(fastest&&biggest){
+      paras.push('The fastest of them is <b>'+fastest.name+'</b> at '+fastest.spe+' base Speed'
+        +(biggest.id===fastest.id?', which is also the highest base stat total at '+biggest.bst+'.'
+          :'; the highest base stat total belongs to <b>'+biggest.name+'</b> at '+biggest.bst+'.'));
+    }
+  }else if(added.length){
+    paras.push('<span class="regs-loading">Stat and typing detail for the arrivals is still loading.</span>');
+  }
+
+  /* 3. Items, and specifically which of them are Mega Stones for the species that just arrived. */
+  const idiff=REG_ITEM_CHANGES[d.from.key+'->'+d.to.key];
+  if(idiff&&(idiff.added.length||idiff.removed.length)){
+    const stones=[],general=[];
+    idiff.added.forEach(function(n){
+      const owner=stoneOwner(n,names);
+      if(owner)stones.push(owner); else general.push(n);
+    });
+    let s=numWord(idiff.added.length)+' item'+(idiff.added.length===1?'':'s')+' became legal';
+    s=sentenceCase(s)+(idiff.removed.length?' and '+numWord(idiff.removed.length)+' were withdrawn.':'.');
+    if(stones.length){
+      s+=' '+sentenceCase(numWord(stones.length))+' of them '+(stones.length===1?'is a Mega Stone':'are Mega Stones')
+        +' arriving with '+(stones.length===1?'its species':'their species')+' — '+joinList(stones.map(function(n){return '<b>'+proseName(n)+'</b>'}))+'.';
+    }
+    if(general.length){
+      /* joinList already ends with "and", so appending " and N more" produced "...Icy Rock and Iron
+         Ball and 11 more". The overflow is a separate clause, not another list item. */
+      const shown=general.slice(0,6).map(function(n){return '<b>'+n+'</b>'});
+      s+=' The rest are held items — '+joinList(shown)
+        +(general.length>shown.length?', plus '+numWord(general.length-shown.length)+' more':'')+'.';
+    }
+    paras.push(s);
+  }else if(idiff){
+    paras.push('No item changed. The same items are legal in both regulations.');
+  }
+
+  /* 4. Moves. Reported even when nothing changed, because "nothing changed" is the answer people
+        are actually after and silence is not the same statement. */
+  const md=regulationMoveDiff(d.from.key,d.to.key);
+  if(!md){
+    paras.push('<span class="regs-loading">Move legality is still loading.</span>');
+  }else if(!md.gained.length&&!md.lost.length){
+    paras.push('No move legality changed. All '+md.shared+' Pokémon present in both regulations learn '
+      +'exactly the same moves — the extra entries in the export all belong to the Pokémon above.');
+  }else{
+    const bits=[];
+    if(md.gained.length)bits.push(numWord(md.gained.length)+' move'+(md.gained.length===1?'':'s')+' gained');
+    if(md.lost.length)bits.push(numWord(md.lost.length)+' lost');
+    paras.push(sentenceCase(joinList(bits))+': '
+      +joinList(md.gained.slice(0,4).map(function(x){return '<b>'+x.species+'</b> now learns '+x.move.replace(/-/g,' ')})
+        .concat(md.lost.slice(0,4).map(function(x){return '<b>'+x.species+'</b> loses '+x.move.replace(/-/g,' ')})))+'.');
+  }
+  return paras;
+}
+
 function renderRegulationChanges(){
   const el=document.getElementById('regs-container');
   if(!el)return;
   const diffs=regulationDiffs();
   // The move comparison needs the learnset export; ask once and re-render when it lands.
   if(!champLS)ensureChampLS().then(function(){renderRegulationChanges()}).catch(function(){});
-  let h='<p class="regs-intro">What changed between Pokémon Champions regulations — roster, moves and items. '
-   +'Every row is derived: the roster and the move legality from the data the Pokédex filters by, the items from '
-   +'Showdown, which carries each regulation as its own mod. Nothing here is written by hand.</p>';
+  let h='<p class="regs-intro">What changed between Pokémon Champions regulations, written out. '
+   +'Every sentence is derived — the roster and move legality from the data the Pokédex filters by, the items from '
+   +'Showdown, which carries each regulation as its own mod. Nothing here is written by hand; the prose is generated '
+   +'from the diff like everything else.</p>';
   if(!diffs.length){
     el.innerHTML=h+'<p class="regs-none">Only one regulation is on record, so there is nothing to compare yet.</p>';
     return;
@@ -4181,6 +4338,10 @@ function renderRegulationChanges(){
     h+='<div class="regs-head"><span class="regs-title">'+d.from.label+' → '+d.to.label+'</span>'
       +'<span class="regs-counts">'+d.prevSize+' → '+d.size+' Pokémon'
       +(net?' <b class="'+(net>0?'regs-up':'regs-down')+'">'+(net>0?'+':'')+net+'</b>':'')+'</span></div>';
+    /* The article carries the meaning; the lists below it are the reference you check afterwards.
+       That order matters - the chip wall used to BE the answer, and a reader had to assemble the
+       sentence themselves from twenty-two dex numbers. */
+    h+='<div class="regs-article">'+regulationArticle(d).map(function(t){return '<p>'+t+'</p>'}).join('')+'</div>';
     [['Added',d.added,'regs-added'],['Removed',d.removed,'regs-removed']].forEach(function(row){
       const label=row[0],ids=row[1],cls=row[2];
       h+='<div class="regs-row"><div class="regs-label '+cls+'">'+label+' <span>'+ids.length+'</span></div>';
@@ -4193,32 +4354,20 @@ function renderRegulationChanges(){
     });
     /* Moves. Reported even when nothing changed, because "nothing changed" is the answer people are
        actually after, and silence is not the same statement. */
-    const md=regulationMoveDiff(d.from.key,d.to.key);
-    h+='<div class="regs-row"><div class="regs-label regs-moves">Moves</div>';
-    if(!md)h+='<div class="regs-empty">loading…</div>';
-    else if(!md.gained.length&&!md.lost.length)
-      h+='<div class="regs-same">No change. All '+md.shared+' Pokémon in both regulations learn exactly '
-        +'the same moves — the extra entries all belong to the Pokémon added above.</div>';
-    else h+='<div class="regs-names">'
-        +md.gained.map(function(x){return '<span class="regs-move regs-move-up">+ '+x.species+' · '+x.move.replace(/-/g,' ')+'</span>'}).join('')
-        +md.lost.map(function(x){return '<span class="regs-move regs-move-down">− '+x.species+' · '+x.move.replace(/-/g,' ')+'</span>'}).join('')
-        +'</div>';
-    h+='</div>';
+
     /* Items, derived from Showdown, which carries the two regulations as separate mods. The M-A mod
        inherits from M-B and overrides only what differs, so its item list IS the change list. This
        row used to say "not tracked", which was true of the app and not of the world. */
+    /* The full item list stays, below the article, as the thing you check a specific name against.
+       The article says what the change MEANS; this says exactly what it was. */
     const idiff=REG_ITEM_CHANGES[d.from.key+'->'+d.to.key];
-    h+='<div class="regs-row"><div class="regs-label regs-items">Items</div>';
-    if(!idiff)h+='<div class="regs-empty">No item data recorded for this transition.</div>';
-    else if(!idiff.added.length&&!idiff.removed.length)
-      h+='<div class="regs-same">No change. The same items are legal in both regulations.</div>';
-    else{
+    if(idiff&&(idiff.added.length||idiff.removed.length)){
+      h+='<div class="regs-row"><div class="regs-label regs-items">Items</div>';
       h+='<div class="regs-names">'
         +idiff.added.map(function(n){return '<span class="regs-move regs-move-up">+ '+n+'</span>'}).join('')
         +idiff.removed.map(function(n){return '<span class="regs-move regs-move-down">− '+n+'</span>'}).join('')
-        +'</div>';
+        +'</div></div>';
     }
-    h+='</div>';
     h+='</div>';
   });
   el.innerHTML=h;

@@ -12,6 +12,39 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.26] - 2026-08-03
+
+### Changed
+- **Regulation Changes is written out as an article.** It was a chip wall: ADDED 22, then twenty-two
+  "#0045 Vileplume" tokens, then thirty item pills. Every fact was on screen and none of them was a
+  sentence, so reading it told you what changed and never what it meant. It now reads:
+
+  > Twenty-two Pokemon joined and none left, taking Regulation M-B from 186 to 208.
+  > By typing, the arrivals lean poison (5), fighting (4) and dark (4).
+  > The fastest of them is Sceptile at 120 base Speed; the highest base stat total belongs to
+  > Metagross at 600.
+  > Thirty-one items became legal. Fourteen of them are Mega Stones arriving with their species —
+  > Barbaracle, Blaziken, Dragalge... The rest are held items — Big Root, Damp Rock... plus eleven more.
+  > No move legality changed. All 186 Pokemon present in both regulations learn exactly the same moves.
+
+  **Every clause is still derived and nothing is hand-written** - the counts, the type lean, the stat
+  outliers, and which stones belong to which arriving species. That last one is worked out by
+  matching the stone name back to a species rather than from a table, because Mega Stones are named
+  after their species by construction and a table would be one more hand-maintained mapping to go
+  stale. Where the data a clause needs has not loaded, the clause is omitted rather than guessed at,
+  so the article grows as the roster arrives instead of asserting something it cannot support.
+
+  The full roster and item lists stay underneath. The article says what the change means; the lists
+  say exactly what it was, which is what you check a specific name against.
+
+### Fixed
+- Four prose faults found by reading the output rather than the code: "22" was not spelled out
+  (numbers now read as words to ninety-nine, digits above), species names came through lowercase,
+  the held-item overflow produced "Icy Rock and Iron Ball and 11 more" because the list join already
+  ends in "and", and "Pyroar Male" kept a gender suffix that nobody says out loud.
+
+---
+
 ## [5.25] - 2026-08-03
 
 ### Fixed
