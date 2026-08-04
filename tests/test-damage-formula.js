@@ -34,9 +34,11 @@ if (start < 0 || end < 0) throw new Error('could not locate calcLocalRolls in in
 const effStart = lines.findIndex(l => l.startsWith('function eff('));
 if (effStart < 0) throw new Error('could not locate eff() in index.html');
 const app = (0, eval)(lines[effStart] + '\n' + lines.slice(start, end).join('\n') +
-  '\n;({calcLocalRolls,calcLocalCritMult,calcLocalStab,calcLocalEffectiveness})');
+  '\n;({calcLocalRolls,calcLocalCritMult,calcLocalStab,calcLocalEffectiveness,' +
+  'calcLocalModifiers,calcLocalCritStages,calcLocalKO})');
 const rollsOf = app.calcLocalRolls, critMult = app.calcLocalCritMult, stabOf = app.calcLocalStab;
 const effOf = app.calcLocalEffectiveness;
+const modsOf = app.calcLocalModifiers, stagesOf = app.calcLocalCritStages, koOf = app.calcLocalKO;
 
 let pass = 0, fail = 0;
 function check(ok, label, detail) {
@@ -142,6 +144,73 @@ check(roll({ lv: 100 })[15] > roll({ lv: 50 })[15], 'a higher level hits harder'
 check(roll({ power: 200 })[15] > roll({ power: 100 })[15], 'a stronger move hits harder');
 check(roll({ atk: 400 })[15] > base[15], 'more Attack hits harder');
 check(roll({ def: 400 })[15] < base[15], 'more Defence takes less');
+
+/* --- the decisions that were still inside the DOM handler ------------------------------------
+   Extracted in 5.17. Everything below had no test of any kind: the weather/burn/screen rules, the
+   critical-hit stat-stage rule, and the KO verdict — the sentence a reader actually acts on. */
+
+// --- weather, spread, burn, screens -----------------------------------------------------------
+const M = o => modsOf(Object.assign({ weather: 'none', type: 'fire', cat: 'physical', crit: false,
+  spread: false, burn: false, screen: false }, o));
+
+check(M({}).weather === 1 && M({}).spread === 1 && M({}).burn === 1 && M({}).screen === 1,
+  'nothing switched on leaves every modifier at 1');
+check(M({ weather: 'sun', type: 'fire' }).weather === 1.5, 'sun boosts Fire');
+check(M({ weather: 'sun', type: 'water' }).weather === 0.5, 'sun weakens Water');
+check(M({ weather: 'rain', type: 'water' }).weather === 1.5, 'rain boosts Water');
+check(M({ weather: 'rain', type: 'fire' }).weather === 0.5, 'rain weakens Fire');
+check(M({ weather: 'sun', type: 'grass' }).weather === 1, 'sun does nothing to a Grass move');
+// Sand and snow are deliberately unmodelled here; inventing a multiplier would be worse than 1.
+check(M({ weather: 'sand', type: 'rock' }).weather === 1, 'sand is not modelled and stays at 1');
+check(M({ weather: 'snow', type: 'ice' }).weather === 1, 'snow is not modelled and stays at 1');
+
+check(M({ spread: true }).spread === 0.75, 'a spread move is reduced to 0.75');
+check(M({ burn: true, cat: 'physical' }).burn === 0.5, 'burn halves a physical attack');
+check(M({ burn: true, cat: 'special' }).burn === 1,
+  'burn does NOT touch a special attack — the category test is the whole point');
+check(M({ screen: true }).screen === 0.5, 'a screen halves damage');
+check(M({ screen: true, crit: true }).screen === 1,
+  'a critical hit ignores screens, which is what a critical hit is for');
+
+// --- stat stages under a critical hit ----------------------------------------------------------
+check(stagesOf(1.5, 1.5, false).atk === 1.5 && stagesOf(1.5, 1.5, false).def === 1.5,
+  'without a crit the stages pass through untouched');
+check(stagesOf(0.5, 1.5, true).atk === 1, "a crit ignores the attacker's DROP");
+check(stagesOf(2, 1.5, true).atk === 2, "but keeps the attacker's BOOST");
+check(stagesOf(1, 2, true).def === 1, "a crit ignores the defender's BOOST");
+check(stagesOf(1, 0.5, true).def === 0.5, "but keeps the defender's DROP");
+
+// --- the KO verdict ----------------------------------------------------------------------------
+// Rolls are supplied explicitly, so this tests the verdict and not the roll generator.
+const flat = v => Array(16).fill(v);
+check(koOf(flat(10), 100, 0) === 'Immune — no damage', 'an immunity says so rather than "10–10HKO"');
+check(koOf(flat(100), 100, 1) === 'Guaranteed OHKO', 'the weakest roll killing is a guaranteed OHKO');
+check(koOf(flat(50), 100, 1) === 'Guaranteed 2HKO', 'half its HP, twice, is a guaranteed 2HKO');
+check(koOf(flat(34), 100, 1) === 'Guaranteed 3HKO', 'a third of its HP is a guaranteed 3HKO');
+check(koOf(flat(10), 100, 1) === '10–10HKO', 'anything slower is reported as a range');
+
+/* "Possible" needs a SPREAD of rolls: it means the high roll gets there and the low roll does not.
+   Flat rolls can only ever be "Guaranteed", and asserting Possible against flat(40) was my mistake
+   rather than the code's — flat(40) is correctly a Guaranteed 3HKO. Worth keeping as a case,
+   because a reader who sees "Possible" is being told the outcome depends on the roll. */
+const spreadTo = (lo, hi) => Array.from({ length: 16 }, (_, i) => lo + Math.round((hi - lo) * i / 15));
+check(koOf(spreadTo(45, 55), 100, 1) === 'Possible 2HKO',
+  'a high roll that 2HKOs and a low roll that does not is a POSSIBLE 2HKO', koOf(spreadTo(45, 55), 100, 1));
+check(koOf(spreadTo(30, 36), 100, 1) === 'Possible 3HKO',
+  'the same distinction at three hits', koOf(spreadTo(30, 36), 100, 1));
+
+// The percentage branch: some rolls kill and some do not.
+const half = [...Array(8).fill(99), ...Array(8).fill(100)];
+check(koOf(half, 100, 1) === '50.0% chance to OHKO',
+  'when only some rolls kill, the chance is stated', koOf(half, 100, 1));
+check(koOf([...Array(15).fill(99), 100], 100, 1) === '6.3% chance to OHKO',
+  'one roll in sixteen is 6.3%', koOf([...Array(15).fill(99), 100], 100, 1));
+
+// A stronger hit must never produce a weaker-sounding verdict.
+const ladder = [flat(100), half, flat(50), spreadTo(45, 55), flat(34), spreadTo(30, 36), flat(20)]
+  .map(r => koOf(r, 100, 1));
+check(new Set(ladder).size === ladder.length,
+  'each rung of the ladder gives a distinct verdict — no two thresholds collapse', ladder.join(' | '));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

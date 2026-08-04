@@ -12,6 +12,41 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.17] — 2026-08-03
+
+### Changed
+- **The damage calculator's remaining decisions are out of the DOM handler.** This was the
+  engineering review's first recommendation, and its reasoning was that three separate audits had
+  each found *one more* untested input to the same calculation — the roll loop, then STAB, then
+  dual-type effectiveness — because every fix left the rest inside an event handler where no test
+  could reach it. Doing it a piece at a time guarantees a fourth. This is the rest of it:
+
+  - `calcLocalModifiers()` — weather, spread, burn and screens.
+  - `calcLocalCritStages()` — the critical-hit stat-stage rule.
+  - `calcLocalKO()` — **the KO verdict**, which is the sentence a reader actually acts on.
+    "Guaranteed 2HKO" is the difference between bringing a Pokémon and leaving it at home, and it
+    was a seven-branch ladder with no test of any kind behind it.
+
+  28 new assertions, and four new mutations (**M32–M35**) that each break one of these and are
+  caught: burn halving special attacks, a crit no longer ignoring screens, a crit clamping the
+  wrong side of the defender's stage, and the 2HKO verdict reading from the high roll instead of
+  the low one. 35 mutations, 962 assertions.
+
+### Notes
+- Two things worth recording, both mistakes made while writing this:
+  - **The `—` trap caught me again.** Three attempted Python splices of `app/index.html`
+    matched zero times because the file stores em-dashes as escapes rather than literals. `CLAUDE.md`
+    and the handoff both warn about this and both say to use the editor instead; that is what
+    finally worked. The rule is in the repo because it keeps happening.
+  - **One new assertion was wrong, not the code.** I asserted that flat rolls of 40 against 100 HP
+    give a "Possible 2HKO". They cannot: with flat rolls the low and high roll are equal, so the
+    verdict is always "Guaranteed" — 40 is correctly a Guaranteed 3HKO. "Possible" means the high
+    roll gets there and the low roll does not, so it needs a *spread* of rolls, and the tests now
+    use one. The failing assertion was the test's fault and is kept as a case because a reader who
+    sees "Possible" is being told the outcome depends on the roll.
+
+---
+
 ## [5.16] — 2026-08-03
 
 ### Fixed

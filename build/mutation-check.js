@@ -127,6 +127,16 @@ const MUTATIONS = [
   ['M31', 'Typing list: genMax is re-applied to the forme id, which rejects every forme',
     '      return _tcRoster.has(id);', '      return id<=genMax&&_tcRoster.has(id);',
     1, 'test-dual-typing.js'],
+  ['M32', 'Damage: burn halves special attacks too',
+    "burn:(o.burn&&o.cat==='physical')?0.5:1,", 'burn:o.burn?0.5:1,', 1, 'test-damage-formula.js'],
+  ['M33', 'Damage: a critical hit stops ignoring screens',
+    'screen:(o.screen&&!o.crit)?0.5:1', 'screen:o.screen?0.5:1', 1, 'test-damage-formula.js'],
+  ['M34', "Damage: a crit clamps the wrong side of the defender's stage",
+    'return{atk:aStage<1?1:aStage, def:dStage>1?1:dStage};',
+    'return{atk:aStage<1?1:aStage, def:dStage<1?1:dStage};', 1, 'test-damage-formula.js'],
+  ['M35', 'Damage: the KO verdict reports a guaranteed 2HKO from the HIGH roll',
+    'if(mn*2>=hp)return\'Guaranteed 2HKO\';', 'if(mx*2>=hp)return\'Guaranteed 2HKO\';',
+    1, 'test-damage-formula.js'],
 ];
 
 function runSuite(suite, srcPath) {

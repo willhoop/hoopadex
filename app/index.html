@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.16 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.17 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -9781,6 +9781,48 @@ function calcLocalRolls(o){
   }
   return rolls;
 }
+/* The rest of the local calculator's decisions, moved out of the DOM handler.
+
+   An engineering review's first recommendation was to do this in ONE pass rather than carving out a
+   piece at a time: three separate audits each found one more untested input to this calculation -
+   the roll loop, then STAB, then dual-type effectiveness - because every fix left the remainder
+   inside an event handler where no test could reach it. This is the remainder.
+
+   calcLocalKO matters most to a reader. It is the sentence they act on: "Guaranteed 2HKO" is the
+   difference between bringing a Pokemon and leaving it at home, and until now it was a seven-branch
+   ladder with no test of any kind behind it. */
+function calcLocalModifiers(o){
+  let weather=1;
+  /* Only sun and rain change damage. Sand and snow change other things - Rock's Special Defence,
+     Ice's Defence - which this fallback does not model at all, and inventing a multiplier for them
+     would be worse than leaving them alone. */
+  if(o.weather==='sun'){if(o.type==='fire')weather=1.5;else if(o.type==='water')weather=0.5}
+  if(o.weather==='rain'){if(o.type==='water')weather=1.5;else if(o.type==='fire')weather=0.5}
+  return{
+    weather:weather,
+    spread:o.spread?0.75:1,
+    burn:(o.burn&&o.cat==='physical')?0.5:1,   // burn only ever halves a PHYSICAL attack
+    screen:(o.screen&&!o.crit)?0.5:1           // a critical hit ignores screens - that is the point
+  };
+}
+/* Stat stages under a critical hit: it ignores the attacker's DROPS and the defender's BOOSTS, and
+   keeps the attacker's boosts and the defender's drops. Clamping the wrong side of that is an easy
+   mistake and makes crits quietly weaker than they are. */
+function calcLocalCritStages(aStage,dStage,crit){
+  if(!crit)return{atk:aStage,def:dStage};
+  return{atk:aStage<1?1:aStage, def:dStage>1?1:dStage};
+}
+function calcLocalKO(rolls,hp,effMult){
+  const mn=rolls[0], mx=rolls[rolls.length-1];
+  if(effMult===0)return'Immune — no damage';
+  if(mn>=hp)return'Guaranteed OHKO';
+  if(mx>=hp)return(rolls.filter(function(x){return x>=hp}).length/rolls.length*100).toFixed(1)+'% chance to OHKO';
+  if(mn*2>=hp)return'Guaranteed 2HKO';
+  if(mx*2>=hp)return'Possible 2HKO';
+  if(mn*3>=hp)return'Guaranteed 3HKO';
+  if(mx*3>=hp)return'Possible 3HKO';
+  return Math.ceil(hp/mx)+'–'+Math.ceil(hp/mn)+'HKO';
+}
 async function calcRunLocal(){
   const res=document.getElementById('calc-result');
   if(!res)return;
@@ -9801,7 +9843,7 @@ async function calcRunLocal(){
   const crit=document.getElementById('calc-crit').checked;
   let aStage=calcStage(document.getElementById('calc-atk-stage').value);
   let dStage=calcStage(document.getElementById('calc-def-stage').value);
-  if(crit){if(aStage<1)aStage=1;if(dStage>1)dStage=1}
+  const _st=calcLocalCritStages(aStage,dStage,crit); aStage=_st.atk; dStage=_st.def;
   let atkStat=Math.floor(calcStatVal(calcBase(a,offName),lv,parseInt(document.getElementById('calc-atk-ev').value),parseFloat(document.getElementById('calc-atk-nat').value))*aStage);
   let defStat=Math.floor(calcStatVal(calcBase(d,defName),lv,parseInt(document.getElementById('calc-def-ev').value),parseFloat(document.getElementById('calc-def-nat').value))*dStage);
 
@@ -9810,26 +9852,16 @@ async function calcRunLocal(){
   const effMult=calcLocalEffectiveness(d.types,type,chart);
   const stab=calcLocalStab(a.types,type);
   let itemMult=1; // items handled by Smogon engine; local fallback ignores them
-  const w=document.getElementById('calc-weather').value;
-  let wMult=1;
-  if(w==='sun'){if(type==='fire')wMult=1.5;else if(type==='water')wMult=0.5}
-  if(w==='rain'){if(type==='water')wMult=1.5;else if(type==='fire')wMult=0.5}
-  const spread=document.getElementById('calc-spread').checked?0.75:1;
-  const burn=(document.getElementById('calc-burn').checked&&cat==='physical')?0.5:1;
-  const screen=(document.getElementById('calc-screen').checked&&!crit)?0.5:1;
+  const mods=calcLocalModifiers({weather:document.getElementById('calc-weather').value,type:type,cat:cat,crit:crit,
+    spread:document.getElementById('calc-spread').checked,
+    burn:document.getElementById('calc-burn').checked,
+    screen:document.getElementById('calc-screen').checked});
+  const wMult=mods.weather, spread=mods.spread, burn=mods.burn, screen=mods.screen;
   const rolls=calcLocalRolls({lv:lv,power:md.power,atk:atkStat,def:defStat,gen:getDataGenNum(),
     spread:spread,weather:wMult,crit:crit,stab:stab,eff:effMult,burn:burn,screen:screen,item:itemMult});
   const mn=rolls[0],mx=rolls[15];
   const mnP=mn/hp*100,mxP=mx/hp*100;
-  let ko;
-  if(effMult===0)ko='Immune \u2014 no damage';
-  else if(mn>=hp)ko='Guaranteed OHKO';
-  else if(mx>=hp){ko=(rolls.filter(x=>x>=hp).length/16*100).toFixed(1)+'% chance to OHKO'}
-  else if(mn*2>=hp)ko='Guaranteed 2HKO';
-  else if(mx*2>=hp)ko='Possible 2HKO';
-  else if(mn*3>=hp)ko='Guaranteed 3HKO';
-  else if(mx*3>=hp)ko='Possible 3HKO';
-  else ko=Math.ceil(hp/mx)+'\u2013'+Math.ceil(hp/mn)+'HKO';
+  const ko=calcLocalKO(rolls,hp,effMult);
   const effTxt=effMult===1?'':' \u00b7 '+(effMult>1?'<span style="color:#78C850">'+effMult+'\u00d7 super effective</span>':effMult===0?'<span style="color:#F85888">immune</span>':'<span style="color:#F85888">'+effMult+'\u00d7 resisted</span>');
   res.style.display='';
   res.innerHTML='<div class="calc-title" style="color:#78C850">Result</div>'
