@@ -12,6 +12,55 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.15] — 2026-08-03
+
+### Fixed
+- **Formes that are not in the game were being listed.** Will: *"a lot of these Z megas aren't in
+  the game yet."* Correct. `formAllowed()` asked only two questions — is the base species on the
+  roster, and is this generation inside the forme's window — and both pass for things Champions does
+  not have. Speed Tiers opened with **Mega Absol, Mega Garchomp and Mega Lucario in their Legends:
+  Z-A forms** at 151 base Speed, and also listed **Ash-Greninja**, which is not a Mega and cannot be
+  chosen when building a team at all.
+
+  The rule that actually decides it was already in the app as `CHAMPIONS_ITEMS`:
+
+  > **A Mega is usable exactly when its Mega Stone is legal in the regulation.**
+
+  `absolite` is a legal Champions item. `absolitez` is not. That single difference is the whole
+  distinction between the Mega Absol that exists and the one that does not, and it is *derivable*
+  rather than a judgement call — Showdown records the link directly as `requiredItem`.
+  `build/generate-form-gating.js` extracts it (133 formes with a required item, 39 battle-only) into
+  `data/form-gating.json`, and `formAllowed()` now applies both.
+
+  Roster 327 → **319**; Megas 77 → **73**. Verified in the browser: no `-mega-z` forme survives, no
+  battle-only forme survives, and Mega Absol, Mega Garchomp, Mega Greninja, Mega Sceptile and Mega
+  Alakazam all still do. Speed Tiers now tops out at Mega Aerodactyl and Mega Alakazam on 150 base
+  Speed — which is what Pikalytics shows.
+
+- **"Max Speed" was a misleading column name.** Will: *"why is the neutral plus scarf plus 32 faster
+  than max speed."* Because it was never the maximum — it is the fastest that Pokémon gets **with no
+  item**, and a Choice Scarf is ×1.5 against a nature's ×1.1, so a neutral-nature Scarf holder
+  genuinely outruns a boosting-nature one holding nothing. The number was right and the label was
+  not. Renamed **Max +Nat**, hint "32 SP and a speed-boosting nature, no item".
+
+- **The type chart now fits on screen with no scrolling.** It fitted on the machine it was built on
+  and was cut off two rows from the bottom on Will's, because a fixed 24px row height cannot know
+  about display scaling: at 150% on a 1920×1200 screen the *logical* viewport is about 630px tall,
+  and the chart wanted 694. `tcFit()` measures where the table starts, divides the remaining height
+  by the number of rows and clamps to 15–24px, so it can only ever shrink and never inflates on a
+  tall screen. It measures the real row pitch and corrects once rather than deriving it — hand-
+  computing the border and spacing overhead was wrong by 2px a row, which is 38px over the table.
+  Verified at 1280×630: all 18 rows visible, 10px to spare.
+
+### Added
+- Mutations **M28** (a Mega no longer needs a legal Stone) and **M29** (battle-only formes become
+  selectable), both killed by `tests/test-form-names.js`. 29 mutations, 28 suites, 927 assertions.
+- `tests/test-form-names.js` now states the corrected rule. Its Champions section previously
+  asserted the *old* one — "a form is legal exactly when its base is" — which is precisely what this
+  release disproves, so that assertion was inverted rather than deleted.
+
+---
+
 ## [5.14] — 2026-08-03
 
 ### Fixed

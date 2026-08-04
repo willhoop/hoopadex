@@ -116,6 +116,11 @@ const MUTATIONS = [
     1, 'test-speed-tiers.js'],
   ['M27', 'Forms: the Legends Z-A mega suffix loses its case, so two Pokémon share one name',
     ":name.includes('-mega-z')?' Z-A'", ":name.includes('-mega-zzz')?' Z-A'", 1, 'test-form-names.js'],
+  ['M28', 'Forms: a Mega no longer has to have a legal Mega Stone, so Z-A megas return',
+    'if(need&&isChampionsMode&&!CHAMPIONS_ITEMS.has(need))return false;',
+    'if(false)return false;', 1, 'test-form-names.js'],
+  ['M29', 'Forms: battle-only formes become selectable, so Ash-Greninja returns',
+    'if(FORM_BATTLE_ONLY.has(flat))return false;', 'if(false)return false;', 1, 'test-form-names.js'],
 ];
 
 function runSuite(suite, srcPath) {

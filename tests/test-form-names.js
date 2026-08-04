@@ -40,6 +40,9 @@ const MASTER = [
   { id: 137, name: 'porygon' },
   { id: 782, name: 'jangmo-o' }, { id: 785, name: 'tapu-koko' }, { id: 6, name: 'charizard' },
   { id: 19, name: 'rattata' }, { id: 641, name: 'tornadus' },
+  // absol and greninja carry the Mega Stone gating cases: absol has both a Gen VI mega and a
+  // Legends Z-A one, and greninja has a battle-only forme (Ash-Greninja) that is not a mega at all.
+  { id: 359, name: 'absol' }, { id: 658, name: 'greninja' },
 ];
 
 // formAllowed reads isChampionsMode and CHAMPIONS_IDS from module scope, so they are supplied here
@@ -48,6 +51,10 @@ const app = eval(
   'let master=' + JSON.stringify(MASTER) + ';\n' +
   'let isChampionsMode=false;\n' +
   'let CHAMPIONS_IDS=new Set([26,80,691]);\n' +
+  // formAllowed also asks whether a forme's Mega Stone is legal here. Seeded with Absolite and
+  // deliberately NOT Absolite Z: that one difference is what keeps the Legends: Z-A megas out of a
+  // Champions roster, and it is the case the assertions below exercise.
+  'let CHAMPIONS_ITEMS=new Set(["absolite","garchompite","greninjite"]);\n' +
   nameHelpers + '\n' +
   lines.slice(start, end).join('\n') +
   '\n;({baseSpeciesId,formDisplayName,getFormGenRange,formAllowed,' +
@@ -168,11 +175,26 @@ check(allowed('charizard-mega-x', 10034, 8, GEN_MAX_9) === false, 'no mega exist
 check(allowed('kubfu-supreme-mega', 10999, 9, GEN_MAX_9) === false,
   'a form whose species cannot be resolved is refused, not guessed');
 
-// Champions: the roster names species, so a form is legal exactly when its base is.
-setChampions(true, new Set([691]));
+/* Champions. The roster names species, so the base species must be legal - but that is NOT
+   sufficient, which is what this section used to claim. A Mega also needs its Mega Stone to be
+   legal in the regulation.
+
+   Absolite is a Champions item; Absolite Z is not, and that single difference is the whole
+   distinction between the Mega Absol that exists in the game and the Legends: Z-A one that does
+   not. Before 5.15 the app applied only the species test, so Speed Tiers opened with Mega Absol,
+   Mega Garchomp and Mega Lucario in their Z-A forms at 151 base Speed - none of which is in
+   Champions - and Will spotted it immediately because Scarf Garchomp is not the fastest thing in
+   the game. The stub CHAMPIONS_ITEMS above deliberately omits the -z stones. */
+setChampions(true, new Set([691, 359, 658]));
 check(allowed('dragalge', 691, 9, GEN_MAX_9) === true, 'Champions: Dragalge is on the roster');
-check(allowed('dragalge-mega', 10299, 9, GEN_MAX_9) === true,
-  'Champions: Mega Dragalge is legal because Dragalge is');
+check(allowed('dragalge-mega', 10299, 9, GEN_MAX_9) === false,
+  'Champions: Mega Dragalge is refused when Dragalgite is not a legal item, even though Dragalge is on the roster');
+check(allowed('absol-mega', 10057, 9, GEN_MAX_9) === true,
+  'Champions: Mega Absol is legal because Absolite is');
+check(allowed('absol-mega-z', 10307, 9, GEN_MAX_9) === false,
+  'Champions: the Legends Z-A Mega Absol is NOT, because Absolite Z is not a legal item');
+check(allowed('greninja-ash', 10116, 9, GEN_MAX_9) === false,
+  'Champions: a battle-only forme is never selectable, whatever its species');
 check(allowed('charizard', 6, 9, GEN_MAX_9) === false, 'Champions: Charizard is not on this roster');
 check(allowed('charizard-mega-x', 10034, 9, GEN_MAX_9) === false,
   'Champions: nor is its mega — the form follows the species');

@@ -101,7 +101,7 @@ shipped definitions:
 | Column | Meaning | Base 100 | Base 130 |
 |---|---|---|---|
 | Base | the base stat itself | 100 | 130 |
-| Max Speed | 32 SP and a speed-boosting nature | 167 | 200 |
+| Max +Nat | 32 SP and a speed-boosting nature, no item | 167 | 200 |
 | Neutral +32 | 32 SP, neutral nature | 152 | 182 |
 | Neutral 0 | no SP, neutral nature | 120 | 150 |
 | −Spe 0 | no SP, speed-reducing nature | 108 | 135 |
