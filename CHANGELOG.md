@@ -12,6 +12,52 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.21] - 2026-08-03
+
+### Fixed
+- **The evolution chain showed modern artwork in every generation.** A Gen I Venusaur page had the
+  Red/Blue sprite at the top and three current renders in the evolution chain beside it, because
+  renderEvoStage reached for `official-artwork` BEFORE falling back to the generation-aware
+  `spriteFor()`. Official artwork is the modern render for every species regardless of the
+  generation selected. Showing current-generation art in an older view is the bug CLAUDE.md names
+  by name, sitting in the middle of the dex entry. Period sprites now win; the artwork is used only
+  where a generation has no period sprite to prefer. Verified in Gen I: all three chain sprites now
+  resolve to `generation-i/red-blue/`.
+- **`SPECIAL` overlapped its own value.** The stat label column was 62px-worth of text in a 36px
+  box, so Gen I read "SPECIAL100". Sized to the longest label the app can produce rather than to
+  HP/ATK/DEF/SPE.
+- **Gen I-V sprites sat in white boxes and covered the dex number.** PokeAPI ships those files with
+  an opaque white background rather than transparency. `mix-blend-mode:multiply`, scoped to
+  `[src*="/versions/"]`, lets pure white fall through to the card while leaving modern (genuinely
+  transparent) artwork untouched. The dex number gets a z-index so a 96px sprite stops drawing over
+  the thing you scan the grid by.
+- **Smogon sets showed a blank where EVs go in Gen I and II.** Those generations had no EVs: they
+  used Stat Experience, awarded in EVERY stat by every defeated Pokemon, capped at 65535 each with
+  no 510 budget and no 252 per-stat limit. EVs arrived in Generation III. So the sets are correct
+  and Smogon publishes no EV line - but an empty space where a reader expects numbers reads as
+  missing data, which is the same failure as a spinner that never resolves. It now says which
+  system that generation used.
+
+### Changed
+- **Teams are scoped to the generation they were built in.** Switching to Gen I kept the Champions
+  team on screen - Meowscarada and Gholdengo in Red/Blue - which is precisely the anachronism this
+  app exists to prevent, sitting in its own Team Builder. Will's framing: almost nobody flicks
+  between games while using this; they are on whatever game they are playing and want only what is
+  true of it, which is the whole premise of a generation-aware dex. Each generation now keeps its
+  own working team and its own saved teams, and teams from other generations are not shown.
+
+  Migration: entries saved before this change carry no scope and are filed under Champions, which
+  is where they were built - the working team found in storage was a Regulation M-B team. Nothing
+  is deleted.
+- **The hidden-ability pill stopped being coloured.** It had a solid purple that appears nowhere
+  else in the app, which made a mere variant the loudest element on the panel; three attempts at a
+  better colour were all rejected. The answer was not a fourth colour. Abilities are now split into
+  two labelled groups - ABILITY and HIDDEN ABILITY - reusing the exact caption pattern already used
+  below for SUPER RESIST / RESISTS / WEAK TO, so both pills are identical and the grouping carries
+  the meaning. The cryptic `(H)` goes with it; the heading says it in words.
+
+---
+
 ## [5.20] - 2026-08-03
 
 ### Changed

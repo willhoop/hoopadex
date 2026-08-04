@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.20 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.21 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -60,7 +60,7 @@ body.light .stat-value{color:#1a1a2a}
 body.light .stat-bar-bg{background:rgba(0,0,0,0.08)}
 body.light .matchup-label{color:#3a3a4a}
 body.light .ability-tag{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.1);color:#2a2a3a}
-body.light .ability-tag.hidden{background:#f0e2f7;border-color:#a862c4;color:#4d2160}
+body.light .ability-tag.hidden{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.12);color:#3a3a4a}
 body.light .detail-panel{background:#fff !important;border-color:rgba(0,0,0,0.1) !important}
 body.light .loc-area-name{color:#1a1a2a}
 body.light .loc-chance-high{color:#2a8a20}
@@ -280,9 +280,23 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
 .card{border-radius:16px;padding:16px;cursor:pointer;transition:all 0.25s ease;position:relative;overflow:hidden}
 .card:hover{transform:translateY(-4px)}
-.card-id{position:absolute;top:8px;right:12px;font-size:11px;color:#6a6a7a;font-weight:700;font-family:'JetBrains Mono',monospace}
+/* z-index because a 96px sprite in a 16px-padded card reaches the top-right corner and drew
+   straight over the dex number. The number is the thing you scan a grid by, so it wins. */
+.card-id{position:absolute;top:8px;right:12px;font-size:11px;color:#6a6a7a;font-weight:700;font-family:'JetBrains Mono',monospace;z-index:2;pointer-events:none}
 .card-img{display:flex;justify-content:center;margin-bottom:8px}
+/* mix-blend-mode:multiply drops the white box PokeAPI ships around the Gen I-V sprites. Those
+   files have an opaque white background rather than transparency, so on a dark card each one sat
+   in a bright square. Multiply keeps every pixel darker than the backdrop and lets pure white
+   fall through to it, which is exactly the shape of the problem.
+
+   Two consequences worth knowing rather than discovering: on the LIGHT theme multiply against a
+   near-white page is close to a no-op, which is fine because the white box is invisible there
+   anyway; and the drop-shadow has to go, because a filter creates a new compositing context and
+   the blend would apply to the shadow instead of the page. Scoped to the period sprites via
+   [src*="/versions/"] so modern artwork - which is genuinely transparent - is untouched. */
 .card-img img{width:96px;height:96px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))}
+.card-img img[src*="/versions/"]{mix-blend-mode:multiply;filter:none}
+body.light .card-img img[src*="/versions/"]{mix-blend-mode:normal}
 .card-name{font-size:14px;font-weight:700;color:#e8e8f0;text-transform:capitalize;margin-bottom:6px;letter-spacing:0.5px;text-align:center}
 .card-types{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
 .card-placeholder{border-radius:16px;padding:20px 16px;cursor:pointer;transition:all 0.25s ease;position:relative;overflow:hidden;text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
@@ -329,10 +343,19 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .ability-tag{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);padding:6px 14px;border-radius:8px;font-size:14px;color:#c8c8d8;text-transform:capitalize;display:inline-block;margin:0 6px 6px 0;cursor:help;position:relative}
 /* Solid, not a tinted outline. A hidden ability is a different encounter, not a variant of the
    same one, so it reads as its own colour rather than as a normal pill with a faint purple edge. */
-.ability-tag.hidden{background:#4a2359;border-color:#a862c4;color:#f2ddfb}
+/* No fill. The hidden ability was given a solid purple that appears nowhere else in the app,
+   which made a mere variant the loudest element on the panel and read as decoration rather
+   than information - rejected three times over three attempts at picking a better colour.
+   The fix was not a fourth colour: abilities are now split into two labelled groups using
+   the same caption pattern the matchups below already use, so both pills look identical and
+   the grouping carries the meaning. */
+.ability-tag.hidden{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1);color:#c8c8d8}
 .ability-tag:hover{border-color:rgba(255,255,255,0.25)}
 .stat-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.stat-label{width:36px;font-size:12px;font-weight:700;color:#8a8a9a;letter-spacing:1px}
+/* 36px fits HP/ATK/DEF/SPE but not SPECIAL, which is what Gen I shows instead of SPA/SPD -
+   so the Gen I stat block read "SPECIAL100" with the label jammed into its own value.
+   Sized to the longest label the app can produce rather than to the common case. */
+.stat-label{width:62px;font-size:12px;font-weight:700;color:#8a8a9a;letter-spacing:1px}
 .stat-value{width:36px;font-size:15px;font-weight:700;color:#e0e0e8;text-align:right;font-family:'JetBrains Mono',monospace}
 .stat-bar-bg{flex:1;height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden}
 .stat-bar-fill{height:100%;border-radius:5px;transition:width 0.6s cubic-bezier(0.25,1,0.5,1)}
@@ -1460,7 +1483,18 @@ function onGenNumChange(){
   populateGameDropdown();
   applyModeVisibility();   // TMs and regulation changes only exist in some selections
   if(isChampionsMode){CHAMPIONS_IDS=regByShort(championsReg).ids()}
+  swapTeamForScope();
   triggerDataRefresh();
+}
+
+/* Teams belong to the generation they were built in, so changing generation swaps the working team
+   instead of carrying one across. Without this, switching to Gen I kept a Champions team on screen
+   - Meowscarada and Gholdengo in Red/Blue - which is exactly the anachronism this app exists to
+   prevent, sitting in its own Team Builder. */
+function swapTeamForScope(){
+  teamSlots=[null,null,null,null,null,null];
+  restoreWorkingTeam();          // this generation's team, or nothing
+  if(typeof renderTeamBuilder==='function'){renderTeamBuilder();renderTeamAnalysis();renderTeamStoreUI()}
 }
 
 function onGameChange(){
@@ -2530,7 +2564,19 @@ function evoStageName(apiName){
 function renderEvoStage(node,currentId){
   const isCurrent=node.id===currentId;
   const cached=dc[node.id];
-  const sprite=(cached?.sprites?.other?.['official-artwork']?.front_default)||spriteFor(node.id);
+  /* Period sprite first. This used to reach for official-artwork BEFORE falling back to
+     spriteFor(), and official-artwork is the modern render for every species regardless of the
+     generation selected - so a Gen I Venusaur page showed the Red/Blue sprite at the top and three
+     modern renders in the evolution chain immediately beside it. Generation accuracy is the point
+     of this app; showing current-generation art in an older view is the bug CLAUDE.md names.
+     spriteFor() already resolves the right directory for the selected generation, and falls back
+     to the modern sprite on its own when a generation has no period art, so the artwork is only
+     used where there is no period sprite to prefer. */
+  const g=isChampionsMode?9:getDataGenNum();
+  const sprite=GEN_SPRITE_DIR[g]
+    ? spriteFor(node.id)
+    : ((cached&&cached.sprites&&cached.sprites.other&&cached.sprites.other['official-artwork']&&
+        cached.sprites.other['official-artwork'].front_default)||spriteFor(node.id));
   return '<div class="evo-stage'+(isCurrent?' current':'')+'" onclick="showDetail('+node.id+')">'+
     '<img src="'+sprite+'" alt="'+node.name+'" loading="lazy">'+
     '<div class="evo-name">'+evoStageName(node.name)+'</div></div>';
@@ -3174,7 +3220,21 @@ async function renderDetail(p){
       return true;
     });
     if(abilityList.length>0){
-      abs=abilityList.map(a=>'<span class="ability-tag'+(a.is_hidden?' hidden':'')+'" style="cursor:pointer" onclick="showAbilityPage(\''+a.ability.name+'\')" onmouseenter="showAbilityTip(event,\''+a.ability.name+'\','+a.is_hidden+')" onmouseleave="hideTooltip()">'+a.ability.name.replace(/-/g,' ')+(a.is_hidden?' <span style="font-size:9px;opacity:.75">(H)</span>':'')+'</span>').join('');
+      /* Two labelled groups rather than one row with the hidden one coloured in. A hidden ability
+         is a different KIND of ability, not a more important one, and a saturated fill said the
+         opposite: it made a variant the loudest thing on the panel, in a purple that means nothing
+         anywhere else in the app. Three attempts at a better colour were all rejected - the answer
+         was to stop picking one. The caption below is the same pattern used a few lines later for
+         SUPER RESIST / RESISTS / WEAK TO, so this reuses the page's own vocabulary instead of
+         inventing more of it. "(H)" goes too: the heading says it in words. */
+      const abPill=a=>'<span class="ability-tag'+(a.is_hidden?' hidden':'')+'" style="cursor:pointer" onclick="showAbilityPage(\''+a.ability.name+'\')" onmouseenter="showAbilityTip(event,\''+a.ability.name+'\','+a.is_hidden+')" onmouseleave="hideTooltip()">'+a.ability.name.replace(/-/g,' ')+'</span>';
+      const abNormal=abilityList.filter(a=>!a.is_hidden), abHidden=abilityList.filter(a=>a.is_hidden);
+      abs='';
+      if(abNormal.length)abs+='<div class="matchup-label" style="color:var(--text4)">'
+        +(abNormal.length>1?'ABILITIES':'ABILITY')+'</div><div style="margin-bottom:10px">'
+        +abNormal.map(abPill).join('')+'</div>';
+      if(abHidden.length)abs+='<div class="matchup-label" style="color:var(--text4)">HIDDEN ABILITY</div><div>'
+        +abHidden.map(abPill).join('')+'</div>';
     }else{
       abs='<span style="color:#5a5a6a;font-size:12px;font-style:italic">No abilities in this generation</span>';
     }
@@ -3534,6 +3594,16 @@ async function loadSmogonSets(pokemonName,genNum){
         const evObj=Array.isArray(set.evs)?set.evs[0]:set.evs;
         if(evObj){const evStr=Object.entries(evObj).map(([k,v])=>v+' '+k.toUpperCase()).join(' / ');
         details.push('<span style="color:#8a8a9a">'+evStr+'</span>')}
+      }
+      /* Say WHY there are no EVs instead of showing nothing. Generations I and II had none: they
+         used Stat Experience, which every defeated Pokemon awarded in EVERY stat, capped at 65535
+         each with no 510 budget and no 252 per-stat limit. EVs as they are known now arrived in
+         Generation III. So an RBY set genuinely has no EV line and Smogon publishes none - but an
+         empty space where a reader expects numbers reads as missing data rather than as an answer,
+         which is the same failure as a spinner that never resolves. */
+      else if(!isChampionsMode&&getDataGenNum()<=2){
+        details.push('<span style="color:#6a6a7a;font-style:italic">no EVs in Gen '
+          +(getDataGenNum()===1?'I':'II')+' — this generation used Stat Experience</span>');
       }
       if(set.teratypes){
         const tt=Array.isArray(set.teratypes)?set.teratypes.join(' / '):set.teratypes;
@@ -7764,23 +7834,43 @@ function statBudget(){
    button copies the paste and opens the calculator; one paste on their side is the honest
    shortest path, and saying so beats pretending it is automatic.                              */
 const TEAM_STORE_KEY='hoopadex-teams';
+/* Teams are scoped to the generation they were built in.
+   The Team Builder used to hold ONE team across every generation, so switching to Gen I still
+   showed a Champions team - Meowscarada and Gholdengo in Red/Blue, neither of which exists there.
+   Almost nobody flicks between games while using this: they are on whatever game they are playing
+   and want only what is true of it, which is the entire premise of a generation-aware dex.
+   So each generation keeps its own working team and its own saved teams, and teams from other
+   generations are simply not shown.
+
+   Migration: entries written before this change carry no scope. They are filed under Champions,
+   which is where they were built - the app opens on Champions, and the working team found in
+   storage (Blaziken, Meowscarada, Sylveon, Dragonite, Gholdengo, Mudsdale) is a Regulation M-B
+   team. Nothing is deleted; a mis-filed team is still one switch away. */
+function teamScope(){return isChampionsMode?'champions':'g'+getDataGenNum()}
 function loadTeamStore(){
-  try{const raw=localStorage.getItem(TEAM_STORE_KEY);if(!raw)return{saved:[],working:null};
-      const d=JSON.parse(raw);return{saved:Array.isArray(d.saved)?d.saved:[],working:d.working||null}}
-  catch{return{saved:[],working:null}}
+  let d;
+  try{const raw=localStorage.getItem(TEAM_STORE_KEY);d=raw?JSON.parse(raw):null}catch{d=null}
+  if(!d)return{saved:[],working:{}};
+  const saved=Array.isArray(d.saved)?d.saved:[];
+  // Legacy shape: `working` was a bare array and saved teams had no scope.
+  const working=(d.working&&!Array.isArray(d.working))?d.working
+               :(Array.isArray(d.working)?{champions:d.working}:{});
+  saved.forEach(t=>{if(!t.scope)t.scope='champions'});
+  return{saved:saved,working:working};
 }
 function writeTeamStore(store){
   try{localStorage.setItem(TEAM_STORE_KEY,JSON.stringify(store))}catch{/* quota or private mode - not fatal */}
 }
 function autosaveTeam(){
   const store=loadTeamStore();
-  store.working=teamSlots.map(p=>p||null);
+  store.working[teamScope()]=teamSlots.map(p=>p||null);
   writeTeamStore(store);
 }
 function restoreWorkingTeam(){
   const store=loadTeamStore();
-  if(!store.working||!store.working.some(Boolean))return false;
-  teamSlots=store.working.slice(0,6);
+  const mine=store.working[teamScope()];
+  if(!mine||!mine.some(Boolean))return false;
+  teamSlots=mine.slice(0,6);
   while(teamSlots.length<6)teamSlots.push(null);
   return true;
 }
@@ -7792,15 +7882,16 @@ function saveNamedTeam(){
   if(name===null)return;
   const store=loadTeamStore();
   const clean=String(name).trim()||suggested;
-  store.saved=store.saved.filter(t=>t.name!==clean);
-  store.saved.unshift({name:clean,slots:teamSlots.map(p=>p||null),savedAt:new Date().toISOString()});
+  const sc=teamScope();
+  store.saved=store.saved.filter(t=>!(t.name===clean&&t.scope===sc));
+  store.saved.unshift({name:clean,scope:sc,slots:teamSlots.map(p=>p||null),savedAt:new Date().toISOString()});
   store.saved=store.saved.slice(0,30);
   writeTeamStore(store);
   renderTeamStoreUI();
   teamStatus('Saved as "'+clean+'".','ok');
 }
 function loadNamedTeam(name){
-  const t=loadTeamStore().saved.find(x=>x.name===name);
+  const t=loadTeamStore().saved.find(x=>x.name===name&&x.scope===teamScope());
   if(!t)return;
   teamSlots=t.slots.slice(0,6);
   while(teamSlots.length<6)teamSlots.push(null);
@@ -7810,7 +7901,7 @@ function loadNamedTeam(name){
 }
 function deleteNamedTeam(name){
   const store=loadTeamStore();
-  store.saved=store.saved.filter(t=>t.name!==name);
+  store.saved=store.saved.filter(t=>!(t.name===name&&t.scope===teamScope()));
   writeTeamStore(store);renderTeamStoreUI();
   teamStatus('Deleted "'+name+'".','warn');
 }
@@ -7874,7 +7965,9 @@ async function openInShowdownCalc(){
 function renderTeamStoreUI(){
   const sel=document.getElementById('team-load-select');
   if(!sel)return;
-  const saved=loadTeamStore().saved;
+  // Only this generation's teams. Showing a Gen I list a Champions team it cannot legally use
+  // is the confusion this scoping exists to remove.
+  const saved=loadTeamStore().saved.filter(t=>t.scope===teamScope());
   sel.innerHTML='<option value="">'+(saved.length?'Load saved team\u2026':'No saved teams')+'</option>'
     +saved.map(t=>'<option value="'+t.name.replace(/"/g,'&quot;')+'">'+t.name+'</option>').join('');
   sel.disabled=!saved.length;
