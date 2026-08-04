@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.19 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.20 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -612,7 +612,13 @@ body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
 .pri-num.pri-down{color:var(--eff-dn)}
 .pri-num.pri-zero{color:var(--text5)}
 .pri-desc{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text5);margin-right:4px;white-space:nowrap}
-.pri-moves{display:flex;flex-wrap:wrap;align-items:baseline;gap:1px 11px}
+/* A grid, not a wrapping flex row. As flex, a long bracket (+1 has fifteen moves) reflowed onto a
+   ragged second line whose first item sat wherever the first line happened to run out, so nothing
+   lined up with anything above it and the eye had no column to follow. Fixed tracks put move three
+   of one bracket directly under move three of the next, which is the whole reason to lay them out
+   in rows. auto-fill with a minimum keeps it responsive instead of pinning a column count that
+   breaks on a narrow window. */
+.pri-moves{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));align-items:baseline;gap:3px 10px}
 .pri-move{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);text-transform:capitalize}
 .pri-move i{width:6px;height:6px;border-radius:2px;flex-shrink:0}
 .pri-move.pri-hit{color:var(--text);font-weight:700}
@@ -3831,18 +3837,26 @@ function switchOtherSub(sub){
    The one Pikalytics column this table did not have is NEUTRAL +32 + SCARF - a Scarf user that did
    NOT spend its nature on Speed. That is a common real spread, and without it the only Scarf number
    here assumed a boosting nature, which overstates what most Scarf holders actually reach. */
+/* One grammar for every column: NATURE, then SP, then item.
+     nature   +Nat / Neutral / -Nat      (boosting, none, hindering)
+     SP       32 / 0                     (32 is the per-stat cap)
+     item     "+ Scarf" when held
+   Before this the same axis was named two different ways - "+Nat" meant a speed-boosting nature
+   while "-Spe" meant a speed-reducing one, so a reader had to work out that +Nat and -Spe were
+   opposite ends of one thing rather than two unrelated ideas. "Max" was also doing double duty:
+   "Max +Nat" meant max SP, and "Max + Scarf" meant max SP AND a boosting nature. */
 const SPEED_COLS=[
   {key:'base',   label:'Base',        hint:'the base stat itself', f:b=>b},
   /* Not "Max Speed": it is the fastest this Pokemon gets with NO ITEM, and the two Scarf columns
      to its right are larger, which reads as a contradiction. A Choice Scarf is x1.5 and a nature
      only x1.1, so a neutral-nature Scarf user genuinely outruns a boosting-nature one holding
      nothing - correct, and confusing under a column called "Max". */
-  {key:'maxnat', label:'Max +Nat',    hint:'32 SP and a speed-boosting nature, no item', f:b=>Math.floor((b+20+32)*1.1)},
-  {key:'maxsp',  label:'Neutral +32', hint:'32 SP, neutral nature', f:b=>b+20+32},
-  {key:'neutral',label:'Neutral 0',   hint:'no SP, neutral nature', f:b=>b+20},
-  {key:'min',    label:'−Spe 0', hint:'no SP, speed-reducing nature', f:b=>Math.floor((b+20)*0.9)},
-  {key:'scarf',  label:'Max + Scarf', hint:'32 SP, boosting nature, Choice Scarf', f:b=>Math.floor(Math.floor((b+20+32)*1.1)*1.5)},
-  {key:'scarfn', label:'Neutral +32 + Scarf', hint:'32 SP, neutral nature, Choice Scarf', f:b=>Math.floor((b+20+32)*1.5)},
+  {key:'maxnat', label:'+Nat 32',     hint:'speed-boosting nature, 32 SP, no item', f:b=>Math.floor((b+20+32)*1.1)},
+  {key:'maxsp',  label:'Neutral 32',  hint:'neutral nature, 32 SP, no item', f:b=>b+20+32},
+  {key:'neutral',label:'Neutral 0',   hint:'neutral nature, no SP, no item', f:b=>b+20},
+  {key:'min',    label:'−Nat 0',      hint:'speed-reducing nature, no SP, no item', f:b=>Math.floor((b+20)*0.9)},
+  {key:'scarf',  label:'+Nat 32 + Scarf', hint:'speed-boosting nature, 32 SP, Choice Scarf', f:b=>Math.floor(Math.floor((b+20+32)*1.1)*1.5)},
+  {key:'scarfn', label:'Neutral 32 + Scarf', hint:'neutral nature, 32 SP, Choice Scarf', f:b=>Math.floor((b+20+32)*1.5)},
 ];
 /* Speed Tiers and Bulk both walk the whole regulation and can only use what is already in `dc`.
    Nothing ever put it there, so the tables showed whichever Pokemon you happened to have opened -
@@ -4225,7 +4239,13 @@ function renderTC(){
   const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
   const pill=(t)=>'<span class="tc-pill" style="background:'+TC[t]+'">'+(abbr[t]||t.slice(0,3))+'</span>';
   const key=(sw,label)=>'<span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;'+sw+'"></span><span style="color:var(--text3)">'+label+'</span></span>';
-  let h='<div style="font-size:11px;margin-bottom:6px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+'<span style="color:#5DBB3E;font-weight:700">'+genLabel+'</span>'+key('background:color-mix(in srgb,var(--eff-up) 22%,transparent);border:1px solid var(--eff-up)','×2 super effective')+key('background:color-mix(in srgb,var(--eff-dn) 20%,transparent);border:1px solid var(--eff-dn)','×0.5 not very effective')+key('background:var(--eff-zero)','×0 immune')+'<span style="color:var(--text5)">blank = ×1 neutral</span></div>';
+  let h='<div style="font-size:11px;margin-bottom:6px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+'<span style="color:#5DBB3E;font-weight:700">'+genLabel+'</span>'+key('background:color-mix(in srgb,var(--eff-up) 22%,transparent);border:1px solid var(--eff-up)','×2 super effective')+key('background:color-mix(in srgb,var(--eff-dn) 20%,transparent);border:1px solid var(--eff-dn)','×0.5 not very effective')+key('background:var(--eff-zero)','×0 immune')+'<span style="color:var(--text5)">blank = ×1 neutral</span>'
+    /* The hover readout lands here rather than in a floating box over the grid. A tooltip that
+       covers the table it describes is worse than no tooltip: the old one was a bold 14px panel
+       pinned above the cursor, and on an 18x18 matrix it sat on top of the very cells being
+       scanned. The crosshair already says WHICH cell you are on, so this only has to name it -
+       and it can live in one fixed place where it never occludes anything. */
+    +'<span id="tc-readout" style="margin-left:auto;font-weight:700;white-space:nowrap"></span></div>';
   h+='<table class="type-table"><thead><tr><th class="corner"><span style="font-size:8px;font-weight:800;color:var(--text4)">DEF &#x2192;</span><br><span style="font-size:8px;font-weight:800;color:var(--text4)">ATK &#x2193;</span></th>';
   cd.types.forEach((t,ci)=>{h+='<th class="col-header" data-col="'+ci+'">'+pill(t)+'</th>'});
   h+='</tr></thead><tbody>';
@@ -4308,7 +4328,11 @@ function runCoverage(){
   cd.types.forEach(function(def){groups[bucket(best[def])].push(def)});
 
   const badge=function(t){return '<span class="type-badge" style="--tc:'+TC[t]+'">'+t+'</span>'};
-  let h='<div class="dl-for">'+picked.map(function(t){return '<span class="type-badge small" style="--tc:'+TC[t]+'">'+t+'</span>'}).join('')+'</div>';
+  /* No echo row. This repeated the picked types as badges directly beneath the dropdowns that
+     already say them — "Fighting, Fire, Rock" in the selects and FIGHTING FIRE ROCK again on the
+     next line. It restated the input instead of adding to it, and spent a row of vertical space on
+     a panel whose answer is the part worth reading. */
+  let h='';
 
   // The gap first. This is the reason to open the tool.
   const gaps=groups.neutral.concat(groups.resist,groups.immune);
@@ -4366,7 +4390,9 @@ function runDualLookup(){
   const GROUPS=[[0,'Immune','\u00D70','dm-immune'],[0.25,'Super resist','\u00D7\u00BC','dm-sres'],
                 [0.5,'Resists','\u00D7\u00BD','dm-res'],[2,'Weak to','\u00D72','dm-weak'],
                 [4,'Super weak','\u00D74','dm-sweak']];
-  let h='<div class="dl-for">'+defs.map(function(d){return '<span class="type-badge small" style="--tc:'+TC[d]+'">'+d+'</span>'}).join('')+'</div>';
+  // Same echo row as the attacking calculator, same reason for removing it: the two dropdowns
+  // immediately above already say "Dark" and "Psychic".
+  let h='';
   let any=false;
   GROUPS.forEach(function(g){
     const list=by[g[0]];
@@ -4493,14 +4519,19 @@ function showChartTip(e,atk,def,effVal){
   const atkColor=TC[atk.toLowerCase()]||'#aaa';
   const defColor=TC[def.toLowerCase()]||'#aaa';
   chartTipEl.innerHTML='<span style="color:'+atkColor+'">'+atk+'</span> &#x2192; <span style="color:'+defColor+'">'+def+'</span> : <span style="color:'+color+'">'+label+'</span>';
-  chartTipEl.style.display='';
-  const r=chartTipEl.getBoundingClientRect();
-  let x=e.clientX+14,y=e.clientY-40;
-  if(x+r.width>window.innerWidth-12)x=e.clientX-r.width-14;
-  if(y<8)y=e.clientY+20;
-  chartTipEl.style.left=x+'px';chartTipEl.style.top=y+'px';
+  /* Write into the legend strip instead of a floating panel over the grid. The old box was pinned
+     40px above the cursor, so on an 18x18 matrix it covered the cells being scanned - it hid the
+     answer to show the caption. The readout sits at the end of the legend, in one fixed place,
+     where it can never occlude a cell. The crosshair already says which cell you are on. */
+  const out=document.getElementById('tc-readout');
+  if(out)out.innerHTML=chartTipEl.innerHTML;
+  chartTipEl.style.display='none';
 }
-function hideChartTip(){if(chartTipEl)chartTipEl.style.display='none'}
+function hideChartTip(){
+  if(chartTipEl)chartTipEl.style.display='none';
+  const out=document.getElementById('tc-readout');
+  if(out)out.innerHTML='';
+}
 
 /* ── Bulk: when to put Stat Points into a defence instead of HP ──────────────────────────
    How much damage you absorb scales with the PRODUCT of HP and the relevant defence, so

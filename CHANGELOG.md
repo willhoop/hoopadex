@@ -12,6 +12,32 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.20] - 2026-08-03
+
+### Changed
+- **The type chart's hover readout moved into the legend strip.** It was a bold 14px panel pinned
+  40px above the cursor, so on an 18x18 grid it covered the cells being scanned - it hid the answer
+  in order to show the caption. It now writes into a fixed slot at the end of the legend, where it
+  can never occlude a cell. The crosshair already says which cell you are on; the readout only has
+  to name it.
+- **Move Priority is a grid rather than a wrapping row.** As flex, a long bracket (+1 has fifteen
+  moves) reflowed onto a ragged second line whose first item sat wherever the first line ran out,
+  so nothing lined up with anything above it. Fixed tracks put move three of one bracket directly
+  under move three of the next, which is the reason to lay them out in rows at all.
+- **The type calculators no longer echo their own inputs.** Both panels repeated the picked types
+  as badges immediately beneath the dropdowns that already named them - "Fighting, Fire, Rock" in
+  the selects and FIGHTING FIRE ROCK again on the next line. It restated the input instead of
+  adding to it and spent a row of vertical space on a panel whose answer is the part worth reading.
+- **Speed Tiers column labels put on one grammar: nature, then SP, then item.**
+  `Base / +Nat 32 / Neutral 32 / Neutral 0 / -Nat 0 / +Nat 32 + Scarf / Neutral 32 + Scarf`.
+  Previously the same axis was named two different ways - "+Nat" meant a speed-boosting nature
+  while "-Spe" meant a speed-reducing one, so a reader had to work out that they were opposite ends
+  of one thing rather than two unrelated ideas. "Max" was also doing double duty: "Max +Nat" meant
+  max SP, and "Max + Scarf" meant max SP *and* a boosting nature.
+- `docs/STAT-FORMULA.md` regenerated from the shipped code.
+
+---
+
 ## [5.19] — 2026-08-03
 
 ### Fixed
