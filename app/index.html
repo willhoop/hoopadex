@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.17 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.18 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -4803,6 +4803,7 @@ function getCurrentGame(){
 }
 
 let evSpotsRendered={};
+let _evSpotsLoading=false;
 async function renderEVSpots(){
   const stat=document.getElementById('ev-spot-stat')?.value||'hp';
   const genNum=getDataGenNum();
@@ -4814,12 +4815,29 @@ async function renderEVSpots(){
   for(const[g,[s,e]] of Object.entries(GR)){if(parseInt(g)<=genNum)genMaxId=e}
   if(!genMaxId)genMaxId=1025;
   
-  const candidates=master.filter(p=>p.id<=genMaxId).slice(0,400);
-  const needLoad=candidates.filter(p=>!dc[p.id]).map(p=>p.id).slice(0,50);
-  if(needLoad.length>0){
-    container.innerHTML='<div style="text-align:center;padding:20px;color:#6a6a7a"><div class="spinner"></div> Loading data...</div>';
-    await loadBatch(needLoad,false);
+  /* No .slice(0,400). That cap silently reduced this tool to the first 400 species by dex number,
+     so in Generation IX everything from #401 onward - Turtwig through to all of Paldea - was
+     invisible, and nothing on screen said so. Same shape as the Bulk 60-row cap fixed in 5.14: a
+     truncation with no caption reads as a complete answer.
+
+     Champions is gated on the regulation here too, which it was not before - in Champions mode this
+     tool was scanning the National Dex. */
+  let candidates=master.filter(p=>p.id<=genMaxId);
+  if(isChampionsMode)candidates=candidates.filter(p=>CHAMPIONS_IDS.has(p.id));
+
+  /* Load in batches and re-render as they land, instead of fetching 50 and quietly answering from
+     whatever happened to be cached. The count reported below says how many are still outstanding,
+     so a partial answer is visibly partial. */
+  const needLoad=candidates.filter(p=>!dc[p.id]).map(p=>p.id);
+  if(needLoad.length>0&&!_evSpotsLoading){
+    _evSpotsLoading=true;
+    container.innerHTML='<div style="text-align:center;padding:20px;color:#6a6a7a"><div class="spinner"></div> Loading '
+      +needLoad.length+' Pokémon…</div>';
+    try{
+      for(let i=0;i<needLoad.length;i+=40)await loadBatch(needLoad.slice(i,i+40),false);
+    } finally { _evSpotsLoading=false; }
   }
+  const stillLoading=candidates.filter(p=>!dc[p.id]).length;
   
   const sn={hp:'HP',attack:'Attack',defense:'Defense','special-attack':'Sp. Atk','special-defense':'Sp. Def',speed:'Speed'};
   
@@ -4930,6 +4948,11 @@ async function renderEVSpots(){
   const gymLabel=prog&&gymVal!=='all'?prog[parseInt(gymVal)].name:'';
   let h='<div style="font-size:13px;color:#8a8a9a;margin-bottom:16px">Pok&#233;mon that yield <span style="color:#F8D030;font-weight:700">'+sn[stat]+'</span> EVs when defeated.';
   if(gymLabel)h+=' Showing locations accessible after <span style="color:#F8A060;font-weight:600">'+gymLabel+'</span>.';
+  /* Say what was searched, and say plainly when the answer is incomplete. This tool used to scan
+     the first 400 species and present the result as though it had scanned everything. */
+  h+=' Searched '+(candidates.length-stillLoading)+' of '+candidates.length+' Pok&#233;mon'
+    +(isChampionsMode?' in this regulation':' in this generation')
+    +(stillLoading?' — <span style="color:#F8A060">'+stillLoading+' still loading, so this list may grow</span>':'')+'.';
   h+='</div>';
   
   const yieldAmounts=Object.keys(byYield).map(Number).sort((a,b)=>b-a);
@@ -4955,7 +4978,22 @@ async function renderEVSpots(){
     h+='</div></div>';
   });
   
-  if(!filtered.length)h+='<div style="color:#5a5a6a;padding:20px">No Pok&#233;mon with '+sn[stat]+' EV yields found for this progression point.</div>';
+  /* Name the real reason. With 131 species yielding HP EVs, "none found for this progression point"
+     is not what happened when the game simply has no encounter data in PokeAPI - the filter drops
+     everything for want of locations, and the message blamed the reader's gym selection for a gap
+     in the source. Saying "found N, but no locations are known" is the difference between a dead
+     end and a known limitation. */
+  if(!filtered.length){
+    const noEnc=NO_ENCOUNTER_DATA.includes(game);
+    h+='<div style="color:#5a5a6a;padding:20px">'
+      +(noEnc
+        ? 'PokéAPI publishes no encounter data for this game, so locations cannot be shown. '
+          +yielders.length+' Pok&#233;mon yield '+sn[stat]+' EVs — switch to an earlier game to see where they are.'
+        : (yielders.length
+            ? yielders.length+' Pok&#233;mon yield '+sn[stat]+' EVs, but none of them appears in a location reachable at this progression point.'
+            : 'No Pok&#233;mon with '+sn[stat]+' EV yields found in this generation.'))
+      +'</div>';
+  }
   
   container.innerHTML=h;
 }

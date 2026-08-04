@@ -126,8 +126,19 @@ if (listMatch) {
     check(list.includes(`'${g}'`), `${g} is still blocked — PokéAPI genuinely has no data`, list);
   }
 }
+/* This asserted `users === 2` and a third legitimate reader broke it: 5.18 made the EV spots tool
+   say "PokéAPI publishes no encounter data for this game" instead of blaming the reader's gym
+   selection for a gap in the source.
+
+   A count is the wrong assertion. What matters is that nobody re-implements the list — not how many
+   places consult it. Two readers is fine, five is fine; a second hard-coded copy of the game names
+   is not. So assert the direction instead: the shared constant is read, and defined exactly once.
+   This is the "asserts a count where it should assert a direction" pattern the architecture review
+   named, caught in the act. */
 const users = [...src.matchAll(/NO_ENCOUNTER_DATA\.includes/g)].length;
-check(users === 2, 'both the Locations tab and the EV spots read the same list', `${users} use(s)`);
+check(users >= 2, 'the Locations tab and the EV spots both read the shared list', `${users} use(s)`);
+const defs = [...src.matchAll(/const NO_ENCOUNTER_DATA=/g)].length;
+check(defs === 1, 'and it is defined exactly once — no second hard-coded copy', `${defs} definition(s)`);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

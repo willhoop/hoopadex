@@ -108,6 +108,19 @@ if [ "$CHECK" -eq 1 ]; then say "== --check: would push =="; exit 0; fi
 say "== pushing =="
 git push -q origin main || fail "push failed"
 
+# --- tag the release ---------------------------------------------------------------------------
+# There was no rollback story at all: zero tags, and GitHub Pages serves whatever is on main, so
+# going back meant finding a commit by hand. The version on line 2 is already the release identity
+# and the tests above have just passed against it, so this is the honest moment to name it.
+# Idempotent: re-publishing the same version leaves the existing tag alone rather than moving it,
+# because a tag that moves is worse than no tag.
+if git rev-parse -q --verify "refs/tags/v$VER" >/dev/null; then
+  say "   tag v$VER already exists, leaving it where it is"
+else
+  git tag -a "v$VER" -m "HoopaDex $VER" && git push -q origin "v$VER" \
+    && say "   tagged v$VER" || say "   WARNING: could not tag v$VER (the push itself succeeded)"
+fi
+
 # --- 5. verify it actually landed -------------------------------------------------------------
 local_head=$(git rev-parse HEAD)
 remote_head=$(git ls-remote origin main 2>/dev/null | cut -f1)

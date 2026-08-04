@@ -12,6 +12,46 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.18] — 2026-08-03
+
+### Fixed
+- **EV Training only ever searched the first 400 Pokémon.** `master.filter(...).slice(0,400)` meant
+  that in Generation IX everything from **#401 onward** — Turtwig through to the whole of Paldea —
+  was invisible to the tool, and nothing on screen said so. It also fetched at most **50** species
+  per run, so it usually answered from whatever happened to be cached already. Same shape as the
+  Bulk 60-row cap fixed in 5.14: a truncation with no caption reads as a complete answer.
+
+  The cap is gone, loading is batched across the whole range, and the heading now states what was
+  actually searched — *"Searched 1025 of 1025 Pokémon in this generation"*, with a plain warning
+  while any are still loading. Verified on Emerald: **386 of 386** searched, returning Marill,
+  Wurmple, Shroomish, Slakoth and Wailmer.
+
+- **In Champions mode it was scanning the National Dex**, not the regulation. Now filtered on
+  `CHAMPIONS_IDS` like every other roster-walking tool.
+
+- **An empty result blamed the reader.** With no encounter data for a game, the location filter
+  drops everything and the message read *"No Pokémon with HP EV yields found for this progression
+  point"* — when in fact 131 species yield HP EVs and PokéAPI simply publishes no encounters for
+  Scarlet/Violet. It now names the real reason and distinguishes the three cases: no encounter data
+  for this game, none reachable at this progression point, and genuinely none in the generation.
+
+### Added
+- **`build/publish.sh` tags each release.** There was no rollback story: zero tags, and Pages serves
+  whatever is on `main`, so going back meant finding a commit by hand. The version on line 2 is
+  already the release identity and the suites have just passed against it, so that is the honest
+  moment to name it. Re-publishing the same version leaves the existing tag alone — a tag that
+  moves is worse than no tag.
+
+### Changed
+- **A count assertion became a direction assertion.** `test-viz-palette.js` asserted that
+  `NO_ENCOUNTER_DATA` had exactly **two** readers, so adding the third legitimate one above turned
+  the publish gate red. The count was never the point: what matters is that nobody re-implements
+  the list. It now asserts that the shared constant is read *and defined exactly once*. This is the
+  "asserts a count where it should assert a direction" pattern the architecture review named,
+  caught in the act — by the publish gate, which refused the push. Working as designed.
+
+---
+
 ## [5.17] — 2026-08-03
 
 ### Changed
