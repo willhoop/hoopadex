@@ -12,6 +12,32 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.27] - 2026-08-03
+
+### Fixed
+- **"No locations found." was usually a lie, and it was permanent.** The location loader ended with
+  `catch{locCache[key]=[]}` - a failed fetch wrote an EMPTY ARRAY into the cache. So one network
+  hiccup became a permanent verdict: the empty result was cached, every later visit read the cache
+  without retrying, and the app told you Kanto has no locations. Will hit exactly this in
+  Generation I, and by the time it was investigated the same URL worked perfectly, which is the
+  signature of a cached failure rather than a broken feature.
+
+  The failure is no longer cached - the key is deleted so the next visit retries - and the message
+  says what actually happened: "Could not load locations. PokéAPI did not respond. This is a network
+  problem, not a statement about the game", with a Try again button.
+
+  Verified by failing the fetch and then restoring it: it reports the failure, caches nothing, and
+  **recovers on the next call** with all 25 Kanto routes back.
+
+### Notes
+- **Third instance of this exact shape today**, after the Items tab spinning forever and the
+  Champions learnsets caching their own failure. All three presented a network problem as an answer
+  about the data: a spinner that never resolves, a legality list that is silently empty, a region
+  that supposedly has no locations. A cache that remembers failures is worse than no cache, and an
+  empty result presented as a fact is worse than an error. Worth watching for the fourth.
+
+---
+
 ## [5.26] - 2026-08-03
 
 ### Changed

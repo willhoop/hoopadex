@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.26 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.27 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -6413,7 +6413,25 @@ async function loadLocations(){
       }
       locData.sort((a,b)=>a.name.localeCompare(b.name));
       locCache[regionId+'_'+locVersion]=locData;
-    }catch{locCache[regionId+'_'+locVersion]=[]}
+    }catch(e){
+      /* Do NOT cache the failure. This used to write an empty array, so a single network hiccup
+         became a permanent "No locations found." for that game: the empty result was cached, every
+         later visit read the cache, and the app told you Kanto has no locations. Will hit exactly
+         this in Generation I, and by the time it was investigated the same URL worked fine.
+
+         Third instance of this shape today, after the items spinner and the Champions learnsets. A
+         cache that remembers failures is worse than no cache, and an empty result presented as an
+         answer is worse than an error. Leave the key unset so the next visit retries, and say what
+         actually happened. */
+      console.warn('[HoopaDex] location list failed to load',e);
+      delete locCache[regionId+'_'+locVersion];
+      document.getElementById('loc-list').innerHTML='<div style="color:var(--text2);font-size:13px;padding:16px;line-height:1.55">'
+        +'<b style="color:#F85888">Could not load locations</b><br>PokéAPI did not respond. This is a network problem, '
+        +'not a statement about the game — try again in a moment.'
+        +'<div style="margin-top:12px"><button class="filter-select" style="cursor:pointer" onclick="loadLocations()">Try again</button></div></div>';
+      document.getElementById('loc-detail').innerHTML='';
+      return;
+    }
   }
 
   locAllAreas=[];
