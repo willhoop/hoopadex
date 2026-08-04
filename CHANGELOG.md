@@ -12,6 +12,41 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.19] — 2026-08-03
+
+### Fixed
+- **A failed learnset load was cached forever.** `ensureChampLS()` was the one genuinely unguarded
+  `fetch` in the app, and the missing error message turned out to be the lesser half of the problem.
+  `_champLSLoading` held the promise, so a *rejected* one was cached and every subsequent call
+  replayed the same rejection — once `champions-learnsets.json` failed, Champions move legality
+  could never load again in that session, even if the network came back a second later. **A cache
+  that remembers failures is worse than no cache.**
+
+  It now clears the cached promise on failure, warns once in the console, and resolves to `null`
+  rather than rejecting — every caller already wrapped it in an empty `try{...}catch(e){}`, so
+  rejecting achieved nothing except making an unhandled rejection possible, and all the consumers
+  already test `if(!champLS)`. What a reader loses is Champions move legality, which degrades to
+  "no data" rather than to a wrong answer.
+
+  Verified in the browser by failing the fetch, restoring it and calling again: it previously stayed
+  dead, and now **recovers and loads all 496 moves**. Mutation **M36** re-caches the failure and is
+  caught.
+
+### Notes
+- **A figure in the engineering review was wrong and is corrected there.** It reported *"21 of 54
+  `fetch(` sites have no try/catch within ±12 lines"*. That was a heuristic artefact. Widening the
+  window and counting `.catch()` chains gives **12** candidates, and checking each one's *enclosing
+  function* leaves exactly **one** genuinely unguarded — the one fixed above. **A window measured in
+  lines is not the same as a scope**, which is the same mistake as sampling the wrong region of a
+  file, in a different disguise.
+
+  Also measured while checking: 48 of the app's 54 `catch` blocks show the reader nothing. Most are
+  correct — a failed sprite or a missing optional field should not raise a banner — but that number
+  is worth knowing rather than assuming, and it is the honest reason this was not turned into a
+  sweep of all of them.
+
+---
+
 ## [5.18] — 2026-08-03
 
 ### Fixed

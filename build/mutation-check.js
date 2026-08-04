@@ -137,6 +137,9 @@ const MUTATIONS = [
   ['M35', 'Damage: the KO verdict reports a guaranteed 2HKO from the HIGH roll',
     'if(mn*2>=hp)return\'Guaranteed 2HKO\';', 'if(mx*2>=hp)return\'Guaranteed 2HKO\';',
     1, 'test-damage-formula.js'],
+  ['M36', 'Learnsets: a failed load is cached again, so Champions legality can never recover',
+    '      _champLSLoading=null;   // let the next call try again instead of replaying the failure',
+    '      /* cache the failure */', 1, 'test-champions-roster.js'],
 ];
 
 function runSuite(suite, srcPath) {

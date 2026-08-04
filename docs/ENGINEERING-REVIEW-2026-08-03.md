@@ -150,7 +150,7 @@ that is rate-limited and occasionally down — this is not a hypothetical.
   hasRetryButton: true }
 ```
 
-**Not fixed elsewhere.** 21 of 54 `fetch(` sites have no `try`/`catch` within ±12 lines. I fixed the
+**Not fixed elsewhere — and the figure below was wrong.** I reported that 21 of 54 `fetch(` sites had no `try`/`catch` within ±12 lines. That was a heuristic artefact: widening the window and counting `.catch()` chains gives **12** candidates, and checking each one's *enclosing function* leaves exactly **one** genuinely unguarded — `ensureChampLS()`, fixed in 5.19, where the real defect was not the missing message but that the FAILURE WAS CACHED and could never retry. A window measured in lines is not the same as a scope. I fixed the
 one I could demonstrate. The others are untested and unaudited — see section 6.
 
 ---
@@ -280,7 +280,7 @@ Answering the brief's four named patterns directly, measured today:
 | Tests that assert a count where they should assert a direction | **Yes, one left.** `test-champions-roster.js` still relies on `M-B size == M-A + additions`, which is relational; the external anchor added in 5.10 is a size comparison against a file generated *from* the app. It detects drift, not error, and the code says so. |
 | Constants typed rather than measured | **One.** The critical-hit multiplier, fixed in 5.10. I found no others; the stat and damage constants are now pinned by hand-computed tests. |
 
-**What I could not rule out:** the 21 unguarded `fetch` sites (E4), and any wrongness in
+**What I could not rule out:** any wrongness in
 `@smogon/calc` itself, which is 469 KB of unaudited third-party code producing the numbers most
 users see.
 
@@ -396,7 +396,7 @@ no behavioural coverage at all.
 
 **3. Tag releases.** `git tag` at publish time. There is no rollback story without it.
 
-**4. Audit the 21 unguarded `fetch` sites.** One of them was demonstrated to produce a permanent
+**4. ~~Audit the 21 unguarded `fetch` sites.~~ Done in 5.19, and the count was wrong: one, not 21.** One was demonstrated to produce a permanent
 fake spinner. The others are untested; I would expect at least a few to behave the same way.
 
 Do those four and I would sign this off without reservation. The engineering culture here is
@@ -417,7 +417,7 @@ above.
   its text content and a retry button existing, not by looking at it.
 - **`@smogon/calc` is unaudited.** 469 KB of third-party code producing the numbers most users see.
   I verified it loads and that the app prefers it; I did not verify a single number it returns.
-- **The 21 unguarded fetch sites.** I demonstrated one failure mode and fixed it. I did not
+- **~~The 21 unguarded fetch sites.~~ Corrected in 5.19 — the real number is one.** I demonstrated one failure mode and fixed it. I did not
   enumerate the rest.
 - **Six suites still have no committed proven-failing mutation** (E5). Four behaved correctly when
   I tested them by hand this session; that is weaker evidence than a committed mutation and is

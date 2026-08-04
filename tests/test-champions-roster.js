@@ -114,5 +114,29 @@ check(KNOWN_NON_FINAL.every(id => CHAMPIONS_IDS_MB.has(id)),
   'the three known non-final-stage entries are still in the roster', '');
 console.log('      note: run `node build/audit-champions-roster.js` to re-check evolution stages');
 
+/* --- the learnset loader must not cache its own failure ---------------------------------------
+   ensureChampLS() was the one genuinely unguarded fetch in the app, and the missing message was the
+   lesser half of the problem. `_champLSLoading` held the promise, so a rejected one was cached and
+   every later call replayed the same rejection: once champions-learnsets.json failed, Champions
+   move legality could never load again in that session, even if the network returned a second
+   later. A cache that remembers failures is worse than no cache.
+
+   Verified in a browser by failing the fetch, restoring it and calling again: before, it stayed
+   dead; now it recovers and loads all 496 moves. These assertions are structural because the
+   behaviour needs a network and a live page — what they pin is the mechanism that made recovery
+   impossible. */
+// NB: `src` in this file is the sliced registry region, not the whole document — reading the
+// loader out of it silently found nothing and every assertion below failed on an empty string.
+const whole = lines.join('\n');
+const loader = whole.slice(whole.indexOf('function ensureChampLS()'),
+                           whole.indexOf('function champRegKey()'));
+check(loader.length > 0, 'ensureChampLS is present', loader.length);
+check(/\.catch\(/.test(loader), 'the learnset fetch has a catch at all — it had none', loader.slice(0, 60));
+check(/_champLSLoading=null;/.test(loader),
+  'a failed load clears the cached promise, so the next call retries rather than replaying it');
+check(/return null;/.test(loader),
+  'it resolves to null rather than rejecting — every caller already tests for a falsy result');
+check(/console\.warn/.test(loader), 'and it says so once in the console rather than failing silently');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

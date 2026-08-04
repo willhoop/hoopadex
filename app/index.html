@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.18 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.19 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -5089,10 +5089,33 @@ function renderNatures(){
 let tmCriteria=[]; // [{name, pokemon:[ids], champ:[{species,num,sid,methods,legalIn}]}]
 // Champions learnsets generated from Pokemon Showdown's champions mod (authoritative for the ladder)
 let champLS=null,_champLSLoading=null;
+let _champLSWarned=false;
+/* This had no catch at all, and the interesting part is not the missing message - it is that the
+   FAILURE WAS CACHED. `_champLSLoading` held the rejected promise, and every later call returned
+   that same rejection, so once this file failed to load it could never succeed again in that
+   session even if the network came straight back. A cache that remembers failures is worse than no
+   cache at all.
+
+   It also no longer rejects. Every caller already wrapped it in an empty `try{...}catch(e){}`, so
+   rejecting achieved nothing except making an unhandled rejection possible; resolving to null puts
+   the decision where the consumers already look for it - they all test `if(!champLS)`. What a
+   reader loses is Champions move legality, which degrades to "no data" rather than to a wrong
+   answer, and that distinction is why this is a warning and not a banner. */
 function ensureChampLS(){
   if(champLS)return Promise.resolve(champLS);
   if(_champLSLoading)return _champLSLoading;
-  _champLSLoading=fetch('champions-learnsets.json').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(j=>{champLS=j;return j});
+  _champLSLoading=fetch('champions-learnsets.json')
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+    .then(j=>{champLS=j;return j})
+    .catch(e=>{
+      if(!_champLSWarned){
+        _champLSWarned=true;
+        console.warn('[HoopaDex] champions-learnsets.json failed to load - Champions move legality '
+          +'is unavailable until it succeeds. Reason:',e);
+      }
+      _champLSLoading=null;   // let the next call try again instead of replaying the failure
+      return null;
+    });
   return _champLSLoading;
 }
 function champRegKey(){return regByShort(championsReg).key}
