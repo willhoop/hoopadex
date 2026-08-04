@@ -12,6 +12,40 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.25] - 2026-08-03
+
+### Fixed
+- **The white squares around old sprites, measured properly this time.** Drawing each sprite to a
+  canvas and reading pixel 0,0 settles it: `generation-i` and `generation-ii` ship a fully OPAQUE
+  white background, and every set from `generation-iii` onward is already transparent. The white is
+  in the file, not the CSS - no ancestor of the sprite paints a background, which is why the blend
+  hack of 5.21 was attacking the wrong thing.
+
+  It cannot be removed in CSS on a dark theme, so it is made deliberate instead: Gen I and II
+  sprites get a rounded plate with a soft edge, reading as a framed sprite rather than a stray white
+  box. Scoped by `[src*="/generation-i/"]` so nothing later is touched.
+
+  They also render `pixelated` now. These are 40x40 images displayed at 96px and the browser was
+  smoothing them into mush; nearest-neighbour is what they were drawn for.
+
+- **Will's "hovering gives the white square" was the missing clue and it decoded to something else.**
+  Hover applies `transform`, a transform creates a stacking context, and a stacking context isolates
+  `mix-blend-mode` - so the hovered card was the only one NOT being blended, and was showing the
+  sprite's true appearance while its neighbours were silhouettes. The symptom pointed straight at
+  the cause of the 5.21 regression rather than at a hover bug.
+
+### Changed
+- **The stack-filters hint appears on every tab that has the search bar.** It was shown on the
+  Pokedex only, but the bar is shared by Pokedex, Moves, Abilities, Items and Locations, and Enter
+  stacks a filter from any of them. A feature that works everywhere and is advertised in one place
+  is a feature most people never find.
+- **Adding a filter from another tab now takes you to the Pokedex.** Filters resolve against the
+  dex, so stacking one from Moves used to succeed silently on a tab that cannot show the result -
+  chips appeared, the dex updated, and you were still looking at something else. Verified: the
+  filter is accepted from Moves and the view follows it.
+
+---
+
 ## [5.24] - 2026-08-03
 
 ### Fixed

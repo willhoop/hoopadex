@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.24 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.25 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -284,13 +284,27 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
    straight over the dex number. The number is the thing you scan a grid by, so it wins. */
 .card-id{position:absolute;top:8px;right:12px;font-size:11px;color:#6a6a7a;font-weight:700;font-family:'JetBrains Mono',monospace;z-index:2;pointer-events:none}
 .card-img{display:flex;justify-content:center;margin-bottom:8px}
-/* NOTE: mix-blend-mode:multiply was tried here in 5.21 to drop the white box around the Gen I-V
-   sprites and was REVERTED in 5.23. Multiply darkens: every pixel is min-ed against the backdrop,
-   so on this app's dark cards it did not remove the white, it turned every sprite into a barely
-   visible silhouette. Multiply keys out white only against a LIGHT backdrop, which is the opposite
-   of the theme it was applied to. Anyone reaching for a blend mode here should test it on the dark
-   theme first; the honest options are a light plate behind the sprite, or leaving it alone. */
+/* The white box around the old sprites is real and it is in the FILE, not the CSS. Measured by
+   drawing each sprite to a canvas and reading pixel 0,0:
+
+     generation-i/red-blue    OPAQUE 255,255,255      generation-iii/emerald   transparent
+     generation-i/yellow      OPAQUE 255,255,255      generation-iv/platinum   transparent
+     generation-ii/gold       OPAQUE 255,255,255      generation-v/black-white transparent
+     generation-ii/crystal    OPAQUE 255,255,255      generation-vi onward     transparent
+
+   So only Generations I and II ship an opaque white background - everything later is already
+   transparent, and this must not touch those. A blend mode was tried in 5.21 and reverted in 5.23:
+   multiply DARKENS, so against a dark card it produced silhouettes rather than removing anything.
+   It keys white out against a LIGHT backdrop, the opposite of this theme.
+
+   Since the white cannot be removed in CSS, it is made deliberate instead: a rounded plate with a
+   soft edge, so it reads as a framed sprite rather than a stray white square. `pixelated` is the
+   other half - these are 40x40 images displayed at 96px, and the browser was smoothing them into
+   mush; nearest-neighbour is what they were drawn for. */
 .card-img img{width:96px;height:96px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))}
+.card-img img[src*="/generation-i/"],.card-img img[src*="/generation-ii/"]{
+  border-radius:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.35);
+  image-rendering:pixelated;filter:none}
 
 .card-name{font-size:14px;font-weight:700;color:#e8e8f0;text-transform:capitalize;margin-bottom:6px;letter-spacing:0.5px;text-align:center}
 .card-types{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
@@ -1791,6 +1805,10 @@ async function addDexFilter(raw){
   if(dexFilters.some(f=>f.kind===c.kind&&f.name===c.name))return true;
   dexFilters.push(c);
   renderDexFilters();
+  /* Filters resolve against the Pokedex, so adding one from Moves or Items used to succeed
+     silently on a tab that cannot show the result - the chips appeared, the dex updated, and you
+     were still looking at something else. Go to where the answer is. */
+  if(currentTab!=='pokedex')switchTab('pokedex');
   c.ids=await resolveDexIds(c.kind,c.name);
   renderDexFilters();
   applyFilters();
@@ -1812,7 +1830,13 @@ async function demoDexSearch(){
 function renderDexFilters(){
   const wrap=document.getElementById('dex-filter-chips');
   const hint=document.getElementById('dex-search-hint');
-  if(hint)hint.style.display=(dexFilters.length||currentTab!=='pokedex')?'none':'';
+  /* The hint used to appear on the Pokedex only, but the search bar it describes is shared by five
+     tabs - Pokedex, Moves, Abilities, Items and Locations - and pressing Enter stacks a filter from
+     any of them. A feature that works everywhere and is advertised in one place is a feature most
+     people never find. Shown on every tab that has the bar, and hidden once you have filters,
+     because by then the chips are the better explanation. */
+  const SEARCH_TABS=['pokedex','tms','abilities','items','locations'];
+  if(hint)hint.style.display=(dexFilters.length||!SEARCH_TABS.includes(currentTab))?'none':'';
   if(!wrap)return;
   if(!dexFilters.length){wrap.innerHTML='';wrap.style.display='none';return}
   wrap.style.display='flex';
