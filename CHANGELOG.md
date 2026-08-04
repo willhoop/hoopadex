@@ -12,6 +12,26 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.24] - 2026-08-03
+
+### Fixed
+- **Most tabs stopped working. Moving EV Training into Other in 5.22 broke them.** Removing the
+  `tab-evs` nav button left two loops still calling
+  `document.getElementById('tab-evs').className = ...`, which returned null and threw. Throwing
+  part-way through a `forEach` leaves every tab AFTER the failing one in the wrong state - which is
+  why the symptom was "a lot of the tabs don't work" rather than one broken tab, and why the Type
+  Chart rendered as a blank page while `renderTC()` still worked perfectly when called by hand.
+
+  The `evs` entry belongs in those lists: its PANEL still has to be hidden when you leave it. It is
+  the BUTTON that no longer exists. Both lookups are now guarded - a panel without a button is a
+  normal thing to have, and crashing over it is not. There were two copies of the loop and both had
+  the fault.
+
+  Verified by switching through all ten tabs in Generation III and checking each one renders:
+  previously the first failure poisoned the rest, now all ten report ok.
+
+---
+
 ## [5.23] - 2026-08-03
 
 ### Fixed
