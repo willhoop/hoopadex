@@ -121,6 +121,12 @@ const MUTATIONS = [
     'if(false)return false;', 1, 'test-form-names.js'],
   ['M29', 'Forms: battle-only formes become selectable, so Ash-Greninja returns',
     'if(FORM_BATTLE_ONLY.has(flat))return false;', 'if(false)return false;', 1, 'test-form-names.js'],
+  ['M30', 'Typing list: formes are dropped at the source again, so Fire/Dragon answers nothing',
+    'const set=new Set(list.filter(n=>n>0));', 'const set=new Set(list.filter(n=>n>0&&n<=10000));',
+    1, 'test-dual-typing.js'],
+  ['M31', 'Typing list: genMax is re-applied to the forme id, which rejects every forme',
+    '      return _tcRoster.has(id);', '      return id<=genMax&&_tcRoster.has(id);',
+    1, 'test-dual-typing.js'],
 ];
 
 function runSuite(suite, srcPath) {

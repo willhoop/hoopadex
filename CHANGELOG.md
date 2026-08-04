@@ -12,6 +12,43 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.16] — 2026-08-03
+
+### Fixed
+- **"Pokémon with this typing" excluded every Mega.** Asking the Type Chart for **Fire/Dragon** in
+  Regulation M-B returned **nothing at all**, when the answer is **Mega Charizard X** — a typing no
+  base-form Charizard has. Steel/Fairy returned Mawile, Klefki and Tinkaton but not Mega Mawile.
+  This is the third instance of the same shape as the Speed Tiers and Bulk rosters, and it now uses
+  the same shared `calcRoster()`.
+
+  **Two separate places were discarding formes, and fixing only one still returned an empty list:**
+
+  1. `resolveDexIds()` dropped every id above 10000 *at the source*, with a comment explaining that
+     formes "are not rows in this list". That was true when its only caller was the Pokédex grid,
+     which lists species — but it meant the typing question could never be answered correctly no
+     matter what the caller did. Dropping is now the caller's decision. The other caller feeds
+     `applyFilters()`, which intersects against `master`, so a forme id it does not want is simply
+     never matched.
+  2. `renderDualMons()` then re-filtered with `id<=genMax`. `genMax` is the highest **base** dex
+     number for the generation — 1025 for Gen IX — so that comparison rejects every forme on its
+     own. It was also redundant: `calcRoster()` has already run `formAllowed()`, which applies
+     `genMax` to the forme's *base species*, which is the question that was meant.
+
+  I fixed (2) first, re-tested, and still got an empty list — the ids had already been thrown away
+  by (1). Both are pinned by mutations **M30** and **M31**, because either one alone silently
+  empties the list again.
+
+- Formes in that list are labelled with `formDisplayName()` and sort with their base species, so
+  Mega Mawile appears directly under Mawile rather than in a clump of unrelated Megas at the end.
+
+### Added
+- `tests/test-dual-typing.js` now covers the list it is named after. The engineering review found
+  that suite tested dual-type *filtering of the dex* and never touched the typing list on the Type
+  Chart tab — which is what most people mean by dual typing, and is exactly why a broken typing
+  list survived a suite with that name.
+
+---
+
 ## [5.15] — 2026-08-03
 
 ### Fixed

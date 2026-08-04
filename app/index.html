@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.15 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.16 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1715,8 +1715,16 @@ async function resolveDexIds(kind,name){
     const list=kind==='type'?(d.pokemon||[]).map(x=>idFromUrl(x.pokemon.url))
               :kind==='ability'?(d.pokemon||[]).map(x=>idFromUrl(x.pokemon.url))
               :(d.learned_by_pokemon||[]).map(x=>idFromUrl(x.url));
-    // Forme entries live above 10000 and are not rows in this list, so drop them.
-    const set=new Set(list.filter(n=>n>0&&n<=10000));
+    /* Formes (ids above 10000) are KEPT. They used to be dropped here, which was right when the
+       only caller was the Pokedex grid - that grid lists species. But renderDualMons() answers
+       "which Pokemon have this typing", and Mega Charizard X is Fire/Dragon, a typing no base-form
+       Charizard has. Discarding formes at the source meant that question could never be answered
+       correctly no matter what the caller did, and the first attempt to fix it downstream still
+       returned an empty list because the ids had already been thrown away here.
+
+       Dropping is now the caller's decision. The other caller feeds applyFilters(), which
+       intersects against master, so a forme id it does not want is simply never matched. */
+    const set=new Set(list.filter(n=>n>0));
     dexIdSetCache[key]=set;
     return set;
   }catch{ dexIdSetCache[key]=null; return null; }
@@ -4420,17 +4428,36 @@ async function renderDualMons(t1,t2,token){
     if(!hasPastTypeOverride(id,genNum))return;
     if(dualTypeMatchesGen(id,genNum,t1,t2,[]))hits.push(id);
   });
+  /* `master.some(...)` used to end this filter, and master holds base species only - so every
+     alternate forme PokeAPI returned for these two types was discarded. Mega Charizard X is
+     Fire/Dragon, a typing no base-form Charizard has, so asking "what is Fire/Dragon in this
+     format" returned a list it was missing from. Third instance of the same shape as the Speed
+     Tiers and Bulk rosters, and it uses the same shared roster: calcRoster() is base species plus
+     every forme formAllowed() permits, which also applies the Mega Stone and battle-only gating. */
+  const _tcRoster=new Map(calcRoster().map(function(p){return [p.id,p.name]}));
+  /* No `id<=genMax` here. genMax is the highest BASE dex number for the selected generation - 1025
+     for Gen IX - and every alternate forme has an id above 10000, so that comparison rejected all
+     of them on its own. It is also redundant: calcRoster() has already run formAllowed(), which
+     applies genMax to the forme's BASE species, which is the question that was meant. Leaving it in
+     is how the first attempt at this fix still returned an empty list. */
   const rows=hits.filter(function(id){
-      return id<=genMax&&(!isChampionsMode||CHAMPIONS_IDS.has(id))&&master.some(function(p){return p.id===id});
-    }).sort(function(a,b){return a-b});
+      return _tcRoster.has(id);
+    }).sort(function(a,b){
+      // A forme sorts with its base species rather than out beyond 10000, so Mega Charizard X sits
+      // next to Charizard instead of in a clump of unrelated Megas at the end of the list.
+      const ab=a>10000?baseSpeciesId(_tcRoster.get(a)):a, bb=b>10000?baseSpeciesId(_tcRoster.get(b)):b;
+      return (ab-bb)||(a-b);
+    });
   const head='<div class="dl-mons-head">Pokémon with this typing <span style="opacity:.7">('+rows.length+')</span></div>';
   if(!s1||!s2){box.innerHTML=head+'<div class="dl-mon-note">Could not reach PokéAPI, so the species list is unavailable. The matchups above are computed locally and are unaffected.</div>';return}
   if(!rows.length){box.innerHTML=head+'<div class="dl-mon-note">No Pokémon has this typing'+(isChampionsMode?' in this Champions regulation.':' in this generation.')+'</div>';return}
   box.innerHTML=head+'<div class="dl-mon-grid">'+rows.map(function(id){
-    const p=master.find(function(x){return x.id===id});
+    // Name from the roster map, not from master: a forme is not in master at all, and looking it
+    // up there returned undefined and threw before the filter above was fixed.
+    const nm=_tcRoster.get(id);
     return '<div class="dl-mon" onclick="switchTab(\'pokedex\');showDetail('+id+')">'
       +'<img src="'+spriteFor(id)+'" loading="lazy" alt="">'
-      +capName(p.name)+'</div>';
+      +(id>10000?formDisplayName(nm):capName(nm))+'</div>';
   }).join('')+'</div>';
 }
 

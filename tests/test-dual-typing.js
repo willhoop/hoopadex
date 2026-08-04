@@ -90,5 +90,36 @@ check(match(6, 3, 'fire', 'dragon', ['fire', 'flying']) === false,
 check(match(700, 5, 'fairy', 'normal', ['fairy']) === false,
   'Gen 5 cannot return a Fairy typing for a species with no table entry');
 
+/* --- the list this suite is named after ------------------------------------------------------
+   An engineering review pointed out that this suite tests dual-type FILTERING of the dex and never
+   touched the "Pokémon with this typing" list on the Type Chart tab, which is what most people mean
+   by dual typing. That list was built from `master`, which holds base species only, so every Mega
+   was discarded: asking for Fire/Dragon in Regulation M-B returned NOTHING, when the answer is Mega
+   Charizard X — a typing no base-form Charizard has.
+
+   Two separate places had to change, and fixing only the second still returned an empty list:
+     1. resolveDexIds() dropped every id above 10000 at the source, so the formes never arrived.
+     2. renderDualMons() then re-filtered with `id<=genMax`, which rejects all forme ids anyway
+        because genMax is a BASE dex ceiling (1025) — and is redundant, since calcRoster() already
+        applies genMax to the forme's base species.
+   Both are pinned, because either one alone silently empties the list. */
+const resolve = slice('async function resolveDexIds(', 'async function addDexFilter(');
+check(/list\.filter\(n=>n>0\)/.test(resolve),
+  'resolveDexIds keeps forme ids — dropping them at the source makes the typing list unanswerable');
+check(!/n<=10000/.test(resolve), 'and no longer filters out ids above 10000');
+
+const dualMons = slice('async function renderDualMons(', 'function tcCross(');
+check(/_tcRoster\.has\(id\)/.test(dualMons),
+  'the typing list draws membership from calcRoster(), so formes are included and gated');
+// The full old expression, not just "master.some(" — the comment above the fix quotes that phrase
+// while explaining why it was wrong, and matching prose instead of code is its own kind of bug.
+check(!/master\.some\(function\(p\)\{return p\.id===id\}\)/.test(dualMons),
+  'and not from master, which is base species only');
+check(!/id<=genMax&&_tcRoster/.test(dualMons),
+  'genMax is not re-applied to the forme id — that rejects every forme and is already handled');
+check(/id>10000\?formDisplayName/.test(dualMons), 'a forme in the list is labelled with formDisplayName');
+check(/baseSpeciesId\(_tcRoster\.get\(a\)\)/.test(dualMons),
+  'and sorts with its base species rather than in a clump beyond 10000');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
