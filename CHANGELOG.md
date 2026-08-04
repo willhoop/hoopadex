@@ -12,6 +12,45 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.22] - 2026-08-03
+
+### Added
+- **Pin Pokemon to a comparison table at the top of Speed Tiers.** A 327-row list answers "what is
+  fast" but not "does my Whimsicott outrun their Swampert", which is the question people actually
+  bring to a speed sheet - and searching shows one at a time while sorting scatters them. Click the
+  star on any row and it joins a pinned table above the main one, using the same columns so the
+  numbers line up. Pinned rows are drawn from the whole roster rather than the filtered view, so a
+  pin does not vanish when you type a search term; verified by searching "dragapult" with three
+  pins held and getting both. Pins are scoped per generation, like teams.
+
+### Changed
+- **EV Training moved from the top-level nav into Other.** It is a build-planning tool like Speed
+  Tiers and Bulk rather than a way of browsing the dex, and the top row had reached eleven tabs.
+  Now ten, with EV Training as the sixth tool under Other.
+- **The Bulk tab states the rule the way people use it.** One HP point is worth `Def + SpD`; one
+  defence point is worth `HP`; so HP keeps winning until `HP is about Def + SpD` - roughly double
+  each defence when the two are close, which is the rule VGC players quote. Both forms are given
+  because they only part company on lopsided defenders, which is exactly where the folk version
+  misleads.
+
+  It also names what it does NOT do. It assumes an opponent that is either fully physical or fully
+  special; against one that mixes both in a single battle, shore up the weaker defence further. And
+  it optimises general bulk - if you are building to survive one particular attack, that is a
+  damage-calculator question, and the paragraph now links there rather than quietly answering a
+  different question.
+
+  This closes finding F4 of the architecture review, which flagged the objective as possibly wrong.
+  It is not: two independent published sources use the same marginal-gain framing, and the worked
+  example in one of them (180 HP with 100/100 defences, invest to 200) reproduces exactly against
+  the shipped model.
+
+### Fixed
+- **Mutation M24 was re-anchored.** Relabelling the speed columns in 5.20 left its anchor matching
+  nothing, and `mutation-check` reported SKIP and failed the run rather than counting it as a pass
+  - the second time that guard has caught a stale anchor today, working exactly as designed.
+
+---
+
 ## [5.21] - 2026-08-03
 
 ### Fixed

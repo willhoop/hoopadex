@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.21 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.22 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -641,6 +641,13 @@ body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
    of one bracket directly under move three of the next, which is the whole reason to lay them out
    in rows. auto-fill with a minimum keeps it responsive instead of pinning a column count that
    breaks on a narrow window. */
+.sp-pin{background:none;border:none;cursor:pointer;color:var(--text4);font-size:13px;padding:0 6px 0 0;line-height:1}
+.sp-pin:hover{color:var(--text2)}
+.sp-pin.on{color:#F8D030}
+.sp-pinned-head{display:flex;align-items:center;gap:12px;margin:14px 0 4px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text4)}
+/* The pinned table is the same table, marked out rather than restyled - a second visual language
+   for the same numbers would make them harder to compare, which is the whole purpose. */
+.speed-table.sp-pinned{border-left:2px solid #F8D030;padding-left:8px;margin-bottom:6px}
 .pri-moves{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));align-items:baseline;gap:3px 10px}
 .pri-move{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);text-transform:capitalize}
 .pri-move i{width:6px;height:6px;border-radius:2px;flex-shrink:0}
@@ -932,7 +939,6 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn" onclick="switchTab('natures')" id="tab-natures">Natures</button>
 <button class="tab-btn" onclick="switchTab('team')" id="tab-team">Team Builder</button>
 <button class="tab-btn" onclick="switchTab('calc')" id="tab-calc">Dmg Calc</button>
-<button class="tab-btn" onclick="switchTab('evs')" id="tab-evs">EV Training</button>
 <button class="tab-btn" onclick="switchTab('other')" id="tab-other">Other</button>
 <button class="tab-btn" onclick="openUSearch()" id="tab-search" title="Search" style="padding:8px 14px;line-height:1;display:flex;align-items:center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
 </div></div></div>
@@ -1007,6 +1013,7 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn" id="other-sub-regs" onclick="switchOtherSub('regs')">Regulation Changes</button>
 <button class="tab-btn" id="other-sub-speed" onclick="switchOtherSub('speed')">Speed Tiers</button>
 <button class="tab-btn" id="other-sub-bulk" onclick="switchOtherSub('bulk')">Bulk</button>
+<button class="tab-btn" id="other-sub-evs" onclick="switchOtherSub('evs')">EV Training</button>
 </div>
 <div id="other-priority-sub">
 <p style="font-size:12px;color:var(--text4);margin-bottom:8px">Higher priority acts first regardless of Speed.</p>
@@ -3870,10 +3877,14 @@ function switchTab(tab){
 let currentOtherSub='priority';
 function switchOtherSub(sub){
   currentOtherSub=sub;
-  ['priority','split','regs','speed','bulk'].forEach(function(k){
-    const panel=document.getElementById('other-'+k+'-sub');
+  /* EV Training moved in here from the top-level nav. It is a build-planning tool like Speed Tiers
+     and Bulk, not a way of browsing the dex, and the top row had grown to eleven tabs. */
+  ['priority','split','regs','speed','bulk','evs'].forEach(function(k){
+    // EV Training kept its original panel id when it moved in from the top-level nav; renaming
+    // the element would have touched the tab-visibility arrays in three other places.
+    const panel=document.getElementById(k==='evs'?'evs-tab':'other-'+k+'-sub');
     if(panel)panel.style.display=sub===k?'':'none';
-    const btn=document.getElementById('other-sub-'+(k==='regs'?'regs':k));
+    const btn=document.getElementById('other-sub-'+k);
     if(btn)btn.className='tab-btn'+(sub===k?' active':'');
   });
   if(sub==='priority')renderPriorityTab();
@@ -3881,6 +3892,7 @@ function switchOtherSub(sub){
   if(sub==='regs')renderRegulationChanges();
   if(sub==='speed')renderSpeedTiers();
   if(sub==='bulk')renderBulk();
+  if(sub==='evs')renderEVTable();
 }
 
 /* ── Regulation changes ─────────────────────────────────────────────────────────────────
@@ -3967,6 +3979,31 @@ function onSpeedSearch(){
   if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}
 }
 function toggleSpeedTeamOnly(){ speedTeamOnly=!speedTeamOnly; renderSpeedTiers(); }
+/* Pinned Pokemon: a comparison table of whatever you care about, held at the top.
+   A 327-row speed list answers "what is fast" but not "does my Whimsicott outrun their Swampert",
+   which is the question people actually bring to a speed sheet. Searching shows one at a time and
+   sorting scatters them; pinning keeps a chosen few side by side while the rest stays searchable
+   underneath.
+
+   Scoped per generation, for the same reason teams are: a Champions pin list means nothing in
+   Gen I, and the premise of this app is that a generation shows only what is true of it. */
+const SPEED_PIN_KEY='hoopadex-speed-pins';
+function loadSpeedPins(){
+  try{const d=JSON.parse(localStorage.getItem(SPEED_PIN_KEY)||'{}');
+      const v=d[teamScope()];return Array.isArray(v)?v:[]}catch{return[]}
+}
+function saveSpeedPins(ids){
+  try{const d=JSON.parse(localStorage.getItem(SPEED_PIN_KEY)||'{}');
+      d[teamScope()]=ids;localStorage.setItem(SPEED_PIN_KEY,JSON.stringify(d))}catch{/* private mode */}
+}
+function toggleSpeedPin(id){
+  const pins=loadSpeedPins();
+  const i=pins.indexOf(id);
+  if(i<0)pins.push(id); else pins.splice(i,1);
+  saveSpeedPins(pins);
+  renderSpeedTiers();
+}
+function clearSpeedPins(){saveSpeedPins([]);renderSpeedTiers()}
 function renderSpeedTiers(){
   const el=document.getElementById('speed-container');
   if(!el)return;
@@ -3985,19 +4022,26 @@ function renderSpeedTiers(){
   // Prep for a specific game: narrow to your team, or to whatever you type.
   const q=(speedQuery||'').toLowerCase().trim();
   const teamIds=new Set(teamSlots.filter(Boolean).map(function(t){return t.id}));
-  const rows=roster.map(function(p){
+  /* Built in two passes. allRows is every loaded Pokemon with no search or team filter applied,
+     because the pinned table has to be able to find a Pokemon you have since filtered away - a pin
+     that vanishes when you type is not a pin. `rows` is then the filtered view for the main table. */
+  const allRows=roster.map(function(p){
     const d=dc[p.id];
     if(!d)return null;
-    if(speedTeamOnly&&!teamIds.has(p.id))return null;
-    if(q&&p.name.indexOf(q)<0)return null;
     const b=(getStatsForGen(d).find(function(x){return x.stat.name==='speed'})||{}).base_stat;
     if(b===undefined)return null;
     // formDisplayName is the one place that knows a form's on-screen name, so a Mega reads
     // "Alakazam (Mega)" here exactly as it does on the ability page and in the calculator.
     const r={id:p.id,name:p.id>10000?formDisplayName(p.name):pokeName(p.name),base:b};
     SPEED_COLS.forEach(function(c){r[c.key]=c.f(b)});
+    r._n=p.name;                       // raw slug, for the search filter below
     return r;
   }).filter(Boolean).sort(function(x,y){return y[speedSortCol]-x[speedSortCol]||x.name.localeCompare(y.name)});
+  const rows=allRows.filter(function(r){
+    if(speedTeamOnly&&!teamIds.has(r.id))return false;
+    if(q&&r._n.indexOf(q)<0)return false;
+    return true;
+  });
 
   const loaded=roster.filter(function(p){return dc[p.id]}).length;
   let h='<p class="regs-intro">Every column uses the same model as the damage calculator: at level 50 with fixed 31 IVs a stat is base+20, then +1 per Stat Point, then the nature multiplier. '
@@ -4011,17 +4055,40 @@ function renderSpeedTiers(){
       +(speedTeamOnly?'\u2713 My team only':'My team only')+'</button>'
     +(teamIds.size?'':'<span class="speed-hint">Add Pok\u00e9mon to your team to use that filter.</span>')
     +'</div>';
-  h+='<table class="speed-table"><thead><tr><th class="sp-mon">Pok\u00e9mon</th>';
-  SPEED_COLS.forEach(function(c){
-    h+='<th class="sp-col'+(c.key===speedSortCol?' sp-active':'')+'" title="'+c.hint+'" onclick="setSpeedSort(\''+c.key+'\')">'+c.label+'</th>';
-  });
-  h+='</tr></thead><tbody>';
-  rows.forEach(function(r){
-    h+='<tr><td class="sp-mon"><a href="#" onclick="event.preventDefault();switchTab(\'pokedex\');showDetail('+r.id+')">'+r.name+'</a></td>';
-    SPEED_COLS.forEach(function(c){h+='<td class="sp-val'+(c.key===speedSortCol?' sp-active':'')+'">'+r[c.key]+'</td>'});
-    h+='</tr>';
-  });
-  h+='</tbody></table>';
+  /* Pinned rows are drawn from the WHOLE roster, not the filtered view: a pin that disappears
+     because you typed a search term is the opposite of what pinning is for. */
+  const pinned=loadSpeedPins();
+  const byId={}; allRows.forEach(function(r){byId[r.id]=r});
+  const pinRows=pinned.map(function(id){return byId[id]}).filter(Boolean)
+    .sort(function(x,y){return y[speedSortCol]-x[speedSortCol]||x.name.localeCompare(y.name)});
+
+  function spHead(){
+    let t='<thead><tr><th class="sp-mon">Pok\u00e9mon</th>';
+    SPEED_COLS.forEach(function(c){
+      t+='<th class="sp-col'+(c.key===speedSortCol?' sp-active':'')+'" title="'+c.hint+'" onclick="setSpeedSort(\''+c.key+'\')">'+c.label+'</th>';
+    });
+    return t+'</tr></thead>';
+  }
+  function spBody(list){
+    let t='<tbody>';
+    list.forEach(function(r){
+      const on=pinned.indexOf(r.id)>=0;
+      t+='<tr><td class="sp-mon">'
+        +'<button class="sp-pin'+(on?' on':'')+'" title="'+(on?'Unpin':'Pin to the comparison table')
+        +'" onclick="event.stopPropagation();toggleSpeedPin('+r.id+')">'+(on?'\u2605':'\u2606')+'</button>'
+        +'<a href="#" onclick="event.preventDefault();switchTab(\'pokedex\');showDetail('+r.id+')">'+r.name+'</a></td>';
+      SPEED_COLS.forEach(function(c){t+='<td class="sp-val'+(c.key===speedSortCol?' sp-active':'')+'">'+r[c.key]+'</td>'});
+      t+='</tr>';
+    });
+    return t+'</tbody>';
+  }
+
+  if(pinRows.length){
+    h+='<div class="sp-pinned-head"><span>Pinned \u2014 '+pinRows.length+'</span>'
+      +'<button class="speed-team-btn" onclick="clearSpeedPins()">Clear</button></div>';
+    h+='<table class="speed-table sp-pinned">'+spHead()+spBody(pinRows)+'</table>';
+  }
+  h+='<table class="speed-table">'+spHead()+spBody(rows)+'</table>';
   el.innerHTML=h;
 }
 function setSpeedSort(k){speedSortCol=k;renderSpeedTiers()}
@@ -4703,10 +4770,24 @@ function renderBulk(){
      different spread for 135 of the 208 Pokemon in Regulation M-B. See docs/BACKLOG.md. Until
      v5.9 this paragraph asserted that a point of HP "is worth about twice what a single defence
      point is", which is the folk rule the tool exists to replace. */
-  let h='<p class="bulk-intro">Damage taken scales with HP &times; defence, and a point of HP multiplies <i>both</i> defences. '
-    +'Every spread below is the exact optimum, searched rather than guessed, for the case where an opponent is '
-    +'either fully physical or fully special &mdash; an even chance of each. Against an attacker that mixes both in one '
-    +'battle, shore up the <i>weaker</i> defence more than these rows suggest.</p>';
+  /* State the rule in the form people actually use it, then the exact form, then the exception.
+     The marginal argument: one HP point is worth (Def + SpD), one defence point is worth HP. So
+     HP keeps winning while HP < Def + SpD - which is "about double each defence" when the two are
+     close, the rule VGC players quote. The two only part company on lopsided defenders, which is
+     precisely where the folk version misleads, so both are stated rather than one.
+
+     The exception matters as much as the rule. Almost nobody optimises general bulk in practice;
+     they invest to survive one specific attack, and that is a damage-calculator question, not this
+     one. Saying so is the difference between a tool that knows its scope and one that quietly
+     answers the wrong question. */
+  let h='<p class="bulk-intro">One HP point is worth <b>Def&nbsp;+&nbsp;SpD</b>; one defence point is worth <b>HP</b>. '
+    +'So HP keeps winning until <b>HP &asymp; Def&nbsp;+&nbsp;SpD</b> &mdash; roughly <b>double each defence</b> when the two are close. '
+    +'Past that, put the points in a defence. Every spread below is the exact optimum, searched rather than guessed.</p>'
+    +'<p class="bulk-intro" style="margin-top:-6px">Two things this does not do. It assumes an opponent that is '
+    +'<i>either</i> fully physical <i>or</i> fully special, an even chance of each; against one that mixes both in a single '
+    +'battle, shore up the <i>weaker</i> defence further than these rows suggest. And it optimises general bulk &mdash; '
+    +'if you are building to survive one particular attack, that is a question for the '
+    +'<a href="#" onclick="event.preventDefault();switchTab(\'calc\')" style="color:var(--accent)">damage calculator</a>, not this table.</p>';
   h+='<div class="bulk-controls">'
     +'<input id="bulk-search" class="filter-input" placeholder="Find a Pokémon…" value="'+(window._bulkQuery||'')+'" oninput="onBulkSearch()" autocomplete="off">'
     +'<select id="bulk-nature" class="filter-select" onchange="renderBulk()">'
