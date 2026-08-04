@@ -12,6 +12,28 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.23] - 2026-08-03
+
+### Fixed
+- **Reverted the sprite blend from 5.21, which broke every sprite in the app.** I used
+  `mix-blend-mode:multiply` to drop the white box around the Gen I-V sprites. Multiply DARKENS -
+  each pixel is combined against the backdrop and the result can only get darker - so against this
+  app's dark cards it did not remove the white, it turned every sprite into a barely visible
+  silhouette, in every generation. Multiply keys white out against a LIGHT backdrop, which is the
+  opposite of the theme it was applied to.
+
+  This was shipped and live, and it was the one change of the batch I had flagged as unverifiable:
+  I said at the time that it "can dull the sprite" and that I could not see the result to judge it.
+  It should not have gone out on that basis. The lesson is not about blend modes - it is that a
+  change whose only failure mode is visual has no business shipping from someone who cannot see it.
+  The comment left in the CSS says as much, so the next person reaching for a blend mode here tests
+  it on the dark theme first.
+
+  The white boxes are back, unfixed. Honest options if it is worth another attempt: a light plate
+  behind the sprite, or leaving it alone.
+
+---
+
 ## [5.22] - 2026-08-03
 
 ### Added

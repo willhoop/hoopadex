@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.22 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.23 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -284,19 +284,14 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
    straight over the dex number. The number is the thing you scan a grid by, so it wins. */
 .card-id{position:absolute;top:8px;right:12px;font-size:11px;color:#6a6a7a;font-weight:700;font-family:'JetBrains Mono',monospace;z-index:2;pointer-events:none}
 .card-img{display:flex;justify-content:center;margin-bottom:8px}
-/* mix-blend-mode:multiply drops the white box PokeAPI ships around the Gen I-V sprites. Those
-   files have an opaque white background rather than transparency, so on a dark card each one sat
-   in a bright square. Multiply keeps every pixel darker than the backdrop and lets pure white
-   fall through to it, which is exactly the shape of the problem.
-
-   Two consequences worth knowing rather than discovering: on the LIGHT theme multiply against a
-   near-white page is close to a no-op, which is fine because the white box is invisible there
-   anyway; and the drop-shadow has to go, because a filter creates a new compositing context and
-   the blend would apply to the shadow instead of the page. Scoped to the period sprites via
-   [src*="/versions/"] so modern artwork - which is genuinely transparent - is untouched. */
+/* NOTE: mix-blend-mode:multiply was tried here in 5.21 to drop the white box around the Gen I-V
+   sprites and was REVERTED in 5.23. Multiply darkens: every pixel is min-ed against the backdrop,
+   so on this app's dark cards it did not remove the white, it turned every sprite into a barely
+   visible silhouette. Multiply keys out white only against a LIGHT backdrop, which is the opposite
+   of the theme it was applied to. Anyone reaching for a blend mode here should test it on the dark
+   theme first; the honest options are a light plate behind the sprite, or leaving it alone. */
 .card-img img{width:96px;height:96px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))}
-.card-img img[src*="/versions/"]{mix-blend-mode:multiply;filter:none}
-body.light .card-img img[src*="/versions/"]{mix-blend-mode:normal}
+
 .card-name{font-size:14px;font-weight:700;color:#e8e8f0;text-transform:capitalize;margin-bottom:6px;letter-spacing:0.5px;text-align:center}
 .card-types{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
 .card-placeholder{border-radius:16px;padding:20px 16px;cursor:pointer;transition:all 0.25s ease;position:relative;overflow:hidden;text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
