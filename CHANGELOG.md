@@ -12,6 +12,35 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.28] - 2026-08-03
+
+### Fixed
+- **Sneasler was drawn as evolving from ordinary Sneasel. It evolves from the HISUIAN one.** The
+  chart forked a single Dark/Ice Sneasel to both Weavile and Sneasler, which states something false
+  about both branches: Sneasler comes from Hisuian Sneasel (Fighting/Poison) and nothing else.
+
+  PokeAPI carries this and the app was not reading it. The Sneasler branch has
+  `base_form: {name: "sneasel-hisui"}` in its `evolution_details`, right beside the Razor Claw and
+  time-of-day conditions the app was already using. So it is derived, not hardcoded: any branch that
+  names a `base_form` now renders that form as its parent. The row reads
+  **Sneasel (Hisuian) → Sneasler**, matching the published dex.
+
+- **A Showdown paste containing Basculegion imported as "skipped: Basculegion (not found)".** There
+  is no plain `basculegion` to find: PokeAPI files #902 as `basculegion-male` and carries
+  `basculegion-female` as a separate forme, so the bare name 404s and the lookup gave up.
+
+  The `(M)` / `(F)` marker on the paste's first line was already being parsed and then ignored. For
+  most species it is cosmetic, but for this one it is not: male Basculegion is the physical attacker
+  and female is the special one, with different stats. Reading it is more correct than dropping it.
+  Verified: a paste with `Basculegion (M)`, `Basculegion (F)` and Empoleon now imports all three, to
+  `basculegion-male` (#902) and `basculegion-female` (#10248) respectively.
+
+  Only the gendered suffixes are tried as a fallback, never a general prefix match - "Sneasel"
+  prefix-matches "sneasel-hisui", and quietly resolving a plain Sneasel to the Hisuian forme would
+  be a worse bug than the one being fixed.
+
+---
+
 ## [5.27] - 2026-08-03
 
 ### Fixed

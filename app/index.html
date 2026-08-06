@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.27 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.28 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -2572,7 +2572,19 @@ function parseChain(node,viewerId=0){
       else method=arr[0]||EVO_OVERRIDES[name]||'Evolve';
     }
     if(!method)method=EVO_OVERRIDES[name]||'Evolve';
-    const children=(n.evolves_to||[]).map(e=>buildNode(e));
+    /* Some branches evolve from a FORM of the parent, not the parent itself. Sneasler comes from
+       Hisuian Sneasel (Fighting/Poison), never from ordinary Sneasel (Dark/Ice) - so drawing one
+       Sneasel node forking to Weavile and Sneasler states something false about both.
+
+       PokeAPI says so and the app was not reading it. The Sneasler branch carries
+       `base_form: {name: "sneasel-hisui"}` in its evolution_details, alongside the Razor Claw and
+       time-of-day conditions. Derived, not hardcoded: `fromForm` is whatever the API names. */
+    const children=(n.evolves_to||[]).map(e=>{
+      const child=buildNode(e);
+      const bf=(e.evolution_details||[]).map(d=>d.base_form).filter(Boolean)[0];
+      if(bf)child.fromForm={name:bf.name,id:parseInt(String(bf.url).split('/').filter(Boolean).pop())};
+      return child;
+    });
     return{name,id,method,children};
   }
   return buildNode(node);
@@ -2682,6 +2694,13 @@ function renderEvoChain(tree,currentId){
       html+='<div class="evo-branch">';
       base.children.forEach(child=>{
         html+='<div class="evo-branch-row">';
+        /* A branch that evolves from a FORM of the base shows that form first. Sneasel forks to
+           Weavile and Sneasler, but only the Hisuian Sneasel reaches Sneasler - drawing both off
+           the same Dark/Ice node says something false about both branches. The form node is
+           inserted ahead of the arrow so the row reads "Sneasel (Hisuian) -> Sneasler". */
+        if(child.fromForm&&child.fromForm.id!==base.id){
+          html+=renderEvoStage({name:child.fromForm.name,id:child.fromForm.id,children:[]},currentId);
+        }
         html+=renderArrow(child.method||'');
         // If this child also has branches, recurse
         if(child.children&&child.children.length>0){
@@ -8027,21 +8046,41 @@ function parseShowdownPaste(text){
 // different typing. Returning null so the member is reported as skipped is far better than
 // importing something the paste did not say.
 const pasteSpeciesCache={};
-async function pasteResolveSpecies(name){
+/* gender is the "(M)" / "(F)" marker from the paste's first line. For most species it is cosmetic,
+   but a few have no genderless entry at all: PokeAPI names #902 `basculegion-male` and carries
+   `basculegion-female` as a separate forme, and there is no plain `basculegion` to find. So a
+   perfectly ordinary Showdown line - "Basculegion (M) @ Life Orb" - resolved to nothing and the
+   import reported "skipped: Basculegion (not found)".
+
+   For those species the marker is not cosmetic at all: male Basculegion is the physical attacker
+   and female is the special one, with different stats. Reading it is more correct than ignoring it.
+
+   Only the gendered suffixes are tried, never a general prefix match: "Sneasel" prefix-matches
+   "sneasel-hisui", and quietly resolving a plain Sneasel to the Hisuian forme would be a worse bug
+   than the one being fixed. */
+async function pasteResolveSpecies(name,gender){
   const slug=String(name).toLowerCase().trim().replace(/[’']/g,'').replace(/\.\s*/g,'-').replace(/\s+/g,'-');
   if(!slug)return null;
-  if(pasteSpeciesCache[slug]!==undefined)return pasteSpeciesCache[slug];
+  const key=slug+'|'+(gender||'');
+  if(pasteSpeciesCache[key]!==undefined)return pasteSpeciesCache[key];
+  /* Gendered forms first, so "Basculegion (F)" is not answered with the male entry. Ordered by the
+     stated gender, then male, which is the one PokeAPI files under the base dex number. */
+  const gendered=gender==='F'?[slug+'-female',slug+'-male']:[slug+'-male',slug+'-female'];
+  for(const g of gendered){
+    const hit=master.find(p=>p.name===g)||(typeof formsIndex!=='undefined'?formsIndex.find(p=>p.name===g):null);
+    if(hit){pasteSpeciesCache[key]=hit;return hit}
+  }
   const parts=slug.split('-');
   for(let n=parts.length;n>0;n--){
     const t=parts.slice(0,n).join('-');
     const hit=master.find(p=>p.name===t);
-    if(hit){pasteSpeciesCache[slug]=hit;return hit}
+    if(hit){pasteSpeciesCache[key]=hit;return hit}
     try{
       const r=await fetch('https://pokeapi.co/api/v2/pokemon/'+t);
-      if(r.ok){const d=await r.json();dc[d.id]=d;const e={id:d.id,name:d.name};pasteSpeciesCache[slug]=e;return e}
+      if(r.ok){const d=await r.json();dc[d.id]=d;const e={id:d.id,name:d.name};pasteSpeciesCache[key]=e;return e}
     }catch{}
   }
-  pasteSpeciesCache[slug]=null;
+  pasteSpeciesCache[key]=null;
   return null;
 }
 // Champions replaces EVs with Stat Points: 0-32 per stat, 66 total, whole steps. Declared once so
@@ -8296,7 +8335,7 @@ async function importShowdownPaste(text){
   const imported=[],failed=[];
   for(const set of sets){
     if(imported.length>=6){failed.push(set.species+' (team is full)');continue}
-    const hit=await pasteResolveSpecies(set.species);
+    const hit=await pasteResolveSpecies(set.species,set.gender);
     if(!hit){failed.push(set.species+' (not found)');continue}
     if(!dc[hit.id]){try{dc[hit.id]=await (await fetch('https://pokeapi.co/api/v2/pokemon/'+hit.id)).json()}catch{failed.push(set.species+' (could not load)');continue}}
     const d=dc[hit.id];
