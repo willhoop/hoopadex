@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.28 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.29 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -618,6 +618,36 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
   text-transform:capitalize;transition:border-color .15s,color .15s}
 .ap-mon:hover{border-color:var(--eff-up);color:var(--text)}
 .ap-mon img{width:28px;height:28px;flex-shrink:0;image-rendering:pixelated}
+/* The derived mechanics panel — what an ability or item does to a class of moves, and which moves
+   are in that class. Deliberately plain: every row is one sentence and its evidence, so the block
+   reads as a short list of facts rather than another wall of coloured pills. No accent colour is
+   assigned to the rule text itself, because a colour here would be decoration standing in for a
+   distinction that does not exist between one rule and the next. */
+.ix-block{display:flex;flex-direction:column;gap:9px;margin-top:9px;max-width:78ch}
+.ix-rule{padding:10px 13px;border-radius:9px;background:var(--card-bg);border:1px solid var(--border)}
+.ix-rule-t{font-size:14px;font-weight:600;color:var(--text2);line-height:1.45}
+.ix-since{font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-left:8px;
+  padding:2px 7px;border-radius:999px;white-space:nowrap;vertical-align:1px;
+  background:color-mix(in srgb,var(--text4) 15%,transparent);color:var(--text4);
+  border:1px solid color-mix(in srgb,var(--text4) 32%,transparent)}
+.ix-note{font-size:12.5px;color:var(--text4);line-height:1.5;background:transparent;border-style:dashed}
+.ix-moves{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.ix-move{font-size:12px;font-weight:600;color:var(--text3);padding:3px 9px;border-radius:7px;
+  background:var(--bg3);border:1px solid var(--border2);cursor:default;white-space:nowrap;
+  transition:border-color .15s,color .15s}
+.ix-move:hover{border-color:var(--eff-up);color:var(--text)}
+.ix-count{font-size:12px;color:var(--text5);margin-top:7px}
+/* The same facts inside a move tooltip, which is a much smaller box. */
+.ix-tip{margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)}
+.ix-tip-flags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px}
+.ix-flag{font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;
+  border-radius:999px;background:color-mix(in srgb,var(--eff-up) 14%,transparent);color:var(--eff-up);
+  border:1px solid color-mix(in srgb,var(--eff-up) 34%,transparent)}
+.ix-tip-row{font-size:10.5px;color:var(--text3);line-height:1.5}
+.ix-tip-row b{color:var(--text2)}
+.ix-kind{font-size:8.5px;color:var(--text5);text-transform:uppercase;letter-spacing:.05em;margin-left:5px}
+.ix-more{color:var(--text5);font-style:italic}
+
 /* Marks an alternate form and states which era it belongs to, because "Slowbro (Galarian)" and
    "Slowbro" sitting next to each other otherwise look like a duplicate rather than two Pokemon. */
 .ap-form-pill{flex-shrink:0;font-size:8.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
@@ -1272,12 +1302,15 @@ async function showAbilityTip(e,name,isHidden){
       const genMatch=genName.match(/generation-(\w+)/);
       const romanToNum={i:1,ii:2,iii:3,iv:4,v:5,vi:6,vii:7,viii:8,ix:9};
       const introGen=genMatch?romanToNum[genMatch[1]]||3:3;
-      abilityCache[key]={name:d.name,desc:en?.short_effect||flav?.flavor_text||'No description available.',introGen};
-    }catch{abilityCache[key]={name,desc:'Could not load description.',introGen:3}}
+      // flavorEntries kept so the tooltip can answer for the generation on screen rather than
+      // repeating one generation-blind sentence everywhere. See genFlavorText.
+      abilityCache[key]={name:d.name,desc:en?.short_effect||flav?.flavor_text||'No description available.',flavorEntries:d.flavor_text_entries||[],introGen};
+    }catch{abilityCache[key]={name,desc:'Could not load description.',flavorEntries:[],introGen:3}}
   }
   const a=abilityCache[key];
   const _hiddenBadge=isHidden?'<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:transparent;border:1px solid var(--border2);color:#c070c0;margin-left:6px">Hidden Ability</span>':'';
-  showTooltip(e,'<div class="tooltip-title">'+a.name.replace(/-/g,' ')+_hiddenBadge+'</div><div class="tooltip-desc">'+abilityDescForGen(a.name,a.desc)+'</div>');
+  const _abDesc=abilityDescForGen(a.name,genFlavorText(a.flavorEntries,getDataGenNum())||a.desc);
+  showTooltip(e,'<div class="tooltip-title">'+a.name.replace(/-/g,' ')+_hiddenBadge+'</div><div class="tooltip-desc">'+_abDesc+'</div>');
 }
 
 // Check if an ability existed in the selected gen
@@ -1308,8 +1341,10 @@ async function showMoveTip(e,name){
       '<span>PP: '+(m.pp||'\u2014')+'</span>'+
       '<span style="color:'+priColor+'">Priority: '+priLabel+'</span>'+
     '</div>'+
-    '<div class="tooltip-desc">'+m.desc+'</div>'+
-    renderVariableMoveInfo(name)
+    '<div class="tooltip-desc">'+(genFlavorText(m.flavorEntries,getDataGenNum())||m.desc)+'</div>'+
+    renderVariableMoveInfo(name)+
+    // Which class of move this is, and who acts on that class. Derived; see the IX table.
+    renderMoveInteractions(name,getDataGenNum())
   );
 }
 
@@ -1328,8 +1363,13 @@ async function ensureMoveData(name){
     const genMatch=d.generation?.name?.match(/generation-(\w+)/);
     const genRomans2={'i':1,'ii':2,'iii':3,'iv':4,'v':5,'vi':6,'vii':7,'viii':8,'ix':9};
     const moveGen=genMatch?genRomans2[genMatch[1]]||9:1;
-    moveCache[name]={name:d.name,type:d.type?.name||'normal',damage_class:d.damage_class?.name||'status',power:d.power,accuracy:d.accuracy,pp:d.pp,desc,pastTypes,priority:d.priority||0,introGen:moveGen};
-  }catch{moveCache[name]={name,type:'normal',damage_class:'status',power:null,accuracy:null,pp:null,desc:'Could not load.',pastTypes:{},priority:0,introGen:1}}
+    /* Keep the per-version-group entries alongside the flattened string. `desc` above prefers
+       short_effect, which has no generation dimension, and falls back to .pop() - the newest
+       wording regardless of the generation selected. Both are wrong in the same direction for any
+       move whose description was rewritten, and a move description is exactly the place a reader
+       would expect the selected generation to be respected. */
+    moveCache[name]={name:d.name,type:d.type?.name||'normal',damage_class:d.damage_class?.name||'status',power:d.power,accuracy:d.accuracy,pp:d.pp,desc,flavorEntries:d.flavor_text_entries||[],pastTypes,priority:d.priority||0,introGen:moveGen};
+  }catch{moveCache[name]={name,type:'normal',damage_class:'status',power:null,accuracy:null,pp:null,desc:'Could not load.',flavorEntries:[],pastTypes:{},priority:0,introGen:1}}
 }
 
 // Get move type corrected for the selected generation
@@ -3083,6 +3123,221 @@ function baseSpeciesId(formName){
   return 0;
 }
 
+/* ── Move classes, and the abilities and items that act on them ─────────────────────────────────
+   Generated by build/generate-interactions.js from Showdown; re-embedded by
+   build/embed-interactions.js. Do not hand-edit the blob.
+
+   Two reports from the live site, one problem:
+     "Scrappy also ignores Intimidate and we don't show that"
+     "Mega Launcher boosts Aura Sphere and nothing on either page says so"
+
+   The app described an ability with exactly one string - PokeAPI's `short_effect` - and that field
+   has no generation dimension and is, for a large class of abilities, years behind the games.
+   Scrappy's still reads "Lets the Pokemon's Normal and Fighting moves hit Ghost Pokemon", which
+   the games stopped telling the whole truth with in Generation VIII.
+
+   A second thing was not stale but absent: an ability whose subject is a CLASS OF MOVES had
+   nowhere to say which moves. That class has a name in the game's own data - a move flag - and an
+   ability's code tests it directly, so both the rule and its members are read out rather than
+   typed. Mega Launcher is `if (move.flags['pulse']) chainModify(1.5)`, and the seven moves that
+   carry the flag are the seven this lists.
+
+   Every number here comes from a hook whose attribution is unambiguous. Fluffy, which doubles Fire
+   damage and halves contact damage in separate branches, is reported as an interaction with no
+   multiplier rather than being given one of the two. */
+const IX=/*BEGIN-INTERACTIONS*/{"flagLabels":{"pulse":{"noun":"pulse moves","adj":"pulse"},"punch":{"noun":"punching moves","adj":"punching"},"bite":{"noun":"biting moves","adj":"biting"},"sound":{"noun":"sound moves","adj":"sound-based"},"bullet":{"noun":"ballistic moves","adj":"ballistic"},"slicing":{"noun":"slicing moves","adj":"slicing"},"wind":{"noun":"wind moves","adj":"wind"},"powder":{"noun":"powder moves","adj":"powder"},"contact":{"noun":"contact moves","adj":"contact","broad":true},"protect":{"noun":"moves Protect stops","adj":"protectable","broad":true},"reflectable":{"noun":"reflectable status moves","adj":"reflectable","broad":true}},"flagMoves":{"contact":[["accelerock",7],["acrobatics",5],["aerial-ace",3],["anchor-shot",7],["aqua-jet",4],["aqua-step",9],["aqua-tail",4],["arm-thrust",3],["assurance",4],["astonish",3],["avalanche",4],["axe-kick",9],["behemoth-bash",8],["behemoth-blade",8],["bide",1],["bind",1],["bite",1],["bitter-blade",9],["blaze-kick",3],["body-press",8],["body-slam",1],["bolt-beak",8],["bolt-strike",5],["bounce",3],["branch-poke",8],["brave-bird",4],["breaking-swipe",8],["brick-break",3],["brutal-swing",7],["bug-bite",4],["bullet-punch",4],["catastropika",7],["ceaseless-edge",8],["chip-away",5],["circle-throw",5],["clamp",1],["close-combat",4],["collision-course",9],["comet-punch",1],["comeuppance",9],["constrict",1],["counter",1],["covet",3],["crabhammer",1],["cross-chop",2],["cross-poison",4],["crunch",2],["crush-claw",3],["crush-grip",4],["cut",1],["darkest-lariat",7],["dig",1],["dire-claw",8],["dive",3],["dizzy-punch",1],["double-edge",1],["double-hit",4],["double-iron-bash",7],["double-kick",1],["double-shock",9],["double-slap",1],["dragon-ascent",6],["dragon-claw",3],["dragon-hammer",7],["dragon-rush",4],["dragon-tail",5],["drain-punch",4],["draining-kiss",6],["drill-peck",1],["drill-run",5],["dual-chop",5],["dual-wingbeat",8],["dynamic-punch",2],["electro-drift",9],["endeavor",3],["extreme-speed",2],["facade",3],["fake-out",3],["false-surrender",8],["false-swipe",2],["feint-attack",2],["fell-stinger",6],["fire-fang",4],["fire-lash",7],["fire-punch",1],["first-impression",7],["fishious-rend",8],["flail",2],["flame-charge",5],["flame-wheel",2],["flare-blitz",4],["flip-turn",8],["floaty-fall",7],["fly",1],["flying-press",6],["focus-punch",3],["force-palm",4],["foul-play",5],["frustration",2],["fury-attack",1],["fury-cutter",2],["fury-swipes",1],["gear-grind",5],["giga-impact",4],["glaive-rush",9],["grass-knot",4],["grassy-glide",8],["guillotine",1],["gyro-ball",4],["hammer-arm",4],["hard-press",9],["head-charge",5],["head-smash",4],["headbutt",1],["headlong-rush",8],["heart-stamp",5],["heat-crash",5],["heavy-slam",5],["high-horsepower",7],["high-jump-kick",1],["hold-back",6],["horn-attack",1],["horn-drill",1],["horn-leech",5],["hyper-drill",9],["hyper-fang",1],["ice-ball",3],["ice-fang",4],["ice-hammer",7],["ice-punch",1],["ice-spinner",9],["infestation",6],["iron-head",4],["iron-tail",2],["jaw-lock",8],["jet-punch",9],["jump-kick",1],["karate-chop",1],["knock-off",3],["kowtow-cleave",9],["lash-out",8],["last-resort",4],["leaf-blade",3],["leech-life",1],["lets-snuggle-forever",7],["lick",1],["liquidation",7],["low-kick",1],["low-sweep",5],["lunge",7],["mach-punch",2],["malicious-moonsault",7],["mega-kick",1],["mega-punch",1],["megahorn",2],["metal-claw",2],["meteor-mash",3],["mighty-cleave",9],["mortal-spin",9],["multi-attack",7],["needle-arm",3],["night-slash",4],["nuzzle",6],["outrage",2],["payback",4],["peck",1],["petal-dance",1],["phantom-force",6],["plasma-fists",7],["play-rough",6],["pluck",4],["poison-fang",3],["poison-jab",4],["poison-tail",3],["population-bomb",9],["pounce",9],["pound",1],["power-trip",7],["power-up-punch",6],["power-whip",4],["psyblade",9],["psychic-fangs",7],["psyshield-bash",8],["pulverizing-pancake",7],["punishment",4],["pursuit",2],["quick-attack",1],["rage",1],["rage-fist",9],["raging-bull",9],["rapid-spin",2],["razor-shell",5],["retaliate",5],["return",2],["revenge",3],["reversal",2],["rock-climb",4],["rock-smash",2],["rolling-kick",1],["rollout",2],["sacred-sword",5],["scratch",1],["searing-sunraze-smash",7],["seismic-toss",1],["shadow-claw",4],["shadow-force",4],["shadow-punch",3],["shadow-sneak",4],["sizzly-slide",7],["skitter-smack",8],["skull-bash",1],["sky-drop",5],["sky-uppercut",3],["slam",1],["slash",1],["smart-strike",7],["smelling-salts",3],["snap-trap",8],["solar-blade",7],["soul-stealing-7-star-strike",7],["spark",2],["spectral-thief",7],["spin-out",9],["spirit-break",8],["steamroller",5],["steel-roller",8],["steel-wing",2],["stomp",1],["stomping-tantrum",7],["stone-axe",8],["storm-throw",5],["strength",1],["struggle",1],["submission",1],["sucker-punch",4],["sunsteel-strike",7],["super-fang",1],["supercell-slam",9],["superpower",3],["surging-strikes",8],["tackle",1],["tail-slap",5],["take-down",1],["temper-flare",9],["thief",2],["thrash",1],["throat-chop",7],["thunder-fang",4],["thunder-punch",1],["thunderous-kick",8],["trailblaze",9],["triple-axel",8],["triple-dive",9],["triple-kick",2],["trop-kick",7],["trump-card",4],["u-turn",4],["upper-hand",9],["v-create",5],["veevee-volley",7],["vice-grip",1],["vine-whip",1],["vital-throw",2],["volt-tackle",3],["wake-up-slap",4],["waterfall",1],["wave-crash",8],["wicked-blow",8],["wild-charge",5],["wing-attack",1],["wood-hammer",4],["wrap",1],["wring-out",4],["x-scissor",4],["zen-headbutt",4],["zing-zap",7],["zippy-zap",7]],"bullet":[["acid-spray",5],["aura-sphere",4],["barrage",1],["beak-blast",7],["bullet-seed",3],["egg-bomb",1],["electro-ball",5],["energy-ball",4],["focus-blast",4],["gyro-ball",4],["ice-ball",3],["magnet-bomb",4],["mist-ball",3],["mud-bomb",4],["octazooka",2],["pollen-puff",7],["pyro-ball",8],["rock-blast",3],["rock-wrecker",4],["searing-shot",5],["seed-bomb",4],["shadow-ball",2],["sludge-bomb",2],["syrup-bomb",9],["weather-ball",3],["zap-cannon",2]],"slicing":[["aerial-ace",3],["air-cutter",3],["air-slash",4],["aqua-cutter",9],["behemoth-blade",8],["bitter-blade",9],["ceaseless-edge",8],["cross-poison",4],["cut",1],["fury-cutter",2],["kowtow-cleave",9],["leaf-blade",3],["mighty-cleave",9],["night-slash",4],["population-bomb",9],["psyblade",9],["psycho-cut",4],["razor-leaf",1],["razor-shell",5],["sacred-sword",5],["secret-sword",5],["slash",1],["solar-blade",7],["stone-axe",8],["tachyon-cutter",9],["x-scissor",4]],"wind":[["aeroblast",2],["air-cutter",3],["bleakwind-storm",8],["blizzard",1],["fairy-wind",6],["gust",1],["heat-wave",3],["hurricane",5],["icy-wind",2],["petal-blizzard",6],["sandsear-storm",8],["sandstorm",2],["springtide-storm",8],["tailwind",4],["twister",2],["whirlwind",1],["wildbolt-storm",8]],"sound":[["alluring-voice",9],["boomburst",6],["bug-buzz",4],["chatter",4],["clanging-scales",7],["clangorous-soul",8],["clangorous-soulblaze",7],["confide",6],["disarming-voice",6],["echoed-voice",5],["eerie-spell",8],["grass-whistle",3],["growl",1],["heal-bell",2],["howl",3],["hyper-voice",3],["metal-sound",3],["noble-roar",6],["overdrive",8],["parting-shot",6],["perish-song",2],["psychic-noise",9],["relic-song",5],["roar",1],["round",5],["screech",1],["sing",1],["snarl",5],["snore",2],["sparkling-aria",7],["supersonic",1],["torch-song",9],["uproar",3]],"reflectable":[["attract",2],["baby-doll-eyes",6],["block",3],["captivate",4],["charm",2],["confide",6],["confuse-ray",1],["corrosive-gas",8],["cotton-spore",2],["dark-void",4],["defog",4],["disable",1],["eerie-impulse",6],["embargo",4],["encore",2],["entrainment",5],["fake-tears",3],["feather-dance",3],["flash",1],["flatter",3],["floral-healing",7],["foresight",2],["forests-curse",6],["gastro-acid",4],["glare",1],["grass-whistle",3],["growl",1],["heal-block",4],["heal-pulse",5],["hypnosis",1],["kinesis",1],["leech-seed",1],["leer",1],["lovely-kiss",1],["magic-powder",8],["mean-look",2],["metal-sound",3],["miracle-eye",4],["noble-roar",6],["odor-sleuth",3],["parting-shot",6],["play-nice",6],["poison-gas",1],["poison-powder",1],["powder",6],["purify",7],["roar",1],["sand-attack",1],["sappy-seed",7],["scary-face",2],["screech",1],["simple-beam",5],["sing",1],["sleep-powder",1],["smokescreen",1],["soak",5],["spicy-extract",9],["spider-web",2],["spikes",2],["spite",2],["spore",1],["spotlight",7],["stealth-rock",4],["sticky-web",6],["strength-sap",7],["string-shot",1],["stun-spore",1],["supersonic",1],["swagger",2],["sweet-kiss",2],["sweet-scent",2],["tail-whip",1],["tar-shot",8],["taunt",3],["tearful-look",7],["telekinesis",5],["thunder-wave",1],["tickle",3],["topsy-turvy",6],["torment",3],["toxic",1],["toxic-spikes",4],["toxic-thread",7],["trick-or-treat",6],["venom-drench",6],["whirlwind",1],["will-o-wisp",3],["worry-seed",4],["yawn",3]],"pulse":[["aura-sphere",4],["dark-pulse",4],["dragon-pulse",4],["heal-pulse",5],["origin-pulse",6],["terrain-pulse",8],["water-pulse",3]],"bite":[["bite",1],["crunch",2],["fire-fang",4],["fishious-rend",8],["hyper-fang",1],["ice-fang",4],["jaw-lock",8],["poison-fang",3],["psychic-fangs",7],["thunder-fang",4]],"punch":[["bullet-punch",4],["comet-punch",1],["dizzy-punch",1],["double-iron-bash",7],["drain-punch",4],["dynamic-punch",2],["fire-punch",1],["focus-punch",3],["hammer-arm",4],["headlong-rush",8],["ice-hammer",7],["ice-punch",1],["jet-punch",9],["mach-punch",2],["mega-punch",1],["meteor-mash",3],["plasma-fists",7],["power-up-punch",6],["rage-fist",9],["shadow-punch",3],["sky-uppercut",3],["surging-strikes",8],["thunder-punch",1],["wicked-blow",8]],"powder":[["cotton-spore",2],["magic-powder",8],["poison-powder",1],["powder",6],["rage-powder",5],["sleep-powder",1],["spore",1],["stun-spore",1]]},"moveFlags":{"accelerock":"contact","acid-spray":"bullet","acrobatics":"contact","aerial-ace":"contact slicing","aeroblast":"wind","air-cutter":"slicing wind","air-slash":"slicing","alluring-voice":"sound","anchor-shot":"contact","aqua-cutter":"slicing","aqua-jet":"contact","aqua-step":"contact","aqua-tail":"contact","arm-thrust":"contact","assurance":"contact","astonish":"contact","attract":"reflectable","aura-sphere":"bullet pulse","avalanche":"contact","axe-kick":"contact","baby-doll-eyes":"reflectable","barrage":"bullet","beak-blast":"bullet","behemoth-bash":"contact","behemoth-blade":"contact slicing","bide":"contact","bind":"contact","bite":"bite contact","bitter-blade":"contact slicing","blaze-kick":"contact","bleakwind-storm":"wind","blizzard":"wind","block":"reflectable","body-press":"contact","body-slam":"contact","bolt-beak":"contact","bolt-strike":"contact","boomburst":"sound","bounce":"contact","branch-poke":"contact","brave-bird":"contact","breaking-swipe":"contact","brick-break":"contact","brutal-swing":"contact","bug-bite":"contact","bug-buzz":"sound","bullet-punch":"contact punch","bullet-seed":"bullet","captivate":"reflectable","catastropika":"contact","ceaseless-edge":"contact slicing","charm":"reflectable","chatter":"sound","chip-away":"contact","circle-throw":"contact","clamp":"contact","clanging-scales":"sound","clangorous-soul":"sound","clangorous-soulblaze":"sound","close-combat":"contact","collision-course":"contact","comet-punch":"contact punch","comeuppance":"contact","confide":"reflectable sound","confuse-ray":"reflectable","constrict":"contact","corrosive-gas":"reflectable","cotton-spore":"powder reflectable","counter":"contact","covet":"contact","crabhammer":"contact","cross-chop":"contact","cross-poison":"contact slicing","crunch":"bite contact","crush-claw":"contact","crush-grip":"contact","cut":"contact slicing","darkest-lariat":"contact","dark-pulse":"pulse","dark-void":"reflectable","defog":"reflectable","dig":"contact","dire-claw":"contact","disable":"reflectable","disarming-voice":"sound","dive":"contact","dizzy-punch":"contact punch","double-edge":"contact","double-hit":"contact","double-iron-bash":"contact punch","double-kick":"contact","double-shock":"contact","double-slap":"contact","dragon-ascent":"contact","dragon-claw":"contact","dragon-hammer":"contact","dragon-pulse":"pulse","dragon-rush":"contact","dragon-tail":"contact","draining-kiss":"contact","drain-punch":"contact punch","drill-peck":"contact","drill-run":"contact","dual-chop":"contact","dual-wingbeat":"contact","dynamic-punch":"contact punch","echoed-voice":"sound","eerie-impulse":"reflectable","eerie-spell":"sound","egg-bomb":"bullet","electro-ball":"bullet","electro-drift":"contact","embargo":"reflectable","encore":"reflectable","endeavor":"contact","energy-ball":"bullet","entrainment":"reflectable","extreme-speed":"contact","facade":"contact","fairy-wind":"wind","fake-out":"contact","fake-tears":"reflectable","false-surrender":"contact","false-swipe":"contact","feather-dance":"reflectable","feint-attack":"contact","fell-stinger":"contact","fire-fang":"bite contact","fire-lash":"contact","fire-punch":"contact punch","first-impression":"contact","fishious-rend":"bite contact","flail":"contact","flame-charge":"contact","flame-wheel":"contact","flare-blitz":"contact","flash":"reflectable","flatter":"reflectable","flip-turn":"contact","floaty-fall":"contact","floral-healing":"reflectable","fly":"contact","flying-press":"contact","focus-blast":"bullet","focus-punch":"contact punch","force-palm":"contact","foresight":"reflectable","forests-curse":"reflectable","foul-play":"contact","frustration":"contact","fury-attack":"contact","fury-cutter":"contact slicing","fury-swipes":"contact","gastro-acid":"reflectable","gear-grind":"contact","giga-impact":"contact","glaive-rush":"contact","glare":"reflectable","grass-knot":"contact","grass-whistle":"reflectable sound","grassy-glide":"contact","growl":"reflectable sound","guillotine":"contact","gust":"wind","gyro-ball":"bullet contact","hammer-arm":"contact punch","hard-press":"contact","headbutt":"contact","head-charge":"contact","headlong-rush":"contact punch","head-smash":"contact","heal-bell":"sound","heal-block":"reflectable","heal-pulse":"pulse reflectable","heart-stamp":"contact","heat-crash":"contact","heat-wave":"wind","heavy-slam":"contact","high-horsepower":"contact","high-jump-kick":"contact","hold-back":"contact","horn-attack":"contact","horn-drill":"contact","horn-leech":"contact","howl":"sound","hurricane":"wind","hyper-drill":"contact","hyper-fang":"bite contact","hyper-voice":"sound","hypnosis":"reflectable","ice-ball":"bullet contact","ice-fang":"bite contact","ice-hammer":"contact punch","ice-punch":"contact punch","ice-spinner":"contact","icy-wind":"wind","infestation":"contact","iron-head":"contact","iron-tail":"contact","jaw-lock":"bite contact","jet-punch":"contact punch","jump-kick":"contact","karate-chop":"contact","kinesis":"reflectable","knock-off":"contact","kowtow-cleave":"contact slicing","lash-out":"contact","last-resort":"contact","leaf-blade":"contact slicing","leech-life":"contact","leech-seed":"reflectable","leer":"reflectable","lets-snuggle-forever":"contact","lick":"contact","liquidation":"contact","lovely-kiss":"reflectable","low-kick":"contact","low-sweep":"contact","lunge":"contact","mach-punch":"contact punch","magic-powder":"powder reflectable","magnet-bomb":"bullet","malicious-moonsault":"contact","mean-look":"reflectable","megahorn":"contact","mega-kick":"contact","mega-punch":"contact punch","metal-claw":"contact","metal-sound":"reflectable sound","meteor-mash":"contact punch","mighty-cleave":"contact slicing","miracle-eye":"reflectable","mist-ball":"bullet","mortal-spin":"contact","mud-bomb":"bullet","multi-attack":"contact","needle-arm":"contact","night-slash":"contact slicing","noble-roar":"reflectable sound","nuzzle":"contact","octazooka":"bullet","odor-sleuth":"reflectable","origin-pulse":"pulse","outrage":"contact","overdrive":"sound","parting-shot":"reflectable sound","payback":"contact","peck":"contact","perish-song":"sound","petal-blizzard":"wind","petal-dance":"contact","phantom-force":"contact","plasma-fists":"contact punch","play-nice":"reflectable","play-rough":"contact","pluck":"contact","poison-fang":"bite contact","poison-gas":"reflectable","poison-jab":"contact","poison-powder":"powder reflectable","poison-tail":"contact","pollen-puff":"bullet","population-bomb":"contact slicing","pounce":"contact","pound":"contact","powder":"powder reflectable","power-trip":"contact","power-up-punch":"contact punch","power-whip":"contact","psyblade":"contact slicing","psychic-fangs":"bite contact","psychic-noise":"sound","psycho-cut":"slicing","psyshield-bash":"contact","pulverizing-pancake":"contact","punishment":"contact","purify":"reflectable","pursuit":"contact","pyro-ball":"bullet","quick-attack":"contact","rage":"contact","rage-fist":"contact punch","rage-powder":"powder","raging-bull":"contact","rapid-spin":"contact","razor-leaf":"slicing","razor-shell":"contact slicing","relic-song":"sound","retaliate":"contact","return":"contact","revenge":"contact","reversal":"contact","roar":"reflectable sound","rock-blast":"bullet","rock-climb":"contact","rock-smash":"contact","rock-wrecker":"bullet","rolling-kick":"contact","rollout":"contact","round":"sound","sacred-sword":"contact slicing","sand-attack":"reflectable","sandsear-storm":"wind","sandstorm":"wind","sappy-seed":"reflectable","scary-face":"reflectable","scratch":"contact","screech":"reflectable sound","searing-shot":"bullet","searing-sunraze-smash":"contact","secret-sword":"slicing","seed-bomb":"bullet","seismic-toss":"contact","shadow-ball":"bullet","shadow-claw":"contact","shadow-force":"contact","shadow-punch":"contact punch","shadow-sneak":"contact","simple-beam":"reflectable","sing":"reflectable sound","sizzly-slide":"contact","skitter-smack":"contact","skull-bash":"contact","sky-drop":"contact","sky-uppercut":"contact punch","slam":"contact","slash":"contact slicing","sleep-powder":"powder reflectable","sludge-bomb":"bullet","smart-strike":"contact","smelling-salts":"contact","smokescreen":"reflectable","snap-trap":"contact","snarl":"sound","snore":"sound","soak":"reflectable","solar-blade":"contact slicing","soul-stealing-7-star-strike":"contact","spark":"contact","sparkling-aria":"sound","spectral-thief":"contact","spicy-extract":"reflectable","spider-web":"reflectable","spikes":"reflectable","spin-out":"contact","spirit-break":"contact","spite":"reflectable","spore":"powder reflectable","spotlight":"reflectable","springtide-storm":"wind","stealth-rock":"reflectable","steamroller":"contact","steel-roller":"contact","steel-wing":"contact","sticky-web":"reflectable","stomp":"contact","stomping-tantrum":"contact","stone-axe":"contact slicing","storm-throw":"contact","strength":"contact","strength-sap":"reflectable","string-shot":"reflectable","struggle":"contact","stun-spore":"powder reflectable","submission":"contact","sucker-punch":"contact","sunsteel-strike":"contact","supercell-slam":"contact","super-fang":"contact","superpower":"contact","supersonic":"reflectable sound","surging-strikes":"contact punch","swagger":"reflectable","sweet-kiss":"reflectable","sweet-scent":"reflectable","syrup-bomb":"bullet","tachyon-cutter":"slicing","tackle":"contact","tail-slap":"contact","tail-whip":"reflectable","tailwind":"wind","take-down":"contact","tar-shot":"reflectable","taunt":"reflectable","tearful-look":"reflectable","telekinesis":"reflectable","temper-flare":"contact","terrain-pulse":"pulse","thief":"contact","thrash":"contact","throat-chop":"contact","thunder-fang":"bite contact","thunderous-kick":"contact","thunder-punch":"contact punch","thunder-wave":"reflectable","tickle":"reflectable","topsy-turvy":"reflectable","torch-song":"sound","torment":"reflectable","toxic":"reflectable","toxic-spikes":"reflectable","toxic-thread":"reflectable","trailblaze":"contact","trick-or-treat":"reflectable","triple-axel":"contact","triple-dive":"contact","triple-kick":"contact","trop-kick":"contact","trump-card":"contact","twister":"wind","upper-hand":"contact","uproar":"sound","u-turn":"contact","v-create":"contact","veevee-volley":"contact","venom-drench":"reflectable","vine-whip":"contact","vice-grip":"contact","vital-throw":"contact","volt-tackle":"contact","wake-up-slap":"contact","waterfall":"contact","water-pulse":"pulse","wave-crash":"contact","weather-ball":"bullet","whirlwind":"reflectable wind","wicked-blow":"contact punch","wildbolt-storm":"wind","wild-charge":"contact","will-o-wisp":"reflectable","wing-attack":"contact","wood-hammer":"contact","worry-seed":"reflectable","wrap":"contact","wring-out":"contact","x-scissor":"contact slicing","yawn":"reflectable","zap-cannon":"bullet","zen-headbutt":"contact","zing-zap":"contact","zippy-zap":"contact"},"abilities":{"aftermath":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":4},"bulletproof":{"rules":[{"flag":"bullet","kind":"block","mult":null}],"gen":6},"cute-charm":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":3},"effect-spore":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":3},"flame-body":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":3},"fluffy":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":7},"gooey":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":6},"guard-dog":{"intimidate":"blocks","gen":9},"inner-focus":{"intimidate":"blocks","gen":3,"intimidateFrom":8},"iron-barbs":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":5},"iron-fist":{"rules":[{"flag":"punch","kind":"boost","mult":1.2}],"gen":4},"lingering-aroma":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":9},"liquid-voice":{"rules":[{"flag":"sound","kind":"retype","mult":null}],"gen":7},"long-reach":{"rules":[{"flag":"contact","kind":"removes","mult":null}],"gen":7},"magic-bounce":{"rules":[{"flag":"reflectable","kind":"block","mult":null}],"gen":5},"mega-launcher":{"rules":[{"flag":"pulse","kind":"boost","mult":1.5}],"gen":6},"mummy":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":5},"oblivious":{"intimidate":"blocks","gen":3,"intimidateFrom":8},"overcoat":{"rules":[{"flag":"powder","kind":"block","mult":null}],"gen":5},"own-tempo":{"intimidate":"blocks","gen":3,"intimidateFrom":8},"perish-body":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":8},"poison-point":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":3},"poison-touch":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":5},"punk-rock":{"rules":[{"flag":"sound","kind":"boost","mult":1.3},{"flag":"sound","kind":"resist","mult":0.5}],"gen":8},"rough-skin":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":3},"scrappy":{"intimidate":"blocks","gen":4,"intimidateFrom":8},"sharpness":{"rules":[{"flag":"slicing","kind":"boost","mult":1.5}],"gen":9},"soundproof":{"rules":[{"flag":"sound","kind":"block","mult":null}],"gen":3},"static":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":3},"strong-jaw":{"rules":[{"flag":"bite","kind":"boost","mult":1.5}],"gen":6},"tangling-hair":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":7},"tough-claws":{"rules":[{"flag":"contact","kind":"boost","mult":1.3}],"gen":6},"unseen-fist":{"rules":[{"flag":"contact","kind":"strips","strips":"protect","mult":null}],"gen":8},"wandering-spirit":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":8},"wind-power":{"rules":[{"flag":"wind","kind":"affects","mult":null}],"gen":9},"wind-rider":{"rules":[{"flag":"wind","kind":"block","mult":null}],"gen":9}},"items":{"adrenaline-orb":{"intimidate":"triggers","gen":7},"punching-glove":{"rules":[{"flag":"punch","kind":"boost","mult":1.1},{"flag":"punch","kind":"strips","strips":"contact","mult":null}],"gen":9},"rocky-helmet":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":5},"safety-goggles":{"rules":[{"flag":"powder","kind":"block","mult":null}],"gen":6},"sticky-barb":{"rules":[{"flag":"contact","kind":"affects","mult":null}],"gen":4},"throat-spray":{"rules":[{"flag":"sound","kind":"affects","mult":null}],"gen":8}},"changedAt":{"air-lock":[5],"anger-point":[5],"blaze":[5],"cloud-nine":[5],"color-change":[5],"compound-eyes":[5],"cute-charm":[5],"download":[5],"effect-spore":[5],"flame-body":[5],"flash-fire":[5],"flower-gift":[5],"forewarn":[5],"frisk":[5,6],"hustle":[5],"hydration":[5],"intimidate":[5],"leaf-guard":[5],"lightning-rod":[5],"liquid-ooze":[5,7],"magic-guard":[5,7],"minus":[5],"natural-cure":[5],"normalize":[5,7],"overgrow":[5],"pickup":[5],"plus":[5],"poison-point":[5],"pressure":[5],"rough-skin":[5,7],"sand-veil":[5],"serene-grace":[5,6],"simple":[5],"snow-cloak":[5],"stall":[5],"static":[5],"stench":[5],"sticky-hold":[5],"storm-drain":[5],"sturdy":[5],"swarm":[5],"synchronize":[5],"tangled-feet":[5],"thick-fat":[5],"torrent":[5],"trace":[5],"truant":[5],"wonder-guard":[5],"anticipation":[6],"keen-eye":[6],"magic-bounce":[6],"oblivious":[6,8],"overcoat":[6],"sap-sipper":[6],"soundproof":[6,8],"aerilate":[7],"aftermath":[7],"gale-wings":[7],"iron-barbs":[7],"pixilate":[7],"refrigerate":[7],"stance-change":[7],"symbiosis":[7],"weak-armor":[7],"disguise":[8,9],"inner-focus":[8],"moody":[8],"own-tempo":[8],"rattled":[8],"scrappy":[8],"slow-start":[8],"battle-bond":[9],"competitive":[9],"dauntless-shield":[9],"defiant":[9],"heatproof":[9],"illuminate":[9],"intrepid-sword":[9],"libero":[9],"protean":[9],"snow-warning":[9],"transistor":[9]}}/*END-INTERACTIONS*/;
+
+function ixRoman(g){return ['','I','II','III','IV','V','VI','VII','VIII','IX'][g]||g}
+function ixTitle(s){return String(s).replace(/-/g,' ').replace(/(^|\s)[a-z]/g,function(c){return c.toUpperCase()})}
+
+/* The game's own words for the generation on screen.
+   PokeAPI's flavor_text_entries ARE keyed by version group; the app was calling .pop() on them,
+   which takes the newest regardless of what generation is selected, and only as a fallback behind
+   the generation-blind short_effect. Reading the field properly is the whole fix for the Scrappy
+   report: Gen IX gets Scarlet/Violet's line, which mentions Intimidate, and Gen VII gets Ultra
+   Sun/Ultra Moon's, which does not - because in Gen VII it did not. */
+function genFlavorText(entries,genNum){
+  const en=(entries||[]).filter(function(e){
+    return e&&e.language&&e.language.name==='en'&&e.version_group&&VG_GEN[e.version_group.name];
+  });
+  if(!en.length)return null;
+  const within=en.filter(function(e){return VG_GEN[e.version_group.name]<=genNum});
+  const pool=within.length?within:en;
+  let best=pool[0];
+  pool.forEach(function(e){if(VG_GEN[e.version_group.name]>=VG_GEN[best.version_group.name])best=e});
+  // Abilities and moves call the field flavor_text; items call it text. Same field, same problem.
+  const t=String(best.flavor_text||best.text||'').replace(/\s+/g,' ').trim();
+  return t||null;
+}
+
+/* One sentence per rule. `strips` gets its own phrasing per target flag because the generic form
+   ("its punching moves stop counting as contact moves") is technically right and reads like a
+   compiler message; what a player wants to know is that a Punching Glove punch no longer sets off
+   Rocky Helmet. */
+function ixRuleText(r){
+  const f=IX.flagLabels[r.flag]; if(!f)return null;
+  const m=r.mult?' &times;'+r.mult:'';
+  switch(r.kind){
+    case 'boost':   return 'Boosts '+f.noun+m;
+    case 'weaken':  return 'Weakens '+f.noun+m;
+    case 'resist':  return 'Takes '+(r.mult?Math.round((1-r.mult)*100)+'% less':'less')+' damage from '+f.noun;
+    case 'block':   return 'Blocks '+f.noun;
+    case 'retype':  return 'Changes the type of '+f.noun;
+    // "Its own moves stop counting as contact moves" is accurate and reads like a changelog. What
+    // Long Reach means to a player is that Rocky Helmet and Rough Skin never go off.
+    case 'removes': return r.flag==='contact'?'Its own moves never make contact':'Its own moves stop counting as '+f.noun;
+    case 'strips':
+      if(r.strips==='protect')return 'Its '+f.noun+' hit through Protect and Detect';
+      if(r.strips==='contact')return 'Its '+f.noun+' no longer make contact';
+      return 'Its '+f.noun+' stop counting as '+((IX.flagLabels[r.strips]||{}).noun||r.strips);
+    default:        return 'Triggers on '+f.noun;
+  }
+}
+
+/* The members of a flag, cut to the generation on screen. A Generation VI reader asking what Mega
+   Launcher boosts must not be shown Terrain Pulse, which is two generations away from existing.
+   Broad flags - contact at 277 moves, Protect at 669 - are counted rather than listed: naming all
+   of them says "almost everything", at length. */
+function ixFlagMoves(flag,genNum){
+  return (IX.flagMoves[flag]||[]).filter(function(x){return x[1]<=genNum});
+}
+function ixMoveChips(flag,genNum){
+  const f=IX.flagLabels[flag]||{};
+  const list=ixFlagMoves(flag,genNum);
+  if(!list.length)return '';
+  if(f.broad)return '<div class="ix-count">'+list.length+' such moves in Gen '+ixRoman(genNum)+'</div>';
+  return '<div class="ix-moves">'+list.map(function(x){
+    return '<span class="ix-move" onmouseenter="showMoveTip(event,\''+x[0]+'\')" onmouseleave="hideTooltip()">'+ixTitle(x[0])+'</span>';
+  }).join('')+'</div>';
+}
+
+/* Does PokeAPI's prose state a multiplier the derived rule disagrees with?
+   Tough Claws is the case that made this necessary. Showdown's current data multiplies by
+   5325/4096, which is 1.3; PokeAPI's short_effect still says "to 1.33x their power", which was the
+   Generation VI value and stopped being true in Generation VII. Both lines were on screen at once,
+   two inches apart, disagreeing.
+
+   Showdown wins, because it is the source that has a generation dimension at all and the one every
+   other derived table in this app is built from. What is NOT acceptable is printing both and
+   letting the reader arbitrate, so the stale prose is dropped rather than argued with. Only a
+   numeric conflict triggers this - prose that adds anything else still shows. */
+function ixContradicts(text,slugName){
+  const rec=IX.abilities[slugName]||IX.items[slugName];
+  if(!rec||!rec.rules)return false;
+  const mults=rec.rules.map(function(r){return r.mult}).filter(Boolean);
+  if(!mults.length)return false;
+  const stated=(String(text).match(/(\d+(?:\.\d+)?)\s*(?:x|×|times)/gi)||[])
+    .map(function(s){return parseFloat(s)}).filter(function(n){return n>0&&n<10});
+  if(!stated.length)return false;
+  return stated.some(function(n){
+    return !mults.some(function(m){return Math.abs(m-n)<0.02});
+  });
+}
+
+/* The mechanics panel shared by the ability page and the item page. Returns '' when there is
+   nothing derived to say, so neither page grows an empty heading. */
+function renderInteractions(kind,slugName,genNum,said){
+  const rec=(kind==='ability'?IX.abilities:IX.items)[slugName];
+  const rows=[];
+  // What the description above already told the reader. A panel that repeats the sentence it sits
+  // under has added a heading and no information.
+  const already=String(said||'').toLowerCase();
+  if(rec){
+    /* The move list belongs to the flag, not to the rule, so it is printed once however many
+       rules reference it. Punk Rock has two - it boosts sound moves and resists them - and
+       enumerating per rule printed the same thirty-three moves twice, one screen apart. */
+    const listed={};
+    (rec.rules||[]).forEach(function(r){
+      const text=ixRuleText(r); if(!text)return;
+      const chips=listed[r.flag]?'':ixMoveChips(r.flag,genNum);
+      listed[r.flag]=1;
+      rows.push('<div class="ix-rule"><div class="ix-rule-t">'+text+'</div>'+chips+'</div>');
+    });
+    /* Intimidate is the case this was reported for, and it is where the two sources disagree in a
+       way worth respecting. Showdown puts the clause at Gen VIII; the games did not reword the
+       description until Scarlet/Violet. Showdown decides whether the mechanic is present, because
+       that is a question about the mechanic. Below that generation the line is not shown at all
+       rather than shown with a caveat - in Gen VII these abilities simply did not do this. */
+    if(rec.intimidate==='blocks'&&(!rec.intimidateFrom||genNum>=rec.intimidateFrom)){
+      /* Scarlet/Violet's own text says this, so in Gen IX the useful thing to add is not the fact
+         but its date - Showdown puts the mechanic at Gen VIII, two years before the games reworded
+         the description. In Gen VIII the text does NOT say it, and there the full sentence is the
+         point. Same fact, different missing half. */
+      const knows=already.indexOf('intimidate')>=0;
+      const since=rec.intimidateFrom?'<span class="ix-since">since Gen '+ixRoman(rec.intimidateFrom)+'</span>':'';
+      rows.push('<div class="ix-rule"><div class="ix-rule-t">'
+        +(knows?'Intimidate immunity was added in Gen '+ixRoman(rec.intimidateFrom||genNum)
+                +', before the in-game description mentioned it'
+              :'Ignores Intimidate &mdash; its Attack is not lowered'+since)
+        +'</div></div>');
+    }
+    if(rec.intimidate==='triggers'){
+      rows.push('<div class="ix-rule"><div class="ix-rule-t">Triggered by Intimidate</div></div>');
+    }
+  }
+  /* Showdown keeps a per-generation mod for every ability whose behaviour differs from the current
+     game, so "this changed later" is derivable rather than remembered. Only shown when the change
+     is AHEAD of the selected generation, which is the case a reader can act on: what is on screen
+     is the older behaviour. */
+  if(kind==='ability'){
+    const ahead=(IX.changedAt[slugName]||[]).filter(function(g){return g>genNum});
+    if(ahead.length){
+      rows.push('<div class="ix-rule ix-note">Behaves differently from Gen '+ixRoman(ahead[0])
+        +' onward. Everything above describes Gen '+ixRoman(genNum)+'.</div>');
+    }
+  }
+  if(!rows.length)return '';
+  return '<div class="section-label" style="margin-top:16px">MECHANICS</div><div class="ix-block">'+rows.join('')+'</div>';
+}
+
+/* The same facts read from the move's side. Aura Sphere should name Mega Launcher without anyone
+   having to already suspect Mega Launcher exists. Gated on the ability's or item's own
+   introduction, so Gen V is not told about Bulletproof. */
+function moveInteractions(moveSlug,genNum){
+  const flags=String(IX.moveFlags[moveSlug]||'').split(' ').filter(Boolean);
+  if(!flags.length)return [];
+  const out=[];
+  [['ability',IX.abilities],['item',IX.items]].forEach(function(pair){
+    Object.keys(pair[1]).forEach(function(name){
+      const rec=pair[1][name];
+      if(rec.gen&&rec.gen>genNum)return;
+      (rec.rules||[]).forEach(function(r){
+        if(flags.indexOf(r.flag)<0)return;
+        // "Its own moves" rules describe the holder's moves, not this move's attackers.
+        if(r.kind==='removes'||r.kind==='strips')return;
+        out.push({who:ixTitle(name),kind:pair[0],rule:r});
+      });
+    });
+  });
+  return out;
+}
+function renderMoveInteractions(moveSlug,genNum){
+  const flags=String(IX.moveFlags[moveSlug]||'').split(' ').filter(Boolean);
+  const hits=moveInteractions(moveSlug,genNum);
+  if(!flags.length&&!hits.length)return '';
+  let h='<div class="ix-tip">';
+  if(flags.length){
+    h+='<div class="ix-tip-flags">'+flags.map(function(f){
+      return '<span class="ix-flag">'+((IX.flagLabels[f]||{}).adj||f)+'</span>';
+    }).join('')+'</div>';
+  }
+  hits.slice(0,6).forEach(function(x){
+    const k=x.rule.kind,mult=x.rule.mult?' &times;'+x.rule.mult:'';
+    /* The whole phrase per kind rather than a verb plus a fixed " by". Aftermath is not something
+       a move is "triggered by" - the move sets it off - and gluing one preposition onto every verb
+       produced "Triggers by Aftermath" on every contact move in the game. */
+    const phrase=k==='boost'?'Boosted'+mult+' by':
+                 k==='weaken'?'Weakened'+mult+' by':
+                 k==='resist'?'Resisted'+mult+' by':
+                 k==='block'?'Blocked by':
+                 k==='retype'?'Retyped by':'Sets off';
+    h+='<div class="ix-tip-row">'+phrase+' <b>'+x.who+'</b><span class="ix-kind">'+x.kind+'</span></div>';
+  });
+  if(hits.length>6)h+='<div class="ix-tip-row ix-more">and '+(hits.length-6)+' more</div>';
+  h+='</div>';
+  return h;
+}
+
 /* PokeAPI's ability text for the four weather abilities is Generation V wording and has never been
    updated: "Summons a sandstorm that lasts INDEFINITELY upon entering battle". That was true
    through Gen V. From Gen VI onward ability weather runs 5 turns, or 8 holding the matching rock.
@@ -3261,8 +3516,10 @@ async function renderDetail(p){
           const genMatch=genName.match(/generation-(\w+)/);
           const romanToNum={i:1,ii:2,iii:3,iv:4,v:5,vi:6,vii:7,viii:8,ix:9};
           const introGen=genMatch?romanToNum[genMatch[1]]||3:3;
-          abilityCache[name]={name:d.name,desc:en?.short_effect||flav?.flavor_text||'No description available.',introGen};
-        }catch{abilityCache[name]={name,desc:'Could not load.',introGen:3}}
+          // Same shape as the tooltip loader above — the two write the same cache and must agree
+          // about what is in it, or whichever ran second decides whether the page is gen-correct.
+          abilityCache[name]={name:d.name,desc:en?.short_effect||flav?.flavor_text||'No description available.',flavorEntries:d.flavor_text_entries||[],introGen};
+        }catch{abilityCache[name]={name,desc:'Could not load.',flavorEntries:[],introGen:3}}
       }
     }));
     abilityList=allAbilities.filter(a=>{
@@ -6060,54 +6317,103 @@ const VARIABLE_MOVE_INFO={
    decides a game and is invisible in a plain move description.
 
    The flags are DERIVED from the bundled calc engine (gen.moves.get(id).flags), not transcribed,
-   so they cannot drift from what the damage calculator actually uses. Only the ability/item
-   consequences below are written by hand, because that is genuine domain knowledge rather than
-   data the engine holds. */
-const MOVE_FLAG_INFO={
-  contact:{label:'Contact',note:'Triggers contact abilities and items.',
-    boosts:[{by:'Tough Claws',mult:'\u00D71.3'}],
-    risks:['Rough Skin / Iron Barbs','Static, Flame Body, Poison Point, Effect Spore','Rocky Helmet'],
-    negatedBy:'Protective Pads, Long Reach'},
-  punch:{label:'Punch',note:'A punching move.',boosts:[{by:'Iron Fist',mult:'\u00D71.2'}],
-    negatedBy:'Blocked by Punching Glove\u2019s contact removal (power still boosted)'},
-  bite:{label:'Bite',note:'A biting move.',boosts:[{by:'Strong Jaw',mult:'\u00D71.5'}]},
-  pulse:{label:'Pulse / Aura',note:'A pulse or aura move.',boosts:[{by:'Mega Launcher',mult:'\u00D71.5'}]},
-  slicing:{label:'Slicing',note:'A cutting move.',boosts:[{by:'Sharpness',mult:'\u00D71.5'}]},
-  sound:{label:'Sound',note:'Passes through Substitute.',boosts:[{by:'Punk Rock',mult:'\u00D71.3'}],
-    risks:['Blocked entirely by Soundproof'],negatedBy:'Throat Spray raises Sp. Atk after use'},
-  bullet:{label:'Ballistic',note:'A ball or bomb move.',risks:['Blocked entirely by Bulletproof']},
-  wind:{label:'Wind',note:'A wind move.',risks:['Wind Rider makes the target immune and raises its Attack','Wind Power charges the target']},
+   so they cannot drift from what the damage calculator actually uses.
+
+   The CONSEQUENCES used to be written by hand here, on the reasoning that they were domain
+   knowledge rather than data. That reasoning was wrong, and the table was the proof: it named
+   three of the eighteen abilities that punish contact, had no entry for powder or reflectable at
+   all, and said of Punching Glove only "Blocked by Punching Glove's contact removal (power still
+   boosted)", which is not a sentence. Meanwhile the same facts sat in Showdown's source in
+   machine-readable form. They are now read from the IX table with everything else, so this file
+   holds exactly one claim about Mega Launcher rather than two that can disagree.
+
+   What is left below is presentation vocabulary only - a short label and a gloss that says what
+   the flag MEANS, which genuinely is not in the data. A flag with no entry here is not tagged, and
+   that is the whole gating mechanism: `protect` is carried by 669 of 953 moves, so tagging it
+   would put a badge on almost every row and distinguish nothing. */
+const MOVE_TAG_NOTE={
+  contact:{label:'Contact',note:'Makes physical contact with the target.'},
+  punch:{label:'Punch',note:'A punching move.'},
+  bite:{label:'Bite',note:'A biting move.'},
+  pulse:{label:'Pulse / Aura',note:'A pulse or aura move.'},
+  slicing:{label:'Slicing',note:'A cutting move.'},
+  sound:{label:'Sound',note:'Passes through Substitute.'},
+  bullet:{label:'Ballistic',note:'A ball or bomb move.'},
+  wind:{label:'Wind',note:'A wind move.'},
+  powder:{label:'Powder',note:'Grass types and Overcoat are immune.'},
+  reflectable:{label:'Reflectable',note:'Magic Coat and Magic Bounce send it back.'},
 };
-// Ask the engine what a move is. Returns [] when the engine has not loaded or does not know it,
-// so the caller renders nothing rather than a confident empty answer.
+/* Ask the engine what a move is, and fall back to the build-time table when it has not loaded.
+   The engine is preferred because it is the thing that computes the damage, so an answer taken
+   from it cannot disagree with the calculator. But "the engine is not loaded yet" is not a reason
+   to tell the reader a move has no flags - before 5.29 that returned [], and a move opened before
+   the calculator had ever been visited showed nothing at all. */
 function moveDescriptors(moveName){
+  const id=String(moveName).toLowerCase().replace(/[^a-z0-9]/g,'');
   try{
-    if(typeof SmogonCalc==='undefined')return [];
-    // The engine's lookup maps are built lazily by the damage calculator. Without this, move tags
-    // only appeared once you had visited that tab - Aura Sphere showed no Pulse or Ballistic tag
-    // on the Moves tab, which is where anyone would actually look for it.
-    if(!CalcMaps||!CalcMaps.gen)try{calcEnsureMaps()}catch{return []}
-    if(!CalcMaps||!CalcMaps.gen)return [];
-    const id=String(moveName).toLowerCase().replace(/[^a-z0-9]/g,'');
-    const m=CalcMaps.gen.moves.get(id);
-    if(!m||!m.flags)return [];
-    return Object.keys(m.flags).filter(k=>MOVE_FLAG_INFO[k]);
-  }catch{ return [] }
+    if(typeof SmogonCalc!=='undefined'){
+      // The engine's lookup maps are built lazily by the damage calculator. Without this, move tags
+      // only appeared once you had visited that tab - Aura Sphere showed no Pulse or Ballistic tag
+      // on the Moves tab, which is where anyone would actually look for it.
+      if(!CalcMaps||!CalcMaps.gen)try{calcEnsureMaps()}catch{}
+      if(CalcMaps&&CalcMaps.gen){
+        const m=CalcMaps.gen.moves.get(id);
+        if(m&&m.flags)return Object.keys(m.flags).filter(k=>MOVE_TAG_NOTE[k]);
+      }
+    }
+  }catch{}
+  // typeof, not a truthiness test: an undeclared identifier throws rather than being falsy, and
+  // this function is sliced out and run on its own by tests/test-move-tags.js.
+  const slug=(typeof normalizeMoveName==='function')?normalizeMoveName(moveName):String(moveName||'').toLowerCase();
+  return String(IX.moveFlags[slug]||'').split(' ').filter(function(f){return f&&MOVE_TAG_NOTE[f]});
+}
+/* Every ability and item that acts on a flag, in the generation on screen. This is the derived
+   replacement for the hand-written boosts/risks/negatedBy lists. */
+function ixFlagConsequences(flag,genNum){
+  const out=[];
+  [IX.abilities,IX.items].forEach(function(tbl){
+    Object.keys(tbl).forEach(function(name){
+      const rec=tbl[name];
+      if(rec.gen&&rec.gen>genNum)return;
+      (rec.rules||[]).forEach(function(r){
+        if(r.flag!==flag)return;
+        const who=ixTitle(name),m=r.mult?' \u00D7'+r.mult:'';
+        if(r.kind==='boost')out.push({t:who+m,boost:true});
+        else if(r.kind==='block')out.push({t:'Blocked by '+who,block:true});
+        else if(r.kind==='resist')out.push({t:who+' takes '+Math.round((1-(r.mult||0))*100)+'% less'});
+        else if(r.kind==='retype')out.push({t:who+' changes its type'});
+        else if(r.kind==='removes')out.push({t:who+' removes it'});
+        /* A strip rule names two flags — the one tested and the one deleted — and the second is
+           the point. "Unseen Fist" on its own tells a reader nothing; what they need is that it
+           makes the move go through Protect. */
+        else if(r.kind==='strips')out.push({t:who+' removes its '+((IX.flagLabels[r.strips]||{}).adj||r.strips)+' status'});
+        else out.push({t:who});
+      });
+    });
+  });
+  return out;
 }
 // Bordered text tokens, not filled blobs: the tag says what it is, the tooltip says what it costs.
 function renderMoveTags(moveName){
   const flags=moveDescriptors(moveName);
   if(!flags.length)return '';
-  return '<div class="mv-tags">'+flags.map(f=>{
-    const i=MOVE_FLAG_INFO[f];
-    const bits=[i.note];
-    (i.boosts||[]).forEach(b=>bits.push(b.by+' '+b.mult));
-    (i.risks||[]).forEach(r=>bits.push(r));
-    if(i.negatedBy)bits.push(i.negatedBy);
-    const boosted=(i.boosts||[]).length?' mv-tag-boost':'';
-    const blocked=(i.risks||[]).some(r=>/Blocked entirely/.test(r))?' mv-tag-block':'';
-    return '<span class="mv-tag'+boosted+blocked+'" title="'+bits.join(' \u00b7 ').replace(/"/g,'&quot;')+'">'+i.label
-      +((i.boosts||[]).length?'<b>'+i.boosts[0].mult+'</b>':'')+'</span>';
+  const genNum=getDataGenNum();
+  return '<div class="mv-tags">'+flags.map(function(f){
+    const i=MOVE_TAG_NOTE[f];
+    const cons=ixFlagConsequences(f,genNum);
+    /* Capped, because this is a native title attribute and contact has twenty-two consequences.
+       A tooltip that lists all of them is a paragraph the browser renders as one unbroken line;
+       the full list lives on the ability pages, which have room for it. Boosts and blocks are
+       hoisted first so the cap never drops the two that change a damage number. */
+    const ranked=cons.slice().sort(function(x,y){return (y.boost||y.block?1:0)-(x.boost||x.block?1:0)});
+    const shown=ranked.slice(0,8).map(function(c){return c.t});
+    if(ranked.length>8)shown.push('and '+(ranked.length-8)+' more');
+    const bits=[i.note].concat(shown);
+    const boost=cons.filter(function(c){return c.boost})[0];
+    const blocked=cons.some(function(c){return c.block})?' mv-tag-block':'';
+    return '<span class="mv-tag'+(boost?' mv-tag-boost':'')+blocked+'" title="'
+      +bits.join(' \u00b7 ').replace(/"/g,'&quot;')+'">'+i.label
+      +(boost&&/\u00D7/.test(boost.t)?'<b>\u00D7'+boost.t.split('\u00D7')[1]+'</b>':'')+'</span>';
   }).join('')+'</div>';
 }
 
@@ -7425,18 +7731,46 @@ async function showAbilityPage(abilityName){
     h+='<div class="ap-meta">Ability · Introduced in Gen '+introGen+' · Showing Gen '+genRoman+' Pok&#233;mon</div>';
     h+='</div>';
 
+    /* The game's own sentence for the generation being shown, not PokeAPI's `short_effect`.
+       short_effect has no generation dimension and for a whole class of abilities it is years
+       behind: Scrappy's says only that Normal and Fighting moves hit Ghosts, and has said only
+       that since Generation IV, while Scarlet/Violet's own text adds "It is also unaffected by
+       Intimidate". flavor_text_entries carries a line per version group and the app was calling
+       .pop() on it - taking the newest whatever generation was selected - and then only as a
+       fallback. Reading it properly makes the page generation-correct in both directions: Gen IX
+       gets the Intimidate clause and Gen VII does not, because in Gen VII it did not.
+
+       short_effect is kept as the second block when it genuinely adds something. It is often the
+       more precise of the two - "Strengthens aura and pulse moves to 1.5x their power" against the
+       game's "Powers up pulse moves" - so dropping it would lose detail. */
+    const gameText=genFlavorText(d.flavor_text_entries,genNum);
+    const detail=(longDesc||'').replace(/\n/g,' ').trim();
+    const primary=abilityDescForGen(abilityName,(gameText||shortDesc||detail));
+    h+='<div class="ap-desc">'+primary+'</div>';
     /* One description, not two. PokeAPI ships a short effect line and a long one, and for most
        abilities the long one is the short one reworded - Aftermath said "damages the attacker for
        1/4 its max HP when knocked out by a contact move" and then, in a second box at a second
        size, "when this Pokemon is knocked out by a move that makes contact, the move's user takes
        1/4 its maximum HP in damage". Comparing the two strings for exact inequality never caught
        that, so every ability page carried the same sentence twice. The extra block is now shown
-       only when it is genuinely additional text rather than a restatement. */
-    const detail=(longDesc||'').replace(/\n/g,' ').trim();
-    h+='<div class="ap-desc">'+abilityDescForGen(abilityName,(shortDesc||detail))+'</div>';
-    if(shortDesc&&detail&&!isRestatement(shortDesc,detail)){
-      h+='<div class="ap-detail">'+detail+'</div>';
-    }
+       only when it is genuinely additional text rather than a restatement - and now that the game
+       text is primary, there are three candidates to keep apart rather than two. */
+    /* isRestatement(candidate, reference) — the candidate's words are the denominator, so the
+       argument order is not interchangeable. Passing them the other way round asks "is the game's
+       longer sentence a restatement of the short one", which is a different question and answers
+       no: it scores the extra clause the game text has as a miss. That is exactly how Scrappy came
+       to print the Intimidate sentence and then, underneath it, the older sentence without it. */
+    let extra='';
+    [shortDesc,detail].forEach(function(t){
+      t=(t||'').trim();
+      if(!t||extra||isRestatement(t,primary))return;
+      if(ixContradicts(t,abilityName))return;
+      extra=t;
+    });
+    if(extra)h+='<div class="ap-detail">'+extra+'</div>';
+
+    // What it does to a class of moves, and which moves those are. Derived; see the IX table.
+    h+=renderInteractions('ability',abilityName,genNum,primary);
 
     /* Show Pokemon with this ability, forms included.
        Every alternate form - megas, regionals, Gigantamax, Therian and the rest - is served by
@@ -9060,7 +9394,11 @@ async function loadItemDetail(nameOrId){
     }
     const gens=d.game_indices.map(gi=>gi.generation.name);
     const sprite=d.sprites?.default||null;
-    const result={name:d.name,id:d.id,effect,flavor:flavor.replace(/\n/g,' '),gens,sprite,category:d.category?.name||''};
+    /* The raw entries, not just the one string. `.find()` above takes the FIRST English entry,
+       which is the oldest version group in the list - so an item whose description was rewritten
+       showed its debut wording for ever, in every generation. Keeping the entries lets the detail
+       panel pick the wording for the generation actually on screen. */
+    const result={name:d.name,id:d.id,effect,flavor:flavor.replace(/\n/g,' '),flavorEntries:d.flavor_text_entries||[],gens,sprite,category:d.category?.name||''};
     itemDetailCache[nameOrId]=result;
     return result;
   }catch{return null}
@@ -9394,10 +9732,14 @@ async function showItemDetail(name){
     h+='<div style="font-size:14px;color:var(--text);line-height:1.6">'+detail.effect+'</div></div>';
   }
   
-  if(detail.flavor){
+  const itemGameText=genFlavorText(detail.flavorEntries,genNum)||detail.flavor;
+  if(itemGameText){
     h+='<div style="margin-bottom:16px"><div class="section-label" style="margin-bottom:6px">Description</div>';
-    h+='<div style="font-size:13px;color:#8a8a9a;line-height:1.5;font-style:italic">'+detail.flavor+'</div></div>';
+    h+='<div style="font-size:13px;color:#8a8a9a;line-height:1.5;font-style:italic">'+itemGameText+'</div></div>';
   }
+
+  // What it does to a class of moves, and which moves those are. Derived; see the IX table.
+  h+=renderInteractions('item',name,genNum);
   
   if(detail.gens.length||introGen){
     // Build gen availability from intro gen to current (or to removal)

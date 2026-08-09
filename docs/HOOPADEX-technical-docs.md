@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 1.7 · Last updated 2026-08-03 · HoopaDex v5.28**
+**Version 1.8 · Last updated 2026-08-09 · HoopaDex v5.29**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -203,6 +203,81 @@ Two constraints follow from the source data:
 It must restore rather than subtract: deleting a type that did not exist yet is only correct where
 that type was ADDED to a species. Where Fairy REPLACED a type it loses one — Togetic and Togekiss
 were Normal/Flying and rendered as pure Flying in Gens II-V until 1.98.
+
+### Move classes, and the abilities and items that act on them
+`IX` is the third generated table, built by `build/generate-interactions.js` and put into
+`app/index.html` by `build/embed-interactions.js`. It answers two questions the app previously could
+not: *what does this ability do to a class of moves*, and *which moves are in the class*.
+
+The class has a name in the game's own data. Showdown records a set of flags per move — `pulse`,
+`punch`, `bite`, `sound`, `bullet`, `slicing`, `wind`, `powder`, `contact`, `protect`,
+`reflectable` — and an ability's code tests them directly:
+
+```
+megalauncher: {
+  onBasePower(basePower, attacker, defender, move) {
+    if (move.flags['pulse']) return this.chainModify(1.5);
+  },
+}
+```
+
+So "boosts pulse moves ×1.5" and the seven moves carrying the flag are both read out rather than
+typed. The generator emits 36 abilities and 6 items with a rule, and 441 moves with at least one
+shown flag.
+
+Four constraints on what it is willing to claim:
+
+- **A multiplier is stated only when its attribution is unambiguous** — one flag tested, one
+  `chainModify` in that hook, brace-matched so a modifier in `onSourceModifyDamage` is never
+  credited to a flag test in `onBasePower`. Fluffy tests contact and has two branches, so it is
+  reported as an interaction with no number rather than being given one of the two.
+- **`chainModify` takes either a number or an `[n, 4096]` pair**, which is how the games store a
+  modifier. `4915/4096` is 1.2; `5325/4096` is 1.30005, rounded to 1.3, because printing
+  "×1.30005" would be accurate and useless.
+- **Contact is not tested through the flag.** Three things remove it conditionally — Long Reach,
+  Punching Glove, Protective Pads — so Showdown asks `checkMoveMakesContact` instead. Reading that
+  call as a contact test is the only reason Rocky Helmet, Rough Skin, Static and fifteen others
+  appear at all.
+- **An unknown flag fails the build.** `FLAG_LABEL` and `FLAG_INTERNAL` partition the vocabulary
+  rather than filtering it, so a flag Showdown adds later cannot be silently dropped.
+
+Comments are blanked before brace matching, and that is correctness rather than tidiness: Oblivious
+contains `// Taunt's volatile already sends the -end message`, and a matcher that treats the
+apostrophe as a string opener runs past the end of the entry. The first run of the generator did
+exactly that and reported Oblivious as blocking powder moves — Overcoat's rule, attributed to its
+alphabetical neighbour.
+
+**When behaviour changed** comes from the same mod files as `PAST_STATS`, on the same cutoff
+convention. `mods/gen7/abilities.ts` contains `oblivious: { inherit: true, onTryBoost: undefined }`,
+which says these abilities did not resist Intimidate in Generation VII or below — so the mechanic
+landed in Generation VIII. A mod entry counts only if it changes behaviour; most of the 271 entries
+in the gen8 mod are `isNonstandard` or `rating` edits, and counting those would put a "changed in
+Gen IX" note on half the ability list.
+
+**Where the two sources disagree, both are kept.** Showdown puts the Intimidate clause at Generation
+VIII; the games did not reword the in-game description until Scarlet/Violet. Showdown decides
+whether the mechanic is present, because that is a question about the mechanic; PokeAPI's per
+version-group text supplies the wording the game itself prints. Neither is stretched to cover the
+other.
+
+### Generation-correct descriptions
+PokeAPI's `effect_entries.short_effect` has **no generation dimension**, and for a large class of
+abilities it is years behind the games. Scrappy's has read "Lets the Pokemon's Normal and Fighting
+moves hit Ghost Pokemon" since Generation IV. Tough Claws' still says 1.33×, the Generation VI
+value, wrong since Generation VII.
+
+`flavor_text_entries` does carry a line per version group, and `VG_GEN` already maps version group
+to generation. `genFlavorText(entries, genNum)` takes the newest entry at or below the selected
+generation, falling back to the oldest available when the generation predates them all. Abilities
+and moves call the field `flavor_text`; items call it `text`; one helper reads both. Before 5.29
+the ability and move paths called `.pop()` — newest regardless of generation — and `loadItemDetail`
+took the first English entry, which is the oldest, so a rewritten item description showed its debut
+wording for ever.
+
+Where PokeAPI's prose states a multiplier the derived rule disagrees with, the prose is dropped —
+`ixContradicts()`. This is a numeric conflict check only. Prose that adds anything else still shows,
+because the alternative to suppressing a contradiction is printing both and asking the reader to
+arbitrate.
 
 ### The Champions roster is the one table still hand-maintained
 `CHAMPIONS_IDS_MA` and `REG_MB_NEW` are ~200 National Dex numbers written by hand. Everything else
@@ -433,6 +508,8 @@ true.
 | `build/generate-gen1-special.js` | `data/gen1-special.json` — the single Generation I Special stat |
 | `build/generate-item-gens.js` | `data/item-intro-gens.json` — item introduction generations from PokéAPI |
 | `build/generate-mega-abilities.js` | `data/mega-abilities.json` — Legends Z-A mega abilities |
+| `build/generate-interactions.js` | `data/interactions.json` and `data/interactions.embed.json` — move flags, and the abilities and items that act on them |
+| `build/embed-interactions.js` | Rewrites the `IX` table inside `app/index.html` from the generated copy |
 | `build/generate-regulations.js` | `data/regulations.json` and `docs/REGULATIONS.md` |
 | `build/generate-regulation-items.js` | `data/regulation-items.json` — per-regulation item legality |
 | `build/generate-stat-formula.js` | `docs/STAT-FORMULA.md`, every figure computed by the shipped code |
@@ -442,9 +519,10 @@ true.
 | `build/omnibus.py` | A PDF from a Markdown report |
 
 Every generated table is compared to its committed derivation by a suite on every run, so the app
-and the data cannot drift apart silently. Seven of the ten files in `data/` are checked this way;
-the exceptions are the two caches (`evolution-cache.json`, `species-names.json`) and the raw
-Showdown extract that `generate-mega-abilities.js` reads.
+and the data cannot drift apart silently. Eight of the twelve files in `data/` are checked this way;
+the exceptions are the two caches (`evolution-cache.json`, `species-names.json`), the raw Showdown
+extract that `generate-mega-abilities.js` reads, and `interactions.json`, whose trimmed sibling
+`interactions.embed.json` is the copy the app carries and the copy the suite compares byte for byte.
 
 ---
 

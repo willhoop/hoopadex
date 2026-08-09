@@ -140,6 +140,54 @@ const MUTATIONS = [
   ['M36', 'Learnsets: a failed load is cached again, so Champions legality can never recover',
     '      _champLSLoading=null;   // let the next call try again instead of replaying the failure',
     '      /* cache the failure */', 1, 'test-champions-roster.js'],
+
+  /* Interactions. These are the bug shapes that would put a WRONG statement about a mechanic in
+     front of a reader while every page still rendered and every other suite stayed green — which
+     is the whole reason this table exists rather than a regex that checks the functions are
+     present. */
+  ['M37', 'Ability text: the generation filter is dropped, so every generation gets the newest wording',
+    '  const within=en.filter(function(e){return VG_GEN[e.version_group.name]<=genNum});',
+    '  const within=en;', 1, 'test-interactions.js'],
+  ['M38', 'Ability text: the newest matching wording is replaced by the oldest',
+    'pool.forEach(function(e){if(VG_GEN[e.version_group.name]>=VG_GEN[best.version_group.name])best=e});',
+    'pool.forEach(function(e){if(VG_GEN[e.version_group.name]<=VG_GEN[best.version_group.name])best=e});',
+    1, 'test-interactions.js'],
+  ['M39', 'Flag members stop being cut to the generation — Mega Launcher boosts Terrain Pulse in Gen VI',
+    '  return (IX.flagMoves[flag]||[]).filter(function(x){return x[1]<=genNum});',
+    '  return (IX.flagMoves[flag]||[]);', 1, 'test-interactions.js'],
+  ['M40', 'Mega Launcher boosts pulse moves by 1.2 instead of 1.5',
+    '"mega-launcher":{"rules":[{"flag":"pulse","kind":"boost","mult":1.5}]',
+    '"mega-launcher":{"rules":[{"flag":"pulse","kind":"boost","mult":1.2}]', 1, 'test-interactions.js'],
+  ['M41', 'Intimidate immunity loses its start generation, so Gen VII is told Scrappy resists it',
+    'if(rec.intimidate===\'blocks\'&&(!rec.intimidateFrom||genNum>=rec.intimidateFrom)){',
+    'if(rec.intimidate===\'blocks\'){', 1, 'test-interactions.js'],
+  ['M42', 'A resist is printed as its raw factor, so Punk Rock "takes 50% MORE damage"',
+    "case 'resist':  return 'Takes '+(r.mult?Math.round((1-r.mult)*100)+'% less':'less')+' damage from '+f.noun;",
+    "case 'resist':  return 'Takes '+(r.mult?Math.round(r.mult*100)+'% less':'less')+' damage from '+f.noun;",
+    1, 'test-interactions.js'],
+  ['M43', 'The stale-multiplier guard inverts, so PokeAPI\'s 1.33x sits next to the derived 1.3',
+    '    return !mults.some(function(m){return Math.abs(m-n)<0.02});',
+    '    return mults.some(function(m){return Math.abs(m-n)<0.02});', 1, 'test-interactions.js'],
+  ['M44', 'A move reports its holder-side rules as things that happen TO it',
+    "        if(r.kind==='removes'||r.kind==='strips')return;",
+    '        if(false)return;', 1, 'test-interactions.js'],
+  ['M45', 'The embedded interaction table goes stale against the generated one',
+    '"mega-launcher":{"rules"', '"mega-launcher-x":{"rules"', 1, 'test-interactions.js'],
+  ['M46', 'Move tags stop being cut to the generation, so Gen V is told Mega Launcher boosts pulses',
+    '      if(rec.gen&&rec.gen>genNum)return;\n      (rec.rules||[]).forEach(function(r){\n        if(r.flag!==flag)return;',
+    '      (rec.rules||[]).forEach(function(r){\n        if(r.flag!==flag)return;', 1, 'test-move-tags.js'],
+  ['M47', 'A move opened before the calc engine loads claims no flags again',
+    "  return String(IX.moveFlags[slug]||'').split(' ').filter(function(f){return f&&MOVE_TAG_NOTE[f]});",
+    '  return [];', 1, 'test-move-tags.js'],
+  /* ASCII-only anchor on purpose. index.html stores non-ASCII as \uXXXX escapes, so an anchor
+     containing a literal "·" matches zero times and the mutation silently stops testing anything —
+     which the runner reports as a SKIP and a failed run, correctly, but is still an hour wasted. */
+  ['M48', 'The tag tooltip stops escaping quotes and can break out of the title attribute',
+    ".replace(/\"/g,'&quot;')+'\">'+i.label",
+    "+'\">'+i.label", 1, 'test-move-tags.js'],
+  ['M49', 'The tooltip cap stops hoisting boosts, so contact drops Tough Claws for twenty triggers',
+    "    const ranked=cons.slice().sort(function(x,y){return (y.boost||y.block?1:0)-(x.boost||x.block?1:0)});",
+    '    const ranked=cons.slice();', 1, 'test-move-tags.js'],
 ];
 
 function runSuite(suite, srcPath) {

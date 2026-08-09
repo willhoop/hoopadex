@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 1.6 · Last updated 2026-08-03 · HoopaDex v5.28**
+**Version 1.7 · Last updated 2026-08-09 · HoopaDex v5.29**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -160,10 +160,39 @@ stale as the last time you ran it.
 
 ---
 
+## Slide 11a — The same problem, hiding in the sentences
+
+Numbers are easy to distrust. Sentences are not, so this one lasted longer.
+
+Every ability in the dex was described by a single line of text with **no year attached to it**.
+Scrappy's has read "lets Normal and Fighting moves hit Ghosts" since 2006. Since Generation VIII it
+also ignores Intimidate. The dex never said so — in any generation.
+
+The game itself does say so. It carries a different description for each set of games, and the dex
+was throwing all but one of them away. It now shows the wording from the games you selected: pick
+Scarlet and Violet, you get the Intimidate line. Pick Ultra Sun, you don't — because back then it
+was not true.
+
+**And a whole kind of fact was simply missing.** Mega Launcher boosts "pulse moves". Which moves are
+those? The dex had no answer. Nothing on Aura Sphere mentioned Mega Launcher either. You could only
+find that out if you already knew it.
+
+Those seven moves were never a mystery — the games group them under a tag, and the ability's own
+code checks that tag. So the dex now reads it: **Boosts pulse moves ×1.5 — Aura Sphere, Dark Pulse,
+Dragon Pulse, Heal Pulse, Origin Pulse, Terrain Pulse, Water Pulse.** Same for punching, biting,
+slicing, sound, wind, powder and contact. 36 abilities, 6 items, 441 moves.
+
+One thing worth saying out loud: where the game's description and the game's *behaviour* disagree,
+both are shown rather than one picked. The Intimidate resistance started working in Generation VIII.
+The description did not mention it until Generation IX. That gap is real, and pretending either
+date is the whole answer would be tidier and worse.
+
+---
+
 ## Slide 12 — What we don't claim
 
-Twenty-seven test suites and 870 assertions now cover the data, the damage formula and the
-files we did not write ourselves.
+Twenty-nine test suites and 1,062 assertions now cover the data, the damage formula, the derived
+mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test
 had been checked by deliberately breaking the code. In August 2026 someone actually did that,

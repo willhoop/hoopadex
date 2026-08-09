@@ -12,6 +12,101 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.29] - 2026-08-09
+
+### Added
+- **Abilities, items and moves now say what they do to a CLASS of moves, and which moves are in
+  it.** Reported from the live site: "Mega Launcher boosts Aura Sphere and nothing on either page
+  says so". There was no way to find that out in the app. The Mega Launcher page said "Powers up
+  pulse moves" and stopped; the Aura Sphere tooltip did not mention Mega Launcher; and nothing
+  anywhere listed the seven moves that carry the flag.
+
+  This is derived, not typed. A class of moves has a name in the game's own data — a move flag —
+  and an ability's code tests it directly. Mega Launcher is literally
+  `if (move.flags['pulse']) return this.chainModify(1.5)`, so both "boosts pulse moves ×1.5" and
+  the seven members of the class are read out of Showdown by `build/generate-interactions.js` and
+  embedded by `build/embed-interactions.js`. **36 abilities and 6 items** have a rule; **441 moves**
+  carry at least one shown flag.
+
+  Every ability page and item page gained a MECHANICS block, and every move tooltip gained its flag
+  chips plus who acts on it — "Boosted ×1.5 by Mega Launcher", "Blocked by Bulletproof".
+
+  Two deliberate limits. A multiplier is only stated when the hook that carries it is unambiguous:
+  Fluffy, which doubles Fire damage and halves contact damage in separate branches, is reported as
+  an interaction with **no number** rather than being given one of the two. And a broad flag is
+  counted rather than listed — 277 contact moves is not a list anyone reads.
+
+  Contact needed one extra rule to work at all. Showdown does not test `move.flags['contact']`
+  directly, because three things remove that flag conditionally; it asks `checkMoveMakesContact`.
+  Reading that call as a contact test is what puts Rocky Helmet, Rough Skin, Static and fifteen
+  others on the list. Without it the app would have shown Tough Claws and implied contact had no
+  other consequences.
+
+### Fixed
+- **Every ability, item and move was described by one generation-blind sentence, and for a whole
+  class of them that sentence was years out of date.** Reported as "Scrappy also ignores Intimidate
+  and we don't show that". The app took PokeAPI's `short_effect`, which has no generation dimension
+  at all: Scrappy's has read "Lets the Pokemon's Normal and Fighting moves hit Ghost Pokemon" since
+  Generation IV and has never mentioned Intimidate. Oblivious's still describes only infatuation and
+  Captivate — no Taunt immunity (Gen VI), no Intimidate immunity (Gen VIII).
+
+  PokeAPI does carry the answer and the app was not reading the field. `flavor_text_entries` holds
+  one line **per version group**; the app called `.pop()` on it, which takes the newest whatever
+  generation is selected, and only as a fallback behind `short_effect`. Reading it properly makes
+  the page correct in both directions: Gen IX gets Scarlet/Violet's line, which mentions Intimidate,
+  and Gen VII gets Ultra Sun/Ultra Moon's, which does not — because in Gen VII it did not.
+
+  The same bug was in the move tooltip and in `loadItemDetail`, which took the **first** English
+  entry: an item whose description was rewritten showed its debut wording for ever, in every
+  generation. All three now share one `genFlavorText()`.
+
+- **When did the mechanic actually change?** The two sources disagree and the disagreement is kept
+  rather than flattened. Showdown's `mods/gen7/abilities.ts` contains
+  `oblivious: { inherit: true, onTryBoost: undefined }` — in Gen VII and below these abilities did
+  not have the hook that resists Intimidate — so the mechanic landed in **Gen VIII**. The games did
+  not reword the description until **Scarlet/Violet**. Both are true about different things.
+  Showdown decides whether the mechanic is present, because that is a question about the mechanic;
+  the game text supplies the wording. Below the change point the line is not shown at all, rather
+  than shown with a caveat. Same cutoff convention `build/generate-past-stats.js` already uses for
+  base stats.
+
+- **Tough Claws printed two different multipliers, two inches apart.** MECHANICS derives ×1.3 from
+  Showdown's 5325/4096; PokeAPI's `short_effect` still says "to 1.33× their power", which was the
+  Generation VI value and stopped being true in Generation VII. Both were on screen at once with
+  nothing to tell the reader which to believe. The stale prose is now dropped when it states a
+  multiplier the derived rule disagrees with — a numeric conflict only, so prose that adds anything
+  else still shows.
+
+- **The ability page printed its own description twice.** `isRestatement(candidate, reference)`
+  scores the candidate's words, so its arguments are not interchangeable, and the new call passed
+  them the other way round. That asks a different question, answers no, and put Scrappy's
+  Intimidate sentence above the older sentence without it. Corrected while wiring the panel; the
+  ordering is now stated in a comment at the call site.
+
+- **Punk Rock listed the same thirty-three sound moves twice**, once for its boost rule and once
+  for its resist rule, a screen apart. The member list belongs to the flag, not to the rule.
+
+### Testing
+- `tests/test-interactions.js` — **56 assertions**, behavioural rather than structural: the shipped
+  functions are sliced out of `index.html` and run against known answers. Nothing is restated
+  locally, so a correct copy in the test file cannot hide a broken original.
+- **Thirteen new mutations, M37–M49**, each naming this suite. One of them, M42, **survived on the
+  first run** and the finding was real: 0.5 is the only resist multiplier in the shipped data, and
+  it is the single value where "50% less" and "50% of" are the same string — so printing the raw
+  factor instead of the reduction was invisible to the suite. Fixed with an asymmetric fixture.
+- The mutation set is now **49, all killed**. Suites 29, assertions 1,062.
+- `M45` asserts the embedded 25 KB table is byte-identical to `data/interactions.embed.json`, so a
+  stale embed fails the build instead of shipping quietly.
+
+### Not verified
+- **How it looks.** Screenshots still do not composite in this environment, so the panel was checked
+  structurally — classes resolve, no horizontal overflow, no page-width growth — and read as text,
+  not seen. The CSS uses only existing theme variables and `color-mix` over them, with no literal
+  colour anywhere, which is what makes it safe in both themes by construction rather than by
+  inspection.
+
+---
+
 ## [5.28] - 2026-08-03
 
 ### Fixed

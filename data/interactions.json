@@ -1,0 +1,8243 @@
+{
+ "source": "https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/{moves,abilities,items}.ts and mods/gen{4,5,6,7,8}/abilities.ts",
+ "generated": "by build/generate-interactions.js — do not edit by hand",
+ "convention": "changedAt lists generations in which an ability began behaving differently, derived from Showdown mod overrides (a genN mod describes gen N and below, so an override means the change landed at N+1). Flag membership is as of the current game.",
+ "flagLabels": {
+  "pulse": {
+   "noun": "pulse moves",
+   "adj": "pulse"
+  },
+  "punch": {
+   "noun": "punching moves",
+   "adj": "punching"
+  },
+  "bite": {
+   "noun": "biting moves",
+   "adj": "biting"
+  },
+  "sound": {
+   "noun": "sound moves",
+   "adj": "sound-based"
+  },
+  "bullet": {
+   "noun": "ballistic moves",
+   "adj": "ballistic"
+  },
+  "slicing": {
+   "noun": "slicing moves",
+   "adj": "slicing"
+  },
+  "wind": {
+   "noun": "wind moves",
+   "adj": "wind"
+  },
+  "powder": {
+   "noun": "powder moves",
+   "adj": "powder"
+  },
+  "contact": {
+   "noun": "contact moves",
+   "adj": "contact",
+   "broad": true
+  },
+  "protect": {
+   "noun": "moves Protect stops",
+   "adj": "protectable",
+   "broad": true
+  },
+  "reflectable": {
+   "noun": "reflectable status moves",
+   "adj": "reflectable",
+   "broad": true
+  }
+ },
+ "counts": {
+  "movesWithFlags": 698,
+  "abilitiesWithRules": 36,
+  "itemsWithRules": 6,
+  "abilitiesThatChanged": 82
+ },
+ "flagMoves": {
+  "protect": [
+   [
+    "absorb",
+    1
+   ],
+   [
+    "accelerock",
+    7
+   ],
+   [
+    "acid",
+    1
+   ],
+   [
+    "acid-spray",
+    5
+   ],
+   [
+    "acrobatics",
+    5
+   ],
+   [
+    "aerial-ace",
+    3
+   ],
+   [
+    "aeroblast",
+    2
+   ],
+   [
+    "air-cutter",
+    3
+   ],
+   [
+    "air-slash",
+    4
+   ],
+   [
+    "alluring-voice",
+    9
+   ],
+   [
+    "anchor-shot",
+    7
+   ],
+   [
+    "ancient-power",
+    2
+   ],
+   [
+    "apple-acid",
+    8
+   ],
+   [
+    "aqua-cutter",
+    9
+   ],
+   [
+    "aqua-jet",
+    4
+   ],
+   [
+    "aqua-step",
+    9
+   ],
+   [
+    "aqua-tail",
+    4
+   ],
+   [
+    "arm-thrust",
+    3
+   ],
+   [
+    "armor-cannon",
+    9
+   ],
+   [
+    "assurance",
+    4
+   ],
+   [
+    "astonish",
+    3
+   ],
+   [
+    "astral-barrage",
+    8
+   ],
+   [
+    "attack-order",
+    4
+   ],
+   [
+    "attract",
+    2
+   ],
+   [
+    "aura-sphere",
+    4
+   ],
+   [
+    "aura-wheel",
+    8
+   ],
+   [
+    "aurora-beam",
+    1
+   ],
+   [
+    "avalanche",
+    4
+   ],
+   [
+    "axe-kick",
+    9
+   ],
+   [
+    "baby-doll-eyes",
+    6
+   ],
+   [
+    "baddy-bad",
+    7
+   ],
+   [
+    "barb-barrage",
+    8
+   ],
+   [
+    "barrage",
+    1
+   ],
+   [
+    "beak-blast",
+    7
+   ],
+   [
+    "beat-up",
+    2
+   ],
+   [
+    "behemoth-bash",
+    8
+   ],
+   [
+    "behemoth-blade",
+    8
+   ],
+   [
+    "belch",
+    6
+   ],
+   [
+    "bide",
+    1
+   ],
+   [
+    "bind",
+    1
+   ],
+   [
+    "bite",
+    1
+   ],
+   [
+    "bitter-blade",
+    9
+   ],
+   [
+    "bitter-malice",
+    8
+   ],
+   [
+    "blast-burn",
+    3
+   ],
+   [
+    "blaze-kick",
+    3
+   ],
+   [
+    "blazing-torque",
+    9
+   ],
+   [
+    "bleakwind-storm",
+    8
+   ],
+   [
+    "blizzard",
+    1
+   ],
+   [
+    "blood-moon",
+    9
+   ],
+   [
+    "blue-flare",
+    5
+   ],
+   [
+    "body-press",
+    8
+   ],
+   [
+    "body-slam",
+    1
+   ],
+   [
+    "bolt-beak",
+    8
+   ],
+   [
+    "bolt-strike",
+    5
+   ],
+   [
+    "bone-club",
+    1
+   ],
+   [
+    "bone-rush",
+    2
+   ],
+   [
+    "bonemerang",
+    1
+   ],
+   [
+    "boomburst",
+    6
+   ],
+   [
+    "bounce",
+    3
+   ],
+   [
+    "bouncy-bubble",
+    7
+   ],
+   [
+    "branch-poke",
+    8
+   ],
+   [
+    "brave-bird",
+    4
+   ],
+   [
+    "breaking-swipe",
+    8
+   ],
+   [
+    "brick-break",
+    3
+   ],
+   [
+    "brine",
+    4
+   ],
+   [
+    "brutal-swing",
+    7
+   ],
+   [
+    "bubble",
+    1
+   ],
+   [
+    "bubble-beam",
+    1
+   ],
+   [
+    "bug-bite",
+    4
+   ],
+   [
+    "bug-buzz",
+    4
+   ],
+   [
+    "bulldoze",
+    5
+   ],
+   [
+    "bullet-punch",
+    4
+   ],
+   [
+    "bullet-seed",
+    3
+   ],
+   [
+    "burn-up",
+    7
+   ],
+   [
+    "burning-jealousy",
+    8
+   ],
+   [
+    "buzzy-buzz",
+    7
+   ],
+   [
+    "captivate",
+    4
+   ],
+   [
+    "ceaseless-edge",
+    8
+   ],
+   [
+    "charge-beam",
+    4
+   ],
+   [
+    "charm",
+    2
+   ],
+   [
+    "chatter",
+    4
+   ],
+   [
+    "chilling-water",
+    9
+   ],
+   [
+    "chip-away",
+    5
+   ],
+   [
+    "chloroblast",
+    8
+   ],
+   [
+    "circle-throw",
+    5
+   ],
+   [
+    "clamp",
+    1
+   ],
+   [
+    "clanging-scales",
+    7
+   ],
+   [
+    "clear-smog",
+    5
+   ],
+   [
+    "close-combat",
+    4
+   ],
+   [
+    "collision-course",
+    9
+   ],
+   [
+    "combat-torque",
+    9
+   ],
+   [
+    "comet-punch",
+    1
+   ],
+   [
+    "comeuppance",
+    9
+   ],
+   [
+    "confuse-ray",
+    1
+   ],
+   [
+    "confusion",
+    1
+   ],
+   [
+    "constrict",
+    1
+   ],
+   [
+    "core-enforcer",
+    7
+   ],
+   [
+    "corrosive-gas",
+    8
+   ],
+   [
+    "cotton-spore",
+    2
+   ],
+   [
+    "counter",
+    1
+   ],
+   [
+    "covet",
+    3
+   ],
+   [
+    "crabhammer",
+    1
+   ],
+   [
+    "cross-chop",
+    2
+   ],
+   [
+    "cross-poison",
+    4
+   ],
+   [
+    "crunch",
+    2
+   ],
+   [
+    "crush-claw",
+    3
+   ],
+   [
+    "crush-grip",
+    4
+   ],
+   [
+    "cut",
+    1
+   ],
+   [
+    "dark-pulse",
+    4
+   ],
+   [
+    "dark-void",
+    4
+   ],
+   [
+    "darkest-lariat",
+    7
+   ],
+   [
+    "dazzling-gleam",
+    6
+   ],
+   [
+    "defog",
+    4
+   ],
+   [
+    "diamond-storm",
+    6
+   ],
+   [
+    "dig",
+    1
+   ],
+   [
+    "dire-claw",
+    8
+   ],
+   [
+    "disable",
+    1
+   ],
+   [
+    "disarming-voice",
+    6
+   ],
+   [
+    "discharge",
+    4
+   ],
+   [
+    "dive",
+    3
+   ],
+   [
+    "dizzy-punch",
+    1
+   ],
+   [
+    "double-edge",
+    1
+   ],
+   [
+    "double-hit",
+    4
+   ],
+   [
+    "double-iron-bash",
+    7
+   ],
+   [
+    "double-kick",
+    1
+   ],
+   [
+    "double-shock",
+    9
+   ],
+   [
+    "double-slap",
+    1
+   ],
+   [
+    "draco-meteor",
+    4
+   ],
+   [
+    "dragon-ascent",
+    6
+   ],
+   [
+    "dragon-breath",
+    2
+   ],
+   [
+    "dragon-claw",
+    3
+   ],
+   [
+    "dragon-darts",
+    8
+   ],
+   [
+    "dragon-energy",
+    8
+   ],
+   [
+    "dragon-hammer",
+    7
+   ],
+   [
+    "dragon-pulse",
+    4
+   ],
+   [
+    "dragon-rage",
+    1
+   ],
+   [
+    "dragon-rush",
+    4
+   ],
+   [
+    "dragon-tail",
+    5
+   ],
+   [
+    "drain-punch",
+    4
+   ],
+   [
+    "draining-kiss",
+    6
+   ],
+   [
+    "dream-eater",
+    1
+   ],
+   [
+    "drill-peck",
+    1
+   ],
+   [
+    "drill-run",
+    5
+   ],
+   [
+    "drum-beating",
+    8
+   ],
+   [
+    "dual-chop",
+    5
+   ],
+   [
+    "dual-wingbeat",
+    8
+   ],
+   [
+    "dynamax-cannon",
+    8
+   ],
+   [
+    "dynamic-punch",
+    2
+   ],
+   [
+    "earth-power",
+    4
+   ],
+   [
+    "earthquake",
+    1
+   ],
+   [
+    "echoed-voice",
+    5
+   ],
+   [
+    "eerie-impulse",
+    6
+   ],
+   [
+    "eerie-spell",
+    8
+   ],
+   [
+    "egg-bomb",
+    1
+   ],
+   [
+    "electrify",
+    6
+   ],
+   [
+    "electro-ball",
+    5
+   ],
+   [
+    "electro-drift",
+    9
+   ],
+   [
+    "electro-shot",
+    9
+   ],
+   [
+    "electroweb",
+    5
+   ],
+   [
+    "embargo",
+    4
+   ],
+   [
+    "ember",
+    1
+   ],
+   [
+    "encore",
+    2
+   ],
+   [
+    "endeavor",
+    3
+   ],
+   [
+    "energy-ball",
+    4
+   ],
+   [
+    "entrainment",
+    5
+   ],
+   [
+    "eruption",
+    3
+   ],
+   [
+    "esper-wing",
+    8
+   ],
+   [
+    "eternabeam",
+    8
+   ],
+   [
+    "expanding-force",
+    8
+   ],
+   [
+    "explosion",
+    1
+   ],
+   [
+    "extrasensory",
+    3
+   ],
+   [
+    "extreme-speed",
+    2
+   ],
+   [
+    "facade",
+    3
+   ],
+   [
+    "fairy-wind",
+    6
+   ],
+   [
+    "fake-out",
+    3
+   ],
+   [
+    "fake-tears",
+    3
+   ],
+   [
+    "false-surrender",
+    8
+   ],
+   [
+    "false-swipe",
+    2
+   ],
+   [
+    "feather-dance",
+    3
+   ],
+   [
+    "feint-attack",
+    2
+   ],
+   [
+    "fell-stinger",
+    6
+   ],
+   [
+    "fickle-beam",
+    9
+   ],
+   [
+    "fiery-dance",
+    5
+   ],
+   [
+    "fiery-wrath",
+    8
+   ],
+   [
+    "final-gambit",
+    5
+   ],
+   [
+    "fire-blast",
+    1
+   ],
+   [
+    "fire-fang",
+    4
+   ],
+   [
+    "fire-lash",
+    7
+   ],
+   [
+    "fire-pledge",
+    5
+   ],
+   [
+    "fire-punch",
+    1
+   ],
+   [
+    "fire-spin",
+    1
+   ],
+   [
+    "first-impression",
+    7
+   ],
+   [
+    "fishious-rend",
+    8
+   ],
+   [
+    "fissure",
+    1
+   ],
+   [
+    "flail",
+    2
+   ],
+   [
+    "flame-burst",
+    5
+   ],
+   [
+    "flame-charge",
+    5
+   ],
+   [
+    "flame-wheel",
+    2
+   ],
+   [
+    "flamethrower",
+    1
+   ],
+   [
+    "flare-blitz",
+    4
+   ],
+   [
+    "flash",
+    1
+   ],
+   [
+    "flash-cannon",
+    4
+   ],
+   [
+    "flatter",
+    3
+   ],
+   [
+    "fleur-cannon",
+    7
+   ],
+   [
+    "fling",
+    4
+   ],
+   [
+    "flip-turn",
+    8
+   ],
+   [
+    "floaty-fall",
+    7
+   ],
+   [
+    "floral-healing",
+    7
+   ],
+   [
+    "flower-trick",
+    9
+   ],
+   [
+    "fly",
+    1
+   ],
+   [
+    "flying-press",
+    6
+   ],
+   [
+    "focus-blast",
+    4
+   ],
+   [
+    "focus-punch",
+    3
+   ],
+   [
+    "force-palm",
+    4
+   ],
+   [
+    "foresight",
+    2
+   ],
+   [
+    "forests-curse",
+    6
+   ],
+   [
+    "foul-play",
+    5
+   ],
+   [
+    "freeze-dry",
+    6
+   ],
+   [
+    "freeze-shock",
+    5
+   ],
+   [
+    "freezing-glare",
+    8
+   ],
+   [
+    "freezy-frost",
+    7
+   ],
+   [
+    "frenzy-plant",
+    3
+   ],
+   [
+    "frost-breath",
+    5
+   ],
+   [
+    "frustration",
+    2
+   ],
+   [
+    "fury-attack",
+    1
+   ],
+   [
+    "fury-cutter",
+    2
+   ],
+   [
+    "fury-swipes",
+    1
+   ],
+   [
+    "fusion-bolt",
+    5
+   ],
+   [
+    "fusion-flare",
+    5
+   ],
+   [
+    "gastro-acid",
+    4
+   ],
+   [
+    "gear-grind",
+    5
+   ],
+   [
+    "giga-drain",
+    2
+   ],
+   [
+    "giga-impact",
+    4
+   ],
+   [
+    "gigaton-hammer",
+    9
+   ],
+   [
+    "glacial-lance",
+    8
+   ],
+   [
+    "glaciate",
+    5
+   ],
+   [
+    "glaive-rush",
+    9
+   ],
+   [
+    "glare",
+    1
+   ],
+   [
+    "glitzy-glow",
+    7
+   ],
+   [
+    "grass-knot",
+    4
+   ],
+   [
+    "grass-pledge",
+    5
+   ],
+   [
+    "grass-whistle",
+    3
+   ],
+   [
+    "grassy-glide",
+    8
+   ],
+   [
+    "grav-apple",
+    8
+   ],
+   [
+    "growl",
+    1
+   ],
+   [
+    "guard-split",
+    5
+   ],
+   [
+    "guard-swap",
+    4
+   ],
+   [
+    "guillotine",
+    1
+   ],
+   [
+    "gunk-shot",
+    4
+   ],
+   [
+    "gust",
+    1
+   ],
+   [
+    "gyro-ball",
+    4
+   ],
+   [
+    "hammer-arm",
+    4
+   ],
+   [
+    "hard-press",
+    9
+   ],
+   [
+    "head-charge",
+    5
+   ],
+   [
+    "head-smash",
+    4
+   ],
+   [
+    "headbutt",
+    1
+   ],
+   [
+    "headlong-rush",
+    8
+   ],
+   [
+    "heal-block",
+    4
+   ],
+   [
+    "heal-pulse",
+    5
+   ],
+   [
+    "heart-stamp",
+    5
+   ],
+   [
+    "heart-swap",
+    4
+   ],
+   [
+    "heat-crash",
+    5
+   ],
+   [
+    "heat-wave",
+    3
+   ],
+   [
+    "heavy-slam",
+    5
+   ],
+   [
+    "hex",
+    5
+   ],
+   [
+    "hidden-power",
+    2
+   ],
+   [
+    "high-horsepower",
+    7
+   ],
+   [
+    "high-jump-kick",
+    1
+   ],
+   [
+    "hold-back",
+    6
+   ],
+   [
+    "horn-attack",
+    1
+   ],
+   [
+    "horn-drill",
+    1
+   ],
+   [
+    "horn-leech",
+    5
+   ],
+   [
+    "hurricane",
+    5
+   ],
+   [
+    "hydro-cannon",
+    3
+   ],
+   [
+    "hydro-pump",
+    1
+   ],
+   [
+    "hydro-steam",
+    9
+   ],
+   [
+    "hyper-beam",
+    1
+   ],
+   [
+    "hyper-fang",
+    1
+   ],
+   [
+    "hyper-voice",
+    3
+   ],
+   [
+    "hypnosis",
+    1
+   ],
+   [
+    "ice-ball",
+    3
+   ],
+   [
+    "ice-beam",
+    1
+   ],
+   [
+    "ice-burn",
+    5
+   ],
+   [
+    "ice-fang",
+    4
+   ],
+   [
+    "ice-hammer",
+    7
+   ],
+   [
+    "ice-punch",
+    1
+   ],
+   [
+    "ice-shard",
+    4
+   ],
+   [
+    "ice-spinner",
+    9
+   ],
+   [
+    "icicle-crash",
+    5
+   ],
+   [
+    "icicle-spear",
+    3
+   ],
+   [
+    "icy-wind",
+    2
+   ],
+   [
+    "incinerate",
+    5
+   ],
+   [
+    "infernal-parade",
+    8
+   ],
+   [
+    "inferno",
+    5
+   ],
+   [
+    "infestation",
+    6
+   ],
+   [
+    "instruct",
+    7
+   ],
+   [
+    "iron-head",
+    4
+   ],
+   [
+    "iron-tail",
+    2
+   ],
+   [
+    "ivy-cudgel",
+    9
+   ],
+   [
+    "jaw-lock",
+    8
+   ],
+   [
+    "jet-punch",
+    9
+   ],
+   [
+    "judgment",
+    4
+   ],
+   [
+    "jump-kick",
+    1
+   ],
+   [
+    "karate-chop",
+    1
+   ],
+   [
+    "kinesis",
+    1
+   ],
+   [
+    "knock-off",
+    3
+   ],
+   [
+    "kowtow-cleave",
+    9
+   ],
+   [
+    "lands-wrath",
+    6
+   ],
+   [
+    "lash-out",
+    8
+   ],
+   [
+    "last-resort",
+    4
+   ],
+   [
+    "last-respects",
+    9
+   ],
+   [
+    "lava-plume",
+    4
+   ],
+   [
+    "leaf-blade",
+    3
+   ],
+   [
+    "leaf-storm",
+    4
+   ],
+   [
+    "leaf-tornado",
+    5
+   ],
+   [
+    "leafage",
+    7
+   ],
+   [
+    "leech-life",
+    1
+   ],
+   [
+    "leech-seed",
+    1
+   ],
+   [
+    "leer",
+    1
+   ],
+   [
+    "lick",
+    1
+   ],
+   [
+    "light-of-ruin",
+    6
+   ],
+   [
+    "liquidation",
+    7
+   ],
+   [
+    "lock-on",
+    2
+   ],
+   [
+    "lovely-kiss",
+    1
+   ],
+   [
+    "low-kick",
+    1
+   ],
+   [
+    "low-sweep",
+    5
+   ],
+   [
+    "lumina-crash",
+    9
+   ],
+   [
+    "lunge",
+    7
+   ],
+   [
+    "luster-purge",
+    3
+   ],
+   [
+    "mach-punch",
+    2
+   ],
+   [
+    "magic-powder",
+    8
+   ],
+   [
+    "magical-leaf",
+    3
+   ],
+   [
+    "magical-torque",
+    9
+   ],
+   [
+    "magma-storm",
+    4
+   ],
+   [
+    "magnet-bomb",
+    4
+   ],
+   [
+    "magnitude",
+    2
+   ],
+   [
+    "make-it-rain",
+    9
+   ],
+   [
+    "malignant-chain",
+    9
+   ],
+   [
+    "matcha-gotcha",
+    9
+   ],
+   [
+    "me-first",
+    4
+   ],
+   [
+    "mega-drain",
+    1
+   ],
+   [
+    "mega-kick",
+    1
+   ],
+   [
+    "mega-punch",
+    1
+   ],
+   [
+    "megahorn",
+    2
+   ],
+   [
+    "memento",
+    3
+   ],
+   [
+    "metal-burst",
+    4
+   ],
+   [
+    "metal-claw",
+    2
+   ],
+   [
+    "metal-sound",
+    3
+   ],
+   [
+    "meteor-assault",
+    8
+   ],
+   [
+    "meteor-beam",
+    8
+   ],
+   [
+    "meteor-mash",
+    3
+   ],
+   [
+    "mimic",
+    1
+   ],
+   [
+    "mind-blown",
+    7
+   ],
+   [
+    "mind-reader",
+    2
+   ],
+   [
+    "miracle-eye",
+    4
+   ],
+   [
+    "mirror-coat",
+    2
+   ],
+   [
+    "mirror-shot",
+    4
+   ],
+   [
+    "mist-ball",
+    3
+   ],
+   [
+    "misty-explosion",
+    8
+   ],
+   [
+    "moonblast",
+    6
+   ],
+   [
+    "moongeist-beam",
+    7
+   ],
+   [
+    "mortal-spin",
+    9
+   ],
+   [
+    "mountain-gale",
+    8
+   ],
+   [
+    "mud-bomb",
+    4
+   ],
+   [
+    "mud-shot",
+    3
+   ],
+   [
+    "mud-slap",
+    2
+   ],
+   [
+    "muddy-water",
+    3
+   ],
+   [
+    "multi-attack",
+    7
+   ],
+   [
+    "mystical-fire",
+    6
+   ],
+   [
+    "mystical-power",
+    8
+   ],
+   [
+    "natural-gift",
+    4
+   ],
+   [
+    "natures-madness",
+    7
+   ],
+   [
+    "needle-arm",
+    3
+   ],
+   [
+    "night-daze",
+    5
+   ],
+   [
+    "night-shade",
+    1
+   ],
+   [
+    "night-slash",
+    4
+   ],
+   [
+    "nightmare",
+    2
+   ],
+   [
+    "noble-roar",
+    6
+   ],
+   [
+    "noxious-torque",
+    9
+   ],
+   [
+    "nuzzle",
+    6
+   ],
+   [
+    "oblivion-wing",
+    6
+   ],
+   [
+    "octazooka",
+    2
+   ],
+   [
+    "octolock",
+    8
+   ],
+   [
+    "odor-sleuth",
+    3
+   ],
+   [
+    "ominous-wind",
+    4
+   ],
+   [
+    "order-up",
+    9
+   ],
+   [
+    "origin-pulse",
+    6
+   ],
+   [
+    "outrage",
+    2
+   ],
+   [
+    "overdrive",
+    8
+   ],
+   [
+    "overheat",
+    3
+   ],
+   [
+    "pain-split",
+    2
+   ],
+   [
+    "parabolic-charge",
+    6
+   ],
+   [
+    "parting-shot",
+    6
+   ],
+   [
+    "pay-day",
+    1
+   ],
+   [
+    "payback",
+    4
+   ],
+   [
+    "peck",
+    1
+   ],
+   [
+    "petal-blizzard",
+    6
+   ],
+   [
+    "petal-dance",
+    1
+   ],
+   [
+    "photon-geyser",
+    7
+   ],
+   [
+    "pika-papow",
+    7
+   ],
+   [
+    "pin-missile",
+    1
+   ],
+   [
+    "plasma-fists",
+    7
+   ],
+   [
+    "play-rough",
+    6
+   ],
+   [
+    "pluck",
+    4
+   ],
+   [
+    "poison-fang",
+    3
+   ],
+   [
+    "poison-gas",
+    1
+   ],
+   [
+    "poison-jab",
+    4
+   ],
+   [
+    "poison-powder",
+    1
+   ],
+   [
+    "poison-sting",
+    1
+   ],
+   [
+    "poison-tail",
+    3
+   ],
+   [
+    "pollen-puff",
+    7
+   ],
+   [
+    "poltergeist",
+    8
+   ],
+   [
+    "population-bomb",
+    9
+   ],
+   [
+    "pounce",
+    9
+   ],
+   [
+    "pound",
+    1
+   ],
+   [
+    "powder",
+    6
+   ],
+   [
+    "powder-snow",
+    2
+   ],
+   [
+    "power-gem",
+    4
+   ],
+   [
+    "power-split",
+    5
+   ],
+   [
+    "power-swap",
+    4
+   ],
+   [
+    "power-trip",
+    7
+   ],
+   [
+    "power-up-punch",
+    6
+   ],
+   [
+    "power-whip",
+    4
+   ],
+   [
+    "precipice-blades",
+    6
+   ],
+   [
+    "present",
+    2
+   ],
+   [
+    "prismatic-laser",
+    7
+   ],
+   [
+    "psybeam",
+    1
+   ],
+   [
+    "psyblade",
+    9
+   ],
+   [
+    "psychic",
+    1
+   ],
+   [
+    "psychic-fangs",
+    7
+   ],
+   [
+    "psychic-noise",
+    9
+   ],
+   [
+    "psycho-boost",
+    3
+   ],
+   [
+    "psycho-cut",
+    4
+   ],
+   [
+    "psycho-shift",
+    4
+   ],
+   [
+    "psyshield-bash",
+    8
+   ],
+   [
+    "psyshock",
+    5
+   ],
+   [
+    "psystrike",
+    5
+   ],
+   [
+    "psywave",
+    1
+   ],
+   [
+    "punishment",
+    4
+   ],
+   [
+    "purify",
+    7
+   ],
+   [
+    "pursuit",
+    2
+   ],
+   [
+    "pyro-ball",
+    8
+   ],
+   [
+    "quash",
+    5
+   ],
+   [
+    "quick-attack",
+    1
+   ],
+   [
+    "rage",
+    1
+   ],
+   [
+    "rage-fist",
+    9
+   ],
+   [
+    "raging-bull",
+    9
+   ],
+   [
+    "raging-fury",
+    8
+   ],
+   [
+    "rapid-spin",
+    2
+   ],
+   [
+    "razor-leaf",
+    1
+   ],
+   [
+    "razor-shell",
+    5
+   ],
+   [
+    "razor-wind",
+    1
+   ],
+   [
+    "reflect-type",
+    5
+   ],
+   [
+    "relic-song",
+    5
+   ],
+   [
+    "retaliate",
+    5
+   ],
+   [
+    "return",
+    2
+   ],
+   [
+    "revelation-dance",
+    7
+   ],
+   [
+    "revenge",
+    3
+   ],
+   [
+    "reversal",
+    2
+   ],
+   [
+    "rising-voltage",
+    8
+   ],
+   [
+    "roar-of-time",
+    4
+   ],
+   [
+    "rock-blast",
+    3
+   ],
+   [
+    "rock-climb",
+    4
+   ],
+   [
+    "rock-slide",
+    1
+   ],
+   [
+    "rock-smash",
+    2
+   ],
+   [
+    "rock-throw",
+    1
+   ],
+   [
+    "rock-tomb",
+    3
+   ],
+   [
+    "rock-wrecker",
+    4
+   ],
+   [
+    "rolling-kick",
+    1
+   ],
+   [
+    "rollout",
+    2
+   ],
+   [
+    "round",
+    5
+   ],
+   [
+    "ruination",
+    9
+   ],
+   [
+    "sacred-fire",
+    2
+   ],
+   [
+    "sacred-sword",
+    5
+   ],
+   [
+    "salt-cure",
+    9
+   ],
+   [
+    "sand-attack",
+    1
+   ],
+   [
+    "sand-tomb",
+    3
+   ],
+   [
+    "sandsear-storm",
+    8
+   ],
+   [
+    "sappy-seed",
+    7
+   ],
+   [
+    "scald",
+    5
+   ],
+   [
+    "scale-shot",
+    8
+   ],
+   [
+    "scary-face",
+    2
+   ],
+   [
+    "scorching-sands",
+    8
+   ],
+   [
+    "scratch",
+    1
+   ],
+   [
+    "screech",
+    1
+   ],
+   [
+    "searing-shot",
+    5
+   ],
+   [
+    "secret-power",
+    3
+   ],
+   [
+    "secret-sword",
+    5
+   ],
+   [
+    "seed-bomb",
+    4
+   ],
+   [
+    "seed-flare",
+    4
+   ],
+   [
+    "seismic-toss",
+    1
+   ],
+   [
+    "self-destruct",
+    1
+   ],
+   [
+    "shadow-ball",
+    2
+   ],
+   [
+    "shadow-bone",
+    7
+   ],
+   [
+    "shadow-claw",
+    4
+   ],
+   [
+    "shadow-punch",
+    3
+   ],
+   [
+    "shadow-sneak",
+    4
+   ],
+   [
+    "sheer-cold",
+    3
+   ],
+   [
+    "shell-side-arm",
+    8
+   ],
+   [
+    "shell-trap",
+    7
+   ],
+   [
+    "shock-wave",
+    3
+   ],
+   [
+    "signal-beam",
+    3
+   ],
+   [
+    "silver-wind",
+    3
+   ],
+   [
+    "simple-beam",
+    5
+   ],
+   [
+    "sing",
+    1
+   ],
+   [
+    "sizzly-slide",
+    7
+   ],
+   [
+    "skill-swap",
+    3
+   ],
+   [
+    "skitter-smack",
+    8
+   ],
+   [
+    "skull-bash",
+    1
+   ],
+   [
+    "sky-attack",
+    1
+   ],
+   [
+    "sky-drop",
+    5
+   ],
+   [
+    "sky-uppercut",
+    3
+   ],
+   [
+    "slam",
+    1
+   ],
+   [
+    "slash",
+    1
+   ],
+   [
+    "sleep-powder",
+    1
+   ],
+   [
+    "sludge",
+    1
+   ],
+   [
+    "sludge-bomb",
+    2
+   ],
+   [
+    "sludge-wave",
+    5
+   ],
+   [
+    "smack-down",
+    5
+   ],
+   [
+    "smart-strike",
+    7
+   ],
+   [
+    "smelling-salts",
+    3
+   ],
+   [
+    "smog",
+    1
+   ],
+   [
+    "smokescreen",
+    1
+   ],
+   [
+    "snap-trap",
+    8
+   ],
+   [
+    "snarl",
+    5
+   ],
+   [
+    "snipe-shot",
+    8
+   ],
+   [
+    "snore",
+    2
+   ],
+   [
+    "soak",
+    5
+   ],
+   [
+    "solar-beam",
+    1
+   ],
+   [
+    "solar-blade",
+    7
+   ],
+   [
+    "sonic-boom",
+    1
+   ],
+   [
+    "spacial-rend",
+    4
+   ],
+   [
+    "spark",
+    2
+   ],
+   [
+    "sparkling-aria",
+    7
+   ],
+   [
+    "sparkly-swirl",
+    7
+   ],
+   [
+    "spectral-thief",
+    7
+   ],
+   [
+    "speed-swap",
+    7
+   ],
+   [
+    "spicy-extract",
+    9
+   ],
+   [
+    "spider-web",
+    2
+   ],
+   [
+    "spike-cannon",
+    1
+   ],
+   [
+    "spin-out",
+    9
+   ],
+   [
+    "spirit-break",
+    8
+   ],
+   [
+    "spirit-shackle",
+    7
+   ],
+   [
+    "spit-up",
+    3
+   ],
+   [
+    "spite",
+    2
+   ],
+   [
+    "splishy-splash",
+    7
+   ],
+   [
+    "spore",
+    1
+   ],
+   [
+    "spotlight",
+    7
+   ],
+   [
+    "springtide-storm",
+    8
+   ],
+   [
+    "steam-eruption",
+    6
+   ],
+   [
+    "steamroller",
+    5
+   ],
+   [
+    "steel-beam",
+    8
+   ],
+   [
+    "steel-roller",
+    8
+   ],
+   [
+    "steel-wing",
+    2
+   ],
+   [
+    "stomp",
+    1
+   ],
+   [
+    "stomping-tantrum",
+    7
+   ],
+   [
+    "stone-axe",
+    8
+   ],
+   [
+    "stone-edge",
+    4
+   ],
+   [
+    "stored-power",
+    5
+   ],
+   [
+    "storm-throw",
+    5
+   ],
+   [
+    "strange-steam",
+    8
+   ],
+   [
+    "strength",
+    1
+   ],
+   [
+    "strength-sap",
+    7
+   ],
+   [
+    "string-shot",
+    1
+   ],
+   [
+    "struggle",
+    1
+   ],
+   [
+    "struggle-bug",
+    5
+   ],
+   [
+    "stun-spore",
+    1
+   ],
+   [
+    "submission",
+    1
+   ],
+   [
+    "sucker-punch",
+    4
+   ],
+   [
+    "sunsteel-strike",
+    7
+   ],
+   [
+    "super-fang",
+    1
+   ],
+   [
+    "supercell-slam",
+    9
+   ],
+   [
+    "superpower",
+    3
+   ],
+   [
+    "supersonic",
+    1
+   ],
+   [
+    "surf",
+    1
+   ],
+   [
+    "surging-strikes",
+    8
+   ],
+   [
+    "swagger",
+    2
+   ],
+   [
+    "sweet-kiss",
+    2
+   ],
+   [
+    "sweet-scent",
+    2
+   ],
+   [
+    "swift",
+    1
+   ],
+   [
+    "switcheroo",
+    4
+   ],
+   [
+    "synchronoise",
+    5
+   ],
+   [
+    "syrup-bomb",
+    9
+   ],
+   [
+    "tachyon-cutter",
+    9
+   ],
+   [
+    "tackle",
+    1
+   ],
+   [
+    "tail-slap",
+    5
+   ],
+   [
+    "tail-whip",
+    1
+   ],
+   [
+    "take-down",
+    1
+   ],
+   [
+    "tar-shot",
+    8
+   ],
+   [
+    "taunt",
+    3
+   ],
+   [
+    "techno-blast",
+    5
+   ],
+   [
+    "teeter-dance",
+    3
+   ],
+   [
+    "telekinesis",
+    5
+   ],
+   [
+    "temper-flare",
+    9
+   ],
+   [
+    "tera-blast",
+    9
+   ],
+   [
+    "tera-starstorm",
+    9
+   ],
+   [
+    "terrain-pulse",
+    8
+   ],
+   [
+    "thief",
+    2
+   ],
+   [
+    "thousand-arrows",
+    6
+   ],
+   [
+    "thousand-waves",
+    6
+   ],
+   [
+    "thrash",
+    1
+   ],
+   [
+    "throat-chop",
+    7
+   ],
+   [
+    "thunder",
+    1
+   ],
+   [
+    "thunder-cage",
+    8
+   ],
+   [
+    "thunder-fang",
+    4
+   ],
+   [
+    "thunder-punch",
+    1
+   ],
+   [
+    "thunder-shock",
+    1
+   ],
+   [
+    "thunder-wave",
+    1
+   ],
+   [
+    "thunderbolt",
+    1
+   ],
+   [
+    "thunderclap",
+    9
+   ],
+   [
+    "thunderous-kick",
+    8
+   ],
+   [
+    "tickle",
+    3
+   ],
+   [
+    "topsy-turvy",
+    6
+   ],
+   [
+    "torch-song",
+    9
+   ],
+   [
+    "torment",
+    3
+   ],
+   [
+    "toxic",
+    1
+   ],
+   [
+    "toxic-thread",
+    7
+   ],
+   [
+    "trailblaze",
+    9
+   ],
+   [
+    "tri-attack",
+    1
+   ],
+   [
+    "trick",
+    3
+   ],
+   [
+    "trick-or-treat",
+    6
+   ],
+   [
+    "triple-arrows",
+    8
+   ],
+   [
+    "triple-axel",
+    8
+   ],
+   [
+    "triple-dive",
+    9
+   ],
+   [
+    "triple-kick",
+    2
+   ],
+   [
+    "trop-kick",
+    7
+   ],
+   [
+    "trump-card",
+    4
+   ],
+   [
+    "twin-beam",
+    9
+   ],
+   [
+    "twineedle",
+    1
+   ],
+   [
+    "twister",
+    2
+   ],
+   [
+    "u-turn",
+    4
+   ],
+   [
+    "upper-hand",
+    9
+   ],
+   [
+    "uproar",
+    3
+   ],
+   [
+    "v-create",
+    5
+   ],
+   [
+    "vacuum-wave",
+    4
+   ],
+   [
+    "veevee-volley",
+    7
+   ],
+   [
+    "venom-drench",
+    6
+   ],
+   [
+    "venoshock",
+    5
+   ],
+   [
+    "vice-grip",
+    1
+   ],
+   [
+    "vine-whip",
+    1
+   ],
+   [
+    "vital-throw",
+    2
+   ],
+   [
+    "volt-switch",
+    5
+   ],
+   [
+    "volt-tackle",
+    3
+   ],
+   [
+    "wake-up-slap",
+    4
+   ],
+   [
+    "water-gun",
+    1
+   ],
+   [
+    "water-pledge",
+    5
+   ],
+   [
+    "water-pulse",
+    3
+   ],
+   [
+    "water-shuriken",
+    6
+   ],
+   [
+    "water-spout",
+    3
+   ],
+   [
+    "waterfall",
+    1
+   ],
+   [
+    "wave-crash",
+    8
+   ],
+   [
+    "weather-ball",
+    3
+   ],
+   [
+    "whirlpool",
+    2
+   ],
+   [
+    "wicked-blow",
+    8
+   ],
+   [
+    "wicked-torque",
+    9
+   ],
+   [
+    "wild-charge",
+    5
+   ],
+   [
+    "wildbolt-storm",
+    8
+   ],
+   [
+    "will-o-wisp",
+    3
+   ],
+   [
+    "wing-attack",
+    1
+   ],
+   [
+    "wood-hammer",
+    4
+   ],
+   [
+    "worry-seed",
+    4
+   ],
+   [
+    "wrap",
+    1
+   ],
+   [
+    "wring-out",
+    4
+   ],
+   [
+    "x-scissor",
+    4
+   ],
+   [
+    "yawn",
+    3
+   ],
+   [
+    "zap-cannon",
+    2
+   ],
+   [
+    "zen-headbutt",
+    4
+   ],
+   [
+    "zing-zap",
+    7
+   ],
+   [
+    "zippy-zap",
+    7
+   ]
+  ],
+  "contact": [
+   [
+    "accelerock",
+    7
+   ],
+   [
+    "acrobatics",
+    5
+   ],
+   [
+    "aerial-ace",
+    3
+   ],
+   [
+    "anchor-shot",
+    7
+   ],
+   [
+    "aqua-jet",
+    4
+   ],
+   [
+    "aqua-step",
+    9
+   ],
+   [
+    "aqua-tail",
+    4
+   ],
+   [
+    "arm-thrust",
+    3
+   ],
+   [
+    "assurance",
+    4
+   ],
+   [
+    "astonish",
+    3
+   ],
+   [
+    "avalanche",
+    4
+   ],
+   [
+    "axe-kick",
+    9
+   ],
+   [
+    "behemoth-bash",
+    8
+   ],
+   [
+    "behemoth-blade",
+    8
+   ],
+   [
+    "bide",
+    1
+   ],
+   [
+    "bind",
+    1
+   ],
+   [
+    "bite",
+    1
+   ],
+   [
+    "bitter-blade",
+    9
+   ],
+   [
+    "blaze-kick",
+    3
+   ],
+   [
+    "body-press",
+    8
+   ],
+   [
+    "body-slam",
+    1
+   ],
+   [
+    "bolt-beak",
+    8
+   ],
+   [
+    "bolt-strike",
+    5
+   ],
+   [
+    "bounce",
+    3
+   ],
+   [
+    "branch-poke",
+    8
+   ],
+   [
+    "brave-bird",
+    4
+   ],
+   [
+    "breaking-swipe",
+    8
+   ],
+   [
+    "brick-break",
+    3
+   ],
+   [
+    "brutal-swing",
+    7
+   ],
+   [
+    "bug-bite",
+    4
+   ],
+   [
+    "bullet-punch",
+    4
+   ],
+   [
+    "catastropika",
+    7
+   ],
+   [
+    "ceaseless-edge",
+    8
+   ],
+   [
+    "chip-away",
+    5
+   ],
+   [
+    "circle-throw",
+    5
+   ],
+   [
+    "clamp",
+    1
+   ],
+   [
+    "close-combat",
+    4
+   ],
+   [
+    "collision-course",
+    9
+   ],
+   [
+    "comet-punch",
+    1
+   ],
+   [
+    "comeuppance",
+    9
+   ],
+   [
+    "constrict",
+    1
+   ],
+   [
+    "counter",
+    1
+   ],
+   [
+    "covet",
+    3
+   ],
+   [
+    "crabhammer",
+    1
+   ],
+   [
+    "cross-chop",
+    2
+   ],
+   [
+    "cross-poison",
+    4
+   ],
+   [
+    "crunch",
+    2
+   ],
+   [
+    "crush-claw",
+    3
+   ],
+   [
+    "crush-grip",
+    4
+   ],
+   [
+    "cut",
+    1
+   ],
+   [
+    "darkest-lariat",
+    7
+   ],
+   [
+    "dig",
+    1
+   ],
+   [
+    "dire-claw",
+    8
+   ],
+   [
+    "dive",
+    3
+   ],
+   [
+    "dizzy-punch",
+    1
+   ],
+   [
+    "double-edge",
+    1
+   ],
+   [
+    "double-hit",
+    4
+   ],
+   [
+    "double-iron-bash",
+    7
+   ],
+   [
+    "double-kick",
+    1
+   ],
+   [
+    "double-shock",
+    9
+   ],
+   [
+    "double-slap",
+    1
+   ],
+   [
+    "dragon-ascent",
+    6
+   ],
+   [
+    "dragon-claw",
+    3
+   ],
+   [
+    "dragon-hammer",
+    7
+   ],
+   [
+    "dragon-rush",
+    4
+   ],
+   [
+    "dragon-tail",
+    5
+   ],
+   [
+    "drain-punch",
+    4
+   ],
+   [
+    "draining-kiss",
+    6
+   ],
+   [
+    "drill-peck",
+    1
+   ],
+   [
+    "drill-run",
+    5
+   ],
+   [
+    "dual-chop",
+    5
+   ],
+   [
+    "dual-wingbeat",
+    8
+   ],
+   [
+    "dynamic-punch",
+    2
+   ],
+   [
+    "electro-drift",
+    9
+   ],
+   [
+    "endeavor",
+    3
+   ],
+   [
+    "extreme-speed",
+    2
+   ],
+   [
+    "facade",
+    3
+   ],
+   [
+    "fake-out",
+    3
+   ],
+   [
+    "false-surrender",
+    8
+   ],
+   [
+    "false-swipe",
+    2
+   ],
+   [
+    "feint-attack",
+    2
+   ],
+   [
+    "fell-stinger",
+    6
+   ],
+   [
+    "fire-fang",
+    4
+   ],
+   [
+    "fire-lash",
+    7
+   ],
+   [
+    "fire-punch",
+    1
+   ],
+   [
+    "first-impression",
+    7
+   ],
+   [
+    "fishious-rend",
+    8
+   ],
+   [
+    "flail",
+    2
+   ],
+   [
+    "flame-charge",
+    5
+   ],
+   [
+    "flame-wheel",
+    2
+   ],
+   [
+    "flare-blitz",
+    4
+   ],
+   [
+    "flip-turn",
+    8
+   ],
+   [
+    "floaty-fall",
+    7
+   ],
+   [
+    "fly",
+    1
+   ],
+   [
+    "flying-press",
+    6
+   ],
+   [
+    "focus-punch",
+    3
+   ],
+   [
+    "force-palm",
+    4
+   ],
+   [
+    "foul-play",
+    5
+   ],
+   [
+    "frustration",
+    2
+   ],
+   [
+    "fury-attack",
+    1
+   ],
+   [
+    "fury-cutter",
+    2
+   ],
+   [
+    "fury-swipes",
+    1
+   ],
+   [
+    "gear-grind",
+    5
+   ],
+   [
+    "giga-impact",
+    4
+   ],
+   [
+    "glaive-rush",
+    9
+   ],
+   [
+    "grass-knot",
+    4
+   ],
+   [
+    "grassy-glide",
+    8
+   ],
+   [
+    "guillotine",
+    1
+   ],
+   [
+    "gyro-ball",
+    4
+   ],
+   [
+    "hammer-arm",
+    4
+   ],
+   [
+    "hard-press",
+    9
+   ],
+   [
+    "head-charge",
+    5
+   ],
+   [
+    "head-smash",
+    4
+   ],
+   [
+    "headbutt",
+    1
+   ],
+   [
+    "headlong-rush",
+    8
+   ],
+   [
+    "heart-stamp",
+    5
+   ],
+   [
+    "heat-crash",
+    5
+   ],
+   [
+    "heavy-slam",
+    5
+   ],
+   [
+    "high-horsepower",
+    7
+   ],
+   [
+    "high-jump-kick",
+    1
+   ],
+   [
+    "hold-back",
+    6
+   ],
+   [
+    "horn-attack",
+    1
+   ],
+   [
+    "horn-drill",
+    1
+   ],
+   [
+    "horn-leech",
+    5
+   ],
+   [
+    "hyper-drill",
+    9
+   ],
+   [
+    "hyper-fang",
+    1
+   ],
+   [
+    "ice-ball",
+    3
+   ],
+   [
+    "ice-fang",
+    4
+   ],
+   [
+    "ice-hammer",
+    7
+   ],
+   [
+    "ice-punch",
+    1
+   ],
+   [
+    "ice-spinner",
+    9
+   ],
+   [
+    "infestation",
+    6
+   ],
+   [
+    "iron-head",
+    4
+   ],
+   [
+    "iron-tail",
+    2
+   ],
+   [
+    "jaw-lock",
+    8
+   ],
+   [
+    "jet-punch",
+    9
+   ],
+   [
+    "jump-kick",
+    1
+   ],
+   [
+    "karate-chop",
+    1
+   ],
+   [
+    "knock-off",
+    3
+   ],
+   [
+    "kowtow-cleave",
+    9
+   ],
+   [
+    "lash-out",
+    8
+   ],
+   [
+    "last-resort",
+    4
+   ],
+   [
+    "leaf-blade",
+    3
+   ],
+   [
+    "leech-life",
+    1
+   ],
+   [
+    "lets-snuggle-forever",
+    7
+   ],
+   [
+    "lick",
+    1
+   ],
+   [
+    "liquidation",
+    7
+   ],
+   [
+    "low-kick",
+    1
+   ],
+   [
+    "low-sweep",
+    5
+   ],
+   [
+    "lunge",
+    7
+   ],
+   [
+    "mach-punch",
+    2
+   ],
+   [
+    "malicious-moonsault",
+    7
+   ],
+   [
+    "mega-kick",
+    1
+   ],
+   [
+    "mega-punch",
+    1
+   ],
+   [
+    "megahorn",
+    2
+   ],
+   [
+    "metal-claw",
+    2
+   ],
+   [
+    "meteor-mash",
+    3
+   ],
+   [
+    "mighty-cleave",
+    9
+   ],
+   [
+    "mortal-spin",
+    9
+   ],
+   [
+    "multi-attack",
+    7
+   ],
+   [
+    "needle-arm",
+    3
+   ],
+   [
+    "night-slash",
+    4
+   ],
+   [
+    "nuzzle",
+    6
+   ],
+   [
+    "outrage",
+    2
+   ],
+   [
+    "payback",
+    4
+   ],
+   [
+    "peck",
+    1
+   ],
+   [
+    "petal-dance",
+    1
+   ],
+   [
+    "phantom-force",
+    6
+   ],
+   [
+    "plasma-fists",
+    7
+   ],
+   [
+    "play-rough",
+    6
+   ],
+   [
+    "pluck",
+    4
+   ],
+   [
+    "poison-fang",
+    3
+   ],
+   [
+    "poison-jab",
+    4
+   ],
+   [
+    "poison-tail",
+    3
+   ],
+   [
+    "population-bomb",
+    9
+   ],
+   [
+    "pounce",
+    9
+   ],
+   [
+    "pound",
+    1
+   ],
+   [
+    "power-trip",
+    7
+   ],
+   [
+    "power-up-punch",
+    6
+   ],
+   [
+    "power-whip",
+    4
+   ],
+   [
+    "psyblade",
+    9
+   ],
+   [
+    "psychic-fangs",
+    7
+   ],
+   [
+    "psyshield-bash",
+    8
+   ],
+   [
+    "pulverizing-pancake",
+    7
+   ],
+   [
+    "punishment",
+    4
+   ],
+   [
+    "pursuit",
+    2
+   ],
+   [
+    "quick-attack",
+    1
+   ],
+   [
+    "rage",
+    1
+   ],
+   [
+    "rage-fist",
+    9
+   ],
+   [
+    "raging-bull",
+    9
+   ],
+   [
+    "rapid-spin",
+    2
+   ],
+   [
+    "razor-shell",
+    5
+   ],
+   [
+    "retaliate",
+    5
+   ],
+   [
+    "return",
+    2
+   ],
+   [
+    "revenge",
+    3
+   ],
+   [
+    "reversal",
+    2
+   ],
+   [
+    "rock-climb",
+    4
+   ],
+   [
+    "rock-smash",
+    2
+   ],
+   [
+    "rolling-kick",
+    1
+   ],
+   [
+    "rollout",
+    2
+   ],
+   [
+    "sacred-sword",
+    5
+   ],
+   [
+    "scratch",
+    1
+   ],
+   [
+    "searing-sunraze-smash",
+    7
+   ],
+   [
+    "seismic-toss",
+    1
+   ],
+   [
+    "shadow-claw",
+    4
+   ],
+   [
+    "shadow-force",
+    4
+   ],
+   [
+    "shadow-punch",
+    3
+   ],
+   [
+    "shadow-sneak",
+    4
+   ],
+   [
+    "sizzly-slide",
+    7
+   ],
+   [
+    "skitter-smack",
+    8
+   ],
+   [
+    "skull-bash",
+    1
+   ],
+   [
+    "sky-drop",
+    5
+   ],
+   [
+    "sky-uppercut",
+    3
+   ],
+   [
+    "slam",
+    1
+   ],
+   [
+    "slash",
+    1
+   ],
+   [
+    "smart-strike",
+    7
+   ],
+   [
+    "smelling-salts",
+    3
+   ],
+   [
+    "snap-trap",
+    8
+   ],
+   [
+    "solar-blade",
+    7
+   ],
+   [
+    "soul-stealing-7-star-strike",
+    7
+   ],
+   [
+    "spark",
+    2
+   ],
+   [
+    "spectral-thief",
+    7
+   ],
+   [
+    "spin-out",
+    9
+   ],
+   [
+    "spirit-break",
+    8
+   ],
+   [
+    "steamroller",
+    5
+   ],
+   [
+    "steel-roller",
+    8
+   ],
+   [
+    "steel-wing",
+    2
+   ],
+   [
+    "stomp",
+    1
+   ],
+   [
+    "stomping-tantrum",
+    7
+   ],
+   [
+    "stone-axe",
+    8
+   ],
+   [
+    "storm-throw",
+    5
+   ],
+   [
+    "strength",
+    1
+   ],
+   [
+    "struggle",
+    1
+   ],
+   [
+    "submission",
+    1
+   ],
+   [
+    "sucker-punch",
+    4
+   ],
+   [
+    "sunsteel-strike",
+    7
+   ],
+   [
+    "super-fang",
+    1
+   ],
+   [
+    "supercell-slam",
+    9
+   ],
+   [
+    "superpower",
+    3
+   ],
+   [
+    "surging-strikes",
+    8
+   ],
+   [
+    "tackle",
+    1
+   ],
+   [
+    "tail-slap",
+    5
+   ],
+   [
+    "take-down",
+    1
+   ],
+   [
+    "temper-flare",
+    9
+   ],
+   [
+    "thief",
+    2
+   ],
+   [
+    "thrash",
+    1
+   ],
+   [
+    "throat-chop",
+    7
+   ],
+   [
+    "thunder-fang",
+    4
+   ],
+   [
+    "thunder-punch",
+    1
+   ],
+   [
+    "thunderous-kick",
+    8
+   ],
+   [
+    "trailblaze",
+    9
+   ],
+   [
+    "triple-axel",
+    8
+   ],
+   [
+    "triple-dive",
+    9
+   ],
+   [
+    "triple-kick",
+    2
+   ],
+   [
+    "trop-kick",
+    7
+   ],
+   [
+    "trump-card",
+    4
+   ],
+   [
+    "u-turn",
+    4
+   ],
+   [
+    "upper-hand",
+    9
+   ],
+   [
+    "v-create",
+    5
+   ],
+   [
+    "veevee-volley",
+    7
+   ],
+   [
+    "vice-grip",
+    1
+   ],
+   [
+    "vine-whip",
+    1
+   ],
+   [
+    "vital-throw",
+    2
+   ],
+   [
+    "volt-tackle",
+    3
+   ],
+   [
+    "wake-up-slap",
+    4
+   ],
+   [
+    "waterfall",
+    1
+   ],
+   [
+    "wave-crash",
+    8
+   ],
+   [
+    "wicked-blow",
+    8
+   ],
+   [
+    "wild-charge",
+    5
+   ],
+   [
+    "wing-attack",
+    1
+   ],
+   [
+    "wood-hammer",
+    4
+   ],
+   [
+    "wrap",
+    1
+   ],
+   [
+    "wring-out",
+    4
+   ],
+   [
+    "x-scissor",
+    4
+   ],
+   [
+    "zen-headbutt",
+    4
+   ],
+   [
+    "zing-zap",
+    7
+   ],
+   [
+    "zippy-zap",
+    7
+   ]
+  ],
+  "bullet": [
+   [
+    "acid-spray",
+    5
+   ],
+   [
+    "aura-sphere",
+    4
+   ],
+   [
+    "barrage",
+    1
+   ],
+   [
+    "beak-blast",
+    7
+   ],
+   [
+    "bullet-seed",
+    3
+   ],
+   [
+    "egg-bomb",
+    1
+   ],
+   [
+    "electro-ball",
+    5
+   ],
+   [
+    "energy-ball",
+    4
+   ],
+   [
+    "focus-blast",
+    4
+   ],
+   [
+    "gyro-ball",
+    4
+   ],
+   [
+    "ice-ball",
+    3
+   ],
+   [
+    "magnet-bomb",
+    4
+   ],
+   [
+    "mist-ball",
+    3
+   ],
+   [
+    "mud-bomb",
+    4
+   ],
+   [
+    "octazooka",
+    2
+   ],
+   [
+    "pollen-puff",
+    7
+   ],
+   [
+    "pyro-ball",
+    8
+   ],
+   [
+    "rock-blast",
+    3
+   ],
+   [
+    "rock-wrecker",
+    4
+   ],
+   [
+    "searing-shot",
+    5
+   ],
+   [
+    "seed-bomb",
+    4
+   ],
+   [
+    "shadow-ball",
+    2
+   ],
+   [
+    "sludge-bomb",
+    2
+   ],
+   [
+    "syrup-bomb",
+    9
+   ],
+   [
+    "weather-ball",
+    3
+   ],
+   [
+    "zap-cannon",
+    2
+   ]
+  ],
+  "slicing": [
+   [
+    "aerial-ace",
+    3
+   ],
+   [
+    "air-cutter",
+    3
+   ],
+   [
+    "air-slash",
+    4
+   ],
+   [
+    "aqua-cutter",
+    9
+   ],
+   [
+    "behemoth-blade",
+    8
+   ],
+   [
+    "bitter-blade",
+    9
+   ],
+   [
+    "ceaseless-edge",
+    8
+   ],
+   [
+    "cross-poison",
+    4
+   ],
+   [
+    "cut",
+    1
+   ],
+   [
+    "fury-cutter",
+    2
+   ],
+   [
+    "kowtow-cleave",
+    9
+   ],
+   [
+    "leaf-blade",
+    3
+   ],
+   [
+    "mighty-cleave",
+    9
+   ],
+   [
+    "night-slash",
+    4
+   ],
+   [
+    "population-bomb",
+    9
+   ],
+   [
+    "psyblade",
+    9
+   ],
+   [
+    "psycho-cut",
+    4
+   ],
+   [
+    "razor-leaf",
+    1
+   ],
+   [
+    "razor-shell",
+    5
+   ],
+   [
+    "sacred-sword",
+    5
+   ],
+   [
+    "secret-sword",
+    5
+   ],
+   [
+    "slash",
+    1
+   ],
+   [
+    "solar-blade",
+    7
+   ],
+   [
+    "stone-axe",
+    8
+   ],
+   [
+    "tachyon-cutter",
+    9
+   ],
+   [
+    "x-scissor",
+    4
+   ]
+  ],
+  "wind": [
+   [
+    "aeroblast",
+    2
+   ],
+   [
+    "air-cutter",
+    3
+   ],
+   [
+    "bleakwind-storm",
+    8
+   ],
+   [
+    "blizzard",
+    1
+   ],
+   [
+    "fairy-wind",
+    6
+   ],
+   [
+    "gust",
+    1
+   ],
+   [
+    "heat-wave",
+    3
+   ],
+   [
+    "hurricane",
+    5
+   ],
+   [
+    "icy-wind",
+    2
+   ],
+   [
+    "petal-blizzard",
+    6
+   ],
+   [
+    "sandsear-storm",
+    8
+   ],
+   [
+    "sandstorm",
+    2
+   ],
+   [
+    "springtide-storm",
+    8
+   ],
+   [
+    "tailwind",
+    4
+   ],
+   [
+    "twister",
+    2
+   ],
+   [
+    "whirlwind",
+    1
+   ],
+   [
+    "wildbolt-storm",
+    8
+   ]
+  ],
+  "sound": [
+   [
+    "alluring-voice",
+    9
+   ],
+   [
+    "boomburst",
+    6
+   ],
+   [
+    "bug-buzz",
+    4
+   ],
+   [
+    "chatter",
+    4
+   ],
+   [
+    "clanging-scales",
+    7
+   ],
+   [
+    "clangorous-soul",
+    8
+   ],
+   [
+    "clangorous-soulblaze",
+    7
+   ],
+   [
+    "confide",
+    6
+   ],
+   [
+    "disarming-voice",
+    6
+   ],
+   [
+    "echoed-voice",
+    5
+   ],
+   [
+    "eerie-spell",
+    8
+   ],
+   [
+    "grass-whistle",
+    3
+   ],
+   [
+    "growl",
+    1
+   ],
+   [
+    "heal-bell",
+    2
+   ],
+   [
+    "howl",
+    3
+   ],
+   [
+    "hyper-voice",
+    3
+   ],
+   [
+    "metal-sound",
+    3
+   ],
+   [
+    "noble-roar",
+    6
+   ],
+   [
+    "overdrive",
+    8
+   ],
+   [
+    "parting-shot",
+    6
+   ],
+   [
+    "perish-song",
+    2
+   ],
+   [
+    "psychic-noise",
+    9
+   ],
+   [
+    "relic-song",
+    5
+   ],
+   [
+    "roar",
+    1
+   ],
+   [
+    "round",
+    5
+   ],
+   [
+    "screech",
+    1
+   ],
+   [
+    "sing",
+    1
+   ],
+   [
+    "snarl",
+    5
+   ],
+   [
+    "snore",
+    2
+   ],
+   [
+    "sparkling-aria",
+    7
+   ],
+   [
+    "supersonic",
+    1
+   ],
+   [
+    "torch-song",
+    9
+   ],
+   [
+    "uproar",
+    3
+   ]
+  ],
+  "reflectable": [
+   [
+    "attract",
+    2
+   ],
+   [
+    "baby-doll-eyes",
+    6
+   ],
+   [
+    "block",
+    3
+   ],
+   [
+    "captivate",
+    4
+   ],
+   [
+    "charm",
+    2
+   ],
+   [
+    "confide",
+    6
+   ],
+   [
+    "confuse-ray",
+    1
+   ],
+   [
+    "corrosive-gas",
+    8
+   ],
+   [
+    "cotton-spore",
+    2
+   ],
+   [
+    "dark-void",
+    4
+   ],
+   [
+    "defog",
+    4
+   ],
+   [
+    "disable",
+    1
+   ],
+   [
+    "eerie-impulse",
+    6
+   ],
+   [
+    "embargo",
+    4
+   ],
+   [
+    "encore",
+    2
+   ],
+   [
+    "entrainment",
+    5
+   ],
+   [
+    "fake-tears",
+    3
+   ],
+   [
+    "feather-dance",
+    3
+   ],
+   [
+    "flash",
+    1
+   ],
+   [
+    "flatter",
+    3
+   ],
+   [
+    "floral-healing",
+    7
+   ],
+   [
+    "foresight",
+    2
+   ],
+   [
+    "forests-curse",
+    6
+   ],
+   [
+    "gastro-acid",
+    4
+   ],
+   [
+    "glare",
+    1
+   ],
+   [
+    "grass-whistle",
+    3
+   ],
+   [
+    "growl",
+    1
+   ],
+   [
+    "heal-block",
+    4
+   ],
+   [
+    "heal-pulse",
+    5
+   ],
+   [
+    "hypnosis",
+    1
+   ],
+   [
+    "kinesis",
+    1
+   ],
+   [
+    "leech-seed",
+    1
+   ],
+   [
+    "leer",
+    1
+   ],
+   [
+    "lovely-kiss",
+    1
+   ],
+   [
+    "magic-powder",
+    8
+   ],
+   [
+    "mean-look",
+    2
+   ],
+   [
+    "metal-sound",
+    3
+   ],
+   [
+    "miracle-eye",
+    4
+   ],
+   [
+    "noble-roar",
+    6
+   ],
+   [
+    "odor-sleuth",
+    3
+   ],
+   [
+    "parting-shot",
+    6
+   ],
+   [
+    "play-nice",
+    6
+   ],
+   [
+    "poison-gas",
+    1
+   ],
+   [
+    "poison-powder",
+    1
+   ],
+   [
+    "powder",
+    6
+   ],
+   [
+    "purify",
+    7
+   ],
+   [
+    "roar",
+    1
+   ],
+   [
+    "sand-attack",
+    1
+   ],
+   [
+    "sappy-seed",
+    7
+   ],
+   [
+    "scary-face",
+    2
+   ],
+   [
+    "screech",
+    1
+   ],
+   [
+    "simple-beam",
+    5
+   ],
+   [
+    "sing",
+    1
+   ],
+   [
+    "sleep-powder",
+    1
+   ],
+   [
+    "smokescreen",
+    1
+   ],
+   [
+    "soak",
+    5
+   ],
+   [
+    "spicy-extract",
+    9
+   ],
+   [
+    "spider-web",
+    2
+   ],
+   [
+    "spikes",
+    2
+   ],
+   [
+    "spite",
+    2
+   ],
+   [
+    "spore",
+    1
+   ],
+   [
+    "spotlight",
+    7
+   ],
+   [
+    "stealth-rock",
+    4
+   ],
+   [
+    "sticky-web",
+    6
+   ],
+   [
+    "strength-sap",
+    7
+   ],
+   [
+    "string-shot",
+    1
+   ],
+   [
+    "stun-spore",
+    1
+   ],
+   [
+    "supersonic",
+    1
+   ],
+   [
+    "swagger",
+    2
+   ],
+   [
+    "sweet-kiss",
+    2
+   ],
+   [
+    "sweet-scent",
+    2
+   ],
+   [
+    "tail-whip",
+    1
+   ],
+   [
+    "tar-shot",
+    8
+   ],
+   [
+    "taunt",
+    3
+   ],
+   [
+    "tearful-look",
+    7
+   ],
+   [
+    "telekinesis",
+    5
+   ],
+   [
+    "thunder-wave",
+    1
+   ],
+   [
+    "tickle",
+    3
+   ],
+   [
+    "topsy-turvy",
+    6
+   ],
+   [
+    "torment",
+    3
+   ],
+   [
+    "toxic",
+    1
+   ],
+   [
+    "toxic-spikes",
+    4
+   ],
+   [
+    "toxic-thread",
+    7
+   ],
+   [
+    "trick-or-treat",
+    6
+   ],
+   [
+    "venom-drench",
+    6
+   ],
+   [
+    "whirlwind",
+    1
+   ],
+   [
+    "will-o-wisp",
+    3
+   ],
+   [
+    "worry-seed",
+    4
+   ],
+   [
+    "yawn",
+    3
+   ]
+  ],
+  "pulse": [
+   [
+    "aura-sphere",
+    4
+   ],
+   [
+    "dark-pulse",
+    4
+   ],
+   [
+    "dragon-pulse",
+    4
+   ],
+   [
+    "heal-pulse",
+    5
+   ],
+   [
+    "origin-pulse",
+    6
+   ],
+   [
+    "terrain-pulse",
+    8
+   ],
+   [
+    "water-pulse",
+    3
+   ]
+  ],
+  "bite": [
+   [
+    "bite",
+    1
+   ],
+   [
+    "crunch",
+    2
+   ],
+   [
+    "fire-fang",
+    4
+   ],
+   [
+    "fishious-rend",
+    8
+   ],
+   [
+    "hyper-fang",
+    1
+   ],
+   [
+    "ice-fang",
+    4
+   ],
+   [
+    "jaw-lock",
+    8
+   ],
+   [
+    "poison-fang",
+    3
+   ],
+   [
+    "psychic-fangs",
+    7
+   ],
+   [
+    "thunder-fang",
+    4
+   ]
+  ],
+  "punch": [
+   [
+    "bullet-punch",
+    4
+   ],
+   [
+    "comet-punch",
+    1
+   ],
+   [
+    "dizzy-punch",
+    1
+   ],
+   [
+    "double-iron-bash",
+    7
+   ],
+   [
+    "drain-punch",
+    4
+   ],
+   [
+    "dynamic-punch",
+    2
+   ],
+   [
+    "fire-punch",
+    1
+   ],
+   [
+    "focus-punch",
+    3
+   ],
+   [
+    "hammer-arm",
+    4
+   ],
+   [
+    "headlong-rush",
+    8
+   ],
+   [
+    "ice-hammer",
+    7
+   ],
+   [
+    "ice-punch",
+    1
+   ],
+   [
+    "jet-punch",
+    9
+   ],
+   [
+    "mach-punch",
+    2
+   ],
+   [
+    "mega-punch",
+    1
+   ],
+   [
+    "meteor-mash",
+    3
+   ],
+   [
+    "plasma-fists",
+    7
+   ],
+   [
+    "power-up-punch",
+    6
+   ],
+   [
+    "rage-fist",
+    9
+   ],
+   [
+    "shadow-punch",
+    3
+   ],
+   [
+    "sky-uppercut",
+    3
+   ],
+   [
+    "surging-strikes",
+    8
+   ],
+   [
+    "thunder-punch",
+    1
+   ],
+   [
+    "wicked-blow",
+    8
+   ]
+  ],
+  "powder": [
+   [
+    "cotton-spore",
+    2
+   ],
+   [
+    "magic-powder",
+    8
+   ],
+   [
+    "poison-powder",
+    1
+   ],
+   [
+    "powder",
+    6
+   ],
+   [
+    "rage-powder",
+    5
+   ],
+   [
+    "sleep-powder",
+    1
+   ],
+   [
+    "spore",
+    1
+   ],
+   [
+    "stun-spore",
+    1
+   ]
+  ]
+ },
+ "moveFlags": {
+  "absorb": [
+   "protect"
+  ],
+  "accelerock": [
+   "contact",
+   "protect"
+  ],
+  "acid": [
+   "protect"
+  ],
+  "acid-spray": [
+   "bullet",
+   "protect"
+  ],
+  "acrobatics": [
+   "contact",
+   "protect"
+  ],
+  "aerial-ace": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "aeroblast": [
+   "protect",
+   "wind"
+  ],
+  "air-cutter": [
+   "protect",
+   "slicing",
+   "wind"
+  ],
+  "air-slash": [
+   "protect",
+   "slicing"
+  ],
+  "alluring-voice": [
+   "protect",
+   "sound"
+  ],
+  "anchor-shot": [
+   "contact",
+   "protect"
+  ],
+  "ancient-power": [
+   "protect"
+  ],
+  "apple-acid": [
+   "protect"
+  ],
+  "aqua-cutter": [
+   "protect",
+   "slicing"
+  ],
+  "aqua-jet": [
+   "contact",
+   "protect"
+  ],
+  "aqua-step": [
+   "contact",
+   "protect"
+  ],
+  "aqua-tail": [
+   "contact",
+   "protect"
+  ],
+  "armor-cannon": [
+   "protect"
+  ],
+  "arm-thrust": [
+   "contact",
+   "protect"
+  ],
+  "assurance": [
+   "contact",
+   "protect"
+  ],
+  "astonish": [
+   "contact",
+   "protect"
+  ],
+  "astral-barrage": [
+   "protect"
+  ],
+  "attack-order": [
+   "protect"
+  ],
+  "attract": [
+   "protect",
+   "reflectable"
+  ],
+  "aura-sphere": [
+   "bullet",
+   "protect",
+   "pulse"
+  ],
+  "aura-wheel": [
+   "protect"
+  ],
+  "aurora-beam": [
+   "protect"
+  ],
+  "avalanche": [
+   "contact",
+   "protect"
+  ],
+  "axe-kick": [
+   "contact",
+   "protect"
+  ],
+  "baby-doll-eyes": [
+   "protect",
+   "reflectable"
+  ],
+  "baddy-bad": [
+   "protect"
+  ],
+  "barb-barrage": [
+   "protect"
+  ],
+  "barrage": [
+   "bullet",
+   "protect"
+  ],
+  "beak-blast": [
+   "bullet",
+   "protect"
+  ],
+  "beat-up": [
+   "protect"
+  ],
+  "behemoth-bash": [
+   "contact",
+   "protect"
+  ],
+  "behemoth-blade": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "belch": [
+   "protect"
+  ],
+  "bide": [
+   "contact",
+   "protect"
+  ],
+  "bind": [
+   "contact",
+   "protect"
+  ],
+  "bite": [
+   "bite",
+   "contact",
+   "protect"
+  ],
+  "bitter-blade": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "bitter-malice": [
+   "protect"
+  ],
+  "blast-burn": [
+   "protect"
+  ],
+  "blaze-kick": [
+   "contact",
+   "protect"
+  ],
+  "blazing-torque": [
+   "protect"
+  ],
+  "bleakwind-storm": [
+   "protect",
+   "wind"
+  ],
+  "blizzard": [
+   "protect",
+   "wind"
+  ],
+  "block": [
+   "reflectable"
+  ],
+  "blood-moon": [
+   "protect"
+  ],
+  "blue-flare": [
+   "protect"
+  ],
+  "body-press": [
+   "contact",
+   "protect"
+  ],
+  "body-slam": [
+   "contact",
+   "protect"
+  ],
+  "bolt-beak": [
+   "contact",
+   "protect"
+  ],
+  "bolt-strike": [
+   "contact",
+   "protect"
+  ],
+  "bone-club": [
+   "protect"
+  ],
+  "bonemerang": [
+   "protect"
+  ],
+  "bone-rush": [
+   "protect"
+  ],
+  "boomburst": [
+   "protect",
+   "sound"
+  ],
+  "bounce": [
+   "contact",
+   "protect"
+  ],
+  "bouncy-bubble": [
+   "protect"
+  ],
+  "branch-poke": [
+   "contact",
+   "protect"
+  ],
+  "brave-bird": [
+   "contact",
+   "protect"
+  ],
+  "breaking-swipe": [
+   "contact",
+   "protect"
+  ],
+  "brick-break": [
+   "contact",
+   "protect"
+  ],
+  "brine": [
+   "protect"
+  ],
+  "brutal-swing": [
+   "contact",
+   "protect"
+  ],
+  "bubble": [
+   "protect"
+  ],
+  "bubble-beam": [
+   "protect"
+  ],
+  "bug-bite": [
+   "contact",
+   "protect"
+  ],
+  "bug-buzz": [
+   "protect",
+   "sound"
+  ],
+  "bulldoze": [
+   "protect"
+  ],
+  "bullet-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "bullet-seed": [
+   "bullet",
+   "protect"
+  ],
+  "burning-jealousy": [
+   "protect"
+  ],
+  "burn-up": [
+   "protect"
+  ],
+  "buzzy-buzz": [
+   "protect"
+  ],
+  "captivate": [
+   "protect",
+   "reflectable"
+  ],
+  "catastropika": [
+   "contact"
+  ],
+  "ceaseless-edge": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "charge-beam": [
+   "protect"
+  ],
+  "charm": [
+   "protect",
+   "reflectable"
+  ],
+  "chatter": [
+   "protect",
+   "sound"
+  ],
+  "chilling-water": [
+   "protect"
+  ],
+  "chip-away": [
+   "contact",
+   "protect"
+  ],
+  "chloroblast": [
+   "protect"
+  ],
+  "circle-throw": [
+   "contact",
+   "protect"
+  ],
+  "clamp": [
+   "contact",
+   "protect"
+  ],
+  "clanging-scales": [
+   "protect",
+   "sound"
+  ],
+  "clangorous-soul": [
+   "sound"
+  ],
+  "clangorous-soulblaze": [
+   "sound"
+  ],
+  "clear-smog": [
+   "protect"
+  ],
+  "close-combat": [
+   "contact",
+   "protect"
+  ],
+  "collision-course": [
+   "contact",
+   "protect"
+  ],
+  "combat-torque": [
+   "protect"
+  ],
+  "comet-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "comeuppance": [
+   "contact",
+   "protect"
+  ],
+  "confide": [
+   "reflectable",
+   "sound"
+  ],
+  "confuse-ray": [
+   "protect",
+   "reflectable"
+  ],
+  "confusion": [
+   "protect"
+  ],
+  "constrict": [
+   "contact",
+   "protect"
+  ],
+  "core-enforcer": [
+   "protect"
+  ],
+  "corrosive-gas": [
+   "protect",
+   "reflectable"
+  ],
+  "cotton-spore": [
+   "powder",
+   "protect",
+   "reflectable"
+  ],
+  "counter": [
+   "contact",
+   "protect"
+  ],
+  "covet": [
+   "contact",
+   "protect"
+  ],
+  "crabhammer": [
+   "contact",
+   "protect"
+  ],
+  "cross-chop": [
+   "contact",
+   "protect"
+  ],
+  "cross-poison": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "crunch": [
+   "bite",
+   "contact",
+   "protect"
+  ],
+  "crush-claw": [
+   "contact",
+   "protect"
+  ],
+  "crush-grip": [
+   "contact",
+   "protect"
+  ],
+  "cut": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "darkest-lariat": [
+   "contact",
+   "protect"
+  ],
+  "dark-pulse": [
+   "protect",
+   "pulse"
+  ],
+  "dark-void": [
+   "protect",
+   "reflectable"
+  ],
+  "dazzling-gleam": [
+   "protect"
+  ],
+  "defog": [
+   "protect",
+   "reflectable"
+  ],
+  "diamond-storm": [
+   "protect"
+  ],
+  "dig": [
+   "contact",
+   "protect"
+  ],
+  "dire-claw": [
+   "contact",
+   "protect"
+  ],
+  "disable": [
+   "protect",
+   "reflectable"
+  ],
+  "disarming-voice": [
+   "protect",
+   "sound"
+  ],
+  "discharge": [
+   "protect"
+  ],
+  "dive": [
+   "contact",
+   "protect"
+  ],
+  "dizzy-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "double-edge": [
+   "contact",
+   "protect"
+  ],
+  "double-hit": [
+   "contact",
+   "protect"
+  ],
+  "double-iron-bash": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "double-kick": [
+   "contact",
+   "protect"
+  ],
+  "double-shock": [
+   "contact",
+   "protect"
+  ],
+  "double-slap": [
+   "contact",
+   "protect"
+  ],
+  "draco-meteor": [
+   "protect"
+  ],
+  "dragon-ascent": [
+   "contact",
+   "protect"
+  ],
+  "dragon-breath": [
+   "protect"
+  ],
+  "dragon-claw": [
+   "contact",
+   "protect"
+  ],
+  "dragon-darts": [
+   "protect"
+  ],
+  "dragon-energy": [
+   "protect"
+  ],
+  "dragon-hammer": [
+   "contact",
+   "protect"
+  ],
+  "dragon-pulse": [
+   "protect",
+   "pulse"
+  ],
+  "dragon-rage": [
+   "protect"
+  ],
+  "dragon-rush": [
+   "contact",
+   "protect"
+  ],
+  "dragon-tail": [
+   "contact",
+   "protect"
+  ],
+  "draining-kiss": [
+   "contact",
+   "protect"
+  ],
+  "drain-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "dream-eater": [
+   "protect"
+  ],
+  "drill-peck": [
+   "contact",
+   "protect"
+  ],
+  "drill-run": [
+   "contact",
+   "protect"
+  ],
+  "drum-beating": [
+   "protect"
+  ],
+  "dual-chop": [
+   "contact",
+   "protect"
+  ],
+  "dual-wingbeat": [
+   "contact",
+   "protect"
+  ],
+  "dynamax-cannon": [
+   "protect"
+  ],
+  "dynamic-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "earth-power": [
+   "protect"
+  ],
+  "earthquake": [
+   "protect"
+  ],
+  "echoed-voice": [
+   "protect",
+   "sound"
+  ],
+  "eerie-impulse": [
+   "protect",
+   "reflectable"
+  ],
+  "eerie-spell": [
+   "protect",
+   "sound"
+  ],
+  "egg-bomb": [
+   "bullet",
+   "protect"
+  ],
+  "electrify": [
+   "protect"
+  ],
+  "electro-ball": [
+   "bullet",
+   "protect"
+  ],
+  "electro-drift": [
+   "contact",
+   "protect"
+  ],
+  "electro-shot": [
+   "protect"
+  ],
+  "electroweb": [
+   "protect"
+  ],
+  "embargo": [
+   "protect",
+   "reflectable"
+  ],
+  "ember": [
+   "protect"
+  ],
+  "encore": [
+   "protect",
+   "reflectable"
+  ],
+  "endeavor": [
+   "contact",
+   "protect"
+  ],
+  "energy-ball": [
+   "bullet",
+   "protect"
+  ],
+  "entrainment": [
+   "protect",
+   "reflectable"
+  ],
+  "eruption": [
+   "protect"
+  ],
+  "esper-wing": [
+   "protect"
+  ],
+  "eternabeam": [
+   "protect"
+  ],
+  "expanding-force": [
+   "protect"
+  ],
+  "explosion": [
+   "protect"
+  ],
+  "extrasensory": [
+   "protect"
+  ],
+  "extreme-speed": [
+   "contact",
+   "protect"
+  ],
+  "facade": [
+   "contact",
+   "protect"
+  ],
+  "fairy-wind": [
+   "protect",
+   "wind"
+  ],
+  "fake-out": [
+   "contact",
+   "protect"
+  ],
+  "fake-tears": [
+   "protect",
+   "reflectable"
+  ],
+  "false-surrender": [
+   "contact",
+   "protect"
+  ],
+  "false-swipe": [
+   "contact",
+   "protect"
+  ],
+  "feather-dance": [
+   "protect",
+   "reflectable"
+  ],
+  "feint-attack": [
+   "contact",
+   "protect"
+  ],
+  "fell-stinger": [
+   "contact",
+   "protect"
+  ],
+  "fickle-beam": [
+   "protect"
+  ],
+  "fiery-dance": [
+   "protect"
+  ],
+  "fiery-wrath": [
+   "protect"
+  ],
+  "final-gambit": [
+   "protect"
+  ],
+  "fire-blast": [
+   "protect"
+  ],
+  "fire-fang": [
+   "bite",
+   "contact",
+   "protect"
+  ],
+  "fire-lash": [
+   "contact",
+   "protect"
+  ],
+  "fire-pledge": [
+   "protect"
+  ],
+  "fire-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "fire-spin": [
+   "protect"
+  ],
+  "first-impression": [
+   "contact",
+   "protect"
+  ],
+  "fishious-rend": [
+   "bite",
+   "contact",
+   "protect"
+  ],
+  "fissure": [
+   "protect"
+  ],
+  "flail": [
+   "contact",
+   "protect"
+  ],
+  "flame-burst": [
+   "protect"
+  ],
+  "flame-charge": [
+   "contact",
+   "protect"
+  ],
+  "flamethrower": [
+   "protect"
+  ],
+  "flame-wheel": [
+   "contact",
+   "protect"
+  ],
+  "flare-blitz": [
+   "contact",
+   "protect"
+  ],
+  "flash": [
+   "protect",
+   "reflectable"
+  ],
+  "flash-cannon": [
+   "protect"
+  ],
+  "flatter": [
+   "protect",
+   "reflectable"
+  ],
+  "fleur-cannon": [
+   "protect"
+  ],
+  "fling": [
+   "protect"
+  ],
+  "flip-turn": [
+   "contact",
+   "protect"
+  ],
+  "floaty-fall": [
+   "contact",
+   "protect"
+  ],
+  "floral-healing": [
+   "protect",
+   "reflectable"
+  ],
+  "flower-trick": [
+   "protect"
+  ],
+  "fly": [
+   "contact",
+   "protect"
+  ],
+  "flying-press": [
+   "contact",
+   "protect"
+  ],
+  "focus-blast": [
+   "bullet",
+   "protect"
+  ],
+  "focus-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "force-palm": [
+   "contact",
+   "protect"
+  ],
+  "foresight": [
+   "protect",
+   "reflectable"
+  ],
+  "forests-curse": [
+   "protect",
+   "reflectable"
+  ],
+  "foul-play": [
+   "contact",
+   "protect"
+  ],
+  "freeze-dry": [
+   "protect"
+  ],
+  "freeze-shock": [
+   "protect"
+  ],
+  "freezing-glare": [
+   "protect"
+  ],
+  "freezy-frost": [
+   "protect"
+  ],
+  "frenzy-plant": [
+   "protect"
+  ],
+  "frost-breath": [
+   "protect"
+  ],
+  "frustration": [
+   "contact",
+   "protect"
+  ],
+  "fury-attack": [
+   "contact",
+   "protect"
+  ],
+  "fury-cutter": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "fury-swipes": [
+   "contact",
+   "protect"
+  ],
+  "fusion-bolt": [
+   "protect"
+  ],
+  "fusion-flare": [
+   "protect"
+  ],
+  "gastro-acid": [
+   "protect",
+   "reflectable"
+  ],
+  "gear-grind": [
+   "contact",
+   "protect"
+  ],
+  "giga-drain": [
+   "protect"
+  ],
+  "giga-impact": [
+   "contact",
+   "protect"
+  ],
+  "gigaton-hammer": [
+   "protect"
+  ],
+  "glacial-lance": [
+   "protect"
+  ],
+  "glaciate": [
+   "protect"
+  ],
+  "glaive-rush": [
+   "contact",
+   "protect"
+  ],
+  "glare": [
+   "protect",
+   "reflectable"
+  ],
+  "glitzy-glow": [
+   "protect"
+  ],
+  "grass-knot": [
+   "contact",
+   "protect"
+  ],
+  "grass-pledge": [
+   "protect"
+  ],
+  "grass-whistle": [
+   "protect",
+   "reflectable",
+   "sound"
+  ],
+  "grassy-glide": [
+   "contact",
+   "protect"
+  ],
+  "grav-apple": [
+   "protect"
+  ],
+  "growl": [
+   "protect",
+   "reflectable",
+   "sound"
+  ],
+  "guard-split": [
+   "protect"
+  ],
+  "guard-swap": [
+   "protect"
+  ],
+  "guillotine": [
+   "contact",
+   "protect"
+  ],
+  "gunk-shot": [
+   "protect"
+  ],
+  "gust": [
+   "protect",
+   "wind"
+  ],
+  "gyro-ball": [
+   "bullet",
+   "contact",
+   "protect"
+  ],
+  "hammer-arm": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "hard-press": [
+   "contact",
+   "protect"
+  ],
+  "headbutt": [
+   "contact",
+   "protect"
+  ],
+  "head-charge": [
+   "contact",
+   "protect"
+  ],
+  "headlong-rush": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "head-smash": [
+   "contact",
+   "protect"
+  ],
+  "heal-bell": [
+   "sound"
+  ],
+  "heal-block": [
+   "protect",
+   "reflectable"
+  ],
+  "heal-pulse": [
+   "protect",
+   "pulse",
+   "reflectable"
+  ],
+  "heart-stamp": [
+   "contact",
+   "protect"
+  ],
+  "heart-swap": [
+   "protect"
+  ],
+  "heat-crash": [
+   "contact",
+   "protect"
+  ],
+  "heat-wave": [
+   "protect",
+   "wind"
+  ],
+  "heavy-slam": [
+   "contact",
+   "protect"
+  ],
+  "hex": [
+   "protect"
+  ],
+  "hidden-power": [
+   "protect"
+  ],
+  "high-horsepower": [
+   "contact",
+   "protect"
+  ],
+  "high-jump-kick": [
+   "contact",
+   "protect"
+  ],
+  "hold-back": [
+   "contact",
+   "protect"
+  ],
+  "horn-attack": [
+   "contact",
+   "protect"
+  ],
+  "horn-drill": [
+   "contact",
+   "protect"
+  ],
+  "horn-leech": [
+   "contact",
+   "protect"
+  ],
+  "howl": [
+   "sound"
+  ],
+  "hurricane": [
+   "protect",
+   "wind"
+  ],
+  "hydro-cannon": [
+   "protect"
+  ],
+  "hydro-pump": [
+   "protect"
+  ],
+  "hydro-steam": [
+   "protect"
+  ],
+  "hyper-beam": [
+   "protect"
+  ],
+  "hyper-drill": [
+   "contact"
+  ],
+  "hyper-fang": [
+   "bite",
+   "contact",
+   "protect"
+  ],
+  "hyper-voice": [
+   "protect",
+   "sound"
+  ],
+  "hypnosis": [
+   "protect",
+   "reflectable"
+  ],
+  "ice-ball": [
+   "bullet",
+   "contact",
+   "protect"
+  ],
+  "ice-beam": [
+   "protect"
+  ],
+  "ice-burn": [
+   "protect"
+  ],
+  "ice-fang": [
+   "bite",
+   "contact",
+   "protect"
+  ],
+  "ice-hammer": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "ice-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "ice-shard": [
+   "protect"
+  ],
+  "ice-spinner": [
+   "contact",
+   "protect"
+  ],
+  "icicle-crash": [
+   "protect"
+  ],
+  "icicle-spear": [
+   "protect"
+  ],
+  "icy-wind": [
+   "protect",
+   "wind"
+  ],
+  "incinerate": [
+   "protect"
+  ],
+  "infernal-parade": [
+   "protect"
+  ],
+  "inferno": [
+   "protect"
+  ],
+  "infestation": [
+   "contact",
+   "protect"
+  ],
+  "instruct": [
+   "protect"
+  ],
+  "iron-head": [
+   "contact",
+   "protect"
+  ],
+  "iron-tail": [
+   "contact",
+   "protect"
+  ],
+  "ivy-cudgel": [
+   "protect"
+  ],
+  "jaw-lock": [
+   "bite",
+   "contact",
+   "protect"
+  ],
+  "jet-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "judgment": [
+   "protect"
+  ],
+  "jump-kick": [
+   "contact",
+   "protect"
+  ],
+  "karate-chop": [
+   "contact",
+   "protect"
+  ],
+  "kinesis": [
+   "protect",
+   "reflectable"
+  ],
+  "knock-off": [
+   "contact",
+   "protect"
+  ],
+  "kowtow-cleave": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "lands-wrath": [
+   "protect"
+  ],
+  "lash-out": [
+   "contact",
+   "protect"
+  ],
+  "last-resort": [
+   "contact",
+   "protect"
+  ],
+  "last-respects": [
+   "protect"
+  ],
+  "lava-plume": [
+   "protect"
+  ],
+  "leafage": [
+   "protect"
+  ],
+  "leaf-blade": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "leaf-storm": [
+   "protect"
+  ],
+  "leaf-tornado": [
+   "protect"
+  ],
+  "leech-life": [
+   "contact",
+   "protect"
+  ],
+  "leech-seed": [
+   "protect",
+   "reflectable"
+  ],
+  "leer": [
+   "protect",
+   "reflectable"
+  ],
+  "lets-snuggle-forever": [
+   "contact"
+  ],
+  "lick": [
+   "contact",
+   "protect"
+  ],
+  "light-of-ruin": [
+   "protect"
+  ],
+  "liquidation": [
+   "contact",
+   "protect"
+  ],
+  "lock-on": [
+   "protect"
+  ],
+  "lovely-kiss": [
+   "protect",
+   "reflectable"
+  ],
+  "low-kick": [
+   "contact",
+   "protect"
+  ],
+  "low-sweep": [
+   "contact",
+   "protect"
+  ],
+  "lumina-crash": [
+   "protect"
+  ],
+  "lunge": [
+   "contact",
+   "protect"
+  ],
+  "luster-purge": [
+   "protect"
+  ],
+  "mach-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "magical-leaf": [
+   "protect"
+  ],
+  "magical-torque": [
+   "protect"
+  ],
+  "magic-powder": [
+   "powder",
+   "protect",
+   "reflectable"
+  ],
+  "magma-storm": [
+   "protect"
+  ],
+  "magnet-bomb": [
+   "bullet",
+   "protect"
+  ],
+  "magnitude": [
+   "protect"
+  ],
+  "make-it-rain": [
+   "protect"
+  ],
+  "malicious-moonsault": [
+   "contact"
+  ],
+  "malignant-chain": [
+   "protect"
+  ],
+  "matcha-gotcha": [
+   "protect"
+  ],
+  "mean-look": [
+   "reflectable"
+  ],
+  "me-first": [
+   "protect"
+  ],
+  "mega-drain": [
+   "protect"
+  ],
+  "megahorn": [
+   "contact",
+   "protect"
+  ],
+  "mega-kick": [
+   "contact",
+   "protect"
+  ],
+  "mega-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "memento": [
+   "protect"
+  ],
+  "metal-burst": [
+   "protect"
+  ],
+  "metal-claw": [
+   "contact",
+   "protect"
+  ],
+  "metal-sound": [
+   "protect",
+   "reflectable",
+   "sound"
+  ],
+  "meteor-assault": [
+   "protect"
+  ],
+  "meteor-beam": [
+   "protect"
+  ],
+  "meteor-mash": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "mighty-cleave": [
+   "contact",
+   "slicing"
+  ],
+  "mimic": [
+   "protect"
+  ],
+  "mind-blown": [
+   "protect"
+  ],
+  "mind-reader": [
+   "protect"
+  ],
+  "miracle-eye": [
+   "protect",
+   "reflectable"
+  ],
+  "mirror-coat": [
+   "protect"
+  ],
+  "mirror-shot": [
+   "protect"
+  ],
+  "mist-ball": [
+   "bullet",
+   "protect"
+  ],
+  "misty-explosion": [
+   "protect"
+  ],
+  "moonblast": [
+   "protect"
+  ],
+  "moongeist-beam": [
+   "protect"
+  ],
+  "mortal-spin": [
+   "contact",
+   "protect"
+  ],
+  "mountain-gale": [
+   "protect"
+  ],
+  "mud-bomb": [
+   "bullet",
+   "protect"
+  ],
+  "muddy-water": [
+   "protect"
+  ],
+  "mud-shot": [
+   "protect"
+  ],
+  "mud-slap": [
+   "protect"
+  ],
+  "multi-attack": [
+   "contact",
+   "protect"
+  ],
+  "mystical-fire": [
+   "protect"
+  ],
+  "mystical-power": [
+   "protect"
+  ],
+  "natural-gift": [
+   "protect"
+  ],
+  "natures-madness": [
+   "protect"
+  ],
+  "needle-arm": [
+   "contact",
+   "protect"
+  ],
+  "night-daze": [
+   "protect"
+  ],
+  "nightmare": [
+   "protect"
+  ],
+  "night-shade": [
+   "protect"
+  ],
+  "night-slash": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "noble-roar": [
+   "protect",
+   "reflectable",
+   "sound"
+  ],
+  "noxious-torque": [
+   "protect"
+  ],
+  "nuzzle": [
+   "contact",
+   "protect"
+  ],
+  "oblivion-wing": [
+   "protect"
+  ],
+  "octazooka": [
+   "bullet",
+   "protect"
+  ],
+  "octolock": [
+   "protect"
+  ],
+  "odor-sleuth": [
+   "protect",
+   "reflectable"
+  ],
+  "ominous-wind": [
+   "protect"
+  ],
+  "order-up": [
+   "protect"
+  ],
+  "origin-pulse": [
+   "protect",
+   "pulse"
+  ],
+  "outrage": [
+   "contact",
+   "protect"
+  ],
+  "overdrive": [
+   "protect",
+   "sound"
+  ],
+  "overheat": [
+   "protect"
+  ],
+  "pain-split": [
+   "protect"
+  ],
+  "parabolic-charge": [
+   "protect"
+  ],
+  "parting-shot": [
+   "protect",
+   "reflectable",
+   "sound"
+  ],
+  "payback": [
+   "contact",
+   "protect"
+  ],
+  "pay-day": [
+   "protect"
+  ],
+  "peck": [
+   "contact",
+   "protect"
+  ],
+  "perish-song": [
+   "sound"
+  ],
+  "petal-blizzard": [
+   "protect",
+   "wind"
+  ],
+  "petal-dance": [
+   "contact",
+   "protect"
+  ],
+  "phantom-force": [
+   "contact"
+  ],
+  "photon-geyser": [
+   "protect"
+  ],
+  "pika-papow": [
+   "protect"
+  ],
+  "pin-missile": [
+   "protect"
+  ],
+  "plasma-fists": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "play-nice": [
+   "reflectable"
+  ],
+  "play-rough": [
+   "contact",
+   "protect"
+  ],
+  "pluck": [
+   "contact",
+   "protect"
+  ],
+  "poison-fang": [
+   "bite",
+   "contact",
+   "protect"
+  ],
+  "poison-gas": [
+   "protect",
+   "reflectable"
+  ],
+  "poison-jab": [
+   "contact",
+   "protect"
+  ],
+  "poison-powder": [
+   "powder",
+   "protect",
+   "reflectable"
+  ],
+  "poison-sting": [
+   "protect"
+  ],
+  "poison-tail": [
+   "contact",
+   "protect"
+  ],
+  "pollen-puff": [
+   "bullet",
+   "protect"
+  ],
+  "poltergeist": [
+   "protect"
+  ],
+  "population-bomb": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "pounce": [
+   "contact",
+   "protect"
+  ],
+  "pound": [
+   "contact",
+   "protect"
+  ],
+  "powder": [
+   "powder",
+   "protect",
+   "reflectable"
+  ],
+  "powder-snow": [
+   "protect"
+  ],
+  "power-gem": [
+   "protect"
+  ],
+  "power-split": [
+   "protect"
+  ],
+  "power-swap": [
+   "protect"
+  ],
+  "power-trip": [
+   "contact",
+   "protect"
+  ],
+  "power-up-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "power-whip": [
+   "contact",
+   "protect"
+  ],
+  "precipice-blades": [
+   "protect"
+  ],
+  "present": [
+   "protect"
+  ],
+  "prismatic-laser": [
+   "protect"
+  ],
+  "psybeam": [
+   "protect"
+  ],
+  "psyblade": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "psychic": [
+   "protect"
+  ],
+  "psychic-fangs": [
+   "bite",
+   "contact",
+   "protect"
+  ],
+  "psychic-noise": [
+   "protect",
+   "sound"
+  ],
+  "psycho-boost": [
+   "protect"
+  ],
+  "psycho-cut": [
+   "protect",
+   "slicing"
+  ],
+  "psycho-shift": [
+   "protect"
+  ],
+  "psyshield-bash": [
+   "contact",
+   "protect"
+  ],
+  "psyshock": [
+   "protect"
+  ],
+  "psystrike": [
+   "protect"
+  ],
+  "psywave": [
+   "protect"
+  ],
+  "pulverizing-pancake": [
+   "contact"
+  ],
+  "punishment": [
+   "contact",
+   "protect"
+  ],
+  "purify": [
+   "protect",
+   "reflectable"
+  ],
+  "pursuit": [
+   "contact",
+   "protect"
+  ],
+  "pyro-ball": [
+   "bullet",
+   "protect"
+  ],
+  "quash": [
+   "protect"
+  ],
+  "quick-attack": [
+   "contact",
+   "protect"
+  ],
+  "rage": [
+   "contact",
+   "protect"
+  ],
+  "rage-fist": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "rage-powder": [
+   "powder"
+  ],
+  "raging-bull": [
+   "contact",
+   "protect"
+  ],
+  "raging-fury": [
+   "protect"
+  ],
+  "rapid-spin": [
+   "contact",
+   "protect"
+  ],
+  "razor-leaf": [
+   "protect",
+   "slicing"
+  ],
+  "razor-shell": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "razor-wind": [
+   "protect"
+  ],
+  "reflect-type": [
+   "protect"
+  ],
+  "relic-song": [
+   "protect",
+   "sound"
+  ],
+  "retaliate": [
+   "contact",
+   "protect"
+  ],
+  "return": [
+   "contact",
+   "protect"
+  ],
+  "revelation-dance": [
+   "protect"
+  ],
+  "revenge": [
+   "contact",
+   "protect"
+  ],
+  "reversal": [
+   "contact",
+   "protect"
+  ],
+  "rising-voltage": [
+   "protect"
+  ],
+  "roar": [
+   "reflectable",
+   "sound"
+  ],
+  "roar-of-time": [
+   "protect"
+  ],
+  "rock-blast": [
+   "bullet",
+   "protect"
+  ],
+  "rock-climb": [
+   "contact",
+   "protect"
+  ],
+  "rock-slide": [
+   "protect"
+  ],
+  "rock-smash": [
+   "contact",
+   "protect"
+  ],
+  "rock-throw": [
+   "protect"
+  ],
+  "rock-tomb": [
+   "protect"
+  ],
+  "rock-wrecker": [
+   "bullet",
+   "protect"
+  ],
+  "rolling-kick": [
+   "contact",
+   "protect"
+  ],
+  "rollout": [
+   "contact",
+   "protect"
+  ],
+  "round": [
+   "protect",
+   "sound"
+  ],
+  "ruination": [
+   "protect"
+  ],
+  "sacred-fire": [
+   "protect"
+  ],
+  "sacred-sword": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "salt-cure": [
+   "protect"
+  ],
+  "sand-attack": [
+   "protect",
+   "reflectable"
+  ],
+  "sandsear-storm": [
+   "protect",
+   "wind"
+  ],
+  "sandstorm": [
+   "wind"
+  ],
+  "sand-tomb": [
+   "protect"
+  ],
+  "sappy-seed": [
+   "protect",
+   "reflectable"
+  ],
+  "scald": [
+   "protect"
+  ],
+  "scale-shot": [
+   "protect"
+  ],
+  "scary-face": [
+   "protect",
+   "reflectable"
+  ],
+  "scorching-sands": [
+   "protect"
+  ],
+  "scratch": [
+   "contact",
+   "protect"
+  ],
+  "screech": [
+   "protect",
+   "reflectable",
+   "sound"
+  ],
+  "searing-shot": [
+   "bullet",
+   "protect"
+  ],
+  "searing-sunraze-smash": [
+   "contact"
+  ],
+  "secret-power": [
+   "protect"
+  ],
+  "secret-sword": [
+   "protect",
+   "slicing"
+  ],
+  "seed-bomb": [
+   "bullet",
+   "protect"
+  ],
+  "seed-flare": [
+   "protect"
+  ],
+  "seismic-toss": [
+   "contact",
+   "protect"
+  ],
+  "self-destruct": [
+   "protect"
+  ],
+  "shadow-ball": [
+   "bullet",
+   "protect"
+  ],
+  "shadow-bone": [
+   "protect"
+  ],
+  "shadow-claw": [
+   "contact",
+   "protect"
+  ],
+  "shadow-force": [
+   "contact"
+  ],
+  "shadow-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "shadow-sneak": [
+   "contact",
+   "protect"
+  ],
+  "sheer-cold": [
+   "protect"
+  ],
+  "shell-side-arm": [
+   "protect"
+  ],
+  "shell-trap": [
+   "protect"
+  ],
+  "shock-wave": [
+   "protect"
+  ],
+  "signal-beam": [
+   "protect"
+  ],
+  "silver-wind": [
+   "protect"
+  ],
+  "simple-beam": [
+   "protect",
+   "reflectable"
+  ],
+  "sing": [
+   "protect",
+   "reflectable",
+   "sound"
+  ],
+  "sizzly-slide": [
+   "contact",
+   "protect"
+  ],
+  "skill-swap": [
+   "protect"
+  ],
+  "skitter-smack": [
+   "contact",
+   "protect"
+  ],
+  "skull-bash": [
+   "contact",
+   "protect"
+  ],
+  "sky-attack": [
+   "protect"
+  ],
+  "sky-drop": [
+   "contact",
+   "protect"
+  ],
+  "sky-uppercut": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "slam": [
+   "contact",
+   "protect"
+  ],
+  "slash": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "sleep-powder": [
+   "powder",
+   "protect",
+   "reflectable"
+  ],
+  "sludge": [
+   "protect"
+  ],
+  "sludge-bomb": [
+   "bullet",
+   "protect"
+  ],
+  "sludge-wave": [
+   "protect"
+  ],
+  "smack-down": [
+   "protect"
+  ],
+  "smart-strike": [
+   "contact",
+   "protect"
+  ],
+  "smelling-salts": [
+   "contact",
+   "protect"
+  ],
+  "smog": [
+   "protect"
+  ],
+  "smokescreen": [
+   "protect",
+   "reflectable"
+  ],
+  "snap-trap": [
+   "contact",
+   "protect"
+  ],
+  "snarl": [
+   "protect",
+   "sound"
+  ],
+  "snipe-shot": [
+   "protect"
+  ],
+  "snore": [
+   "protect",
+   "sound"
+  ],
+  "soak": [
+   "protect",
+   "reflectable"
+  ],
+  "solar-beam": [
+   "protect"
+  ],
+  "solar-blade": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "sonic-boom": [
+   "protect"
+  ],
+  "soul-stealing-7-star-strike": [
+   "contact"
+  ],
+  "spacial-rend": [
+   "protect"
+  ],
+  "spark": [
+   "contact",
+   "protect"
+  ],
+  "sparkling-aria": [
+   "protect",
+   "sound"
+  ],
+  "sparkly-swirl": [
+   "protect"
+  ],
+  "spectral-thief": [
+   "contact",
+   "protect"
+  ],
+  "speed-swap": [
+   "protect"
+  ],
+  "spicy-extract": [
+   "protect",
+   "reflectable"
+  ],
+  "spider-web": [
+   "protect",
+   "reflectable"
+  ],
+  "spike-cannon": [
+   "protect"
+  ],
+  "spikes": [
+   "reflectable"
+  ],
+  "spin-out": [
+   "contact",
+   "protect"
+  ],
+  "spirit-break": [
+   "contact",
+   "protect"
+  ],
+  "spirit-shackle": [
+   "protect"
+  ],
+  "spite": [
+   "protect",
+   "reflectable"
+  ],
+  "spit-up": [
+   "protect"
+  ],
+  "splishy-splash": [
+   "protect"
+  ],
+  "spore": [
+   "powder",
+   "protect",
+   "reflectable"
+  ],
+  "spotlight": [
+   "protect",
+   "reflectable"
+  ],
+  "springtide-storm": [
+   "protect",
+   "wind"
+  ],
+  "stealth-rock": [
+   "reflectable"
+  ],
+  "steam-eruption": [
+   "protect"
+  ],
+  "steamroller": [
+   "contact",
+   "protect"
+  ],
+  "steel-beam": [
+   "protect"
+  ],
+  "steel-roller": [
+   "contact",
+   "protect"
+  ],
+  "steel-wing": [
+   "contact",
+   "protect"
+  ],
+  "sticky-web": [
+   "reflectable"
+  ],
+  "stomp": [
+   "contact",
+   "protect"
+  ],
+  "stomping-tantrum": [
+   "contact",
+   "protect"
+  ],
+  "stone-axe": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "stone-edge": [
+   "protect"
+  ],
+  "stored-power": [
+   "protect"
+  ],
+  "storm-throw": [
+   "contact",
+   "protect"
+  ],
+  "strange-steam": [
+   "protect"
+  ],
+  "strength": [
+   "contact",
+   "protect"
+  ],
+  "strength-sap": [
+   "protect",
+   "reflectable"
+  ],
+  "string-shot": [
+   "protect",
+   "reflectable"
+  ],
+  "struggle": [
+   "contact",
+   "protect"
+  ],
+  "struggle-bug": [
+   "protect"
+  ],
+  "stun-spore": [
+   "powder",
+   "protect",
+   "reflectable"
+  ],
+  "submission": [
+   "contact",
+   "protect"
+  ],
+  "sucker-punch": [
+   "contact",
+   "protect"
+  ],
+  "sunsteel-strike": [
+   "contact",
+   "protect"
+  ],
+  "supercell-slam": [
+   "contact",
+   "protect"
+  ],
+  "super-fang": [
+   "contact",
+   "protect"
+  ],
+  "superpower": [
+   "contact",
+   "protect"
+  ],
+  "supersonic": [
+   "protect",
+   "reflectable",
+   "sound"
+  ],
+  "surf": [
+   "protect"
+  ],
+  "surging-strikes": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "swagger": [
+   "protect",
+   "reflectable"
+  ],
+  "sweet-kiss": [
+   "protect",
+   "reflectable"
+  ],
+  "sweet-scent": [
+   "protect",
+   "reflectable"
+  ],
+  "swift": [
+   "protect"
+  ],
+  "switcheroo": [
+   "protect"
+  ],
+  "synchronoise": [
+   "protect"
+  ],
+  "syrup-bomb": [
+   "bullet",
+   "protect"
+  ],
+  "tachyon-cutter": [
+   "protect",
+   "slicing"
+  ],
+  "tackle": [
+   "contact",
+   "protect"
+  ],
+  "tail-slap": [
+   "contact",
+   "protect"
+  ],
+  "tail-whip": [
+   "protect",
+   "reflectable"
+  ],
+  "tailwind": [
+   "wind"
+  ],
+  "take-down": [
+   "contact",
+   "protect"
+  ],
+  "tar-shot": [
+   "protect",
+   "reflectable"
+  ],
+  "taunt": [
+   "protect",
+   "reflectable"
+  ],
+  "tearful-look": [
+   "reflectable"
+  ],
+  "techno-blast": [
+   "protect"
+  ],
+  "teeter-dance": [
+   "protect"
+  ],
+  "telekinesis": [
+   "protect",
+   "reflectable"
+  ],
+  "temper-flare": [
+   "contact",
+   "protect"
+  ],
+  "tera-blast": [
+   "protect"
+  ],
+  "tera-starstorm": [
+   "protect"
+  ],
+  "terrain-pulse": [
+   "protect",
+   "pulse"
+  ],
+  "thief": [
+   "contact",
+   "protect"
+  ],
+  "thousand-arrows": [
+   "protect"
+  ],
+  "thousand-waves": [
+   "protect"
+  ],
+  "thrash": [
+   "contact",
+   "protect"
+  ],
+  "throat-chop": [
+   "contact",
+   "protect"
+  ],
+  "thunder": [
+   "protect"
+  ],
+  "thunderbolt": [
+   "protect"
+  ],
+  "thunder-cage": [
+   "protect"
+  ],
+  "thunderclap": [
+   "protect"
+  ],
+  "thunder-fang": [
+   "bite",
+   "contact",
+   "protect"
+  ],
+  "thunderous-kick": [
+   "contact",
+   "protect"
+  ],
+  "thunder-punch": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "thunder-shock": [
+   "protect"
+  ],
+  "thunder-wave": [
+   "protect",
+   "reflectable"
+  ],
+  "tickle": [
+   "protect",
+   "reflectable"
+  ],
+  "topsy-turvy": [
+   "protect",
+   "reflectable"
+  ],
+  "torch-song": [
+   "protect",
+   "sound"
+  ],
+  "torment": [
+   "protect",
+   "reflectable"
+  ],
+  "toxic": [
+   "protect",
+   "reflectable"
+  ],
+  "toxic-spikes": [
+   "reflectable"
+  ],
+  "toxic-thread": [
+   "protect",
+   "reflectable"
+  ],
+  "trailblaze": [
+   "contact",
+   "protect"
+  ],
+  "tri-attack": [
+   "protect"
+  ],
+  "trick": [
+   "protect"
+  ],
+  "trick-or-treat": [
+   "protect",
+   "reflectable"
+  ],
+  "triple-arrows": [
+   "protect"
+  ],
+  "triple-axel": [
+   "contact",
+   "protect"
+  ],
+  "triple-dive": [
+   "contact",
+   "protect"
+  ],
+  "triple-kick": [
+   "contact",
+   "protect"
+  ],
+  "trop-kick": [
+   "contact",
+   "protect"
+  ],
+  "trump-card": [
+   "contact",
+   "protect"
+  ],
+  "twin-beam": [
+   "protect"
+  ],
+  "twineedle": [
+   "protect"
+  ],
+  "twister": [
+   "protect",
+   "wind"
+  ],
+  "upper-hand": [
+   "contact",
+   "protect"
+  ],
+  "uproar": [
+   "protect",
+   "sound"
+  ],
+  "u-turn": [
+   "contact",
+   "protect"
+  ],
+  "vacuum-wave": [
+   "protect"
+  ],
+  "v-create": [
+   "contact",
+   "protect"
+  ],
+  "veevee-volley": [
+   "contact",
+   "protect"
+  ],
+  "venom-drench": [
+   "protect",
+   "reflectable"
+  ],
+  "venoshock": [
+   "protect"
+  ],
+  "vine-whip": [
+   "contact",
+   "protect"
+  ],
+  "vice-grip": [
+   "contact",
+   "protect"
+  ],
+  "vital-throw": [
+   "contact",
+   "protect"
+  ],
+  "volt-switch": [
+   "protect"
+  ],
+  "volt-tackle": [
+   "contact",
+   "protect"
+  ],
+  "wake-up-slap": [
+   "contact",
+   "protect"
+  ],
+  "waterfall": [
+   "contact",
+   "protect"
+  ],
+  "water-gun": [
+   "protect"
+  ],
+  "water-pledge": [
+   "protect"
+  ],
+  "water-pulse": [
+   "protect",
+   "pulse"
+  ],
+  "water-shuriken": [
+   "protect"
+  ],
+  "water-spout": [
+   "protect"
+  ],
+  "wave-crash": [
+   "contact",
+   "protect"
+  ],
+  "weather-ball": [
+   "bullet",
+   "protect"
+  ],
+  "whirlpool": [
+   "protect"
+  ],
+  "whirlwind": [
+   "reflectable",
+   "wind"
+  ],
+  "wicked-blow": [
+   "contact",
+   "protect",
+   "punch"
+  ],
+  "wicked-torque": [
+   "protect"
+  ],
+  "wildbolt-storm": [
+   "protect",
+   "wind"
+  ],
+  "wild-charge": [
+   "contact",
+   "protect"
+  ],
+  "will-o-wisp": [
+   "protect",
+   "reflectable"
+  ],
+  "wing-attack": [
+   "contact",
+   "protect"
+  ],
+  "wood-hammer": [
+   "contact",
+   "protect"
+  ],
+  "worry-seed": [
+   "protect",
+   "reflectable"
+  ],
+  "wrap": [
+   "contact",
+   "protect"
+  ],
+  "wring-out": [
+   "contact",
+   "protect"
+  ],
+  "x-scissor": [
+   "contact",
+   "protect",
+   "slicing"
+  ],
+  "yawn": [
+   "protect",
+   "reflectable"
+  ],
+  "zap-cannon": [
+   "bullet",
+   "protect"
+  ],
+  "zen-headbutt": [
+   "contact",
+   "protect"
+  ],
+  "zing-zap": [
+   "contact",
+   "protect"
+  ],
+  "zippy-zap": [
+   "contact",
+   "protect"
+  ]
+ },
+ "abilities": {
+  "aftermath": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 4
+  },
+  "bulletproof": {
+   "rules": [
+    {
+     "flag": "bullet",
+     "kind": "block",
+     "mult": null
+    }
+   ],
+   "gen": 6
+  },
+  "cute-charm": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 3
+  },
+  "effect-spore": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 3
+  },
+  "flame-body": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 3
+  },
+  "fluffy": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 7
+  },
+  "gooey": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 6
+  },
+  "guard-dog": {
+   "intimidate": "blocks",
+   "gen": 9
+  },
+  "inner-focus": {
+   "intimidate": "blocks",
+   "gen": 3,
+   "intimidateFrom": 8
+  },
+  "iron-barbs": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 5
+  },
+  "iron-fist": {
+   "rules": [
+    {
+     "flag": "punch",
+     "kind": "boost",
+     "mult": 1.2
+    }
+   ],
+   "gen": 4
+  },
+  "lingering-aroma": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 9
+  },
+  "liquid-voice": {
+   "rules": [
+    {
+     "flag": "sound",
+     "kind": "retype",
+     "mult": null
+    }
+   ],
+   "gen": 7
+  },
+  "long-reach": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "removes",
+     "mult": null
+    }
+   ],
+   "gen": 7
+  },
+  "magic-bounce": {
+   "rules": [
+    {
+     "flag": "reflectable",
+     "kind": "block",
+     "mult": null
+    }
+   ],
+   "gen": 5
+  },
+  "mega-launcher": {
+   "rules": [
+    {
+     "flag": "pulse",
+     "kind": "boost",
+     "mult": 1.5
+    }
+   ],
+   "gen": 6
+  },
+  "mummy": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 5
+  },
+  "oblivious": {
+   "intimidate": "blocks",
+   "gen": 3,
+   "intimidateFrom": 8
+  },
+  "overcoat": {
+   "rules": [
+    {
+     "flag": "powder",
+     "kind": "block",
+     "mult": null
+    }
+   ],
+   "gen": 5
+  },
+  "own-tempo": {
+   "intimidate": "blocks",
+   "gen": 3,
+   "intimidateFrom": 8
+  },
+  "perish-body": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 8
+  },
+  "poison-point": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 3
+  },
+  "poison-touch": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 5
+  },
+  "punk-rock": {
+   "rules": [
+    {
+     "flag": "sound",
+     "kind": "boost",
+     "mult": 1.3
+    },
+    {
+     "flag": "sound",
+     "kind": "resist",
+     "mult": 0.5
+    }
+   ],
+   "gen": 8
+  },
+  "rough-skin": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 3
+  },
+  "scrappy": {
+   "intimidate": "blocks",
+   "gen": 4,
+   "intimidateFrom": 8
+  },
+  "sharpness": {
+   "rules": [
+    {
+     "flag": "slicing",
+     "kind": "boost",
+     "mult": 1.5
+    }
+   ],
+   "gen": 9
+  },
+  "soundproof": {
+   "rules": [
+    {
+     "flag": "sound",
+     "kind": "block",
+     "mult": null
+    }
+   ],
+   "gen": 3
+  },
+  "static": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 3
+  },
+  "strong-jaw": {
+   "rules": [
+    {
+     "flag": "bite",
+     "kind": "boost",
+     "mult": 1.5
+    }
+   ],
+   "gen": 6
+  },
+  "tangling-hair": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 7
+  },
+  "tough-claws": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "boost",
+     "mult": 1.3
+    }
+   ],
+   "gen": 6
+  },
+  "unseen-fist": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "strips",
+     "strips": "protect",
+     "mult": null
+    }
+   ],
+   "gen": 8
+  },
+  "wandering-spirit": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 8
+  },
+  "wind-power": {
+   "rules": [
+    {
+     "flag": "wind",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 9
+  },
+  "wind-rider": {
+   "rules": [
+    {
+     "flag": "wind",
+     "kind": "block",
+     "mult": null
+    }
+   ],
+   "gen": 9
+  }
+ },
+ "items": {
+  "adrenaline-orb": {
+   "intimidate": "triggers",
+   "gen": 7
+  },
+  "punching-glove": {
+   "rules": [
+    {
+     "flag": "punch",
+     "kind": "boost",
+     "mult": 1.1
+    },
+    {
+     "flag": "punch",
+     "kind": "strips",
+     "strips": "contact",
+     "mult": null
+    }
+   ],
+   "gen": 9
+  },
+  "rocky-helmet": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 5
+  },
+  "safety-goggles": {
+   "rules": [
+    {
+     "flag": "powder",
+     "kind": "block",
+     "mult": null
+    }
+   ],
+   "gen": 6
+  },
+  "sticky-barb": {
+   "rules": [
+    {
+     "flag": "contact",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 4
+  },
+  "throat-spray": {
+   "rules": [
+    {
+     "flag": "sound",
+     "kind": "affects",
+     "mult": null
+    }
+   ],
+   "gen": 8
+  }
+ },
+ "changedAt": {
+  "air-lock": [
+   5
+  ],
+  "anger-point": [
+   5
+  ],
+  "blaze": [
+   5
+  ],
+  "cloud-nine": [
+   5
+  ],
+  "color-change": [
+   5
+  ],
+  "compound-eyes": [
+   5
+  ],
+  "cute-charm": [
+   5
+  ],
+  "download": [
+   5
+  ],
+  "effect-spore": [
+   5
+  ],
+  "flame-body": [
+   5
+  ],
+  "flash-fire": [
+   5
+  ],
+  "flower-gift": [
+   5
+  ],
+  "forewarn": [
+   5
+  ],
+  "frisk": [
+   5,
+   6
+  ],
+  "hustle": [
+   5
+  ],
+  "hydration": [
+   5
+  ],
+  "intimidate": [
+   5
+  ],
+  "leaf-guard": [
+   5
+  ],
+  "lightning-rod": [
+   5
+  ],
+  "liquid-ooze": [
+   5,
+   7
+  ],
+  "magic-guard": [
+   5,
+   7
+  ],
+  "minus": [
+   5
+  ],
+  "natural-cure": [
+   5
+  ],
+  "normalize": [
+   5,
+   7
+  ],
+  "overgrow": [
+   5
+  ],
+  "pickup": [
+   5
+  ],
+  "plus": [
+   5
+  ],
+  "poison-point": [
+   5
+  ],
+  "pressure": [
+   5
+  ],
+  "rough-skin": [
+   5,
+   7
+  ],
+  "sand-veil": [
+   5
+  ],
+  "serene-grace": [
+   5,
+   6
+  ],
+  "simple": [
+   5
+  ],
+  "snow-cloak": [
+   5
+  ],
+  "stall": [
+   5
+  ],
+  "static": [
+   5
+  ],
+  "stench": [
+   5
+  ],
+  "sticky-hold": [
+   5
+  ],
+  "storm-drain": [
+   5
+  ],
+  "sturdy": [
+   5
+  ],
+  "swarm": [
+   5
+  ],
+  "synchronize": [
+   5
+  ],
+  "tangled-feet": [
+   5
+  ],
+  "thick-fat": [
+   5
+  ],
+  "torrent": [
+   5
+  ],
+  "trace": [
+   5
+  ],
+  "truant": [
+   5
+  ],
+  "wonder-guard": [
+   5
+  ],
+  "anticipation": [
+   6
+  ],
+  "keen-eye": [
+   6
+  ],
+  "magic-bounce": [
+   6
+  ],
+  "oblivious": [
+   6,
+   8
+  ],
+  "overcoat": [
+   6
+  ],
+  "sap-sipper": [
+   6
+  ],
+  "soundproof": [
+   6,
+   8
+  ],
+  "aerilate": [
+   7
+  ],
+  "aftermath": [
+   7
+  ],
+  "gale-wings": [
+   7
+  ],
+  "iron-barbs": [
+   7
+  ],
+  "pixilate": [
+   7
+  ],
+  "refrigerate": [
+   7
+  ],
+  "stance-change": [
+   7
+  ],
+  "symbiosis": [
+   7
+  ],
+  "weak-armor": [
+   7
+  ],
+  "disguise": [
+   8,
+   9
+  ],
+  "inner-focus": [
+   8
+  ],
+  "moody": [
+   8
+  ],
+  "own-tempo": [
+   8
+  ],
+  "rattled": [
+   8
+  ],
+  "scrappy": [
+   8
+  ],
+  "slow-start": [
+   8
+  ],
+  "battle-bond": [
+   9
+  ],
+  "competitive": [
+   9
+  ],
+  "dauntless-shield": [
+   9
+  ],
+  "defiant": [
+   9
+  ],
+  "heatproof": [
+   9
+  ],
+  "illuminate": [
+   9
+  ],
+  "intrepid-sword": [
+   9
+  ],
+  "libero": [
+   9
+  ],
+  "protean": [
+   9
+  ],
+  "snow-warning": [
+   9
+  ],
+  "transistor": [
+   9
+  ]
+ },
+ "removedHooks": {
+  "air-lock": {
+   "4": [
+    "onSwitchIn"
+   ]
+  },
+  "blaze": {
+   "4": [
+    "onModifyAtk",
+    "onModifySpA"
+   ]
+  },
+  "cloud-nine": {
+   "4": [
+    "onSwitchIn"
+   ]
+  },
+  "color-change": {
+   "4": [
+    "onAfterMoveSecondary"
+   ]
+  },
+  "flash-fire": {
+   "4": [
+    "onModifyAtk",
+    "onModifySpA"
+   ]
+  },
+  "hydration": {
+   "4": [
+    "onResidual"
+   ]
+  },
+  "lightning-rod": {
+   "4": [
+    "onTryHit"
+   ]
+  },
+  "minus": {
+   "4": [
+    "onModifySpAPriority"
+   ]
+  },
+  "natural-cure": {
+   "4": [
+    "onCheckShow"
+   ]
+  },
+  "overgrow": {
+   "4": [
+    "onModifyAtk",
+    "onModifySpA"
+   ]
+  },
+  "pickup": {
+   "4": [
+    "onResidual"
+   ]
+  },
+  "plus": {
+   "4": [
+    "onModifySpAPriority"
+   ]
+  },
+  "simple": {
+   "4": [
+    "onChangeBoost"
+   ]
+  },
+  "stench": {
+   "4": [
+    "onModifyMove"
+   ]
+  },
+  "storm-drain": {
+   "4": [
+    "onTryHit"
+   ]
+  },
+  "sturdy": {
+   "4": [
+    "onDamage"
+   ]
+  },
+  "swarm": {
+   "4": [
+    "onModifyAtk",
+    "onModifySpA"
+   ]
+  },
+  "thick-fat": {
+   "4": [
+    "onSourceModifyAtk",
+    "onSourceModifySpA"
+   ]
+  },
+  "torrent": {
+   "4": [
+    "onModifyAtk",
+    "onModifySpA"
+   ]
+  },
+  "keen-eye": {
+   "5": [
+    "onModifyMove"
+   ]
+  },
+  "overcoat": {
+   "5": [
+    "onTryHit"
+   ]
+  },
+  "sap-sipper": {
+   "5": [
+    "onAllyTryHitSide"
+   ]
+  },
+  "soundproof": {
+   "5": [
+    "onAllyTryHitSide"
+   ]
+  },
+  "normalize": {
+   "6": [
+    "onBasePower"
+   ]
+  },
+  "stance-change": {
+   "6": [
+    "onModifyMove"
+   ]
+  },
+  "inner-focus": {
+   "7": [
+    "onTryBoost"
+   ]
+  },
+  "oblivious": {
+   "7": [
+    "onTryBoost"
+   ]
+  },
+  "own-tempo": {
+   "7": [
+    "onTryBoost"
+   ]
+  },
+  "rattled": {
+   "7": [
+    "onAfterBoost"
+   ]
+  },
+  "scrappy": {
+   "7": [
+    "onTryBoost"
+   ]
+  },
+  "heatproof": {
+   "8": [
+    "onSourceModifyAtk",
+    "onSourceModifySpA"
+   ]
+  },
+  "illuminate": {
+   "8": [
+    "onTryBoost",
+    "onModifyMove"
+   ]
+  }
+ }
+}

@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 1.6 · Last updated 2026-08-03 · HoopaDex v5.28**
+**Version 1.7 · Last updated 2026-08-09 · HoopaDex v5.29**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -99,7 +99,10 @@ The first kind is **generated at build time from Pokémon Showdown's per-generat
 one above it. Base stats and Pokémon typing are produced by diffing those files against Showdown's
 current Pokédex; move descriptors — contact, punch, slicing, pulse and the rest — are read at run
 time from the bundled `@smogon/calc` engine, the same engine the damage calculator uses, so the
-tags cannot disagree with the maths. The regulation-change article is a set difference over the
+tags cannot disagree with the maths, and fall back to a build-time copy of the same flags when the
+engine has not loaded. What each descriptor *costs* — which ability boosts it, which blocks it, by
+how much — was hand-written until v5.29 and is now derived from the same source; see §2.3a.
+The regulation-change article is a set difference over the
 roster the Pokédex itself filters by. The Defending Type Calculator's species list is the same
 move: which Pokémon have a given typing is an intersection of PokéAPI's two per-type membership
 lists — the same endpoint the Pokédex type filter already calls — rather than a table of pairs
@@ -124,6 +127,60 @@ simply false. Generation is not merely less work; it is the only form of correct
 neglect.
 
 *Sources: PokéAPI v2, <https://pokeapi.co/>. Pokémon Showdown, <https://github.com/smogon/pokemon-showdown>.*
+
+### 2.3a A description with no generation dimension
+
+Everything above concerns numbers. The same problem exists in prose, and it went unnoticed longer
+because prose does not look like data.
+
+Every ability, item and move in the application was described by one string: PokéAPI's
+`effect_entries.short_effect`. That field has no generation dimension at all. Scrappy's has read
+"Lets the Pokémon's Normal and Fighting moves hit Ghost Pokémon" since Generation IV and has never
+mentioned Intimidate, which the ability has resisted since Generation VIII. Oblivious's describes
+infatuation and Captivate, and neither the Taunt immunity added in Generation VI nor the Intimidate
+immunity added in Generation VIII. Tough Claws' still says 1.33×, the Generation VI value, wrong
+since Generation VII.
+
+PokéAPI does carry the answer, in a field the application was not reading. `flavor_text_entries`
+holds one line **per version group**, and the application already maps version group to generation
+for other purposes. It was calling `.pop()` on that array — taking the newest wording whatever
+generation was selected — and only as a fallback behind `short_effect`. Reading it properly makes
+the page correct in both directions: Generation IX gets Scarlet/Violet's line, which mentions
+Intimidate, and Generation VII gets Ultra Sun/Ultra Moon's, which does not, because in Generation
+VII it did not.
+
+**A second category was absent rather than stale.** An ability whose subject is not a Pokémon or a
+status but a *class of moves* had nowhere to name the class. Mega Launcher boosts pulse moves; the
+application said so and could not say which moves those are, and Aura Sphere's own entry did not
+mention Mega Launcher.
+
+That class has a name in the game's own data. Showdown records a set of flags per move, and an
+ability's code tests them directly — Mega Launcher is
+`if (move.flags['pulse']) return this.chainModify(1.5)`. So both "boosts pulse moves ×1.5" and the
+seven moves carrying the flag are read out rather than typed. 36 abilities and 6 items have a rule;
+441 moves carry at least one shown flag.
+
+The hand-written table this replaced is the same lesson as the mega abilities, and it had failed the
+same way: it named three of the eighteen abilities that punish contact, had no entry for powder or
+reflectable at all, and rendered — for every one of those gaps — as a tag with fewer consequences,
+which is indistinguishable from a correct answer.
+
+**Where two sources disagree, the disagreement is carried rather than flattened.** Showdown's
+`mods/gen7/abilities.ts` contains `oblivious: { inherit: true, onTryBoost: undefined }`, which says
+the Intimidate resistance did not exist in Generation VII or below — the mechanic landed in
+Generation VIII. The games did not reword the in-game description until Scarlet/Violet, two years
+later. Both statements are true about different things. Showdown decides whether the mechanic is
+present, because that is a question about the mechanic; PokéAPI's per-version-group text supplies
+the wording the game itself prints. Neither is stretched to cover the other, and where PokéAPI's
+prose states a multiplier that the derived rule contradicts, the prose is dropped rather than
+printed beside it for the reader to arbitrate.
+
+**What it declines to do** is as much of the design as what it does. A multiplier is stated only
+when the hook carrying it is unambiguous — one flag tested, one modifier, brace-matched. Fluffy
+doubles Fire damage and halves contact damage in separate branches, so it is reported as an
+interaction with *no number* rather than being given one of the two. A flag carried by 669 of 953
+moves is counted, not listed. And a flag Showdown adds later fails the build instead of vanishing
+from the interface, because the vocabulary is a partition rather than a filter.
 
 
 ---
@@ -360,6 +417,21 @@ All ten defects, plus one added for a stale published copy, are now caught. The 
 is committed as `build/mutation-check.js` and runs in continuous integration, because a mutation
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
+
+As of v5.29 the set is **49 mutations, all killed**, against 29 suites and 1,062 assertions. Two of
+the twelve added since have earned their place by surviving on first run, and both findings were
+real rather than cosmetic:
+
+- **M42.** A rule that halves incoming damage was printed by multiplying rather than subtracting —
+  "takes 50% less" computed as `mult × 100` instead of `(1 − mult) × 100`. It survived because 0.5
+  is the only such multiplier in the shipped data and is the single value where the two expressions
+  agree. An assertion built on real data could not have caught it; a fixture with an asymmetric
+  multiplier does. This is the sampling error of §5.2 in miniature — a test over the population
+  that happens to be blind at the one point the population occupies.
+- **M48.** Deleting the escape that protects a tooltip's `title` attribute left the suite green,
+  because no ability or item in the game has a quote in its name. The guard could only be tested by
+  injecting a hostile name. A defence that no real input exercises is untested by construction, and
+  a suite that reports otherwise is measuring the data rather than the code.
 
 
 ## 6. Known limitations
