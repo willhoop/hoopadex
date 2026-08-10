@@ -188,6 +188,15 @@ const MUTATIONS = [
   ['M49', 'The tooltip cap stops hoisting boosts, so contact drops Tough Claws for twenty triggers',
     "    const ranked=cons.slice().sort(function(x,y){return (y.boost||y.block?1:0)-(x.boost||x.block?1:0)});",
     '    const ranked=cons.slice();', 1, 'test-move-tags.js'],
+  ['M50', 'The ability card loses min-width:0, so a long name pushes the Hidden pill out of the card',
+    '.ap-mon-body{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}',
+    '.ap-mon-body{display:flex;flex-direction:column;gap:4px;flex:1}', 1, 'test-ability-desc.js'],
+  ['M51', 'The card name goes back to being a bare text node with no min-width to give',
+    "+'<span class=\"ap-mon-body\"><span class=\"ap-mon-name\">'+label+'</span>'",
+    "+'<span class=\"ap-mon-body\">'+label", 1, 'test-ability-desc.js'],
+  ['M52', 'The Hidden pill shoves itself back to the right edge of the card',
+    '.hidden-pill{display:inline-block;flex-shrink:0;',
+    '.hidden-pill{display:inline-block;margin-left:auto;flex-shrink:0;', 1, 'test-ability-desc.js'],
 ];
 
 function runSuite(suite, srcPath) {

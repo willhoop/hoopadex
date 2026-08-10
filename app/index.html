@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.29 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.30 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -618,6 +618,20 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
   text-transform:capitalize;transition:border-color .15s,color .15s}
 .ap-mon:hover{border-color:var(--eff-up);color:var(--text)}
 .ap-mon img{width:28px;height:28px;flex-shrink:0;image-rendering:pixelated}
+/* The name and its pills stack, and the stack is allowed to shrink.
+   They used to be four siblings on one flex row — sprite, bare text node, form pill, Hidden pill —
+   with flex-shrink:0 on the sprite and the form pill and margin-left:auto on the Hidden pill. In a
+   grid cell of minmax(160px,1fr) that row cannot fit "Tauros Combat Breed (Paldean)" plus two
+   pills, and nothing in it was allowed to give, so the row simply ran past the card: measured at
+   227px of content in a 158px card, with the Hidden pill sitting 13px clear of the right border and
+   on top of the next card's sprite.
+
+   min-width:0 is the load-bearing declaration. A flex item's default min-width is auto, which means
+   "never smaller than my content", so the column would refuse to narrow and the overflow would
+   survive the restructure. */
+.ap-mon-body{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.ap-mon-name{line-height:1.25;overflow-wrap:anywhere}
+.ap-mon-pills{display:flex;flex-wrap:wrap;gap:4px}
 /* The derived mechanics panel — what an ability or item does to a class of moves, and which moves
    are in that class. Deliberately plain: every row is one sentence and its evidence, so the block
    reads as a short list of facts rather than another wall of coloured pills. No accent colour is
@@ -651,7 +665,7 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 /* Marks an alternate form and states which era it belongs to, because "Slowbro (Galarian)" and
    "Slowbro" sitting next to each other otherwise look like a duplicate rather than two Pokemon. */
 .ap-form-pill{flex-shrink:0;font-size:8.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
-  padding:2px 6px;border-radius:999px;margin-left:6px;white-space:nowrap;
+  padding:2px 6px;border-radius:999px;white-space:nowrap;
   background:color-mix(in srgb,var(--eff-up) 16%,transparent);color:var(--eff-up);
   border:1px solid color-mix(in srgb,var(--eff-up) 40%,transparent)}
 
@@ -659,7 +673,10 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
    distinguishes a hidden ability from a normal one was carried by a faint border alone. It is a
    binary, consequential fact - a hidden ability needs a different encounter entirely - so it gets
    a solid fill that survives being glanced at. */
-.hidden-pill{display:inline-block;margin-left:auto;flex-shrink:0;font-size:9px;font-weight:800;
+/* No margin-left:auto. It was there to push the pill to the right edge of the old one-line card,
+   which is what turned "too wide" into "sitting outside the card, over its neighbour". The pill now
+   lives in .ap-mon-pills and is positioned by that row. */
+.hidden-pill{display:inline-block;flex-shrink:0;font-size:9px;font-weight:800;
   letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;
   background:#7b3f96;color:#fff;border:1px solid #7b3f96}
 body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
@@ -7799,8 +7816,7 @@ async function showAbilityPage(abilityName){
       const spr=spriteFor(id);
       const hidden=(p.is_hidden&&genNum>=5)?'<span class="hidden-pill">Hidden</span>':'';
       const form=id>10000?'<span class="ap-form-pill">'+(getFormGenRange(name)?getFormGenRange(name).label:'Form')+'</span>':'';
-      h+='<div class="ap-mon" onclick="switchTab(\'pokedex\');showDetail('+id+')">';
-      h+='<img src="'+spr+'" loading="lazy" alt="">'+formDisplayName(name)+form+hidden+'</div>';
+      h+=apMonCard(id,spr,formDisplayName(name),form,hidden);
     });
     h+='</div></div>';
     
@@ -7809,6 +7825,20 @@ async function showAbilityPage(abilityName){
     container.innerHTML='<button class="detail-back-btn" onclick="currentAbilityPage=null;renderAbilityPins();renderAbilityList()">&#x2190; Back to list</button><div style="color:#F85888;padding:20px">Failed to load ability data.</div>';
   }
 }
+/* One card in "Pokemon with this ability".
+   Pulled out of the render loop so it can be tested at all: the defect it fixes is a markup one -
+   four siblings on a single flex row, none of them allowed to shrink - and a test that cannot see
+   the markup cannot see the defect. The name and the pills are now a column that is permitted to
+   narrow, so a long name wraps inside the card instead of pushing the pills out of it. */
+function apMonCard(id,spr,label,form,hidden){
+  const pills=(form||'')+(hidden||'');
+  return '<div class="ap-mon" onclick="switchTab(\'pokedex\');showDetail('+id+')">'
+    +'<img src="'+spr+'" loading="lazy" alt="">'
+    +'<span class="ap-mon-body"><span class="ap-mon-name">'+label+'</span>'
+    +(pills?'<span class="ap-mon-pills">'+pills+'</span>':'')
+    +'</span></div>';
+}
+
 function getGenMaxId(){let m=0;for(const[g,[s,e]] of Object.entries(GR)){if(parseInt(g)<=getDataGenNum())m=e}return m||1025}
 
 // === ABILITIES TAB ===

@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 1.7 · Last updated 2026-08-09 · HoopaDex v5.29**
+**Version 1.8 · Last updated 2026-08-09 · HoopaDex v5.30**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -191,7 +191,7 @@ date is the whole answer would be tidier and worse.
 
 ## Slide 12 — What we don't claim
 
-Twenty-nine test suites and 1,062 assertions now cover the data, the damage formula, the derived
+Twenty-nine test suites and 1,076 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

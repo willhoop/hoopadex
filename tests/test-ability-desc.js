@@ -81,5 +81,69 @@ check(restates('alpha bravo charlie delta', 'alpha zulu yankee xray') === false,
 check(restates('alpha bravo charlie delta', 'alpha bravo charlie xray', 0.7) === true,
   'three words in four clears the default threshold');
 
+/* ── The "Pokemon with this ability" card ───────────────────────────────────────────────────────
+   Reported from the live site on the Cud Chew page: the Hidden pill sat outside its card, on top of
+   the next one's sprite.
+
+   It was four siblings on one flex row — sprite, a bare text node for the name, the form pill, the
+   Hidden pill — inside a grid cell of minmax(160px,1fr). The sprite and the form pill had
+   flex-shrink:0, the Hidden pill had margin-left:auto pushing it hard right, and a bare text node
+   has no min-width to give. Nothing in the row could yield, so with a name like "Tauros Combat
+   Breed (Paldean)" the row simply ran past the card: measured in the browser at 227px of content in
+   a 158px card, with the pills 13px clear of the right border.
+
+   Two halves to the fix, and BOTH are needed:
+     - markup: the name and the pills become a column that is allowed to narrow
+     - CSS:    min-width:0 on that column, because a flex item's default min-width is auto, which
+               means "never smaller than my content" — without it the restructure changes nothing
+
+   The second half is why the CSS assertions below exist even though asserting on a stylesheet is
+   normally a change-detector. There is no layout engine in node, so the alternative is no test at
+   all, and this is a defect that renders perfectly: one card overlapping another reads as a design
+   choice until someone squints. Measured before and after in a real browser at 160/140/120px card
+   widths; the numbers quoted above come from that instrument, not from this file. */
+const cardStart = lines.findIndex(l => l.startsWith('function apMonCard('));
+const cardEnd = lines.findIndex((l, i) => i > cardStart && l.startsWith('function getGenMaxId('));
+if (cardStart < 0 || cardEnd < 0) throw new Error('could not locate apMonCard');
+const cardApp = (0, eval)(lines.slice(cardStart, cardEnd).join('\n') + '\n;({apMonCard})');
+const card = cardApp.apMonCard;
+
+const full = card(10250, 'x.png', 'Tauros Combat Breed (Paldean)',
+  '<span class="ap-form-pill">Gen IX+</span>', '<span class="hidden-pill">Hidden</span>');
+
+check(/<span class="ap-mon-body">/.test(full), 'the name and pills live in a body wrapper', full);
+check(/<span class="ap-mon-name">Tauros Combat Breed \(Paldean\)<\/span>/.test(full),
+  'the name is an element, not a bare text node — a text node has no min-width to give', full);
+check(/<span class="ap-mon-pills"><span class="ap-form-pill">/.test(full),
+  'the pills are wrapped in their own row rather than being siblings of the name', full);
+check(full.indexOf('ap-mon-pills') > full.indexOf('ap-mon-name'),
+  'and that row comes after the name, so it wraps beneath it');
+check(/<img [^>]*>\s*<span class="ap-mon-body">/.test(full),
+  'the sprite stays outside the body, so it keeps its size while the text column shrinks', full);
+
+// A card with nothing to put in the pill row must not grow an empty one.
+const bare = card(1, 'x.png', 'Farigiraf', '', '');
+check(!/ap-mon-pills/.test(bare), 'a card with no pills has no pill row at all', bare);
+check(/<span class="ap-mon-name">Farigiraf<\/span>/.test(bare), 'but still names itself properly', bare);
+// Either pill alone is enough to justify the row.
+check(/ap-mon-pills/.test(card(1, 'x.png', 'X', '<span class="ap-form-pill">F</span>', '')),
+  'a form pill alone gets a row');
+check(/ap-mon-pills/.test(card(1, 'x.png', 'X', '', '<span class="hidden-pill">Hidden</span>')),
+  'and so does a Hidden pill alone');
+
+const css = fs.readFileSync(SRC, 'utf8');
+const rule = sel => (css.match(new RegExp('\\' + sel + '\\{([^}]*)\\}')) || [])[1] || '';
+check(/min-width:0/.test(rule('.ap-mon-body')),
+  'the text column may shrink below its content — this one declaration is what makes the fix work',
+  rule('.ap-mon-body'));
+check(/flex-direction:column/.test(rule('.ap-mon-body')), 'and stacks the name above the pills');
+check(/flex-wrap:wrap/.test(rule('.ap-mon-pills')),
+  'two pills wrap onto a second line rather than widening the card', rule('.ap-mon-pills'));
+check(!/margin-left:auto/.test(rule('.hidden-pill')),
+  'the Hidden pill no longer shoves itself to the right edge — that is what put it outside the card',
+  rule('.hidden-pill'));
+check(!/margin-left:/.test(rule('.ap-form-pill')),
+  'and the form pill is spaced by the row gap rather than its own margin', rule('.ap-form-pill'));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

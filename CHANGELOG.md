@@ -12,6 +12,42 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.30] - 2026-08-09
+
+### Fixed
+- **The Hidden pill sat outside its card, on top of the next card's sprite.** Reported from the
+  Cud Chew page, where three of the four entries are Paldean Tauros forms with long names.
+
+  The card was four siblings on one flex row — sprite, a **bare text node** for the name, the form
+  pill, the Hidden pill — inside a grid cell of `minmax(160px, 1fr)`. The sprite and the form pill
+  had `flex-shrink:0`, the Hidden pill had `margin-left:auto` pushing it hard right, and a bare text
+  node has no `min-width` to give. Nothing in the row could yield, so it ran past the card. Measured
+  in the browser: **227px of content in a 158px card**, with the pills 13px clear of the right
+  border.
+
+  The name and pills are now a column that is allowed to narrow, so a long name wraps inside the
+  card. `min-width:0` on that column is the load-bearing part: a flex item's default `min-width` is
+  `auto`, meaning "never smaller than my content", so without it the restructure changes nothing.
+  `margin-left:auto` is gone from the Hidden pill — it was what turned "too wide" into "outside the
+  card".
+
+  Re-measured after: **158 of 158, nothing escaping**, and it holds down to 120px cards — 40px below
+  the grid's declared minimum. It still breaks below about 100px, where the sprite plus a `nowrap`
+  "GEN IX+" pill exceed the card on their own; the grid cannot produce a column that narrow, so that
+  is a stated limit rather than a fix.
+
+### Testing
+- Card markup extracted as `apMonCard()` so it can be tested at all — the defect is a markup one,
+  and a test that cannot see the markup cannot see it.
+- 14 assertions added to `tests/test-ability-desc.js`, and **three mutations, M50–M52**, one per
+  half of the fix. Set is now **52, all killed**; suites 29, assertions 1,076.
+- Four of those assertions read the stylesheet, which is normally a change-detector and is called
+  out as such in the suite. There is no layout engine in node, so the alternative is no test at all,
+  and this is a defect that renders perfectly — one card overlapping another reads as a design
+  choice until someone squints.
+
+---
+
 ## [5.29] - 2026-08-09
 
 ### Added
