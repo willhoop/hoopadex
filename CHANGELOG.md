@@ -12,6 +12,74 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.31] - 2026-08-21
+
+### Added
+- **Nature Power, Secret Power and Camouflage now say what they actually become, per generation.**
+  Reported from the live site: "for like nature power i want to know what the moves turns into based
+  on the location". The app printed PokeAPI's line — *"Uses a move which depends upon the terrain"* —
+  and nothing else, which tells a reader an answer exists and then withholds it. No list of what the
+  terrain can be, no move it becomes, no hint that the mapping is different in every generation.
+
+  Every ability and item page now has the table for the generation on screen. A cave is the clearest
+  case, and the reason this had to be generation-indexed rather than flattened:
+
+  | Generation | A cave gives |
+  |---|---|
+  | III | Shadow Ball |
+  | V | Rock Slide |
+  | VI–VIII | Power Gem |
+
+  Generation IX gets a sentence instead of a table, because the move cannot be selected at all —
+  which is the answer, and rendering nothing there would read as missing data.
+
+- **This is the one table in the app not derived from Showdown, and that was a deliberate call.**
+  Showdown is a battle simulator with no overworld, so it has no cave or tall grass to be standing
+  in. Its per-generation mods collapse the entire table to one hardcoded call — `swift` in Gen III,
+  `triattack` in Gen IV, `earthquake` in Gen V. Each is a correct answer about a Showdown battle and
+  a wrong answer about Ruby. Reaching for the usual source here would have produced a confident,
+  precise, **single-row lie** — this project's defining failure mode, arrived at through the source
+  it normally trusts most.
+
+  The source is Bulbapedia's wikitext via the MediaWiki API instead. The four terrain-move rows
+  Showdown *does* model (Electric/Grassy/Misty/Psychic Terrain) are cross-checked against its
+  `onTryHit` and the build fails on disagreement, so the one part that can have two sources has two.
+
+### Fixed
+- **The search gave two different answers to the same question.** Reported as "im getting
+  conflicting answers on bullet punch": searching it in Gen III returned Bullet Punch under MOVES
+  and, four rows lower, Bullet Punch under NOT IN GEN III.
+
+  Two causes, both in the fuzzy pass that runs after the exact-match pass. It deduplicated against
+  `items` only — but the exact pass routes later-generation hits into `otherGenItems`, so Bullet
+  Punch was absent from `items`, looked new, and was added again. And it applied **no generation
+  rule at all**, so Gen III also offered Bulletproof (Gen VI) and Ball Fetch (Gen VIII) as ordinary
+  results with nothing marking them.
+
+  The second was the more damaging and produced no visible contradiction — a wrong answer with
+  nothing to notice. It survived because an ability's introduction generation was computed *inline*
+  inside the exact branch and existed nowhere else, so the branch beside it had no way to ask the
+  question. It is now `getAbilityIntroGen()` and both branches call it. Out-of-era hits are not
+  dropped; they go to the same "Not in Gen N" section, which is what makes the answer useful rather
+  than merely absent.
+
+### Testing
+- `tests/test-environment-moves.js` — 32 assertions. What they defend is the **parser**, because a
+  wiki-markup parser fails quietly: its failure mode is a plausible-looking table with a wrong name
+  in it, not a crash. Both real defects found while building it were that shape, and neither threw:
+  one returned an entirely empty table for two of the three moves (their pages nest the generation
+  headings one level deeper and write "Generation VIII onwards"); the other produced
+  `volcano|Volcano}}` as the name of a place, in eleven rows, because Bulbapedia nests templates
+  (`{{color|{{locationcolor/text|volcano}}|Volcano}}`) and a single non-nesting regex matched the
+  inner one as though it were the outer one. Templates are now resolved innermost-first.
+- 11 assertions added to `tests/test-dex-search.js`, and **seven mutations, M53–M59**. One of them,
+  M55, **survived on the first run**: the assertion checked that `placedMove` was *used*, not how it
+  was *built*, so reverting its definition to the in-generation bucket kept the suite green while
+  Bullet Punch was listed twice again. Now asserted on the definition.
+- Set is now **59 mutations, all killed**; 30 suites, 1,119 assertions.
+
+---
+
 ## [5.30] - 2026-08-09
 
 ### Fixed

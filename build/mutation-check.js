@@ -197,6 +197,26 @@ const MUTATIONS = [
   ['M52', 'The Hidden pill shoves itself back to the right edge of the card',
     '.hidden-pill{display:inline-block;flex-shrink:0;',
     '.hidden-pill{display:inline-block;margin-left:auto;flex-shrink:0;', 1, 'test-ability-desc.js'],
+
+  /* Search generation-gating, and the environment tables. Both of these ship WRONG ANSWERS rather
+     than broken pages, which is the only kind of defect this table is for. */
+  ['M53', 'The fuzzy search branch stops applying the generation rule to abilities',
+    '        fa.sort((a,b)=>b._fs-a._fs).slice(0,2).forEach(a=>fuzzyPlace(a,getAbilityIntroGen(a.name)));',
+    '        fa.sort((a,b)=>b._fs-a._fs).slice(0,2).forEach(a=>items.push(a));', 1, 'test-dex-search.js'],
+  ['M54', 'The fuzzy search branch stops applying it to moves, so Gen III offers Bullet Punch',
+    '        fm.sort((a,b)=>b._fs-a._fs).slice(0,2).forEach(m=>fuzzyPlace(m,getMoveIntroGen(m.name)));',
+    '        fm.sort((a,b)=>b._fs-a._fs).slice(0,2).forEach(m=>items.push(m));', 1, 'test-dex-search.js'],
+  ['M55', 'Fuzzy dedup goes back to checking only the in-generation bucket',
+    "      const placedMove=new Set(items.concat(otherGenItems,champNotItems).filter(i=>i.type==='move').map(i=>i.name));",
+    "      const placedMove=new Set(items.filter(i=>i.type==='move').map(i=>i.name));", 1, 'test-dex-search.js'],
+  ['M56', 'An ability with no loaded data is assumed to be Gen IX and vanishes from every search',
+    '  return g||0;\n}', '  return g||9;\n}', 1, 'test-dex-search.js'],
+  ['M57', 'Nature Power shows one generation’s environment table to every generation',
+    '  const g=rec.gens&&rec.gens[genNum];', '  const g=rec.gens&&rec.gens[3];', 1, 'test-environment-moves.js'],
+  ['M58', 'A generation with no table renders nothing instead of saying the move cannot be used',
+    "  if(g.note){\n    return '<div class=\"env-block\">", "  if(false){\n    return '<div class=\"env-block\">", 1, 'test-environment-moves.js'],
+  ['M59', 'The embedded environment table goes stale against the generated one',
+    '"nature-power":{"gives"', '"nature-power-x":{"gives"', 1, 'test-environment-moves.js'],
 ];
 
 function runSuite(suite, srcPath) {

@@ -1,0 +1,876 @@
+{
+ "source": "Bulbapedia wikitext via https://bulbapedia.bulbagarden.net/w/api.php (core-series tables only)",
+ "crosscheck": "Terrain-move rows verified against Showdown naturepower onTryHit: {\"electricterrain\":\"thunderbolt\",\"grassyterrain\":\"energyball\",\"mistyterrain\":\"moonblast\",\"psychicterrain\":\"psychic\"}, default triattack",
+ "generated": "by build/generate-environment-moves.js — do not edit by hand",
+ "moves": {
+  "nature-power": {
+   "gives": "a move",
+   "gens": {
+    "3": {
+     "rows": [
+      {
+       "where": "Building, link battle, and plain terrain",
+       "gives": "Swift",
+       "type": "Normal"
+      },
+      {
+       "where": "Ash and sand",
+       "gives": "Earthquake",
+       "type": "Ground"
+      },
+      {
+       "where": "Cave",
+       "gives": "Shadow Ball",
+       "type": "Ghost"
+      },
+      {
+       "where": "Rock",
+       "gives": "Rock Slide",
+       "type": "Rock"
+      },
+      {
+       "where": "Tall grass",
+       "gives": "Stun Spore",
+       "type": "Grass"
+      },
+      {
+       "where": "Long grass",
+       "gives": "Razor Leaf",
+       "type": "Grass"
+      },
+      {
+       "where": "Pond water",
+       "gives": "BubbleBeam",
+       "type": "Water"
+      },
+      {
+       "where": "Sea water",
+       "gives": "Surf",
+       "type": "Water"
+      },
+      {
+       "where": "Underwater",
+       "gives": "Hydro Pump",
+       "type": "Water"
+      }
+     ]
+    },
+    "4": {
+     "rows": [
+      {
+       "where": "Buildings and urban areas, Distortion World, and link battle",
+       "gives": "Tri Attack",
+       "type": "Normal"
+      },
+      {
+       "where": "Plain terrain and sand",
+       "gives": "Earthquake",
+       "type": "Ground"
+      },
+      {
+       "where": "Cave and rocky areas",
+       "gives": "Rock Slide",
+       "type": "Rock"
+      },
+      {
+       "where": "Grassy areas and tall grass",
+       "gives": "Seed Bomb",
+       "type": "Grass"
+      },
+      {
+       "where": "Water",
+       "gives": "Hydro Pump",
+       "type": "Water"
+      },
+      {
+       "where": "Snow",
+       "gives": "Blizzard",
+       "type": "Ice"
+      },
+      {
+       "where": "Ice",
+       "gives": "Ice Beam",
+       "type": "Ice"
+      },
+      {
+       "where": "Marsh",
+       "gives": "Mud Bomb",
+       "type": "Ground"
+      },
+      {
+       "where": "Unknown (0xB)",
+       "gives": "Air Slash",
+       "type": "Flying"
+      }
+     ]
+    },
+    "5": {
+     "rows": [
+      {
+       "where": "Building and urban",
+       "gives": "Tri Attack",
+       "type": "Normal"
+      },
+      {
+       "where": "Sand, plain terrain, rock and link battle",
+       "gives": "Earthquake",
+       "type": "Ground"
+      },
+      {
+       "where": "Cave",
+       "gives": "Rock Slide",
+       "type": "Rock"
+      },
+      {
+       "where": "Grass",
+       "gives": "Seed Bomb",
+       "type": "Grass"
+      },
+      {
+       "where": "Water",
+       "gives": "Hydro Pump",
+       "type": "Water"
+      },
+      {
+       "where": "Puddles",
+       "gives": "Mud Bomb",
+       "type": "Ground"
+      },
+      {
+       "where": "Snow",
+       "gives": "Blizzard",
+       "type": "Ice"
+      },
+      {
+       "where": "Ice",
+       "gives": "Ice Beam",
+       "type": "Ice"
+      }
+     ]
+    },
+    "6": {
+     "rows": [
+      {
+       "where": "Building, plain terrain, Sky Battles, and link battles",
+       "gives": "Tri Attack",
+       "type": "Normal"
+      },
+      {
+       "where": "Cave and Cyllage Gym",
+       "gives": "Power Gem",
+       "type": "Rock"
+      },
+      {
+       "where": "Sand and rock",
+       "gives": "Earth Power",
+       "type": "Ground"
+      },
+      {
+       "where": "Swamp water and marsh",
+       "gives": "Mud Bomb",
+       "type": "Ground"
+      },
+      {
+       "where": "Water and underwater",
+       "gives": "Hydro Pump",
+       "type": "Water"
+      },
+      {
+       "where": "Snow",
+       "gives": "Frost Breath",
+       "type": "Ice"
+      },
+      {
+       "where": "Ice and Snowbelle Gym",
+       "gives": "Ice Beam",
+       "type": "Ice"
+      },
+      {
+       "where": "Volcano",
+       "gives": "Lava Plume",
+       "type": "Fire"
+      },
+      {
+       "where": "Burial ground",
+       "gives": "Shadow Ball",
+       "type": "Ghost"
+      },
+      {
+       "where": "Soaring in the sky and Sky Pillar",
+       "gives": "Air Slash",
+       "type": "Flying"
+      },
+      {
+       "where": "Space",
+       "gives": "Draco Meteor",
+       "type": "Dragon"
+      },
+      {
+       "where": "Grass, Grassy Terrain, and Coumarine Gym",
+       "gives": "Energy Ball",
+       "type": "Grass"
+      },
+      {
+       "where": "Misty Terrain",
+       "gives": "Moonblast",
+       "type": "Fairy"
+      },
+      {
+       "where": "Electric Terrain",
+       "gives": "Thunderbolt",
+       "type": "Electric"
+      }
+     ]
+    },
+    "7": {
+     "rows": [
+      {
+       "where": "Building, road, plain terrain, and link battles",
+       "gives": "Tri Attack",
+       "type": "Normal"
+      },
+      {
+       "where": "Cave",
+       "gives": "Power Gem",
+       "type": "Rock"
+      },
+      {
+       "where": "Sand, dirt, and rock",
+       "gives": "Earth Power",
+       "type": "Ground"
+      },
+      {
+       "where": "Water",
+       "gives": "Hydro Pump",
+       "type": "Water"
+      },
+      {
+       "where": "Snow and ice",
+       "gives": "Ice Beam",
+       "type": "Ice"
+      },
+      {
+       "where": "Volcano",
+       "gives": "Lava Plume",
+       "type": "Fire"
+      },
+      {
+       "where": "Ultra Space",
+       "gives": "Psyshock",
+       "type": "Psychic"
+      },
+      {
+       "where": "Grass, field, flowers, and Grassy Terrain",
+       "gives": "Energy Ball",
+       "type": "Grass"
+      },
+      {
+       "where": "Misty Terrain",
+       "gives": "Moonblast",
+       "type": "Fairy"
+      },
+      {
+       "where": "Electric Terrain",
+       "gives": "Thunderbolt",
+       "type": "Electric"
+      },
+      {
+       "where": "Psychic Terrain",
+       "gives": "Psychic",
+       "type": "Psychic"
+      }
+     ]
+    },
+    "8": {
+     "rows": [
+      {
+       "where": "Building, urban, Gym, battlefield, and link battles",
+       "gives": "Tri Attack",
+       "type": "Normal"
+      },
+      {
+       "where": "Cave",
+       "gives": "Power Gem",
+       "type": "Rock"
+      },
+      {
+       "where": "Sand, rock, Pokémon Den, and Crown Tundra grass",
+       "gives": "Earth Power",
+       "type": "Ground"
+      },
+      {
+       "where": "Water",
+       "gives": "Hydro Pump",
+       "type": "Water"
+      },
+      {
+       "where": "Snow and ice",
+       "gives": "Ice Beam",
+       "type": "Ice"
+      },
+      {
+       "where": "Bridge",
+       "gives": "Air Slash",
+       "type": "Flying"
+      },
+      {
+       "where": "Grass, woods, field, flowers, and Grassy Terrain",
+       "gives": "Energy Ball",
+       "type": "Grass"
+      },
+      {
+       "where": "Lost Tower and Hearthome Gym",
+       "gives": "Shadow Ball",
+       "type": "Ghost"
+      },
+      {
+       "where": "Misty Terrain",
+       "gives": "Moonblast",
+       "type": "Fairy"
+      },
+      {
+       "where": "Electric Terrain and Sunyshore Gym",
+       "gives": "Thunderbolt",
+       "type": "Electric"
+      },
+      {
+       "where": "Psychic Terrain",
+       "gives": "Psychic",
+       "type": "Psychic"
+      }
+     ]
+    },
+    "9": {
+     "note": "Nature Power cannot be selected in a battle."
+    }
+   }
+  },
+  "secret-power": {
+   "gives": "an added effect",
+   "gens": {
+    "3": {
+     "rows": [
+      {
+       "where": "Building and link battle",
+       "gives": "causes paralysis",
+       "type": "Strength"
+      },
+      {
+       "where": "Plain terrain",
+       "gives": "Slam",
+       "type": ""
+      },
+      {
+       "where": "Ash and sand",
+       "gives": "lowers accuracy by one stage",
+       "type": "Mud Shot"
+      },
+      {
+       "where": "Cave",
+       "gives": "causes flinching",
+       "type": "Bite"
+      },
+      {
+       "where": "Rock",
+       "gives": "causes confusion",
+       "type": "Rock Throw"
+      },
+      {
+       "where": "Tall grass",
+       "gives": "inflicts poison",
+       "type": "Needle Arm"
+      },
+      {
+       "where": "Long grass",
+       "gives": "causes sleep",
+       "type": "Magical Leaf"
+      },
+      {
+       "where": "Pond water",
+       "gives": "lowers Speed by one stage",
+       "type": "BubbleBeam"
+      },
+      {
+       "where": "Sea water",
+       "gives": "lowers Attack by one stage",
+       "type": "Surf"
+      },
+      {
+       "where": "Underwater",
+       "gives": "lowers Defense by one stage",
+       "type": "Waterfall"
+      }
+     ]
+    },
+    "4": {
+     "rows": [
+      {
+       "where": "Most buildings and urban areas, and link battle",
+       "gives": "causes paralysis",
+       "type": "Body Slam"
+      },
+      {
+       "where": "Most special battle platforms",
+       "gives": "Pound",
+       "type": ""
+      },
+      {
+       "where": "Plain terrain and sand",
+       "gives": "lowers accuracy by one stage",
+       "type": "Mud-Slap"
+      },
+      {
+       "where": "Cave and rocky areas",
+       "gives": "causes flinching",
+       "type": "Rock Throw"
+      },
+      {
+       "where": "Grassy areas and tall grass",
+       "gives": "causes sleep",
+       "type": "Needle Arm"
+      },
+      {
+       "where": "Water",
+       "gives": "lowers Attack by one stage",
+       "type": "Water Pulse"
+      },
+      {
+       "where": "Snow",
+       "gives": "causes freezing",
+       "type": "Avalanche"
+      },
+      {
+       "where": "Ice",
+       "gives": "Ice Shard",
+       "type": ""
+      },
+      {
+       "where": "Marsh",
+       "gives": "lowers Speed by one stage",
+       "type": "Mud Shot"
+      },
+      {
+       "where": "Unknown (0xB)",
+       "gives": "lowers evasiveness by one stage",
+       "type": "Gust"
+      }
+     ]
+    },
+    "5": {
+     "rows": [
+      {
+       "where": "Building and urban",
+       "gives": "causes paralysis",
+       "type": "Body Slam"
+      },
+      {
+       "where": "Sand, plain terrain, rock, and link battles",
+       "gives": "lowers accuracy by one stage",
+       "type": "Mud-Slap"
+      },
+      {
+       "where": "Cave",
+       "gives": "causes flinching",
+       "type": "Rock Throw"
+      },
+      {
+       "where": "Tall grass",
+       "gives": "causes sleep",
+       "type": "Needle Arm"
+      },
+      {
+       "where": "Water",
+       "gives": "lowers Attack by one stage",
+       "type": "Water Pulse"
+      },
+      {
+       "where": "Puddles",
+       "gives": "lowers Speed by one stage",
+       "type": "Mud Shot"
+      },
+      {
+       "where": "Snow",
+       "gives": "causes freezing",
+       "type": "Avalanche"
+      },
+      {
+       "where": "Ice",
+       "gives": "Ice Shard",
+       "type": ""
+      }
+     ]
+    },
+    "6": {
+     "rows": [
+      {
+       "where": "Building, plain terrain, Sky Battles, and link battles",
+       "gives": "causes paralysis",
+       "type": "Body Slam"
+      },
+      {
+       "where": "Electric Terrain",
+       "gives": "Thunder Shock",
+       "type": ""
+      },
+      {
+       "where": "Sand and rock",
+       "gives": "lowers accuracy by one stage",
+       "type": "Mud-Slap"
+      },
+      {
+       "where": "Cave",
+       "gives": "causes flinching",
+       "type": "Rock Throw"
+      },
+      {
+       "where": "Burial ground",
+       "gives": "Shadow Sneak",
+       "type": ""
+      },
+      {
+       "where": "Space",
+       "gives": "Swift",
+       "type": ""
+      },
+      {
+       "where": "Water and underwater",
+       "gives": "lowers Attack by one stage",
+       "type": "Water Pulse"
+      },
+      {
+       "where": "Swamp water and marsh",
+       "gives": "lowers Speed by one stage",
+       "type": "Mud Shot"
+      },
+      {
+       "where": "Soaring in the sky and Sky Pillar",
+       "gives": "Gust",
+       "type": ""
+      },
+      {
+       "where": "Snow",
+       "gives": "causes freezing",
+       "type": "Avalanche"
+      },
+      {
+       "where": "Ice",
+       "gives": "Ice Shard",
+       "type": ""
+      },
+      {
+       "where": "Volcano",
+       "gives": "inflicts a burn",
+       "type": "Incinerate"
+      },
+      {
+       "where": "Grass and Grassy Terrain",
+       "gives": "causes sleep",
+       "type": "Needle Arm"
+      },
+      {
+       "where": "Misty Terrain",
+       "gives": "lowers Special Attack by one stage",
+       "type": "Fairy Wind"
+      }
+     ]
+    },
+    "7": {
+     "rows": [
+      {
+       "where": "Building, road, plain terrain, and link battles",
+       "gives": "causes paralysis",
+       "type": "Spit Up"
+      },
+      {
+       "where": "Electric Terrain",
+       "gives": "Thunder Shock",
+       "type": ""
+      },
+      {
+       "where": "Cave",
+       "gives": "causes flinching",
+       "type": "Rock Throw"
+      },
+      {
+       "where": "Sand, dirt, and rock",
+       "gives": "lowers accuracy by one stage",
+       "type": "Mud-Slap"
+      },
+      {
+       "where": "Water",
+       "gives": "lowers Attack by one stage",
+       "type": "Water Pulse"
+      },
+      {
+       "where": "Snow and ice",
+       "gives": "causes freezing",
+       "type": "Ice Shard"
+      },
+      {
+       "where": "Volcano",
+       "gives": "inflicts a burn",
+       "type": "Incinerate"
+      },
+      {
+       "where": "Ultra Space",
+       "gives": "lowers Defense by one stage",
+       "type": "Psywave"
+      },
+      {
+       "where": "Grass, field, flowers, and Grassy Terrain",
+       "gives": "causes sleep",
+       "type": "Needle Arm"
+      },
+      {
+       "where": "Misty Terrain",
+       "gives": "lowers Special Attack by one stage",
+       "type": "Fairy Wind"
+      },
+      {
+       "where": "Psychic Terrain",
+       "gives": "lowers Speed by one stage",
+       "type": "Confusion"
+      }
+     ]
+    },
+    "8": {
+     "note": "Secret Power cannot be selected in a battle."
+    },
+    "9": {
+     "note": "Secret Power cannot be selected in a battle."
+    }
+   }
+  },
+  "camouflage": {
+   "gives": "a type",
+   "gens": {
+    "3": {
+     "rows": [
+      {
+       "where": "Buildings, link battle, and plain terrain",
+       "gives": "Normal",
+       "type": ""
+      },
+      {
+       "where": "Ash and sand",
+       "gives": "Ground",
+       "type": ""
+      },
+      {
+       "where": "Cave and rocky terrain",
+       "gives": "Rock",
+       "type": ""
+      },
+      {
+       "where": "Long grass and tall grass",
+       "gives": "Grass",
+       "type": ""
+      },
+      {
+       "where": "Pond water, seawater, and underwater",
+       "gives": "Water",
+       "type": ""
+      }
+     ]
+    },
+    "4": {
+     "rows": [
+      {
+       "where": "Buildings and urban areas, Distortion World, link battle",
+       "gives": "Normal",
+       "type": ""
+      },
+      {
+       "where": "Sand, plain terrain, and marsh tile",
+       "gives": "Ground",
+       "type": ""
+      },
+      {
+       "where": "Cave and rocky areas",
+       "gives": "Rock",
+       "type": ""
+      },
+      {
+       "where": "Grassy areas and tall grass",
+       "gives": "Grass",
+       "type": ""
+      },
+      {
+       "where": "Water",
+       "gives": "Water",
+       "type": ""
+      },
+      {
+       "where": "Snow and ice",
+       "gives": "Ice",
+       "type": ""
+      },
+      {
+       "where": "Unknown (0xB)",
+       "gives": "Flying",
+       "type": ""
+      }
+     ]
+    },
+    "5": {
+     "rows": [
+      {
+       "where": "Building and urban",
+       "gives": "Normal",
+       "type": ""
+      },
+      {
+       "where": "Sand, plain terrain, rock, puddles, and link battles",
+       "gives": "Ground",
+       "type": ""
+      },
+      {
+       "where": "Cave",
+       "gives": "Rock",
+       "type": ""
+      },
+      {
+       "where": "Grass",
+       "gives": "Grass",
+       "type": ""
+      },
+      {
+       "where": "Water",
+       "gives": "Water",
+       "type": ""
+      },
+      {
+       "where": "Snow and ice",
+       "gives": "Ice",
+       "type": ""
+      }
+     ]
+    },
+    "6": {
+     "rows": [
+      {
+       "where": "Building, plain terrain, Sky Battles, and link battles",
+       "gives": "Normal",
+       "type": ""
+      },
+      {
+       "where": "Cave",
+       "gives": "Rock",
+       "type": ""
+      },
+      {
+       "where": "Sand, rock, swamp water and marsh",
+       "gives": "Ground",
+       "type": ""
+      },
+      {
+       "where": "Water and underwater",
+       "gives": "Water",
+       "type": ""
+      },
+      {
+       "where": "Snow and ice",
+       "gives": "Ice",
+       "type": ""
+      },
+      {
+       "where": "Volcano",
+       "gives": "Fire",
+       "type": ""
+      },
+      {
+       "where": "Burial ground",
+       "gives": "Ghost",
+       "type": ""
+      },
+      {
+       "where": "Soaring in the sky and Sky Pillar",
+       "gives": "Flying",
+       "type": ""
+      },
+      {
+       "where": "Space",
+       "gives": "Dragon",
+       "type": ""
+      },
+      {
+       "where": "Grass and Grassy Terrain",
+       "gives": "Grass",
+       "type": ""
+      },
+      {
+       "where": "Misty Terrain",
+       "gives": "Fairy",
+       "type": ""
+      },
+      {
+       "where": "Electric Terrain",
+       "gives": "Electric",
+       "type": ""
+      }
+     ]
+    },
+    "7": {
+     "rows": [
+      {
+       "where": "Building, road, plain terrain, and link battles",
+       "gives": "Normal",
+       "type": ""
+      },
+      {
+       "where": "Cave",
+       "gives": "Rock",
+       "type": ""
+      },
+      {
+       "where": "Sand, dirt, and rock",
+       "gives": "Ground",
+       "type": ""
+      },
+      {
+       "where": "Water",
+       "gives": "Water",
+       "type": ""
+      },
+      {
+       "where": "Snow and ice",
+       "gives": "Ice",
+       "type": ""
+      },
+      {
+       "where": "Volcano",
+       "gives": "Fire",
+       "type": ""
+      },
+      {
+       "where": "Grass, field, flowers, and Grassy Terrain",
+       "gives": "Grass",
+       "type": ""
+      },
+      {
+       "where": "Misty Terrain",
+       "gives": "Fairy",
+       "type": ""
+      },
+      {
+       "where": "Electric Terrain",
+       "gives": "Electric",
+       "type": ""
+      },
+      {
+       "where": "Psychic Terrain and Ultra Space",
+       "gives": "Psychic",
+       "type": ""
+      }
+     ]
+    },
+    "8": {
+     "note": "Camouflage cannot be selected in a battle."
+    },
+    "9": {
+     "note": "Camouflage cannot be selected in a battle."
+    }
+   }
+  }
+ }
+}

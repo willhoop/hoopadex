@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 1.8 · Last updated 2026-08-09 · HoopaDex v5.30**
+**Version 1.9 · Last updated 2026-08-21 · HoopaDex v5.31**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -189,9 +189,31 @@ date is the whole answer would be tidier and worse.
 
 ---
 
+## Slide 11b — And sometimes the good source is the wrong source
+
+Nature Power turns into a different move depending on where you're standing. In a Gen III cave it's
+Shadow Ball. Same cave in Gen V, it's Rock Slide. From Gen VI it's Power Gem. The dex used to say
+"uses a move which depends upon the terrain" and leave you there.
+
+The obvious place to look it up was the battle simulator every other table here comes from. It has
+the answer — except it doesn't. A simulator has no overworld. There's no cave for it to be standing
+in, so it just picks one move per generation and moves on.
+
+That would have sailed through every check we have. Generated, not typed. Reproducible. Checked
+against its source. And a nine-row table shown as one row, wearing the credentials of a good source.
+
+**A source being trustworthy isn't the same as a source being about your question.** No amount of
+tooling catches that. Somebody has to read it.
+
+So this one table comes from Bulbapedia instead — and the part the simulator *does* get right (the
+four terrain moves) is checked against it, with the build failing if they disagree. One source where
+one is all there is; two where two exist.
+
+---
+
 ## Slide 12 — What we don't claim
 
-Twenty-nine test suites and 1,076 assertions now cover the data, the damage formula, the derived
+Thirty test suites and 1,119 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

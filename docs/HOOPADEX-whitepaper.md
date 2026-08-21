@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 1.8 · Last updated 2026-08-09 · HoopaDex v5.30**
+**Version 1.9 · Last updated 2026-08-21 · HoopaDex v5.31**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -182,6 +182,47 @@ interaction with *no number* rather than being given one of the two. A flag carr
 moves is counted, not listed. And a flag Showdown adds later fails the build instead of vanishing
 from the interface, because the vocabulary is a partition rather than a filter.
 
+
+---
+
+### 2.3b When the best source is the wrong source
+
+Every derived table in section 2.3 comes from Pokémon Showdown, and the project's rule — derive from
+a published artefact rather than typing — was learned by finding hand-maintained tables that were
+three-quarters wrong. Version 5.31 added a table that deliberately does **not** come from Showdown,
+and the reasoning is the more interesting half of the rule.
+
+Nature Power becomes a different move depending on where the battle is happening. In Generation III
+a cave gives Shadow Ball; in Generation V the same cave gives Rock Slide; from Generation VI it gives
+Power Gem. The application previously showed PokéAPI's one line — *"Uses a move which depends upon
+the terrain"* — which tells a reader an answer exists and then declines to supply it.
+
+Showdown appears to have this data. It does not. It is a battle simulator with no overworld, so
+there is no cave for it to be standing in, and its per-generation mods collapse the entire table to a
+single hardcoded call: `swift` in Generation III, `triattack` in Generation IV, `earthquake` in
+Generation V. Each is a correct answer to *what does Nature Power do in a Showdown battle* and a
+wrong answer to *what does Nature Power do in Ruby*.
+
+Had the usual pipeline been pointed at it, the result would have passed every check this project
+runs. It would have been generated rather than typed, reproducible, drift-checked against its
+source, and wrong — a nine-row table rendered as one row, with the provenance of the good sources
+attached to it. **A source being authoritative is not the same as a source being applicable**, and
+no amount of derivation machinery detects the difference; only reading the source does.
+
+The data comes from Bulbapedia's wikitext instead. From Generation VI the terrain moves do override
+the environment, and *that* part Showdown models correctly — so those four rows are cross-checked
+against its implementation and a disagreement fails the build. The portion that can have two
+independent sources has two; the portion that cannot is honest about having one.
+
+This has a cost worth stating. Bulbapedia is a wiki: it can be edited, and a wiki-markup parser
+fails quietly, producing a plausible table with a wrong name in it rather than an exception. Both
+defects found while building the parser were exactly that shape — one returned an empty table for
+two of the three moves, the other produced `volcano|Volcano}}` as the name of a place in eleven rows
+— and neither threw. `tests/test-environment-moves.js` therefore asserts the *shape* of the output,
+not only its presence: no cell may contain wiki-markup characters, every move must have tables for
+at least five generations, and the same environment must give three different answers across
+Generations III, V and VI. A table that has been flattened to one generation is the failure this
+last assertion exists to name.
 
 ---
 
@@ -418,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.29 the set is **52 mutations, all killed**, against 29 suites and 1,076 assertions. Two of
+As of v5.29 the set is **59 mutations, all killed**, against 30 suites and 1,119 assertions. Two of
 the twelve added since have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
