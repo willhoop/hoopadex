@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.42 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.43 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -753,6 +753,17 @@ body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
 .mv-tag b{font-family:'JetBrains Mono',monospace;font-weight:800;letter-spacing:0}
 .mv-tag.mv-tag-boost{border-color:color-mix(in srgb,var(--eff-up) 45%,transparent);color:var(--eff-up)}
 .mv-tag.mv-tag-block{border-color:color-mix(in srgb,var(--eff-dn) 45%,transparent);color:var(--eff-dn)}
+/* Spread. Filled rather than outlined, because unlike the tag chips beside it this is not a
+   property a reader has to look up — in a doubles format it is the shape of the move, and it
+   should be readable at a glance from across the row. The ally-hitting variant is warned rather
+   than merely noted: Earthquake hitting your own partner is a cost, not a feature. */
+.mv-spread{display:inline-flex;align-items:center;font-size:9px;font-weight:800;letter-spacing:.05em;
+  text-transform:uppercase;padding:1px 6px;border-radius:4px;cursor:help;white-space:nowrap;
+  border:1px solid transparent;background:color-mix(in srgb,#A890F0 22%,transparent);color:#c9b8ff}
+body.light .mv-spread{background:color-mix(in srgb,#A890F0 26%,transparent);color:#4b338f}
+.mv-spread.mv-spread-ally{background:color-mix(in srgb,var(--eff-dn) 20%,transparent);
+  color:var(--eff-dn);border-color:color-mix(in srgb,var(--eff-dn) 35%,transparent)}
+.tooltip-meta .mv-spread{font-size:9.5px}
 /* Regulation changes: a diff, laid out as one. Added and removed are rows, not cards. */
 .abil-tag{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:1px 5px;margin-left:7px;border:1px solid var(--border2);color:var(--text4)}
 .abil-tag.abil-new{color:var(--eff-up);border-color:color-mix(in srgb,var(--eff-up) 40%,transparent)}
@@ -1396,6 +1407,8 @@ async function showMoveTip(e,name){
       (getMoveAccForGen(m)?'<span>Acc: '+getMoveAccForGen(m)+'%</span>':'')+
       '<span>PP: '+(getMovePPForGen(m)||'\u2014')+'</span>'+
       '<span style="color:'+priColor+'">Priority: '+priLabel+'</span>'+
+      // How many it hits, which in a doubles format belongs next to the power, not below it.
+      renderSpreadTag(name)+
     '</div>'+
     '<div class="tooltip-desc">'+(genFlavorText(m.flavorEntries,getDataGenNum())||m.desc)+'</div>'+
     renderVariableMoveInfo(name)+
@@ -1758,7 +1771,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.42';
+const APP_VERSION='5.43';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -3397,7 +3410,7 @@ function renderMovesSection(moves,missed){
          for every key, so every row tied and the sort shipped in 3.2 was a stable no-op for eight
          versions - only the header arrow ever moved. data-mtype on the row is what the type
          filter matches, so filtering never has to parse a rendered badge. */
-      tables+='<tr data-mtype="'+type+'">'+(showLevel?'<td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#6a6a7a;font-size:13px">'+(m.level||'\u2014')+'</td>':'')+'<td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span>'+priTag+'<span style="font-size:12px;color:#6a6a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+shortDesc+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
+      tables+='<tr data-mtype="'+type+'">'+(showLevel?'<td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#6a6a7a;font-size:13px">'+(m.level||'\u2014')+'</td>':'')+'<td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span>'+priTag+renderSpreadTag(m.name,true)+'<span style="font-size:12px;color:#6a6a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+shortDesc+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
     });
     // Add missed moves at the end of levelup tab
     if(c.key==='levelup'&&showMissed&&missed&&missed.moves.length>0){
@@ -3410,7 +3423,7 @@ function renderMovesSection(moves,missed){
         const cat=getMoveCatForGen(md);
         const missedDesc=md?.desc||'';
         const missedShort=missedDesc.length>60?missedDesc.slice(0,57)+'...':missedDesc;
-        tables+='<tr class="missed-move-row" data-mtype="'+type+'"><td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#8a6a6a;font-size:13px">'+(m.level||'\u2014')+'</td><td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="color:#e8a8a8;flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span><span class="missed-badge">MISSED</span><span style="font-size:12px;color:#5a5a6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+missedShort+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
+        tables+='<tr class="missed-move-row" data-mtype="'+type+'"><td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#8a6a6a;font-size:13px">'+(m.level||'\u2014')+'</td><td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="color:#e8a8a8;flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span>'+renderSpreadTag(m.name,true)+'<span class="missed-badge">MISSED</span><span style="font-size:12px;color:#5a5a6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+missedShort+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
       });
     }
     tables+='</tbody></table></div>';
@@ -6875,7 +6888,10 @@ function ixFlagConsequences(flag,genNum){
       (rec.rules||[]).forEach(function(r){
         if(r.flag!==flag)return;
         const who=ixTitle(name),m=r.mult?' \u00D7'+r.mult:'';
-        if(r.kind==='boost')out.push({t:who+m,boost:true});
+        /* "Tough Claws ×1.3", a name next to a number, leaves the reader to guess the verb between
+           them — and the guess people make is that the MOVE is ×1.3. Naming the relationship is the
+           whole difference between a fact and a misreading. */
+        if(r.kind==='boost')out.push({t:who+' boosts it'+m,boost:true});
         else if(r.kind==='block')out.push({t:'Blocked by '+who,block:true});
         else if(r.kind==='resist')out.push({t:who+' takes '+Math.round((1-(r.mult||0))*100)+'% less'});
         else if(r.kind==='retype')out.push({t:who+' changes its type'});
@@ -6897,12 +6913,70 @@ function ixFlagConsequences(flag,genNum){
   });
   return out;
 }
+/* ── Spread moves ───────────────────────────────────────────────────────────────────────────────
+   Champions is a doubles format, so whether a move hits one target or both is one of the first
+   things that matters about it, and the dex said nothing about it anywhere.
+
+   Two facts, and they are separate. WHO it hits: `allAdjacentFoes` is both opponents,
+   `allAdjacent` is both opponents AND your own partner — Earthquake, Surf, Discharge, Bulldoze and
+   Self-Destruct are in the second group, which is a different move to bring. And what it COSTS:
+   a move that hits more than one target has its damage cut.
+
+   Both come from the bundled @smogon/calc engine — the same engine the damage calculator runs on,
+   so the label cannot disagree with the number the calculator produces. The engine records `target`
+   only when it is a spread target, which is why the absence of one means single-target.
+
+   The multiplier is NOT assumed. It was measured against that engine, Singles versus Doubles at
+   equal everything, and it is generation-dependent like everything else here:
+
+       Gen III   Rock Slide 66 -> 34, Surf 20 -> 10     0.5x
+       Gen IV+   Rock Slide 66 -> 49, Surf 20 -> 15     0.75x
+
+   Double battles did not exist before Generation III, so below that there is no reduction to state
+   and the badge says only who the move hits. tests/test-spread-moves.js pins all of it. */
+const SPREAD_TARGETS={allAdjacentFoes:'both opponents',allAdjacent:'both opponents and your partner'};
+function moveSpreadTarget(moveName){
+  const id=String(moveName).toLowerCase().replace(/[^a-z0-9]/g,'');
+  try{
+    if(typeof SmogonCalc==='undefined')return null;
+    if(!CalcMaps||!CalcMaps.gen)try{calcEnsureMaps()}catch{}
+    if(!CalcMaps||!CalcMaps.gen)return null;
+    const m=CalcMaps.gen.moves.get(id);
+    // A move with no recorded target is single-target; a status move that hits both sides is not
+    // "spread" in the sense that matters, because there is no damage to reduce.
+    if(!m||!m.target||!SPREAD_TARGETS[m.target])return null;
+    if(m.category==='Status')return {target:m.target,hits:SPREAD_TARGETS[m.target],mult:null};
+    return {target:m.target,hits:SPREAD_TARGETS[m.target],mult:spreadMultForGen(getDataGenNum())};
+  }catch{return null}
+}
+function spreadMultForGen(genNum){
+  const g=genNum||getDataGenNum();
+  if(g<3)return null;      // double battles did not exist yet
+  return g===3?0.5:0.75;
+}
+/* `compact` is for the learnset table, where a row already carries a name, a priority marker and a
+   truncated description. There the ally warning is carried by colour and the hover text rather than
+   by three more words, because the last thing this tab needed was more words. */
+function renderSpreadTag(moveName,compact){
+  const s=moveSpreadTarget(moveName);
+  if(!s)return '';
+  const cut=s.mult?' · ×'+s.mult+' damage when it hits more than one':'';
+  const alsoAlly=s.target==='allAdjacent';
+  return '<span class="mv-spread'+(alsoAlly?' mv-spread-ally':'')+'" title="Hits '+s.hits+cut
+    +'">Spread'+(alsoAlly&&!compact?' (hits ally)':'')+'</span>';
+}
+
 // Bordered text tokens, not filled blobs: the tag says what it is, the tooltip says what it costs.
 function renderMoveTags(moveName){
   const flags=moveDescriptors(moveName);
-  if(!flags.length)return '';
+  /* The spread badge is not a Showdown flag and must not be pushed through moveDescriptors, which
+     returns flag keys and is asserted as such. It rides alongside, and it shows on a move that has
+     no other tags at all — Dazzling Gleam has nothing to say about contact or sound, and how many
+     Pokemon it hits is still the most important thing about it in a doubles format. */
+  const spread=renderSpreadTag(moveName);
+  if(!flags.length)return spread?'<div class="mv-tags">'+spread+'</div>':'';
   const genNum=getDataGenNum();
-  return '<div class="mv-tags">'+flags.map(function(f){
+  return '<div class="mv-tags">'+spread+flags.map(function(f){
     const i=MOVE_TAG_NOTE[f];
     /* Only what this tag COSTS or BUYS: what boosts the move, what blocks it, what resists it,
        what strips the tag off. The abilities the move merely sets off are dropped — see the
@@ -6913,9 +6987,17 @@ function renderMoveTags(moveName){
     const bits=[i.note].concat(cons.map(function(c){return c.t}));
     const boost=cons.filter(function(c){return c.boost})[0];
     const blocked=cons.some(function(c){return c.block})?' mv-tag-block':'';
+    /* The chip used to read CONTACT \u00D71.3, and it was asked what that meant. Fairly: it reads as a
+       property of the move, and it is not one. Nothing about Mortal Spin is \u00D71.3 \u2014 that is what
+       Tough Claws does to it, and only for the small number of Pokemon that have Tough Claws. A
+       bare multiplier next to a move is a number that is false for almost every Pokemon using it.
+
+       So the chip states what the move IS, which is unconditional, and the multiplier moves into
+       the hover text where its condition can be named: "Tough Claws boosts it \u00D71.3". The border
+       still tints when something boosts or blocks the tag, because that is a hint rather than a
+       claim about a number. */
     return '<span class="mv-tag'+(boost?' mv-tag-boost':'')+blocked+'" title="'
-      +bits.join(' \u00b7 ').replace(/"/g,'&quot;')+'">'+i.label
-      +(boost&&/\u00D7/.test(boost.t)?'<b>\u00D7'+boost.t.split('\u00D7')[1]+'</b>':'')+'</span>';
+      +bits.join(' \u00b7 ').replace(/"/g,'&quot;')+'">'+i.label+'</span>';
   }).join('')+'</div>';
 }
 

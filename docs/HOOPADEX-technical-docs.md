@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.42**
+**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.43**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -836,6 +836,51 @@ derivation: `tests/test-move-tags.js` checks it, and the ability pages — which
 right place to answer "what sets this off". The suite asserts both directions: that named triggers
 (Gooey, Aftermath, Static…) are absent from the tag tooltip, and that at least fifteen are still
 derived.
+
+**The chip face carries no number.** It reads `CONTACT`, not `CONTACT ×1.3`. The multiplier is a
+fact about an *ability*, not about the move: nothing about Mortal Spin is ×1.3, that is what Tough
+Claws does to it, and only for the Pokémon that have Tough Claws. Printed on the move it is false
+for almost every Pokémon using it. It belongs in the hover text where the ability can be named, and
+the phrasing must keep the verb — `Tough Claws boosts it ×1.3`, never `Tough Claws ×1.3`, because a
+name beside a number leaves the reader to supply the relationship and the one they supply is that
+the move is ×1.3. Mutations M103 and M104 hold both halves.
+
+## 4.7b Spread moves
+
+A move's target is read from the bundled `@smogon/calc` engine — the same engine the damage
+calculator runs on, so the label cannot disagree with the number the calculator produces. The engine
+records `target` **only** for spread moves, which is why its absence is read as single-target.
+
+| Target | Meaning | Moves |
+|---|---|---|
+| `allAdjacentFoes` | both opponents | 61 |
+| `allAdjacent` | both opponents **and your own partner** | 20 |
+
+Keep the two apart. `allAdjacent` is Earthquake, Surf, Discharge, Bulldoze and Self-Destruct; in a
+doubles format hitting your own partner is a reason not to bring the move, not a detail. Any other
+target value (`all`, `allySide`, …) is **not** treated as spread — `SPREAD_TARGETS` is a whitelist,
+and an unrecognised target must not be guessed into one.
+
+`spreadMultForGen(genNum)` returns the damage reduction. It was measured against the bundled engine,
+Singles versus Doubles at equal everything, not recalled:
+
+| Generation | Measurement | Multiplier |
+|---|---|---|
+| I–II | — | `null` — double battles did not exist |
+| III | Rock Slide 66 → 34, Surf 20 → 10 | 0.5 |
+| IV onward | Rock Slide 66 → 49, Surf 20 → 15 | 0.75 |
+
+`null` rather than `1` is deliberate: "no reduction" and "this format does not exist" are different
+answers, and a badge reading "×1 damage" in Generation I would state a rule about a battle you
+cannot have. A **status** spread move also returns `mult:null` — it states who it hits and no
+multiplier, because there is no damage to reduce.
+
+Rendered by `renderSpreadTag(moveName, compact)` on the move tooltip, the tag row and both learnset
+row builders. `compact` drops the words "(hits ally)" for the learnset table, where the row is
+already full, and keeps the warning in the colour and the hover text. The badge must show on moves
+with no other tags — Dazzling Gleam has nothing to say about contact or sound, and being a spread
+move is the most important thing about it — which is why it is not routed through
+`moveDescriptors`; that returns Showdown flag keys, and a target is not a flag.
 
 ## 4.8 The colourblind toggle appears only where it applies
 

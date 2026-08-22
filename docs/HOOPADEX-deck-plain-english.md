@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.42**
+**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.43**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -243,9 +243,54 @@ and the cheaper one is the one that looks fine.**
 
 ---
 
+## Slide 11d — A number that was true for almost nobody
+
+Every move used to carry a little badge reading **CONTACT ×1.3**. Someone looked at Mortal Spin and
+asked what that meant.
+
+That question was the bug. It reads like the move does ×1.3 damage. It doesn't. **Tough Claws** does
+×1.3 to it — and only if the Pokémon holding the move happens to have Tough Claws, which almost none
+of them do. So the dex was printing a number, right next to a move, that was false for nearly every
+Pokémon that could use it.
+
+Nothing looked broken. It was a real multiplier, from a real ability, correctly derived. It was just
+answering a question nobody asked, in a place that made it look like the answer to the one they did.
+
+The badge now says **CONTACT**. That's a fact about the move and it's true always. The multiplier
+moved to the hover, where the ability can be named — and gained the word it was missing:
+*"Tough Claws boosts it ×1.3."*
+
+**A name next to a number is not a fact. The reader has to guess the verb between them, and they
+will guess wrong.**
+
+---
+
+## Slide 11e — Knowing a move hits two things
+
+Champions is doubles: two Pokémon a side. So the first thing you want to know about a move is how
+many it hits. The dex never said.
+
+Now it does — and it splits a distinction that matters:
+
+- **Rock Slide** hits both opponents.
+- **Earthquake** hits both opponents *and your own partner.*
+
+That second one isn't a footnote, it's a reason not to bring the move. So it's marked in red and
+says "hits ally" outright.
+
+Spread moves also hit softer. That reduction depends on the year, like everything else here:
+**half** in Gen III, **three quarters** from Gen IV on. Those numbers weren't looked up or
+remembered — they were measured, by running the same attack through the same engine twice, once in
+singles and once in doubles, and reading the difference.
+
+And below Gen III the badge says nothing about a reduction, because double battles didn't exist yet.
+"No reduction" and "that format doesn't exist" are different answers, and only one of them is true.
+
+---
+
 ## Slide 12 — What we don't claim
 
-Thirty-four test suites and 1,222 assertions now cover the data, the damage formula, the derived
+Thirty-five test suites and 1,283 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

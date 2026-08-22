@@ -91,16 +91,16 @@ check(unknown.length === 0, 'every labelled flag is one the derived table carrie
 
 // --- the consequences are derived, and nothing here asserts them by hand ----------------------
 const names = f => ixFlagConsequences(f, 9).map(c => c.t);
-check(names('pulse').some(t => /^Mega Launcher ×1\.5$/.test(t)),
+check(names('pulse').some(t => /^Mega Launcher boosts it ×1\.5$/.test(t)),
   'pulse consequences name Mega Launcher and its multiplier', names('pulse'));
 check(names('bullet').indexOf('Blocked by Bulletproof') >= 0,
   'ballistic moves are blocked by Bulletproof', names('bullet'));
 check(names('sound').indexOf('Blocked by Soundproof') >= 0, 'sound moves are blocked by Soundproof');
 check(names('sound').some(t => /Punk Rock takes 50% less/.test(t)),
   'and Punk Rock resists them, stated as a reduction', names('sound'));
-check(names('punch').some(t => /^Iron Fist ×1\.2$/.test(t)), 'Iron Fist boosts punching moves ×1.2');
-check(names('bite').some(t => /^Strong Jaw ×1\.5$/.test(t)), 'Strong Jaw boosts biting moves ×1.5');
-check(names('slicing').some(t => /^Sharpness ×1\.5$/.test(t)), 'Sharpness boosts slicing moves ×1.5');
+check(names('punch').some(t => /^Iron Fist boosts it ×1\.2$/.test(t)), 'Iron Fist boosts punching moves ×1.2');
+check(names('bite').some(t => /^Strong Jaw boosts it ×1\.5$/.test(t)), 'Strong Jaw boosts biting moves ×1.5');
+check(names('slicing').some(t => /^Sharpness boosts it ×1\.5$/.test(t)), 'Sharpness boosts slicing moves ×1.5');
 check(names('powder').indexOf('Blocked by Overcoat') >= 0, 'powder moves are blocked by Overcoat');
 check(names('reflectable').indexOf('Blocked by Magic Bounce') >= 0, 'reflectable moves are bounced by Magic Bounce');
 
@@ -112,7 +112,7 @@ const contact = names('contact');
  'Rocky Helmet', 'Gooey', 'Mummy', 'Tangling Hair', 'Aftermath', 'Perish Body']
   .forEach(a => check(contact.indexOf(a) >= 0, `contact punisher "${a}" is found`, contact));
 check(contact.length >= 15, 'contact names at least fifteen consequences, not three', contact.length);
-check(contact.some(t => /^Tough Claws ×1\.3$/.test(t)), 'and Tough Claws boosts them ×1.3', contact);
+check(contact.some(t => /^Tough Claws boosts it ×1\.3$/.test(t)), 'and Tough Claws boosts them ×1.3', contact);
 check(contact.indexOf('Long Reach removes it') >= 0, 'and Long Reach is recorded as removing contact');
 check(contact.some(t => /^Unseen Fist removes its protectable status$/.test(t)),
   'a strip rule names the flag it removes — "Unseen Fist" alone tells a reader nothing',
@@ -133,7 +133,7 @@ const contactBits = contactTitle.split(' · ');
 check(!/and \d+ more/.test(contactTitle),
   'the tooltip is short enough to state outright, so nothing is truncated', contactTitle);
 check(contactBits.length <= 6, 'and it is a handful of entries, not a paragraph', contactBits.length);
-check(/Tough Claws ×1\.3/.test(contactTitle), 'the boost is named with its multiplier', contactTitle);
+check(/Tough Claws boosts it ×1\.3/.test(contactTitle), 'the boost is named with its multiplier', contactTitle);
 check(/Long Reach removes it/.test(contactTitle), 'and so is what removes the tag');
 /* The assertion that keeps it clean. Every one of these is a real contact consequence and every one
    of them is noise on a move page: they follow from the tag, not from the move. */
@@ -145,6 +145,29 @@ check(/Long Reach removes it/.test(contactTitle), 'and so is what removes the ta
 check(ixFlagConsequences('contact', 9).filter(c => c.trigger).length >= 15,
   'the triggers are still derived and marked, just not rendered here',
   ixFlagConsequences('contact', 9).filter(c => c.trigger).length);
+
+/* THE CHIP FACE STATES WHAT THE MOVE IS, NOT A NUMBER.
+   It used to read "CONTACT ×1.3" and was asked, from the live site, what that meant. The
+   question was the finding: a multiplier printed next to a move reads as a property OF THE MOVE,
+   and it is not one. Nothing about Mortal Spin is ×1.3 — that is what Tough Claws does to it, and
+   only for the handful of Pokemon that have Tough Claws. On every other Pokemon the number is
+   simply false, which is this project's oldest failure mode wearing a very small badge.
+
+   The multiplier lives in the hover text now, where the ability doing the multiplying can be
+   named. */
+const spinTag = renderMoveTags('mortal-spin');
+check(!/×/.test(spinTag.replace(/title="[^"]*"/g, '')),
+  'no multiplier is printed on the face of a tag chip', spinTag.replace(/title="[^"]*"/g, ''));
+check(!/<b>/.test(spinTag), 'and the bold multiplier element is gone with it', spinTag);
+check(/Tough Claws boosts it ×1\.3/.test((spinTag.match(/title="([^"]*)"/) || [])[1] || ''),
+  'the number survives in the hover text, with the ability that causes it named',
+  (spinTag.match(/title="([^"]*)"/) || [])[1]);
+/* The verb is the whole point. "Tough Claws ×1.3" is a name beside a number and leaves the reader
+   to supply the relationship; the one they supply is the wrong one. */
+check(ixFlagConsequences('contact', 9).filter(c => c.boost)
+        .every(c => / boosts it ×/.test(c.t)),
+  'every boost states the relationship, not just a name and a number',
+  ixFlagConsequences('contact', 9).filter(c => c.boost).map(c => c.t));
 
 // --- consequences are cut to the generation ----------------------------------------------------
 check(ixFlagConsequences('pulse', 5).length === 0,

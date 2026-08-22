@@ -12,6 +12,60 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.43] - 2026-08-22
+
+### Added
+- **Spread moves are marked.**
+
+  Champions is a doubles format, so whether a move hits one Pokémon or both is among the first
+  things that matters about it — and the dex said nothing about it anywhere. The damage calculator
+  has a spread toggle, so the *number* was reachable by anyone who already knew to look; nothing
+  told a reader there was anything to look for.
+
+  Two facts, kept separate, because conflating them loses the interesting one:
+
+  | Target | Hits | Moves |
+  |---|---|---|
+  | `allAdjacentFoes` | both opponents | 61 |
+  | `allAdjacent` | both opponents **and your own partner** | 20 |
+
+  Earthquake, Surf, Discharge, Bulldoze and Self-Destruct are in the second group. In doubles that
+  is not a footnote — you cannot bring Earthquake to a team that stands next to it — so those are
+  badged in the warning colour and say "hits ally" outright.
+
+  The target is read from the bundled `@smogon/calc` engine, the same engine the calculator runs
+  on, so the label cannot disagree with the number the calculator produces. The multiplier was
+  **measured** against that engine rather than recalled — Singles vs Doubles, everything else equal:
+
+  | | Rock Slide | Surf | Multiplier |
+  |---|---|---|---|
+  | Gen III | 66 → 34 | 20 → 10 | ×0.5 |
+  | Gen IV | 66 → 49 | 20 → 15 | ×0.75 |
+  | Gen V–IX | 43 → 32 | | ×0.75 |
+
+  Double battles did not exist before Generation III, so below that the badge names who the move
+  hits and claims no reduction — "no reduction" and "this format does not exist" are different
+  answers. A status spread move states who it hits and no multiplier, because there is no damage to
+  reduce. Shown on the move tooltip, the tag row, and both learnset row builders.
+
+### Changed
+- **A move tag no longer prints a bare multiplier on its face.**
+
+  Reported from the live site, looking at Mortal Spin: *"wtf does contact x1.3 mean"*. The question
+  was the finding. `CONTACT ×1.3` reads as a property of the move, and it is not one — nothing
+  about Mortal Spin is ×1.3. That is what **Tough Claws** does to it, and only for the handful of
+  Pokémon that have Tough Claws. On every other Pokémon the number is simply false, which is this
+  project's oldest failure mode wearing a very small badge: a plausible number, rendered with the
+  same confidence as a true one, with its condition invisible.
+
+  The chip now states what the move **is** — `CONTACT`, `PUNCH`, `PULSE / AURA` — which is
+  unconditional. The multiplier moved into the hover text, where the ability causing it can be
+  named, and the phrasing gained the verb it was missing: `Tough Claws ×1.3` is now
+  **`Tough Claws boosts it ×1.3`**. A name beside a number leaves the reader to supply the
+  relationship, and the one they supply is the wrong one.
+
+---
+
 ## [5.42] - 2026-08-21
 
 ### Removed
