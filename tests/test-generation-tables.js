@@ -170,5 +170,36 @@ check(/img\.dataset\.spriteFallback/.test(src),
 check(/indexOf\('\/versions\/'\)</.test(src),
   'and the fallback only fires for a versioned sprite, so it cannot loop');
 
+/* -- tabs that describe mechanics the selected generation does not have -----------------------
+   TAB_RELEVANCE already supported a `minGen` rule and did not use it, so Generations I and II were
+   offered a Natures tab and an Abilities tab. Both mechanics arrived in Generation III. The tabs
+   rendered a full modern list, which is not a smaller answer than the truth — it is a confident
+   answer to a question those games cannot be asked. */
+const appSrc = fs.readFileSync(process.env.HOOPADEX_SRC || path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
+const relBlock = appSrc.slice(appSrc.indexOf('const TAB_RELEVANCE='), appSrc.indexOf('function isTabRelevant('));
+check(/natures:\{minGen:3\}/.test(relBlock), 'Natures is gated to Generation III and above', relBlock);
+check(/abilities:\{minGen:3\}/.test(relBlock), 'and so is Abilities');
+
+const relStart = appSrc.indexOf('function isTabRelevant(');
+const relEnd = appSrc.indexOf('function applyTabVisibility(');
+const rel = (0, eval)(
+  'var isChampionsMode=false, selectedGenNum=1;\n' +
+  relBlock + appSrc.slice(relStart, relEnd) +
+  '\n;({isTabRelevant,setMode:function(c,g){isChampionsMode=c;selectedGenNum=g}})'
+);
+rel.setMode(false, 1);
+check(rel.isTabRelevant('natures') === false, 'Generation I is not offered Natures');
+check(rel.isTabRelevant('abilities') === false, 'nor Abilities');
+check(rel.isTabRelevant('pokedex') === true, 'but the Pokedex still applies');
+rel.setMode(false, 3);
+check(rel.isTabRelevant('natures') === true, 'Generation III gets both back');
+check(rel.isTabRelevant('abilities') === true, 'as the generation they were introduced in');
+/* Champions is Generation IX under the hood, so a minGen rule must not accidentally hide a tab
+   there — the mode flag and the generation number are separate questions. */
+rel.setMode(true, 9);
+check(rel.isTabRelevant('natures') === true && rel.isTabRelevant('abilities') === true,
+  'and Champions keeps them, because it is Generation IX');
+check(rel.isTabRelevant('locations') === false, 'while the rules that are about Champions still fire');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

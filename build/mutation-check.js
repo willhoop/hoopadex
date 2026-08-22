@@ -220,8 +220,14 @@ const MUTATIONS = [
 
   /* Per-generation move text. The cutoff arithmetic is the part that fails silently — an
      off-by-one shows Generation II's wording to a Generation III reader with no visible symptom. */
+  /* The anchor carries the line above it on purpose. Three functions now resolve a generation
+     cutoff with an identically-shaped line, and two of them use the same local name, so the bare
+     line matched twice and the runner reported SKIP — correctly refusing to mutate an ambiguous
+     target rather than silently picking one. */
   ['M60', 'The move-text cutoff resolves DOWNWARD, handing a generation the older wording',
+    '  if(rec.gen&&genNum<rec.gen)return null;      // the move did not exist yet\n' +
     '  const keys=Object.keys(rec.gens).map(Number).filter(function(n){return n>=genNum}).sort(function(a,b){return a-b});',
+    '  if(rec.gen&&genNum<rec.gen)return null;      // the move did not exist yet\n' +
     '  const keys=Object.keys(rec.gens).map(Number).filter(function(n){return n<=genNum}).sort(function(a,b){return b-a});',
     1, 'test-move-text.js'],
   ['M61', 'A move is described in generations before it existed',
@@ -236,6 +242,36 @@ const MUTATIONS = [
   ['M64', 'Champions stops naming which rules its move text is quoting',
     "const label=isChampionsMode?'Scarlet/Violet rules':'Gen '+ixRoman(g);",
     "const label='Gen '+ixRoman(g);", 1, 'test-move-text.js'],
+
+  /* Per-generation move NUMBERS, past abilities, and tabs for mechanics an era did not have.
+     The first two put a wrong number and a wrong immunity on screen, which is the severest class
+     here: the ability one is not even displayed where it does its damage — it feeds the type
+     matchup, so the wrong answer surfaces on a different page from the stale field. */
+  ['M65', 'Move power stops resolving per generation, so Gen I is shown Gen IX numbers',
+    "  const v=movePastField(md,'power',g);\n  return v===undefined?(md&&md.power):v;",
+    '  return md&&md.power;', 1, 'test-move-stats.js'],
+  ['M66', 'The past-value cutoff resolves downward and hands a generation the wrong number',
+    '  const keys=Object.keys(md.past).map(Number).filter(function(n){return n>=genNum}).sort(function(a,b){return a-b});',
+    '  const keys=Object.keys(md.past).map(Number).filter(function(n){return n<=genNum}).sort(function(a,b){return b-a});',
+    1, 'test-move-stats.js'],
+  ['M67', 'A null past value is written through and blanks a real accuracy',
+    '    if(pv.accuracy!==null&&pv.accuracy!==undefined)rec.accuracy=pv.accuracy;',
+    '    rec.accuracy=pv.accuracy;', 1, 'test-move-stats.js'],
+  ['M68', 'The damage calculator goes back to modern power in every generation',
+    'calcLocalRolls({lv:lv,power:genPower,', 'calcLocalRolls({lv:lv,power:md.power,',
+    1, 'test-move-stats.js'],
+  ['M69', 'Gengar loses Levitate, so Gen IV is told Earthquake hits it',
+    '"gengar":{"id":94,"gens":{"6":[{"slot":1,"hidden":false,"ability":"levitate"}]}}',
+    '"gengar":{"id":94,"gens":{}}', 1, 'test-past-abilities.js'],
+  ['M70', 'A slot that did not exist yet is shown anyway',
+    '    if(!r.ability)return;                       // the slot was empty in this generation',
+    '    if(!r.ability){out.push(a);return}', 1, 'test-past-abilities.js'],
+  ['M71', 'Removing an absent slot renumbers the ones that survive',
+    'out.push({ability:{name:r.ability,url:\'\'},is_hidden:r.hidden,slot:a.slot});',
+    'out.push({ability:{name:r.ability,url:\'\'},is_hidden:r.hidden,slot:out.length+1});',
+    1, 'test-past-abilities.js'],
+  ['M72', 'Generation I is offered a Natures tab for a mechanic that did not exist',
+    '  natures:{minGen:3},', '  natures:{},', 1, 'test-generation-tables.js'],
 ];
 
 function runSuite(suite, srcPath) {

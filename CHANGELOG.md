@@ -12,6 +12,75 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.33] - 2026-08-21
+
+### Fixed
+- **Move power, accuracy and PP were the modern ones in every generation — 140 moves.** The app read
+  exactly one field out of PokeAPI's `past_values`, `pv.type`, and dropped the rest. Measured on the
+  live build in Generation I before the fix:
+
+  | Move | Shown | Actually |
+  |---|---|---|
+  | Wing Attack | 60 | **35** |
+  | Tackle | 40 | **35** |
+  | Jump Kick | 100 | **70** |
+  | Vine Whip | 45 | **35** |
+
+  **And it reached the damage calculator.** `calcLocalRolls({power: md.power, …})` took the modern
+  number, and `TAB_RELEVANCE` has no rule for `calc`, so the Dmg Calc tab is visible in every
+  generation — confirmed showing in Gen I. A wrong label on a page is bad; a wrong number out of
+  something called a calculator is worse.
+
+- **`moveCache` was built by hand from six places, four of which hard-coded `pastTypes:{}`.** So
+  whether the app knew a move's type history depended on which code path fetched it first: open a
+  move from the Pokedex and it was generation-aware, reach the same move through Team Builder and it
+  was not. Both render. All six now call one `makeMoveRecord()`, and a test asserts no hand-built
+  record survives.
+
+- **Gengar had the wrong ability for four generations.** It shows Cursed Body; it had **Levitate**
+  from Gen III through Gen VI — a full immunity to Ground. A reader on Gen IV was told Earthquake
+  hits Gengar. It does not. This is a worse class than a stale label: an ability feeds the
+  type-matchup answer, so one stale field produced a confident wrong answer to a *different*
+  question, on a different screen from where the mistake lived.
+
+  141 species affected, in three kinds: **112** a slot that did not exist yet (Pidgey had no second
+  ability until Gen IV, and the app listed Tangled Feet in Gen III), **21** a hidden ability that was
+  different, **8** a normal ability that was different. Rows saying a hidden slot simply predates
+  Gen V are deliberately not shipped — the app already gates on that, and carrying it twice would be
+  two rules to keep in step.
+
+- **Generations I and II were offered a Natures tab and an Abilities tab.** Both mechanics arrived in
+  Gen III. The tabs rendered a full modern list, which is not a smaller answer than the truth but a
+  confident answer to a question those games cannot be asked. `TAB_RELEVANCE` already supported a
+  `minGen` rule and simply did not use it.
+
+### Corrected
+- **I reported 29 species with changed abilities. It is 141.** The first count looked only at rows
+  where a past ability was *named* and missed the larger kind — rows saying a slot was **empty**,
+  which is equally a fact about that generation and three times as common.
+
+### Not done, and why
+- **Move effect changes (`moveeffectchange`, 28 rows) were audited and deliberately skipped.** They
+  overlap what 5.32 already derives from Showdown's per-generation text, and adding them would be a
+  second source for the same fact — the thing this project spends most of its effort avoiding. It is
+  recorded rather than quietly dropped.
+- **The ability page still lists species by their modern ability.** Gengar now shows Levitate on its
+  own page in Gen IV, but the Levitate page does not yet list Gengar there. The forward direction is
+  fixed; the reverse is a separate join and is on the backlog rather than half-done.
+
+### Testing
+- `tests/test-move-stats.js` (23 assertions) and `tests/test-past-abilities.js` (25).
+- **Eight mutations, M65–M72.** Two problems surfaced during the run and both were real:
+  **M60 went SKIP** because three functions now resolve a generation cutoff with an identically
+  shaped line and two share a local name, so the anchor matched twice — the runner correctly refused
+  to mutate an ambiguous target rather than silently picking one. **M71 survived** because Pidgey's
+  only changed slot is a *removal*, so the branch that rebuilds a replaced entry never ran; proving
+  slot numbers survive needed a species with a removal before a replacement, and no real species has
+  both, so the fixture is injected.
+- Set is now **72, all killed**; 33 suites, 1,206 assertions.
+
+---
+
 ## [5.32] - 2026-08-21
 
 ### Added

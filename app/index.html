@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.32 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.33 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1378,9 +1378,9 @@ async function showMoveTip(e,name){
     '<div class="tooltip-meta">'+
       '<span class="type-badge small" style="--tc:'+typeColor+'">'+type+'</span>'+
       '<span class="move-cat '+cat+'">'+cat+'</span>'+
-      (m.power?'<span>Power: '+m.power+'</span>':'')+
-      (m.accuracy?'<span>Acc: '+m.accuracy+'%</span>':'')+
-      '<span>PP: '+(m.pp||'\u2014')+'</span>'+
+      (getMovePowerForGen(m)?'<span>Power: '+getMovePowerForGen(m)+'</span>':'')+
+      (getMoveAccForGen(m)?'<span>Acc: '+getMoveAccForGen(m)+'%</span>':'')+
+      '<span>PP: '+(getMovePPForGen(m)||'\u2014')+'</span>'+
       '<span style="color:'+priColor+'">Priority: '+priLabel+'</span>'+
     '</div>'+
     '<div class="tooltip-desc">'+(genFlavorText(m.flavorEntries,getDataGenNum())||m.desc)+'</div>'+
@@ -1410,11 +1410,142 @@ async function ensureMoveData(name){
        wording regardless of the generation selected. Both are wrong in the same direction for any
        move whose description was rewritten, and a move description is exactly the place a reader
        would expect the selected generation to be respected. */
-    moveCache[name]={name:d.name,type:d.type?.name||'normal',damage_class:d.damage_class?.name||'status',power:d.power,accuracy:d.accuracy,pp:d.pp,desc,flavorEntries:d.flavor_text_entries||[],pastTypes,priority:d.priority||0,introGen:moveGen};
+    moveCache[name]=makeMoveRecord(d);
   }catch{moveCache[name]={name,type:'normal',damage_class:'status',power:null,accuracy:null,pp:null,desc:'Could not load.',flavorEntries:[],pastTypes:{},priority:0,introGen:1}}
 }
 
 // Get move type corrected for the selected generation
+/* ── One move record, built one way ─────────────────────────────────────────────────────────────
+   `moveCache` was written from SIX places, each constructing the object by hand. Four of the six
+   set `pastTypes:{}` outright, so whether the app knew a move's type history depended on which code
+   path happened to fetch it first — open a move from the Pokedex and it was gen-aware, reach the
+   same move through Team Builder and it was not. That is not a bug you can see; both render.
+
+   All six now call this. It also reads the fields the app had been discarding.
+
+   POWER, ACCURACY AND PP CHANGE BETWEEN GENERATIONS, and PokeAPI ships that in `past_values`
+   alongside the type the app was already reading. Only `pv.type` was being taken; power, accuracy
+   and pp were dropped on the floor. 140 moves are affected — Wing Attack was 35 base power in
+   Generation I and the app said 60, Jump Kick was 70 and the app said 100 — and because the Damage
+   Calc reads the same field, those were not merely wrong labels but wrong numbers out of a
+   calculator. */
+function movePastValues(d){
+  const out={};
+  (d&&d.past_values||[]).forEach(function(pv){
+    const vg=pv.version_group&&pv.version_group.name;
+    const g=vg&&VG_GEN[vg];
+    if(!g)return;
+    const rec=out[g]||(out[g]={});
+    // Only fields PokeAPI actually recorded a past value for. A null means "unchanged at this
+    // point", not "zero", and writing the null through would blank a real number.
+    if(pv.power!==null&&pv.power!==undefined)rec.power=pv.power;
+    if(pv.accuracy!==null&&pv.accuracy!==undefined)rec.accuracy=pv.accuracy;
+    if(pv.pp!==null&&pv.pp!==undefined)rec.pp=pv.pp;
+    if(pv.type&&pv.type.name)rec.type=pv.type.name;
+  });
+  return out;
+}
+function makeMoveRecord(d){
+  const past=movePastValues(d);
+  const pastTypes={};
+  Object.keys(past).forEach(function(g){if(past[g].type)pastTypes[g]=past[g].type});
+  const en=d.effect_entries&&d.effect_entries.find(function(x){return x.language.name==='en'});
+  const flav=(d.flavor_text_entries||[]).filter(function(x){return x.language.name==='en'}).pop();
+  let desc=(en&&en.short_effect)||(flav&&flav.flavor_text)||'No description.';
+  desc=desc.replace(/\$effect_chance%?/g,(d.effect_chance||'—')+'%');
+  const gm=d.generation&&d.generation.name&&d.generation.name.match(/generation-(\w+)/);
+  const roman={i:1,ii:2,iii:3,iv:4,v:5,vi:6,vii:7,viii:8,ix:9};
+  return {
+    name:d.name,
+    type:(d.type&&d.type.name)||'normal',
+    damage_class:(d.damage_class&&d.damage_class.name)||'status',
+    power:d.power,accuracy:d.accuracy,pp:d.pp,
+    desc:desc,
+    flavorEntries:d.flavor_text_entries||[],
+    past:past,pastTypes:pastTypes,
+    priority:d.priority||0,
+    introGen:gm?(roman[gm[1]]||9):1,
+  };
+}
+
+/* The value for the generation on screen. Same cutoff convention as everything else here: a
+   past_values entry recorded against a version group describes that generation AND every generation
+   below it, until an older entry takes over, so the answer is the entry with the SMALLEST
+   generation at or above the one asked for. Jump Kick has entries at Gen IV (70) and Gen V (85)
+   against a current 100 — Gen III reads the Gen IV entry, Gen V reads its own, Gen VI takes the
+   current value. */
+function movePastField(md,field,genNum){
+  if(!md||!md.past)return undefined;
+  const keys=Object.keys(md.past).map(Number).filter(function(n){return n>=genNum}).sort(function(a,b){return a-b});
+  for(let i=0;i<keys.length;i++){
+    const v=md.past[keys[i]][field];
+    if(v!==undefined&&v!==null)return v;
+  }
+  return undefined;
+}
+function getMovePowerForGen(md,genNum){
+  const g=genNum===undefined?getDataGenNum():genNum;
+  const v=movePastField(md,'power',g);
+  return v===undefined?(md&&md.power):v;
+}
+function getMoveAccForGen(md,genNum){
+  const g=genNum===undefined?getDataGenNum():genNum;
+  const v=movePastField(md,'accuracy',g);
+  return v===undefined?(md&&md.accuracy):v;
+}
+function getMovePPForGen(md,genNum){
+  const g=genNum===undefined?getDataGenNum():genNum;
+  const v=movePastField(md,'pp',g);
+  return v===undefined?(md&&md.pp):v;
+}
+
+/* ── Abilities a species had in an earlier generation ───────────────────────────────────────────
+   Generated by build/generate-past-abilities.js; re-embedded by build/embed-past-abilities.js.
+   Do not hand-edit the blob.
+
+   Gengar's ability is Cursed Body. It was LEVITATE from Generation III through Generation VI, a full
+   immunity to Ground. The app showed Cursed Body in every generation, so a reader on Generation IV
+   was told Earthquake hits Gengar. It does not. That is worse than a wrong label: the ability feeds
+   the type-matchup answer, so one stale field produces a confidently wrong answer to a different
+   question.
+
+   141 species are affected, in three kinds:
+     112  a slot that did not exist yet — Pidgey had no second ability until Generation IV
+      21  a hidden ability that was a different ability
+       8  a normal ability that was a different ability (Gengar, Shiftry, Basculin, ...)
+
+   Rows saying a hidden slot simply did not exist are NOT shipped: hidden abilities arrived in
+   Generation V, the app already gates on that, and carrying it twice would be two rules to keep in
+   step. */
+const PASTABIL=/*BEGIN-PASTABIL*/{"pidgey":{"id":16,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"pidgeotto":{"id":17,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"pidgeot":{"id":18,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"nidoran-f":{"id":29,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"nidorina":{"id":30,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"nidoqueen":{"id":31,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"nidoran-m":{"id":32,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"nidorino":{"id":33,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"nidoking":{"id":34,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"clefairy":{"id":35,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"clefable":{"id":36,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"jigglypuff":{"id":39,"gens":{"5":[{"slot":2,"hidden":false,"ability":null}]}},"wigglytuff":{"id":40,"gens":{"5":[{"slot":2,"hidden":false,"ability":null}]}},"paras":{"id":46,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"parasect":{"id":47,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"venonat":{"id":48,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"venomoth":{"id":49,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"meowth":{"id":52,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"persian":{"id":53,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"mankey":{"id":56,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"primeape":{"id":57,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"machop":{"id":66,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"machoke":{"id":67,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"machamp":{"id":68,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"seel":{"id":86,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"dewgong":{"id":87,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"shellder":{"id":90,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"cloyster":{"id":91,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"gengar":{"id":94,"gens":{"6":[{"slot":1,"hidden":false,"ability":"levitate"}]}},"drowzee":{"id":96,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"hypno":{"id":97,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"hitmonlee":{"id":106,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"hitmonchan":{"id":107,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"koffing":{"id":109,"gens":{"7":[{"slot":2,"hidden":false,"ability":null}]}},"weezing":{"id":110,"gens":{"7":[{"slot":2,"hidden":false,"ability":null}]}},"tangela":{"id":114,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"kangaskhan":{"id":115,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"horsea":{"id":116,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"seadra":{"id":117,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"mr-mime":{"id":122,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"scyther":{"id":123,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"jynx":{"id":124,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"pinsir":{"id":127,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"tauros":{"id":128,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"eevee":{"id":133,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"porygon":{"id":137,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"zapdos":{"id":145,"gens":{"5":[{"slot":3,"hidden":true,"ability":"lightning-rod"}]}},"cleffa":{"id":173,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"igglybuff":{"id":174,"gens":{"5":[{"slot":2,"hidden":false,"ability":null}]}},"hoppip":{"id":187,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"skiploom":{"id":188,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"jumpluff":{"id":189,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"sunkern":{"id":191,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"sunflora":{"id":192,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"murkrow":{"id":198,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"granbull":{"id":210,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"scizor":{"id":212,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"shuckle":{"id":213,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"teddiursa":{"id":216,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"ursaring":{"id":217,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"swinub":{"id":220,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"piloswine":{"id":221,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"remoraid":{"id":223,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"octillery":{"id":224,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"kingdra":{"id":230,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"porygon2":{"id":233,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"stantler":{"id":234,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"smeargle":{"id":235,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"tyrogue":{"id":236,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"hitmontop":{"id":237,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"smoochum":{"id":238,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"miltank":{"id":241,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"raikou":{"id":243,"gens":{"6":[{"slot":3,"hidden":true,"ability":"volt-absorb"}]}},"entei":{"id":244,"gens":{"6":[{"slot":3,"hidden":true,"ability":"flash-fire"}]}},"suicune":{"id":245,"gens":{"6":[{"slot":3,"hidden":true,"ability":"water-absorb"}]}},"poochyena":{"id":261,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"mightyena":{"id":262,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"zigzagoon":{"id":263,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"linoone":{"id":264,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"shiftry":{"id":275,"gens":{"8":[{"slot":2,"hidden":false,"ability":"early-bird"}]}},"wingull":{"id":278,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"pelipper":{"id":279,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"shroomish":{"id":285,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"breloom":{"id":286,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"skitty":{"id":300,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"delcatty":{"id":301,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"sableye":{"id":302,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"illumise":{"id":314,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"numel":{"id":322,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"camerupt":{"id":323,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"torkoal":{"id":324,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"spinda":{"id":327,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"barboach":{"id":339,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"whiscash":{"id":340,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"feebas":{"id":349,"gens":{"5":[{"slot":2,"hidden":false,"ability":null}]}},"milotic":{"id":350,"gens":{"5":[{"slot":2,"hidden":false,"ability":null}]}},"shuppet":{"id":353,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"banette":{"id":354,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"tropius":{"id":357,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"absol":{"id":359,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"snorunt":{"id":361,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"glalie":{"id":362,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"spheal":{"id":363,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"sealeo":{"id":364,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"walrein":{"id":365,"gens":{"3":[{"slot":2,"hidden":false,"ability":null}]}},"piplup":{"id":393,"gens":{"8":[{"slot":3,"hidden":true,"ability":"defiant"}]}},"prinplup":{"id":394,"gens":{"8":[{"slot":3,"hidden":true,"ability":"defiant"}]}},"empoleon":{"id":395,"gens":{"8":[{"slot":3,"hidden":true,"ability":"defiant"}]}},"gallade":{"id":475,"gens":{"8":[{"slot":2,"hidden":false,"ability":null}]}},"roggenrola":{"id":524,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"boldore":{"id":525,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"gigalith":{"id":526,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"venipede":{"id":543,"gens":{"5":[{"slot":3,"hidden":true,"ability":"quick-feet"}]}},"whirlipede":{"id":544,"gens":{"5":[{"slot":3,"hidden":true,"ability":"quick-feet"}]}},"scolipede":{"id":545,"gens":{"5":[{"slot":3,"hidden":true,"ability":"quick-feet"}]}},"gothita":{"id":574,"gens":{"5":[{"slot":2,"hidden":false,"ability":null}]}},"gothorita":{"id":575,"gens":{"5":[{"slot":2,"hidden":false,"ability":null}]}},"gothitelle":{"id":576,"gens":{"5":[{"slot":2,"hidden":false,"ability":null}]}},"vanillite":{"id":582,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"vanillish":{"id":583,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"vanilluxe":{"id":584,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"litwick":{"id":607,"gens":{"5":[{"slot":3,"hidden":true,"ability":"shadow-tag"}]}},"lampent":{"id":608,"gens":{"5":[{"slot":3,"hidden":true,"ability":"shadow-tag"}]}},"chandelure":{"id":609,"gens":{"5":[{"slot":3,"hidden":true,"ability":"shadow-tag"}]}},"cubchoo":{"id":613,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"beartic":{"id":614,"gens":{"6":[{"slot":2,"hidden":false,"ability":null}]}},"kleavor":{"id":900,"gens":{"8":[{"slot":3,"hidden":true,"ability":"steadfast"}]}},"basculegion-male":{"id":902,"gens":{"8":[{"slot":1,"hidden":false,"ability":"rattled"}]}},"sneasler":{"id":903,"gens":{"8":[{"slot":2,"hidden":false,"ability":null}]}},"enamorus-incarnate":{"id":905,"gens":{"8":[{"slot":1,"hidden":false,"ability":"healer"}]}},"basculin-blue-striped":{"id":10016,"gens":{"5":[{"slot":1,"hidden":false,"ability":"rock-head"}]}},"growlithe-hisui":{"id":10229,"gens":{"8":[{"slot":3,"hidden":true,"ability":"justified"}]}},"arcanine-hisui":{"id":10230,"gens":{"8":[{"slot":3,"hidden":true,"ability":"justified"}]}},"typhlosion-hisui":{"id":10233,"gens":{"8":[{"slot":3,"hidden":true,"ability":"flash-fire"}]}},"sneasel-hisui":{"id":10235,"gens":{"8":[{"slot":3,"hidden":true,"ability":"poison-touch"}]}},"samurott-hisui":{"id":10236,"gens":{"8":[{"slot":3,"hidden":true,"ability":"shell-armor"}]}},"braviary-hisui":{"id":10240,"gens":{"8":[{"slot":3,"hidden":true,"ability":"defiant"}]}},"sliggoo-hisui":{"id":10241,"gens":{"8":[{"slot":2,"hidden":false,"ability":"shell-armor"}]}},"goodra-hisui":{"id":10242,"gens":{"8":[{"slot":2,"hidden":false,"ability":"shell-armor"}]}},"decidueye-hisui":{"id":10244,"gens":{"8":[{"slot":3,"hidden":true,"ability":"long-reach"}]}},"basculegion-female":{"id":10248,"gens":{"8":[{"slot":1,"hidden":false,"ability":"rattled"}]}}}/*END-PASTABIL*/;
+
+/* The ability list as it stood in a given generation.
+   Same cutoff convention as every other generated table here: a row recorded against generation N
+   describes N and every generation below it, until a lower row takes over. So the row that applies
+   is the one with the SMALLEST generation at or above the one being shown. */
+function pastAbilityOverrides(speciesName,genNum){
+  const rec=PASTABIL[speciesName];
+  if(!rec)return null;
+  const keys=Object.keys(rec.gens).map(Number).filter(function(n){return n>=genNum}).sort(function(a,b){return a-b});
+  return keys.length?rec.gens[keys[0]]:null;
+}
+/* Applied to PokeAPI's modern list. A row naming an ability REPLACES that slot; a row naming none
+   REMOVES it. Anything with no row keeps whatever PokeAPI said, because most slots never changed. */
+function applyPastAbilities(speciesName,abilities,genNum){
+  const rows=pastAbilityOverrides(speciesName,genNum);
+  if(!rows)return abilities;
+  const bySlot={};
+  rows.forEach(function(r){bySlot[r.slot]=r});
+  const out=[];
+  (abilities||[]).forEach(function(a){
+    const r=bySlot[a.slot];
+    if(!r){out.push(a);return}
+    if(!r.ability)return;                       // the slot was empty in this generation
+    out.push({ability:{name:r.ability,url:''},is_hidden:r.hidden,slot:a.slot});
+  });
+  return out;
+}
+
 function getMoveTypeForGen(md){
   if(!md)return'normal';
   const genNum=getDataGenNum();
@@ -1629,9 +1760,16 @@ function onGameChange(){
 // Tabs that do not apply to every selection. Champions mode is a competitive format rather than a
 // playable world, so route encounters and in-game EV training spots have nothing to describe there.
 // Add a rule here rather than scattering isChampionsMode checks through the tab code.
+/* Which selections a tab makes sense in.
+   `minGen` existed here and was unused, so Generations I and II were offered a Natures tab and an
+   Abilities tab. Neither mechanic existed: abilities and natures both arrived in Generation III.
+   The tabs rendered a full modern list, which is not a smaller answer than the truth — it is a
+   confident answer to a question the games of that era cannot be asked. */
 const TAB_RELEVANCE={
   locations:{champions:false},
   evs:{champions:false},
+  natures:{minGen:3},
+  abilities:{minGen:3},
 };
 function isTabRelevant(tab){
   const rule=TAB_RELEVANCE[tab];
@@ -3077,8 +3215,8 @@ function renderMovesSection(moves,missed){
     c.data.forEach(m=>{
       const md=moveCache[m.name];
       const type=getMoveTypeForGen(md);
-      const pow=md?.power||'\u2014';
-      const acc=md?.accuracy?md.accuracy+'%':'\u2014';
+      const pow=getMovePowerForGen(md)||'\u2014';
+      const acc=getMoveAccForGen(md)?getMoveAccForGen(md)+'%':'\u2014';
       const cat=getMoveCatForGen(md);
       const desc=md?.desc||'';
       const shortDesc=desc.length>60?desc.slice(0,57)+'...':desc;
@@ -3088,7 +3226,7 @@ function renderMovesSection(moves,missed){
          for every key, so every row tied and the sort shipped in 3.2 was a stable no-op for eight
          versions - only the header arrow ever moved. data-mtype on the row is what the type
          filter matches, so filtering never has to parse a rendered badge. */
-      tables+='<tr data-mtype="'+type+'">'+(showLevel?'<td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#6a6a7a;font-size:13px">'+(m.level||'\u2014')+'</td>':'')+'<td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span>'+priTag+'<span style="font-size:12px;color:#6a6a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+shortDesc+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(md&&md.power?md.power:'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(md&&md.accuracy?md.accuracy:'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
+      tables+='<tr data-mtype="'+type+'">'+(showLevel?'<td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#6a6a7a;font-size:13px">'+(m.level||'\u2014')+'</td>':'')+'<td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span>'+priTag+'<span style="font-size:12px;color:#6a6a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+shortDesc+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
     });
     // Add missed moves at the end of levelup tab
     if(c.key==='levelup'&&showMissed&&missed&&missed.moves.length>0){
@@ -3096,12 +3234,12 @@ function renderMovesSection(moves,missed){
       missed.moves.forEach(m=>{
         const md=moveCache[m.name];
         const type=getMoveTypeForGen(md);
-        const pow=md?.power||'\u2014';
-        const acc=md?.accuracy?md.accuracy+'%':'\u2014';
+        const pow=getMovePowerForGen(md)||'\u2014';
+        const acc=getMoveAccForGen(md)?getMoveAccForGen(md)+'%':'\u2014';
         const cat=getMoveCatForGen(md);
         const missedDesc=md?.desc||'';
         const missedShort=missedDesc.length>60?missedDesc.slice(0,57)+'...':missedDesc;
-        tables+='<tr class="missed-move-row" data-mtype="'+type+'"><td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#8a6a6a;font-size:13px">'+(m.level||'\u2014')+'</td><td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="color:#e8a8a8;flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span><span class="missed-badge">MISSED</span><span style="font-size:12px;color:#5a5a6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+missedShort+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(md&&md.power?md.power:'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(md&&md.accuracy?md.accuracy:'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
+        tables+='<tr class="missed-move-row" data-mtype="'+type+'"><td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#8a6a6a;font-size:13px">'+(m.level||'\u2014')+'</td><td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="color:#e8a8a8;flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span><span class="missed-badge">MISSED</span><span style="font-size:12px;color:#5a5a6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+missedShort+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
       });
     }
     tables+='</tbody></table></div>';
@@ -3619,7 +3757,10 @@ async function renderDetail(p){
         }catch{abilityCache[name]={name,desc:'Could not load.',flavorEntries:[],introGen:3}}
       }
     }));
-    abilityList=allAbilities.filter(a=>{
+    /* Historical ability overrides FIRST, then the generation gates. Order matters: Gengar's
+       Generation IV ability is Levitate, and asking "did Cursed Body exist in Gen IV" is the wrong
+       question — the species did not have Cursed Body then. */
+    abilityList=applyPastAbilities(p.name,allAbilities,genNum).filter(a=>{
       if(a.is_hidden&&genNum<5)return false;
       const cached=abilityCache[a.ability.name];
       if(cached&&cached.introGen>genNum)return false;
@@ -5916,7 +6057,7 @@ async function fetchTMMoveDetail(moveName){
       desc=desc.replace(/\$effect_chance%?/g,(d.effect_chance||'\u2014')+'%');
       const pastTypes={};
       if(d.past_values){d.past_values.forEach(pv=>{if(pv.type){const vg=pv.version_group?.name;if(vg&&VG_GEN[vg])pastTypes[VG_GEN[vg]]=pv.type.name}})}
-      moveCache[moveName]={name:d.name,type:d.type?.name||'normal',damage_class:d.damage_class?.name||'status',power:d.power,accuracy:d.accuracy,pp:d.pp,desc,pastTypes};
+      moveCache[moveName]=makeMoveRecord(d);
     }
     tmMoveDetailCache[moveName]={machines,learnedBy};
     return tmMoveDetailCache[moveName];
@@ -6699,9 +6840,9 @@ function renderTMResults(){
     else if(c.isTM===false)h+=' <span style="font-size:9px;color:#A890F0">(Move)</span>';
     h+='</div>';
     h+='<div style="font-size:10px;color:#8a8a9a;margin-bottom:3px">';
-    if(md.power)h+='Pow: '+md.power+' · ';
-    if(md.accuracy)h+='Acc: '+md.accuracy+'% · ';
-    h+='PP: '+(md.pp||'\u2014');
+    if(getMovePowerForGen(md))h+='Pow: '+getMovePowerForGen(md)+' · ';
+    if(getMoveAccForGen(md))h+='Acc: '+getMoveAccForGen(md)+'% · ';
+    h+='PP: '+(getMovePPForGen(md)||'\u2014');
     const cardPri=md.priority||0;
     if(cardPri!==0)h+=' · <span style="color:'+(cardPri>0?'#78C850':'#F85888')+'">Priority: '+(cardPri>0?'+':'')+cardPri+'</span>';
     h+='</div>';
@@ -8496,7 +8637,7 @@ function renderTeamBuilder(){
         const r=await fetch('https://pokeapi.co/api/v2/move/'+m);
         const d=await r.json();
         const desc=d.flavor_text_entries?.filter(f=>f.language.name==='en').pop()?.flavor_text||'';
-        moveCache[m]={name:d.name,type:d.type?.name||'normal',damage_class:d.damage_class?.name||'status',power:d.power,accuracy:d.accuracy,pp:d.pp,desc,pastTypes:{},priority:d.priority||0,introGen:1};
+        moveCache[m]=makeMoveRecord(d);
       }catch{
         moveCache[m]={name:m,type:'normal',damage_class:'status',power:0,accuracy:0,pp:0,desc:'',pastTypes:{},priority:0,introGen:1};
       }
@@ -8682,8 +8823,8 @@ function searchMoveMeta(name){
   const t=getMoveTypeForGen(md), cat=getMoveCatForGen(md);
   let bits='<span class="us-type" style="background:'+(TC[t]||'#888')+'">'+t+'</span>'
           +'<span class="us-cat-'+cat+'">'+cat.slice(0,4)+'</span>';
-  if(md.power)bits+='<span class="us-num">'+md.power+' BP</span>';
-  if(md.accuracy)bits+='<span class="us-num">'+md.accuracy+'%</span>';
+  if(getMovePowerForGen(md))bits+='<span class="us-num">'+getMovePowerForGen(md)+' BP</span>';
+  if(getMoveAccForGen(md))bits+='<span class="us-num">'+getMoveAccForGen(md)+'%</span>';
   return '<span class="us-meta">'+bits+'</span>';
 }
 
@@ -9158,7 +9299,7 @@ async function openTeamEditModal(idx){
         const r=await fetch('https://pokeapi.co/api/v2/move/'+m);
         const d=await r.json();
         const desc=d.flavor_text_entries?.filter(f=>f.language.name==='en').pop()?.flavor_text||'';
-        moveCache[m]={name:d.name,type:d.type?.name||'normal',damage_class:d.damage_class?.name||'status',power:d.power,accuracy:d.accuracy,pp:d.pp,desc,pastTypes:{},priority:d.priority||0,introGen:1};
+        moveCache[m]=makeMoveRecord(d);
       }catch{}
     })).then(()=>updateTeamMoveColors());
   }
@@ -9298,7 +9439,7 @@ async function applySmogonPreset(slotIdx,key){
         const r=await fetch('https://pokeapi.co/api/v2/move/'+m);
         const d=await r.json();
         const desc=d.flavor_text_entries?.filter(f=>f.language.name==='en').pop()?.flavor_text||'';
-        moveCache[m]={name:d.name,type:d.type?.name||'normal',damage_class:d.damage_class?.name||'status',power:d.power,accuracy:d.accuracy,pp:d.pp,desc,pastTypes:{},priority:d.priority||0,introGen:1};
+        moveCache[m]=makeMoveRecord(d);
       }catch{}
     }));
   }
@@ -10178,7 +10319,7 @@ async function loadOffensiveCoverage(filled,allTypes,genNum){
       // Also populate moveCache
       if(!moveCache[moveName]){
         const desc=d.flavor_text_entries?.filter(f=>f.language.name==='en').pop()?.flavor_text||'';
-        moveCache[moveName]={name:d.name,type:d.type?.name||'normal',damage_class:d.damage_class?.name||'status',power:d.power,accuracy:d.accuracy,pp:d.pp,desc,pastTypes:{},priority:d.priority||0,introGen:1};
+        moveCache[moveName]=makeMoveRecord(d);
       }
     }catch{
       window._moveTypeCache[moveName]={type:'normal',category:'status',power:0};
@@ -10900,8 +11041,12 @@ async function calcRunLocal(){
   const md=moveCache[mvRaw];
   if(!md){info.textContent='Move not found';res.style.display='none';return}
   const type=getMoveTypeForGen(md),cat=getMoveCatForGen(md);
-  if(cat==='status'||!md.power){info.innerHTML=md.name.replace(/-/g,' ')+' \u2014 status move / variable power, not supported';res.style.display='none';return}
-  info.innerHTML='<span style="color:'+(TC[type]||'#888')+';font-weight:800;text-transform:uppercase">'+type+'</span> \u00b7 '+cat+' \u00b7 '+md.power+' BP';
+  /* Generation-correct power, because this is a CALCULATOR. Reading md.power fed Generation IX
+     numbers into every generation: Wing Attack at 60 instead of 35, Jump Kick at 100 instead of
+     70. A wrong label is bad; a wrong number out of something called a calculator is worse. */
+  const genPower=getMovePowerForGen(md);
+  if(cat==='status'||!genPower){info.innerHTML=md.name.replace(/-/g,' ')+' \u2014 status move / variable power, not supported';res.style.display='none';return}
+  info.innerHTML='<span style="color:'+(TC[type]||'#888')+';font-weight:800;text-transform:uppercase">'+type+'</span> \u00b7 '+cat+' \u00b7 '+genPower+' BP';
   const lv=Math.max(1,Math.min(100,parseInt(document.getElementById('calc-level').value)||50));
   const offName=cat==='physical'?'attack':'special-attack';
   const defName=cat==='physical'?'defense':'special-defense';
@@ -10922,7 +11067,7 @@ async function calcRunLocal(){
     burn:document.getElementById('calc-burn').checked,
     screen:document.getElementById('calc-screen').checked});
   const wMult=mods.weather, spread=mods.spread, burn=mods.burn, screen=mods.screen;
-  const rolls=calcLocalRolls({lv:lv,power:md.power,atk:atkStat,def:defStat,gen:getDataGenNum(),
+  const rolls=calcLocalRolls({lv:lv,power:genPower,atk:atkStat,def:defStat,gen:getDataGenNum(),
     spread:spread,weather:wMult,crit:crit,stab:stab,eff:effMult,burn:burn,screen:screen,item:itemMult});
   const mn=rolls[0],mx=rolls[15];
   const mnP=mn/hp*100,mxP=mx/hp*100;
