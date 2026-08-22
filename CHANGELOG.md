@@ -12,6 +12,59 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.39] - 2026-08-21
+
+### Fixed
+- **The search stopped working entirely as soon as you opened any Pokémon.** Reported again after
+  5.38 — "the search is still busted" — and 5.38 had fixed a real bug that was not this one.
+
+  `ReferenceError: parseRomanGen is not defined`, thrown inside `onSmartSearch`, aborting the
+  handler on every keystroke. The dropdown kept the previous query's contents and never updated,
+  which from the outside is indistinguishable from "the search does nothing".
+
+  **This is my regression, shipped in 5.31.** `parseRomanGen` was a local function declared inside
+  `onSmartSearch`. When I extracted the ability-generation lookup into a top-level
+  `getAbilityIntroGen()`, it called `parseRomanGen` from a scope where that name does not exist.
+
+  It only fired once an ability had been cached — which happens the moment you open any Pokémon —
+  so the symptom was "search works, then stops working after you look at something". Eight releases
+  shipped on top of it.
+
+- **A second bug in the same function.** `abilityCache[name].introGen` is already a number, and
+  `parseRomanGen(4)` looked up `m[4]`, found nothing, and fell through to a default of **9**. So
+  even without the ReferenceError, every cached ability reported itself as Generation IX. It now
+  takes Roman numerals, `generation-vii` slugs and plain numbers, and returns 0 for anything else
+  rather than a confident Gen IX.
+
+### The part worth writing down
+- **The test for `getAbilityIntroGen` supplied its own `parseRomanGen` into the eval scope.** It
+  passed for eight releases while production threw on every keystroke, because the harness had built
+  the exact function production was missing.
+
+  This project's test files are full of comments warning about this — *"a correct copy in the test
+  file would hide a broken original"* — and I wrote several of them today, in this suite, while
+  doing it. The harness now slices the real function out of `app/index.html`, so the app failing to
+  have one at the top level fails here too.
+
+  There is no version of this that a stricter unit test would have caught. It needed the app to be
+  run, and one look at the browser console.
+
+### Testing
+- 7 assertions added to `tests/test-dex-search.js`: `parseRomanGen` is sliced rather than written,
+  numbers and slugs and numerals all resolve, unknown input returns 0, and `onSmartSearch` no longer
+  carries a private copy.
+- **One mutation added (M85)**, and **one removed (M86)** rather than made to pass — it deleted an
+  explicit number branch and survived, correctly, because `String(4)` reaches the same answer
+  through the `parseInt` fallback. The branch was doing nothing, so the branch went. A mutation that
+  cannot be killed because the code it breaks has no effect is a finding about the code.
+- Set is now **76, all killed**; 33 suites, 1,195 assertions.
+
+### Verified in a browser
+- Reproduced the exact reported flow — open Tapu Koko, type "electric" — and confirmed the dropdown
+  now returns Electric Surge, Electric Terrain, Electrify and the rest, with **no console errors**.
+
+---
+
 ## [5.38] - 2026-08-21
 
 ### Fixed

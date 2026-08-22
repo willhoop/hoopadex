@@ -295,6 +295,15 @@ const MUTATIONS = [
   ['M84', 'Text typed while navigating is overwritten by the restored query',
     '      if(_pendingSearchVal!==null&&!typedDuring){', '      if(_pendingSearchVal!==null){',
     1, 'test-dex-search.js'],
+  /* The scoping bug that killed the search. It threw on every keystroke that matched a cached
+     ability, which starts the moment you open any Pokemon. */
+  ['M85', 'parseRomanGen stops being reachable from getAbilityIntroGen, as it was before 5.39',
+    'function parseRomanGen(r){', 'function NOT_parseRomanGen(r){', 1, 'test-dex-search.js'],
+  /* M86 was here and has been removed rather than made to pass. It deleted an explicit number
+     branch from parseRomanGen, and it survived — correctly, because String(4) falls through the
+     Roman table and out of the parseInt below with the same answer. The branch was doing nothing.
+     A mutation that cannot be killed because the code it breaks has no effect is a finding about
+     the code, not a gap in the tests. */
   ['M81', 'past_values resolves as "this generation and below", shifting every move by one',
     '  const keys=Object.keys(byGen).map(Number).filter(function(n){return n>genNum}).sort(function(a,b){return a-b});',
     '  const keys=Object.keys(byGen).map(Number).filter(function(n){return n>=genNum}).sort(function(a,b){return a-b});',

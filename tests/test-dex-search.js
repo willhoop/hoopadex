@@ -125,13 +125,25 @@ if (gaigStart < 0 || gaigEnd < 0) throw new Error('could not locate getAbilityIn
 
 /* Built with one source populated at a time. Each of the three is the only one that will have
    loaded in some state of the app, and the search has to get the same answer whichever it is. */
+/* parseRomanGen is SLICED FROM THE APP, not written here. The first version of this harness defined
+   its own, and that is exactly how a ReferenceError shipped: parseRomanGen was a local function
+   inside onSmartSearch, getAbilityIntroGen was pulled out to the top level in 5.31 and called it
+   from a scope where it does not exist, and every call threw — aborting the whole search handler, so
+   the suggestion dropdown silently stopped updating. This suite passed the entire time, because it
+   had built the very function production was missing.
+
+   Slicing it means the app failing to have one at the top level fails here too. */
+const promStart = lines.findIndex(l => l.startsWith('function parseRomanGen('));
+const promEnd = lines.findIndex((l, i) => i > promStart && l.startsWith('}'));
+if (promStart < 0 || promEnd < 0) throw new Error('parseRomanGen is not a top-level function');
+const parseRomanGenSrc = lines.slice(promStart, promEnd + 1).join('\n');
+
 function introGenWith(cache, data, map) {
   return (0, eval)(
     'var abilityCache=' + JSON.stringify(cache) + ';\n' +
     'var abilitiesData=' + JSON.stringify(data) + ';\n' +
     'var window={_abilityGenMap:' + JSON.stringify(map) + '};\n' +
-    'function parseRomanGen(s){const m={i:1,ii:2,iii:3,iv:4,v:5,vi:6,vii:7,viii:8,ix:9};' +
-    'const k=String(s).toLowerCase().replace(/^generation-/,"");return m[k]||(+s||0)}\n' +
+    parseRomanGenSrc + '\n' +
     lines.slice(gaigStart, gaigEnd + 1).join('\n') + '\n;getAbilityIntroGen'
   );
 }
@@ -212,6 +224,31 @@ const release = src.slice(src.indexOf('function releaseSearchSuppression()'),
                           src.indexOf('function smartSelect(idx)'));
 check(/_suppressSearch=false/.test(release) && /clearTimeout\(_suppressTimer\)/.test(release),
   'and there is one release function, so every path lowers the flag the same way', release);
+
+/* -- the scoping bug itself ---------------------------------------------------------------------
+   getAbilityIntroGen is top-level, so anything it calls must be too. When it was not, the failure
+   was a ReferenceError thrown on every keystroke that matched an ability — which only started once
+   an ability had been cached, i.e. the moment you opened any Pokemon. The symptom was "the search
+   works, then stops working after you look at something", and no unit test that builds its own
+   scope can ever see it. */
+const romanFn = (0, eval)('(' + parseRomanGenSrc.replace(/^function parseRomanGen/, 'function') + ')');
+check(typeof romanFn === 'function', 'parseRomanGen is sliced from the app, not written here');
+/* A NUMBER passes straight through. abilityCache[name].introGen is already a number, and the old
+   lookup turned 4 into 9 — m[4] is undefined and it fell through to a default of 9 — so even
+   without the ReferenceError, every cached ability claimed to be Generation IX. */
+check(romanFn(4) === 4, 'a number is already the answer and passes through', romanFn(4));
+check(romanFn(9) === 9, 'including the top of the range');
+check(romanFn('IV') === 4, 'a Roman numeral resolves', romanFn('IV'));
+check(romanFn('generation-vii') === 7, 'and so does a PokeAPI generation slug', romanFn('generation-vii'));
+check(romanFn('nonsense') === 0,
+  'anything else is unknown rather than a confident Gen IX', romanFn('nonsense'));
+
+/* And the search handler must not be able to throw its way out of showing results. onSmartSearch
+   builds the dropdown at the end; an exception anywhere before that leaves the previous query's
+   content on screen, hidden, with no error the reader can see. */
+const handler = src.slice(src.indexOf('function onSmartSearch()'), src.indexOf('function onSmartSearchKey'));
+check(!/function parseRomanGen/.test(handler),
+  'onSmartSearch no longer carries its own private copy of parseRomanGen', 'a local copy is back');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

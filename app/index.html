@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.38 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.39 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -2307,7 +2307,6 @@ function onSmartSearch(){
     // Helper: find which gen a pokemon ID belongs to
     function getGenForId(id){for(const[g,[s,e]] of Object.entries(GR)){if(id>=s&&id<=e)return parseInt(g)}return 9}
     // Helper: parse roman numeral gen
-    function parseRomanGen(r){const m={'I':1,'II':2,'III':3,'IV':4,'V':5,'VI':6,'VII':7,'VIII':8,'IX':9};return m[r]||9}
     
     const genMax=getGenMaxId();
     const curGen=getDataGenNum();
@@ -6118,6 +6117,34 @@ function getMoveIntroGen(name){return MOVE_INTRO_GEN[name]||9;}
    Returns 0, not 9, when nothing knows: the caller compares against the selected generation, and a
    confident 9 would hide every ability whose data has not arrived yet. Unknown means "do not
    exclude it", which is the safe direction for a search box. */
+/* A generation from whatever shape the caller has: a Roman numeral, a `generation-vii` slug, or a
+   number that is already the answer.
+
+   This lived INSIDE onSmartSearch as a local function. 5.31 pulled the ability-generation lookup out
+   into getAbilityIntroGen — a top-level function — which then called it from a scope where it does
+   not exist. Every call threw `ReferenceError: parseRomanGen is not defined`, aborting the whole
+   search handler, so the suggestion dropdown silently stopped updating. It only fired once an
+   ability had been cached, which happens the moment you open any Pokemon — so the symptom was
+   "search works, then stops working after you look at something".
+
+   It shipped in 5.31 and survived until someone used the app, because the test for
+   getAbilityIntroGen SUPPLIED ITS OWN parseRomanGen into the eval scope. The test built the very
+   thing production was missing. That is the failure this project keeps writing warnings about, and
+   the test now slices the real one so its absence fails.
+
+   Numbers pass through. `abilityCache[name].introGen` is already a number, and the old lookup
+   turned 4 into 9 via `m[4]` being undefined and falling through to the default — so even without
+   the ReferenceError, every cached ability claimed to be Generation IX. */
+function parseRomanGen(r){
+  /* No separate branch for numbers: String(4) falls through the Roman table and out of the parseInt
+     below with the same answer. A mutation removing an explicit number check survived, which is the
+     runner correctly reporting that the line was doing nothing. */
+  const t=String(r).replace(/^generation-/i,'').toUpperCase();
+  const m={'I':1,'II':2,'III':3,'IV':4,'V':5,'VI':6,'VII':7,'VIII':8,'IX':9};
+  if(m[t])return m[t];
+  const n=parseInt(t,10);
+  return (n>=1&&n<=9)?n:0;
+}
 function getAbilityIntroGen(name){
   const cached=abilityCache[name];
   const abData=typeof abilitiesData!=='undefined'?abilitiesData.find(x=>x.name===name):null;
