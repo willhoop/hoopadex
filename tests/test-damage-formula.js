@@ -172,7 +172,31 @@ check(M({ weather: 'sun', type: 'grass' }).weather === 1, 'sun does nothing to a
 check(M({ weather: 'sand', type: 'rock' }).weather === 1, 'sand is not modelled and stays at 1');
 check(M({ weather: 'snow', type: 'ice' }).weather === 1, 'snow is not modelled and stays at 1');
 
-check(M({ spread: true }).spread === 0.75, 'a spread move is reduced to 0.75');
+/* The spread reduction belongs to the MOVE, not to the format. This assertion used to read
+   `M({spread:true}).spread === 0.75` and passed, because the fallback applied 0.75 to everything
+   whenever the box was ticked. Cross-checking the two engines in 5.36 showed what that cost: with
+   the box ticked, Body Slam read 208-246 from the Smogon engine and 156-184 from this one, inside
+   the same app, from the same checkbox. */
+check(M({ spread: true, target: 'all-opponents' }).spread === 0.75,
+  'a genuine spread move is reduced to 0.75 in doubles');
+check(M({ spread: true, target: 'all-other-pokemon' }).spread === 0.75,
+  'and so is one that hits everything, like Earthquake');
+check(M({ spread: true, target: 'selected-pokemon' }).spread === 1,
+  'a single-target move is NOT reduced, even in doubles',
+  M({ spread: true, target: 'selected-pokemon' }).spread);
+/* An unknown target must not be reduced. A missing field should not quietly cut a damage number by
+   a quarter — the safe direction for an absent input is to change nothing. */
+check(M({ spread: true, target: '' }).spread === 1,
+  'and neither is a move whose target is unknown', M({ spread: true, target: '' }).spread);
+check(M({ spread: false, target: 'all-opponents' }).spread === 1,
+  'while in singles nothing is reduced at all');
+
+/* Screens are halved in singles and reduced to 2732/4096 in doubles. This was 0.5 unconditionally,
+   which under-reported damage by a quarter whenever a screen was up in doubles. */
+check(M({ screen: true }).screen === 0.5, 'a screen halves damage in singles');
+check(Math.abs(M({ screen: true, spread: true }).screen - 2732 / 4096) < 1e-9,
+  'and reduces it to 2732/4096 in doubles', M({ screen: true, spread: true }).screen);
+check(M({ screen: true, crit: true }).screen === 1, 'a critical hit ignores it either way');
 check(M({ burn: true, cat: 'physical' }).burn === 0.5, 'burn halves a physical attack');
 check(M({ burn: true, cat: 'special' }).burn === 1,
   'burn does NOT touch a special attack — the category test is the whole point');

@@ -430,7 +430,11 @@ above.
   "measured, never seen" — the light-mode type chart, the hidden-ability pill, the period-accurate
   sprites — remain unseen, and now so does the Items-tab error state I added, which is verified by
   its text content and a retry button existing, not by looking at it.
-- **`@smogon/calc` is unaudited.** 469 KB of third-party code producing the numbers most users see.
+- **~~`@smogon/calc` is unaudited.~~ CLOSED in v5.36.** Both engines are now run over 1,728 cases on
+  every publish and must agree roll for roll — see `tests/test-calc-engine-agreement.js`. The
+  cross-check found three defects, all in the LOCAL engine, and the vendored bundle was correct in
+  every case tested. Its VERSION is still unknown; verifying behaviour and establishing provenance
+  are different problems. Original text: 469 KB of third-party code producing the numbers most users see.
   I verified it loads and that the app prefers it; I did not verify a single number it returns.
 - **~~The 21 unguarded fetch sites.~~ Corrected in 5.19 — the real number is one.** I demonstrated one failure mode and fixed it. I did not
   enumerate the rest.

@@ -12,6 +12,62 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.36] - 2026-08-21
+
+### Fixed
+- **The two damage engines disagreed, and the local one was wrong three ways.** The engineering
+  review's largest unverified item was `@smogon/calc`: *"469 KB of third-party code producing the
+  numbers most users see. I verified it loads and that the app prefers it; I did not verify a single
+  number it returns."* That mattered more than it looked — Champions is the default mode and uses the
+  Smogon path, so the numbers most readers see come from the bundle, not from the local fallback
+  with the hand-worked tests.
+
+  Cross-checking both engines over 1,728 cases found three real defects, all in the **local** engine:
+
+  1. **The spread reduction was applied to every move.** The "Spread" checkbox sets
+     `gameType:'Doubles'` for the Smogon engine, which reduces only moves that actually hit more
+     than one target; the fallback applied ×0.75 to everything. Body Slam read **208–246** from one
+     engine and **156–184** from the other, in the same app, from the same checkbox. The reduction
+     now follows the move's target, and an unknown target is not reduced — a missing field should not
+     quietly cut a damage number by a quarter.
+  2. **Screens were halved in doubles.** They are 2732/4096 there — measured at 0.6682 — so the
+     fallback under-reported damage by a quarter whenever a screen was up in doubles.
+  3. **Chained modifiers floored where the games round.** `pokeRound` rounds a half *down*, which is
+     identical to flooring on halves and doubles and differs on the awkward multipliers. It showed
+     up as one point at the low roll — the size of error that never looks wrong and moves a KO
+     verdict at the boundary.
+
+  After the fixes: **1,728 of 1,728 comparisons agree exactly.** Sixteen rolls each, not a tolerance.
+
+### Added
+- `tests/test-calc-engine-agreement.js` — the cross-check as a permanent test rather than a one-off.
+  The bundle is a browser build with no CommonJS export, so it is loaded by evaluating the file and
+  taking the `SmogonCalc` global. 1,728 comparisons run in **0.3 seconds**, so it runs on every
+  publish.
+
+  Matrix: 6 species pairs × 12 moves × 2 levels × 12 modifier combinations, deliberately spread
+  across immune, resisted, neutral, super-effective and dual-type matchups, both damage categories,
+  single-target and spread moves. Each of the three defects above was found by exactly one column of
+  it, and each is now pinned individually so a regression names itself rather than appearing as
+  "n of 1728 disagree".
+
+### Testing
+- **Five mutations, M85–M89**, one per defect plus the rounding direction.
+- Two older mutations, **M7 and M33, went SKIP** because the lines they anchor on changed. That is
+  the runner working: it refused to mutate a target it could no longer locate rather than silently
+  testing nothing. Anchors refreshed.
+- One existing assertion — `spread === 0.75` — had to be **corrected rather than kept**. It passed
+  before because the fallback applied the reduction unconditionally; it was asserting the bug.
+- Set is now **89, all killed**; 34 suites, 1,273 assertions.
+
+### Review status
+- This closes the largest item in `docs/ENGINEERING-REVIEW-2026-08-03.md` §8. The engine's *version*
+  remains unknown — the bundle carries no version string, and `data/vendor-pins.json` is explicit
+  that a checksum pins the artefact and not its provenance. What has changed is that its **numbers**
+  are now verified against an independent implementation on every run.
+
+---
+
 ## [5.35] - 2026-08-21
 
 ### Changed

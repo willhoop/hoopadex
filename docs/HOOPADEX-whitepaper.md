@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.35**
+**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.36**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.29 the set is **84 mutations, all killed**, against 33 suites and 1,257 assertions. Two of
+As of v5.29 the set is **89 mutations, all killed**, against 34 suites and 1,273 assertions. Two of
 the twelve added since have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -508,6 +508,48 @@ calls, and a mutation reinstating `mn / hp * 100` — which uses none — passed
 strips comments, string literals and regex literals and asserts that no arithmetic operator
 survives. A guard that only recognises one spelling of the thing it guards against is not a guard;
 it is a description of the last bug.
+
+---
+
+### 5.5 Two implementations of one formula
+
+The largest thing this project could not say about itself, until v5.36, was whether its damage
+numbers were right. The application ships a 469 KB vendored build of `@smogon/calc` and prefers it
+whenever it has loaded; Champions is the default mode and uses that path, so the numbers most readers
+see came from a bundle that carried no version string and had never been checked against anything.
+It was checksummed, which prevents silent substitution and says nothing about correctness.
+
+The application also carries a second, much smaller damage engine — a local fallback for when the
+bundle has not loaded. Through 2026-08-21 that fallback was rebuilt into pure functions with expected
+values worked by hand from the published formula (§5.4). That is what made the check possible: a
+second implementation is only a useful reference if you already have reason to trust it.
+
+Running both over 1,728 cases found three defects, **all in the local engine**:
+
+| | The local engine did | The games do |
+|---|---|---|
+| Spread reduction | applied ×0.75 to every move in doubles | only to moves that hit more than one target |
+| Screens in doubles | halved damage | 2732/4096, measured at 0.6682 |
+| Chained modifiers | `Math.floor` | `pokeRound`, which rounds a half down |
+
+The first is the one worth dwelling on. A single checkbox labelled "Spread" was feeding
+`gameType:'Doubles'` to one engine and an unconditional ×0.75 to the other, so ticking it made the
+same application report **208–246** and **156–184** for the same attack depending on which engine
+happened to be running. Neither number is flagged; both look like answers.
+
+The third is the quietest. Flooring a chained modifier is identical to rounding it on halves and
+doubles, which is most of them, so the error is invisible across the majority of the matrix and
+appears as a single point at the low roll on the awkward multipliers. One point is exactly the
+margin between "Guaranteed 2HKO" and "Possible 2HKO".
+
+After the fixes the two engines agree on all 1,728 comparisons, roll for roll, with no tolerance —
+and the check is a test that runs on every publish rather than an exercise that was done once. The
+methodological point is narrow and general: **an independent reimplementation is a test oracle, and
+a project that has two of anything can afford to ask whether they agree.** The cost was one
+afternoon; what it bought was the first evidence that the number on the screen is the right number.
+
+The engine's version is still unknown, and the vendor pin file continues to say so plainly. Verifying
+behaviour and establishing provenance are different problems, and only one of them is solved.
 
 ---
 

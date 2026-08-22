@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.35 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.36 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1464,6 +1464,8 @@ function makeMoveRecord(d){
     flavorEntries:d.flavor_text_entries||[],
     past:past,pastTypes:pastTypes,
     priority:d.priority||0,
+    // Needed by calcLocalModifiers: the spread reduction applies to multi-target moves only.
+    target:(d.target&&d.target.name)||'',
     introGen:gm?(roman[gm[1]]||9):1,
   };
 }
@@ -11036,19 +11038,30 @@ function calcLocalEffectiveness(defenderTypes,moveType,chart){
   (defenderTypes||[]).forEach(function(t){m*=eff(moveType,t.type.name,chart)});
   return m;
 }
+/* The games do not floor every step. A chained modifier is applied as `pokeRound(value * m / 4096)`,
+   where pokeRound rounds a half DOWN — so 138.73 becomes 139 but 104.5 stays 104.
+
+   Flooring instead is invisible almost everywhere, because most modifiers are halves and doubles
+   where the two agree exactly. It shows up on the awkward ones: a screen in doubles is 2732/4096,
+   and flooring made this fallback report 138 where the Smogon engine reported 139. One point, at
+   the low roll only, which is exactly the size of error that never looks wrong and moves a KO
+   verdict at the boundary. */
+function pokeRound(x){
+  return (x%1>0.5)?Math.ceil(x):Math.floor(x);
+}
 function calcLocalRolls(o){
   const critM=o.crit?calcLocalCritMult(o.gen):1;
   const base=Math.floor(Math.floor(Math.floor(2*o.lv/5+2)*o.power*o.atk/o.def)/50)+2;
   const rolls=[];
   for(let r=85;r<=100;r++){
-    let dm=Math.floor(base*o.spread);
+    let dm=pokeRound(base*o.spread);
     dm=Math.floor(dm*o.weather);
     dm=Math.floor(dm*critM);
     dm=Math.floor(dm*r/100);
     dm=Math.floor(dm*o.stab);
     dm=Math.floor(dm*o.eff);
     dm=Math.floor(dm*o.burn);
-    dm=Math.floor(dm*o.screen);
+    dm=pokeRound(dm*o.screen);
     dm=Math.floor(dm*o.item);
     if(o.eff>0)dm=Math.max(1,dm);
     rolls.push(dm);
@@ -11072,11 +11085,26 @@ function calcLocalModifiers(o){
      would be worse than leaving them alone. */
   if(o.weather==='sun'){if(o.type==='fire')weather=1.5;else if(o.type==='water')weather=0.5}
   if(o.weather==='rain'){if(o.type==='water')weather=1.5;else if(o.type==='fire')weather=0.5}
+  /* SPREAD applies to the move, not to the format. The checkbox says "Spread" and sets Doubles for
+     the Smogon engine, which reduces only moves that actually hit more than one target; this
+     fallback applied 0.75 to everything. Cross-checking the two engines in 5.36 caught it: with the
+     box ticked, Body Slam read 208-246 from Smogon and 156-184 here. Body Slam hits one Pokemon and
+     is never reduced. The two engines disagreeing inside one app is worse than either being wrong.
+
+     PokeAPI names the target, and only the genuinely multi-target ones are reduced. An unknown
+     target does NOT get the reduction: a missing field should not quietly cut a damage number by a
+     quarter. */
+  const multi=o.target==='all-opponents'||o.target==='all-other-pokemon'||o.target==='all-pokemon';
+
+  /* SCREENS are halved in singles and reduced to 2732/4096 in doubles — measured against the
+     Smogon engine at 0.6682, not the 0.5 this used unconditionally. With a screen up in doubles the
+     fallback was under-reporting damage by a quarter. */
+  const screenMult=o.spread?2732/4096:0.5;
   return{
     weather:weather,
-    spread:o.spread?0.75:1,
+    spread:(o.spread&&multi)?0.75:1,
     burn:(o.burn&&o.cat==='physical')?0.5:1,   // burn only ever halves a PHYSICAL attack
-    screen:(o.screen&&!o.crit)?0.5:1           // a critical hit ignores screens - that is the point
+    screen:(o.screen&&!o.crit)?screenMult:1    // a critical hit ignores screens - that is the point
   };
 }
 /* Stat stages under a critical hit: it ignores the attacker's DROPS and the defender's BOOSTS, and
@@ -11205,6 +11233,7 @@ async function calcRunLocal(){
   const stab=calcLocalStab(a.types,type);
   let itemMult=1; // items handled by Smogon engine; local fallback ignores them
   const mods=calcLocalModifiers({weather:document.getElementById('calc-weather').value,type:type,cat:cat,crit:crit,
+    target:md.target,
     spread:document.getElementById('calc-spread').checked,
     burn:document.getElementById('calc-burn').checked,
     screen:document.getElementById('calc-screen').checked});

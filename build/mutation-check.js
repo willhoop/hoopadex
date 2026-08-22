@@ -56,7 +56,7 @@ const MUTATIONS = [
     'return (attackerTypes||[]).some(function(t){return t.type.name===moveType})?1.5:1;',
     'return (attackerTypes||[]).some(function(t){return t.type.name===moveType})?1.9:1;', 1, 'test-damage-formula.js'],
   ['M7', 'Damage: drop the 0.75 spread-move reduction',
-    'dm=Math.floor(base*o.spread);', 'dm=Math.floor(base*1);', 1, 'test-damage-formula.js'],
+    'dm=pokeRound(base*o.spread);', 'dm=pokeRound(base*1);', 1, 'test-damage-formula.js'],
   ['M8', 'Type chart: Normal no longer resists through Steel',
     'const CM={normal:{rock:.5,ghost:0,steel:.5}', 'const CM={normal:{rock:.5,ghost:0}', 1, 'test-coverage.js'],
   ['M9', 'Champions: drop Venusaur from the Regulation M-A roster',
@@ -130,7 +130,7 @@ const MUTATIONS = [
   ['M32', 'Damage: burn halves special attacks too',
     "burn:(o.burn&&o.cat==='physical')?0.5:1,", 'burn:o.burn?0.5:1,', 1, 'test-damage-formula.js'],
   ['M33', 'Damage: a critical hit stops ignoring screens',
-    'screen:(o.screen&&!o.crit)?0.5:1', 'screen:o.screen?0.5:1', 1, 'test-damage-formula.js'],
+    'screen:(o.screen&&!o.crit)?screenMult:1', 'screen:o.screen?screenMult:1', 1, 'test-damage-formula.js'],
   ['M34', "Damage: a crit clamps the wrong side of the defender's stage",
     'return{atk:aStage<1?1:aStage, def:dStage>1?1:dStage};',
     'return{atk:aStage<1?1:aStage, def:dStage<1?1:dStage};', 1, 'test-damage-formula.js'],
@@ -314,6 +314,25 @@ const MUTATIONS = [
   ['M84', 'Arithmetic reappears in calcRunLocal',
     '  const mnP=calcLocalPercent(mn,hp),mxP=calcLocalPercent(mx,hp);',
     '  const mnP=mn/hp*100,mxP=mx/hp*100;', 1, 'test-damage-formula.js'],
+
+  /* The two engines must agree. Each of these is one of the three defects the cross-check found on
+     its first run, restored — if the suite stops catching them, it has stopped being a cross-check
+     and become a second copy of whatever the local engine currently does. */
+  ['M85', 'The spread reduction is applied to single-target moves again',
+    "    spread:(o.spread&&multi)?0.75:1,", '    spread:o.spread?0.75:1,',
+    1, 'test-calc-engine-agreement.js'],
+  ['M86', 'Screens are halved in doubles instead of 2732/4096',
+    '  const screenMult=o.spread?2732/4096:0.5;', '  const screenMult=0.5;',
+    1, 'test-calc-engine-agreement.js'],
+  ['M87', 'The spread step floors instead of rounding as the games do',
+    '    let dm=pokeRound(base*o.spread);', '    let dm=Math.floor(base*o.spread);',
+    1, 'test-calc-engine-agreement.js'],
+  ['M88', 'The screen step floors instead of rounding',
+    '    dm=pokeRound(dm*o.screen);', '    dm=Math.floor(dm*o.screen);',
+    1, 'test-calc-engine-agreement.js'],
+  ['M89', 'pokeRound rounds a half UP rather than down',
+    '  return (x%1>0.5)?Math.ceil(x):Math.floor(x);', '  return (x%1>=0.5)?Math.ceil(x):Math.floor(x);',
+    1, 'test-calc-engine-agreement.js'],
 ];
 
 function runSuite(suite, srcPath) {
