@@ -299,6 +299,31 @@ const MUTATIONS = [
      ability, which starts the moment you open any Pokemon. */
   ['M85', 'parseRomanGen stops being reachable from getAbilityIntroGen, as it was before 5.39',
     'function parseRomanGen(r){', 'function NOT_parseRomanGen(r){', 1, 'test-dex-search.js'],
+
+  /* 5.41 — the ability card and the ability page disagreeing on screen. Each of these reinstates
+     one gate the list used to be missing, which is how the two views drifted apart. */
+  ['M87', 'The ability page stops using the shared resolver, so it can drift from the card again',
+    'const pokemonList=abilityHoldersFiltered(abilityName,d.pokemon,genNum,genMax)',
+    'const pokemonList=abilityHoldersForGen(abilityName,d.pokemon,genNum)', 1, 'test-ability-counts.js'],
+  ['M88', 'The shared resolver drops formAllowed, so the Champions roster stops being applied',
+    'if(!formAllowed(p.pokemon.name,id,genNum,genMax))return false;\n    // Hidden abilities',
+    'if(false)return false;\n    // Hidden abilities', 1, 'test-ability-counts.js'],
+  ['M89', 'Hidden-only holders are counted before Gen V, when hidden abilities did not exist',
+    'if(p.is_hidden&&genNum<5)return false;\n    return true;\n  });\n}',
+    'if(false)return false;\n    return true;\n  });\n}', 1, 'test-ability-counts.js'],
+  ['M90', 'The card goes back to counting holders itself instead of reading the resolved count',
+    'const genCount=holderCount.get(a.name)||0;',
+    "const genCount=a.pokemon.filter(p=>{const m=p.pokemon.url.match(/\\/(\\d+)\\//);return m&&parseInt(m[1])<=genMax}).length;",
+    1, 'test-ability-counts.js'],
+  ['M91', 'The MEGA badge stops checking the roster, so Z-A megas are advertised in Champions',
+    'if(id)return !isChampionsMode||CHAMPIONS_IDS.has(id);', 'if(id)return true;',
+    1, 'test-ability-counts.js'],
+  ['M92', 'speciesIdBySlug loses its default-form fallback, so zygarde and pyroar stop resolving',
+    "const pre=master.find(p=>p.name.indexOf(t+'-')===0);\n  return pre?pre.id:0;",
+    'return 0;', 1, 'test-ability-counts.js'],
+  ['M93', 'An unresolved mega species is assumed legal rather than excluded',
+    'return false;   // unresolved is not a licence to claim it exists',
+    'return true;   // unresolved is not a licence to claim it exists', 1, 'test-ability-counts.js'],
   /* M86 was here and has been removed rather than made to pass. It deleted an explicit number
      branch from parseRomanGen, and it survived — correctly, because String(4) falls through the
      Roman table and out of the parseInt below with the same answer. The branch was doing nothing.

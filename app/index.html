@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.40 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.41 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -260,14 +260,15 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .logo-icon .logo-ring{position:absolute;inset:3px;border-radius:50%;border:3px solid #F8C030;box-shadow:0 0 14px rgba(248,192,48,0.55),inset 0 0 14px rgba(248,88,136,0.35);background:radial-gradient(circle,rgba(120,60,180,0.55),rgba(30,20,60,0.9))}
 .logo-icon img{position:relative;width:44px;height:44px;filter:drop-shadow(0 0 5px rgba(248,88,136,0.5))}
 .logo-text .logo-dex{background:linear-gradient(135deg,#F08030,#F8D030);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-/* The running version, in the corner of the wordmark.
-   There was no way to tell which build was loaded without opening devtools, and GitHub Pages serves
-   this file with Cache-Control: max-age=600 — so a reader can sit on a ten-minute-old copy while a
-   fix is already live. That cost a round trip: a bug was reported, fixed, published, and reported
-   again from a cached page. Small and muted, because it is diagnostic rather than something anyone
-   needs to read. */
-.app-ver{font-size:9.5px;font-weight:700;color:var(--text5);letter-spacing:.04em;margin-left:7px;
-  align-self:flex-end;padding-bottom:4px;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+/* The version badge that used to sit beside the wordmark is gone — it was permanent furniture in
+   the header answering a question nobody asks while the app is behaving, and it was rejected on
+   sight. The problem it was added for is real: GitHub Pages serves this file with
+   Cache-Control: max-age=600, so a reader can sit on a ten-minute-old copy while a fix is already
+   live, and a bug was once reported, fixed, published and reported again from a cached page.
+
+   That is what .app-update below solves, and it solves it better: it appears ONLY when the
+   published version differs from the running one, which is the only moment the number matters.
+   APP_VERSION stays because the check needs something to compare against. */
 .app-update{margin-left:9px;align-self:center;font-size:10px;font-weight:800;letter-spacing:.04em;
   text-transform:uppercase;padding:3px 9px;border-radius:999px;cursor:pointer;white-space:nowrap;
   background:color-mix(in srgb,var(--eff-up) 16%,transparent);color:var(--eff-up);
@@ -341,6 +342,19 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .spinner{width:32px;height:32px;border:3px solid rgba(240,128,48,0.2);border-top-color:#F08030;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .pinned-bar{display:none;gap:6px;margin-bottom:16px;flex-wrap:wrap;padding:10px 14px;align-items:center;background:transparent;border:1px solid var(--border2);border-radius:10px;position:sticky;top:108px;z-index:8;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+/* The move page — reading a move, which is a different act from filtering by one. */
+.move-page{border:1px solid var(--border2);border-radius:12px;padding:14px 16px;margin-bottom:16px;
+  background:rgba(255,255,255,0.02)}
+body.light .move-page{background:rgba(0,0,0,0.015)}
+.move-page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.move-page-title{font-size:19px;font-weight:800;text-transform:capitalize;color:var(--text1);
+  margin-bottom:8px;line-height:1.2}
+.move-page-close{background:none;border:1px solid var(--border2);color:var(--text4);border-radius:8px;
+  width:26px;height:26px;flex:0 0 auto;cursor:pointer;font-size:11px;line-height:1;font-family:inherit}
+.move-page-close:hover{color:#F85888;border-color:rgba(248,88,136,0.4)}
+.move-page-find{font-size:11px;font-weight:700;color:#A890F0;background:none;cursor:pointer;
+  border:1px solid rgba(168,144,240,0.3);border-radius:8px;padding:6px 14px;font-family:inherit}
+.move-page-find:hover{border-color:rgba(168,144,240,0.6);background:rgba(168,144,240,0.06)}
 .pinned-clear{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(248,88,136,0.08);border:1px solid rgba(248,88,136,0.2);color:#F85888;cursor:pointer;margin-left:4px;transition:all 0.15s}
 .pinned-clear:hover{background:transparent;border-color:rgba(248,88,136,0.4)}
 .pinned-tab{display:flex;align-items:center;gap:6px;padding:5px 10px 5px 6px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#c8c8d8;transition:all 0.2s;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);text-transform:capitalize;white-space:nowrap;font-family:inherit}
@@ -1007,7 +1021,7 @@ button,select,input{touch-action:manipulation}
 <body>
 <div class="header"><div class="header-inner">
 <div class="header-top">
-  <div class="logo-row" style="flex:1;cursor:pointer" onclick="switchTab('pokedex');backToList()"><div class="logo-icon"><div class="logo-ring"></div><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/720.png" alt="Hoopa"></div><div class="logo-text">Hoopa<span class="logo-dex">Dex</span></div><span class="app-ver" id="app-ver" title="Running version"></span></div>
+  <div class="logo-row" style="flex:1;cursor:pointer" onclick="switchTab('pokedex');backToList()"><div class="logo-icon"><div class="logo-ring"></div><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/720.png" alt="Hoopa"></div><div class="logo-text">Hoopa<span class="logo-dex">Dex</span></div></div>
   <div class="gen-selector">
     <label>Gen:</label>
     <select id="data-gen-num" onchange="onGenNumChange()">
@@ -1026,7 +1040,7 @@ button,select,input{touch-action:manipulation}
     </select>
   </div>
   <div style="display:flex;align-items:center;gap:6px;flex:1;justify-content:flex-end">
-    <button onclick="toggleCVD()" id="cvd-btn" title="Colourblind mode: swaps the chart palette for a blue/orange pair with much stronger separation" style="background:none;border:1px solid var(--border2);color:var(--text4);border-radius:8px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;margin-right:8px">CVD</button>
+    <button onclick="toggleCVD()" id="cvd-btn" title="Colourblind mode: the type chart marks &quot;not very effective&quot; in red, which is the hardest pair to tell from the blue used for &quot;super effective&quot;. This swaps that red for orange." style="background:none;border:1px solid var(--border2);color:var(--text4);border-radius:8px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;margin-right:8px;display:none">Colourblind</button>
 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" id="theme-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
   </div>
 </div>
@@ -1081,6 +1095,8 @@ button,select,input{touch-action:manipulation}
 <div id="items-container"><div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading items...</div></div>
 </div>
 <div id="tms-tab" style="display:none">
+<div class="pinned-bar" id="move-pinned-bar"></div>
+<div id="move-detail-panel" style="display:none"></div>
 <p style="font-size:14px;color:#8a8a9a;margin-bottom:12px"><span id="moves-intro-text">Find Pok&#233;mon that can learn specific moves. Search any move &#x2013; TMs, HMs, level-up, egg, or tutor moves.</span></p>
 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px">
 <div id="tm-criteria" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
@@ -1757,11 +1773,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.40';
-function showAppVersion(){
-  const el=document.getElementById('app-ver');
-  if(el)el.textContent='v'+APP_VERSION;
-}
+const APP_VERSION='5.41';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -2019,8 +2031,7 @@ function triggerDataRefresh(){
 
 // === INIT ===
 async function init(){
-  // Which build is on screen, and is there a newer one? See checkForUpdate.
-  showAppVersion();
+  // Is there a newer build than the one on screen? Says nothing unless there is. See checkForUpdate.
   setTimeout(checkForUpdate,1500);   // after the page is useful, not before
   // Position search bar below sticky header
   const hdr=document.querySelector('.header');
@@ -2077,6 +2088,8 @@ async function init(){
   if(restoreWorkingTeam()){renderTeamBuilder();renderTeamAnalysis()}
   renderTeamStoreUI();
   restoreCVD();
+  updateCVDVisibility();
+  watchCVDVisibility();
   applyTabVisibility();  // the app opens in Champions mode, so this has to run before first paint
   await restoreHash();
   // Pre-load search indexes for universal search
@@ -3828,6 +3841,45 @@ function formAllowed(name,id,genNum,genMax){
   return true;
 }
 
+/* ── Who has this ability, here ─────────────────────────────────────────────────────────────────
+   Reported from the live site: the abilities list showed "Aura Break - Gen VI - 1 Pokemon" with a
+   MEGA badge, and opening it showed "POKEMON WITH THIS ABILITY (0)". Both were drawn from the same
+   data, one screen apart, and they disagreed.
+
+   The detail page was right. The list was counting with `id<=genMax` and nothing else - no roster,
+   no form era, no hidden-ability rule - so in Champions it counted Zygarde, which is not in the
+   Champions roster at all. Measured across the whole list before this fix: in Champions Reg M-B,
+   97 rows advertised holders and had none, and 170 more carried a wrong number. It is wrong outside
+   Champions too, in both directions: 74 phantom rows in Gen III, and 131 UNDERcounts in Gen IX,
+   where the cheap filter misses the forms and past-ability holders abilityHoldersForGen adds.
+
+   The lesson this project keeps relearning: two pieces of code answering one question will drift,
+   and the cheap copy is the one that looks fine. There is now one function, and both call it. */
+function abilityHoldersFiltered(abilityName,apiList,genNum,genMax){
+  return abilityHoldersForGen(abilityName,apiList,genNum).filter(function(p){
+    const id=idFromUrl(p.pokemon.url)||0;
+    if(id<=0)return false;
+    // Generation, Champions legality and form era all live in formAllowed, shared with the team
+    // builder search and the calculator picker so the three cannot disagree about what exists.
+    if(!formAllowed(p.pokemon.name,id,genNum,genMax))return false;
+    // Hidden abilities didn't exist before Gen 5; exclude Pokemon that only have this ability as hidden
+    if(p.is_hidden&&genNum<5)return false;
+    return true;
+  });
+}
+
+/* master names a handful of species by their DEFAULT FORM - zygarde-50, pyroar-male,
+   meowstic-male - so an exact lookup on the bare species slug misses them. baseSpeciesId walks
+   prefixes downward and cannot see these; this walks the other way as a fallback. Getting it wrong
+   is silent: an unresolved species reads as "not in this game". */
+function speciesIdBySlug(slug){
+  const t=String(slug).toLowerCase();
+  const exact=master.find(p=>p.name===t);
+  if(exact)return exact.id;
+  const pre=master.find(p=>p.name.indexOf(t+'-')===0);
+  return pre?pre.id:0;
+}
+
 /* One definition of how a form is named on screen. The Pokedex detail panel and the ability page
    both show forms, and two copies of these rules would drift - "Slowbro-Galar" reading as
    "Galarian Slowbro" in one place and "slowbro galar" in the other. */
@@ -4534,6 +4586,7 @@ let currentTab='pokedex';
 let _restoring=false;
 function switchTab(tab){
   setTimeout(renderDexFilters,0);  // the hint is Pokedex-only; re-evaluate after the tab flips
+  setTimeout(updateCVDVisibility,0);  // and the colourblind toggle is palette-only; same reason
   // A saved link can name a tab the current game or format has hidden. Send those to the Pokedex
   // rather than opening a pane whose own button is not on screen.
   if(!isTabRelevant(tab))tab='pokedex';
@@ -4583,6 +4636,7 @@ function switchTab(tab){
   if(tab==='calc')renderCalcTab();
   if(tab==='abilities'){if(!currentAbilityPage)renderAbilitiesTab();else{renderAbilityPins();showAbilityPage(currentAbilityPage)}}
   if(tab==='items')renderItemsTab();
+  if(tab==='tms')renderMovePins();   // the Viewed bar survives leaving the tab and coming back
   if(tab==='pokedex')applyFilters();
   if(!_restoring)saveHash();
   updateTitle();
@@ -6327,12 +6381,105 @@ const HP_IV_SPREADS={
 
 // Save/restore scroll position per tab
 let tabScrollPositions={};
+/* ── Looking at a move, as opposed to filtering by one ──────────────────────────────────────────
+   Searching a move used to call selectTMSuggestion, which adds it as a CRITERION in the
+   "which Pokemon learn all of these" filter. So there was no way to just read a move: asking about
+   Bullet Punch silently changed what the tab was showing, and asking about a second one narrowed it
+   to the intersection of the two. Those are different questions and they now have different
+   answers — this opens the move, and "Find Pokemon that learn this" on the panel adds the criterion
+   when that is what you actually wanted.
+
+   The Viewed bar is the same idea the Pokedex, Abilities and Items tabs already have, and is
+   deliberately not the criteria row: pinning a move here does not filter anything. */
+let currentMovePage=null;
+let movePins=[];
+
+function addMovePin(name){
+  if(!movePins.some(p=>p.name===name))movePins.push({name});
+  renderMovePins();
+}
+function removeMovePin(name){
+  movePins=movePins.filter(p=>p.name!==name);
+  if(currentMovePage===name){
+    if(movePins.length)showMovePage(movePins[movePins.length-1].name);
+    else{currentMovePage=null;closeMovePage()}
+  }else renderMovePins();
+}
+function clearAllMovePins(){
+  movePins=[];currentMovePage=null;
+  closeMovePage();renderMovePins();
+}
+function closeMovePage(){
+  currentMovePage=null;
+  const p=document.getElementById('move-detail-panel');
+  if(p){p.style.display='none';p.innerHTML=''}
+  renderMovePins();
+}
+function renderMovePins(){
+  const bar=document.getElementById('move-pinned-bar');
+  if(!bar)return;
+  if(!movePins.length){bar.innerHTML='';bar.style.display='none';return}   // see renderAbilityPins
+  bar.style.display='flex';
+  bar.innerHTML='<span class="pinned-label">Viewed</span>'+movePins.map(function(p){
+    const act=currentMovePage===p.name;
+    return '<div class="pinned-tab'+(act?' active':'')+'" onclick="showMovePage(\''+p.name+'\')" '
+      +'style="border-color:'+(act?'rgba(168,144,240,0.4)':'rgba(255,255,255,0.08)')+'">'
+      +'<span>'+p.name.replace(/-/g,' ')+'</span>'
+      +'<span class="pinned-tab-close" onclick="event.stopPropagation();removeMovePin(\''+p.name+'\')">&#x2715;</span></div>';
+  }).join('')+'<button class="pinned-clear" onclick="clearAllMovePins()">Clear All</button>';
+}
+
+async function showMovePage(slug){
+  slug=normalizeMoveName(slug);
+  if(currentTab!=='tms'){tabScrollPositions[currentTab]=window.scrollY;switchTab('tms');
+    await new Promise(r=>setTimeout(r,50));}
+  const panel=document.getElementById('move-detail-panel');
+  if(!panel)return;
+  currentMovePage=slug;
+  panel.style.display='';
+  panel.innerHTML='<div style="text-align:center;padding:24px;color:#6a6a7a"><div class="spinner"></div></div>';
+  renderMovePins();
+  await fetchTMMoveDetail(slug);          // populates moveCache through makeMoveRecord
+  if(currentMovePage!==slug)return;       // a second move was opened while this one loaded
+  const m=moveCache[slug];
+  if(!m){panel.innerHTML='<div style="padding:16px;color:#8a8a9a">No data for '+slug.replace(/-/g,' ')+'.</div>';return}
+  const g=getDataGenNum();
+  const type=getMoveTypeForGen(m)||m.type||'normal';   // reads the selected generation itself
+  const cat=m.damage_class||'status';   // the field makeMoveRecord writes; see its return shape
+  const pri=m.priority||0;
+  const pw=getMovePowerForGen(m,g), ac=getMoveAccForGen(m,g), pp=getMovePPForGen(m,g);
+  let h='<div class="move-page">';
+  h+='<div class="move-page-head">';
+  h+='<div class="move-page-title">'+slug.replace(/-/g,' ')+'</div>';
+  h+='<button class="move-page-close" onclick="closeMovePage()" title="Close">&#x2715;</button>';
+  h+='</div>';
+  h+='<div class="tooltip-meta" style="margin-bottom:10px">'
+    +'<span class="type-badge small" style="--tc:'+(TC[type]||'#888')+'">'+type+'</span>'
+    +'<span class="move-cat '+cat+'">'+cat+'</span>'
+    +'<span>Power: '+(pw||'—')+'</span>'
+    +'<span>Acc: '+(ac?ac+'%':'—')+'</span>'
+    +'<span>PP: '+(pp||'—')+'</span>'
+    +'<span style="color:'+(pri>0?'#78C850':pri<0?'#F85888':'#8a8a9a')+'">Priority: '+(pri>0?'+':'')+pri+'</span>'
+    +'</div>';
+  h+='<div style="font-size:13px;color:#a8a8b8;line-height:1.45;margin-bottom:10px">'
+    +(genFlavorText(m.flavorEntries,g)||m.desc||'')+'</div>';
+  h+=renderMoveTags(slug);
+  h+=renderVariableMoveInfo(slug);
+  h+=renderMoveInteractions(slug,g);
+  /* The learn-set filter, as an explicit choice rather than a side effect of looking something up. */
+  h+='<div style="margin-top:12px"><button class="move-page-find" onclick="selectTMSuggestion(\''+slug+'\')">'
+    +'Find Pok&#233;mon that learn this</button></div>';
+  h+='</div>';
+  panel.innerHTML=h;
+  addMovePin(slug);
+  const r=panel.getBoundingClientRect();
+  window.scrollTo({top:window.scrollY+r.top-110,behavior:'smooth'});
+}
+
 async function goToMove(slug){
   slug=normalizeMoveName(slug);
   tabScrollPositions[currentTab]=window.scrollY;
-  switchTab('tms');
-  await new Promise(r=>setTimeout(r,50));
-  await selectTMSuggestion(slug);
+  await showMovePage(slug);
 }
 async function goToItem(slug){
   tabScrollPositions[currentTab]=window.scrollY;
@@ -7574,7 +7721,9 @@ function removeLocPin(locName){
 
 function renderLocPins(){
   const bar=document.getElementById('loc-pinned-bar');
-  if(!locPins.length){bar.innerHTML='';return}
+  if(!bar)return;
+  if(!locPins.length){bar.innerHTML='';bar.style.display='none';return}   // see renderAbilityPins
+  bar.style.display='flex';
   bar.innerHTML='<span class="pinned-label">Viewed</span>'+locPins.map(p=>{
     const act=p.name===locActiveGroup;
     return '<span class="pinned-tab'+(act?' active':'')+'" style="display:inline-flex;align-items:center;gap:2px;'+(act?'border-color:rgba(104,144,240,0.4);background:transparent':'')+'">'
@@ -8185,7 +8334,11 @@ function clearAllAbilityPins(){
 function renderAbilityPins(){
   const bar=document.getElementById('ability-pinned-bar');
   if(!bar)return;
-  if(!abilityPins.length){bar.innerHTML='';return}
+  /* .pinned-bar is display:none in CSS and each renderer turns its own on. This one never did, so
+     the Abilities Viewed bar was built, filled and invisible — for long enough that it was reported
+     as a missing feature rather than a broken one. renderLocPins had the same hole. */
+  if(!abilityPins.length){bar.innerHTML='';bar.style.display='none';return}
+  bar.style.display='flex';
   bar.innerHTML='<span class="pinned-label">Viewed</span>'+abilityPins.map(p=>{
     const act=currentAbilityPage===p.name;
     return '<div class="pinned-tab'+(act?' active':'')+'" onclick="showAbilityPage(\''+p.name+'\')" style="border-color:'+(act?'rgba(104,144,240,0.4)':'rgba(255,255,255,0.08)')+';'+(act?'background:transparent':'')+'"><span style="font-size:14px;margin-right:2px"></span><span>'+p.name.replace(/-/g,' ')+'</span><span class="pinned-tab-close" onclick="event.stopPropagation();removeAbilityPin(\''+p.name+'\')">&#x2715;</span></div>';
@@ -8330,17 +8483,9 @@ async function showAbilityPage(abilityName){
        generation, and the form itself must (Alolan Raichu is a Gen VII form of a Gen I species). */
     const genMax=getGenMaxId();
     /* Resolved for the generation on screen BEFORE the other gates run: which species had this
-       ability then is a different list from which have it now. See abilityHoldersForGen. */
-    const pokemonList=abilityHoldersForGen(abilityName,d.pokemon,genNum).filter(p=>{
-      const id=idFromUrl(p.pokemon.url)||0;
-      if(id<=0)return false;
-      // Generation, Champions legality and form era all live in formAllowed, shared with the team
-      // builder search and the calculator picker so the three cannot disagree about what exists.
-      if(!formAllowed(p.pokemon.name,id,genNum,genMax))return false;
-      // Hidden abilities didn't exist before Gen 5; exclude Pokemon that only have this ability as hidden
-      if(p.is_hidden&&genNum<5)return false;
-      return true;
-    });
+       ability then is a different list from which have it now. See abilityHoldersFiltered, which
+       the list view counts with too - the card and this heading are now one answer, not two. */
+    const pokemonList=abilityHoldersFiltered(abilityName,d.pokemon,genNum,genMax);
     h+='<div class="section-label" style="margin-top:16px">POK&#xC9;MON WITH THIS ABILITY ('+pokemonList.length+')</div>';
     h+='<div class="ap-mon-grid">';
     pokemonList.forEach(p=>{
@@ -8428,8 +8573,16 @@ function renderAbilityList(externalQuery){
     return introGen<=curGen;
   });
   
-  // Filter to only show abilities that have pokemon in current gen
-  list=list.filter(a=>a.pokemon.some(p=>{const m=p.pokemon.url.match(/\/(\d+)\//);return m&&parseInt(m[1])<=genMax}));
+  /* Filter to only show abilities that have a legal holder here - and remember the count, because
+     the card below prints it. This used to be `id<=genMax`, a second and much weaker answer to the
+     question abilityHoldersFiltered exists to answer; see the note on that function for what it
+     cost. Resolved once per ability and reused rather than computed twice. */
+  const holderCount=new Map();
+  list=list.filter(a=>{
+    const n=abilityHoldersFiltered(a.name,a.pokemon,curGen,genMax).length;
+    holderCount.set(a.name,n);
+    return n>0;
+  });
   
   // Declared before use: these were below the injection that reads them, which put them in the
   // temporal dead zone and threw on every render - the abilities list came back empty.
@@ -8465,7 +8618,24 @@ function renderAbilityList(externalQuery){
     {pokemon:'Mega Zygarde',ability:'Aura Break'}
   ];
   const CHAMP_NEW_SET=new Set(CHAMP_NEW_ABILITIES.map(function(a){return a.name.toLowerCase()}));
-  const CHAMP_MEGA_SET=new Set(CHAMP_MEGA_ABILITIES.map(function(m){return m.ability.toLowerCase()}));
+  /* CHAMP_MEGA_ABILITIES is the Z-A mega table (build/generate-mega-abilities.js reads MEGAS_ZA),
+     and the badge below was shown for every row of it whenever Champions mode was on. Those are two
+     different games. Eight of the 42 Z-A megas are species the Champions roster does not contain -
+     Baxcalibur, Darkrai, Golisopod, Heatran, Magearna, Tatsugiri, Zeraora and Zygarde - so the app
+     was badging an ability as available on a Mega here when nothing here can have it. Aura Break
+     was the one that got reported: badged MEGA, and its own page correctly listed nobody.
+
+     Gated on the same roster every other legality question uses. Outside Champions the badge is not
+     drawn at all, so the filter only has to be right for the Champions case. */
+  const CHAMP_MEGA_SET=new Set(CHAMP_MEGA_ABILITIES.filter(function(m){
+    const slug=String(m.pokemon).replace(/^mega\s+/i,'').trim().toLowerCase().replace(/\s+/g,'-');
+    const parts=slug.split('-');
+    for(let k=parts.length;k>0;k--){
+      const id=speciesIdBySlug(parts.slice(0,k).join('-'));
+      if(id)return !isChampionsMode||CHAMPIONS_IDS.has(id);
+    }
+    return false;   // unresolved is not a licence to claim it exists
+  }).map(function(m){return m.ability.toLowerCase()}));
   // The four abilities introduced by Champions do not exist in PokeAPI, so they are absent from
   // `list` entirely. They used to be visible only in the banner above; removing that banner without
   // this would have deleted them from the app. Inject them as real rows so they are searchable and
@@ -8489,7 +8659,7 @@ function renderAbilityList(externalQuery){
   let h='<div class="ability-count">'+list.length+' abilities</div>';
   h+='<div class="ability-grid">';
   list.forEach(a=>{
-    const genCount=a.pokemon.filter(p=>{const m=p.pokemon.url.match(/\/(\d+)\//);return m&&parseInt(m[1])<=genMax}).length;
+    const genCount=holderCount.get(a.name)||0;
     h+='<div class="ability-card" onclick="showAbilityPage(\''+a.name+'\')">';
     h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
     const _nm=a.name.replace(/-/g,' ');
@@ -9000,6 +9170,86 @@ function restoreCVD(){
   if(on){document.body.classList.add('cvd');
     const b=document.getElementById('cvd-btn');
     if(b){b.style.color='var(--eff-up)';b.style.borderColor='var(--eff-up)'}}
+}
+
+/* The button was labelled "CVD" and sat in the header on every tab. Reported from the live site:
+   "what does cvd mean? it doesnt seem to do anything?" — both halves fair. It is an acronym for
+   colour vision deficiency, which is the clinical term and not a label; and it recolours the
+   effectiveness palette, which only exists on a few screens, so on the Abilities tab where it was
+   clicked it genuinely changed nothing. A control that does nothing where you found it is
+   indistinguishable from a broken one.
+
+   Which screens use the palette is derived rather than typed out as a list of tabs, in two steps.
+
+   First, which variables the mode actually CHANGES — read off the body.cvd rules themselves, then
+   measured, because declaring a variable is not the same as changing it. In dark mode --eff-up is
+   the same blue either way, so a screen using only --eff-up sees nothing happen; counting it would
+   put the button back on tabs where it looks broken, which is the whole complaint. In light mode
+   that variable does change, so the answer depends on the theme and is cached against it.
+
+   Second, which selectors use those variables, and whether anything matching one is on screen.
+   A tab added later that uses the palette is covered without anyone remembering to come back. */
+let CVD_SELECTOR=null,CVD_SELECTOR_THEME=null;
+function cvdStyleRules(){
+  return [...document.styleSheets].flatMap(sh=>{
+    try{return [...sh.cssRules]}catch(e){return []}          // a cross-origin sheet is not readable
+  }).filter(r=>r.style&&r.selectorText);
+}
+function cvdPaletteSelector(){
+  const theme=document.body.className.replace(/\bcvd\b/,'').trim();
+  if(CVD_SELECTOR!==null&&CVD_SELECTOR_THEME===theme)return CVD_SELECTOR;
+  const rules=cvdStyleRules();
+  // the variables the mode declares, taken from the rules that declare them
+  const declared=new Set();
+  rules.forEach(r=>{
+    if(!/(^|,)\s*body(\.light)?\.cvd\s*$/.test(r.selectorText))return;
+    [...r.style].forEach(p=>{if(p.indexOf('--')===0)declared.add(p)});
+  });
+  // ...narrowed to the ones that actually differ once the class is on, in THIS theme
+  const had=document.body.classList.contains('cvd');
+  const read=()=>{const s=getComputedStyle(document.body),o={};
+    declared.forEach(n=>{o[n]=s.getPropertyValue(n).trim()});return o};
+  document.body.classList.remove('cvd');const off=read();
+  document.body.classList.add('cvd');const on=read();
+  document.body.classList.toggle('cvd',had);
+  const changed=[...declared].filter(n=>off[n]!==on[n]);
+  const sels=[];
+  if(changed.length){
+    const uses=new RegExp('var\\(\\s*(?:'+changed.map(n=>n.replace(/-/g,'\\-')).join('|')+')\\b');
+    rules.forEach(r=>{
+      if(!uses.test(r.cssText))return;
+      // body.cvd{...} declares the variables; it is not a thing on screen that uses them.
+      if(/^body/.test(r.selectorText))return;
+      sels.push(r.selectorText);
+    });
+  }
+  CVD_SELECTOR=sels.join(',');
+  CVD_SELECTOR_THEME=theme;
+  return CVD_SELECTOR;
+}
+function updateCVDVisibility(){
+  const b=document.getElementById('cvd-btn');
+  if(!b)return;
+  const sel=cvdPaletteSelector();
+  let shows=false;
+  /* Every tab's markup stays in the document and is hidden with display:none, so matching a
+     selector says the app HAS that screen, not that you are looking at it — querySelector alone
+     left the button up on every tab once the type chart had been opened once. getClientRects() is
+     empty for anything not actually laid out, which is the question being asked. */
+  try{shows=sel?[...document.querySelectorAll(sel)].some(el=>el.getClientRects().length>0):false}
+  catch(e){shows=true}   // a selector this browser cannot parse must not hide the control
+  b.style.display=shows?'':'none';
+}
+/* Tab switches are not the only way the palette arrives — opening a Pokemon shows its coverage
+   table without changing tab. Watching the document costs one debounced query and means no render
+   path has to remember to announce itself, which is the kind of thing that gets forgotten once and
+   then looks like the bug we just fixed. */
+function watchCVDVisibility(){
+  let t=null;
+  const bump=()=>{clearTimeout(t);t=setTimeout(updateCVDVisibility,200)};
+  new MutationObserver(bump).observe(document.body,{childList:true,subtree:true});
+  // and the light/dark switch, because which variables the mode changes depends on the theme
+  new MutationObserver(bump).observe(document.body,{attributes:true,attributeFilter:['class']});
 }
 
 // The team editor addressed stats as hp/atk/def/spa/spd/spe while the paste parser stores PokeAPI

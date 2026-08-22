@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.40**
+**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.41**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -211,9 +211,41 @@ one is all there is; two where two exist.
 
 ---
 
+## Slide 11c — Two screens, one question, two answers
+
+The list of abilities said Aura Break was on **1 Pokémon**. Clicking it said **0**. One click apart.
+
+The page was right. Working out who has an ability means asking several questions — did this Pokémon
+have it *back then*, is it even in the game you've selected, did this form exist yet, was this a
+hidden ability before hidden abilities existed. The page asked all of them. The list asked one: *is
+this Pokémon's number low enough?* In Champions that counted Zygarde, and Zygarde isn't in Champions.
+
+It wasn't one row. In Champions, 97 abilities advertised Pokémon they didn't have and another 170
+had the wrong number — 267 of 373 rows. In Gen IX the mistake ran the other way: the quick version
+can't see alternate forms, so it counted *too few*.
+
+Here's the uncomfortable part. Every one of those wrong numbers looked exactly like a right number.
+No glitch, no blank, no error — just a plausible integer beside an ability name. The only way to
+catch it is to hold both screens in your head at once, and nobody does that. The person who found it
+happened to click through at the right moment.
+
+Why did it happen? Because the correct way is a function call with four arguments, and the wrong way
+is one line. If you just want a number for a card, the one-liner works — in the sense that a number
+appears.
+
+So the fix isn't really "make the number right". It's that there's now **one** piece of code that
+answers "who has this ability", and both screens call it. And the test doesn't check that Levitate
+says 47 — that would pass again the day someone adds a third way to count. It checks that the
+shortcut *isn't in the file*.
+
+**When two parts of a program answer the same question separately they will eventually disagree —
+and the cheaper one is the one that looks fine.**
+
+---
+
 ## Slide 12 — What we don't claim
 
-Thirty-three test suites and 1,195 assertions now cover the data, the damage formula, the derived
+Thirty-four test suites and 1,222 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

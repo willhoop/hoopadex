@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.40**
+**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.41**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.29 the set is **76 mutations, all killed**, against 33 suites and 1,195 assertions. Two of
+As of v5.41 the set is **83 mutations, all killed**, against 34 suites and 1,222 assertions. Two of
 the twelve added since have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -593,6 +593,67 @@ as an oracle for something it was not built to check.
 The lesson is not "keep two implementations". It is that **the value of a second source is in
 disagreement, not in redundancy**: this project deleted its second damage engine and kept the
 comparison, because what was worth having was never the fallback.
+
+### 5.7 The cheap copy is the one that looks fine
+
+Section 5.6 argued against a second implementation of a formula. The same argument applies to
+something far more ordinary, and the ordinary case is the one that shipped.
+
+A reader reported that the abilities list showed `Aura Break · Gen VI · 1 Pokémon` while the
+ability's own page showed `POKÉMON WITH THIS ABILITY (0)`. One question, two screens, two answers,
+one click apart.
+
+The detail page resolved its list properly: which species had the ability *in the selected
+generation*, then filtered through `formAllowed`, which carries the Champions roster, the form-era
+rules and the hidden-ability rule. The list counted with `id<=genMax` — is this Pokémon's number
+below the generation's cutoff — and nothing else. In Champions that counted Zygarde, which is not in
+the Champions roster.
+
+The scale was not one row:
+
+| View | Rows claiming holders but having none | Rows with a wrong count |
+|---|---|---|
+| Champions Reg M-B | 97 | 170 |
+| Generation III | 74 | 43 |
+| Generation IX | 0 | 131, all *under*counts |
+
+267 of 373 rows were wrong in Champions. In Generation IX the error inverted: the cheap filter
+cannot see the alternate forms or the past-ability holders the real resolver adds, so it reported
+*fewer* Pokémon than have the ability. Every one of those numbers renders as a perfectly ordinary
+integer beside a perfectly ordinary ability name.
+
+Three properties made this survive:
+
+**Neither number was implausible.** "12 Pokémon" and "5 Pokémon" look equally like answers. There is
+no rendering artefact, no missing field, no error. The only way to see the defect is to hold both
+screens in mind at once — which is exactly what a reader does not do, and exactly what the reporter
+happened to do.
+
+**The wrong one was cheaper to write.** The correct resolution is a function call with four
+arguments and a documented set of gates. The wrong one is an inline filter on a regular expression.
+Someone wanting a number for a card reaches for the second, and it works, in the sense that a number
+appears.
+
+**Nothing compared them.** Both code paths were tested. Neither test asked whether they agreed.
+
+The fix is one resolver called by both. The *test* is the part worth stating: it does not assert
+today's counts. A suite that checked "Levitate shows 47" would pass again the moment someone added a
+third way to count somewhere else. It asserts that the shortcut pattern does not appear in the list
+renderer at all — that there is one function, and that the card reads the resolved value rather than
+computing its own. The invariant is structural, so the assertion is structural.
+
+This is the same failure as section 5.6 at a tenth of the sophistication, and it lasted longer. Two
+implementations of the damage formula at least announced themselves as two implementations. Two ways
+of counting a list do not look like an architecture decision; they look like a filter.
+
+A related finding came out of the same report. The MEGA badge beside those rows was drawn from
+`CHAMP_MEGA_ABILITIES`, which is generated from the *Legends: Z-A* mega set, and was shown whenever
+Champions mode was on. Those are different games. Eight of the 42 Z-A Megas are species the
+Champions roster does not contain, so the app was announcing an ability as available on a Mega in a
+game where nothing can have it. The generated table was correct; the question it was being asked was
+not the question it answers. **Derived data is only as good as the claim attached to it** — a
+correctly generated table used under the wrong heading is indistinguishable, on screen, from a
+fabricated one.
 
 ---
 

@@ -12,6 +12,85 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.41] - 2026-08-21
+
+### Fixed
+- **The ability card and the ability page gave different answers, on 267 of 373 rows.**
+
+  Reported from the live site: the abilities list showed `Aura Break [MEGA] · Gen VI · 1 Pokémon`,
+  and opening it showed `POKÉMON WITH THIS ABILITY (0)`. One question, two screens, two answers.
+
+  The page was right. The list counted holders with `id<=genMax` and nothing else — no Champions
+  roster, no form era, no hidden-ability rule, and no past-ability resolution — so in Champions it
+  counted Zygarde, which is not in the Champions roster. Measured on the live build before the fix:
+
+  | View | Rows claiming holders but having none | Rows with a wrong count |
+  |---|---|---|
+  | Champions Reg M-B | 97 | 170 |
+  | Generation III | 74 | 43 |
+  | Generation IX | 0 | 131 — all *under*counts |
+
+  In Gen IX the cheap filter went the other way: it cannot see the forms and past holders that
+  `abilityHoldersForGen` adds, so it reported fewer Pokémon than really have the ability. Aura Break
+  was simply the row that got clicked.
+
+  There is now one resolver, `abilityHoldersFiltered`, and the list and the page both call it.
+  `tests/test-ability-counts.js` asserts the shortcut has not come back — the assertion is
+  structural, because a test that checked today's counts would pass again the moment someone
+  reintroduced a second way to count.
+
+- **The MEGA badge advertised eight Megas that do not exist in Champions.**
+
+  `CHAMP_MEGA_ABILITIES` is generated from `MEGAS_ZA` — the Legends: Z-A mega set — and the badge
+  was drawn for every row of it whenever Champions mode was on. Those are different games. Eight of
+  the 42 Z-A Megas are species the Champions roster does not contain (Baxcalibur, Darkrai,
+  Golisopod, Heatran, Magearna, Tatsugiri, Zeraora, Zygarde), so the app was marking an ability as
+  available on a Mega in a game where nothing can have it. Now gated on the same roster every other
+  legality question uses.
+
+- **The Viewed bar on Abilities and Locations was built, populated, and invisible.**
+
+  `.pinned-bar` is `display:none` in CSS and each renderer turns its own on. `renderAbilityPins`
+  and `renderLocPins` never did, so those two bars had been filling up and never showing — for long
+  enough that it was reported as a missing feature rather than a broken one.
+
+### Added
+- **A move page: reading a move is now separate from filtering by one.**
+
+  Searching a move called `selectTMSuggestion`, which adds it as a *criterion* in the "which Pokémon
+  learn all of these" filter. So there was no way to just look at a move — asking about Bullet Punch
+  silently changed what the tab was showing, and asking about a second one narrowed the results to
+  the intersection of the two. Those are different questions and they now have different answers:
+  searching a move opens the move, and a **Find Pokémon that learn this** button on the panel adds
+  the criterion when that is what you wanted.
+
+- **A Viewed bar for moves**, matching the Pokédex, Abilities and Items tabs. It is deliberately not
+  the criteria row: pinning a move there does not filter anything.
+
+### Changed
+- **The `CVD` button is now labelled `Colourblind`, and only appears where it does something.**
+
+  Reported from the live site: *"what does cvd mean? it doesnt seem to do anything?"* — both halves
+  fair. It is an acronym for colour vision deficiency, which is a clinical term and not a label; and
+  it recolours the effectiveness palette, which exists on the Type Chart and Natures screens only,
+  so on the Abilities tab where it was clicked it genuinely changed nothing. A control that does
+  nothing where you found it is indistinguishable from a broken one.
+
+  Which screens use the palette is derived rather than listed: the variables `body.cvd` actually
+  *changes* are measured (in dark mode `--eff-up` is the same blue either way, so a screen using
+  only that one sees nothing happen), then matched against the rules that use them and against what
+  is actually laid out. A tab added later that uses the palette is covered without anyone having to
+  remember to come back.
+
+### Removed
+- **The version stamp beside the wordmark**, added in 5.40 and rejected on sight. It was permanent
+  furniture answering a question nobody asks while the app is behaving. The cache problem it was
+  added for is still solved, and better, by the update chip: that appears only when the published
+  version differs from the running one, which is the only moment the number matters. `APP_VERSION`
+  stays, because the check needs something to compare against.
+
+---
+
 ## [5.40] - 2026-08-21
 
 ### Added

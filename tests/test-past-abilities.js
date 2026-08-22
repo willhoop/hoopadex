@@ -180,8 +180,15 @@ check(abilityHoldersForGen('levitate', undefined, 4).length >= 1, 'and a missing
 check(abilityHoldersForGen('not-an-ability', [], 4).length === 0, 'an ability nobody had produces nothing');
 
 // --- and the page uses it ---------------------------------------------------------------------------
-check(/const pokemonList=abilityHoldersForGen\(abilityName,d\.pokemon,genNum\)/.test(src),
-  'the ability page resolves its species list for the selected generation');
+/* Both the ability page and the ability LIST now go through abilityHoldersFiltered, which wraps
+   this resolution in the roster, form-era and hidden-ability gates. They used to answer the same
+   question two different ways and disagreed on screen — see tests/test-ability-counts.js, which
+   owns the sharing. What is asserted here is that the generation resolution is still what the
+   shared function is built on. */
+check(/function abilityHoldersFiltered\(abilityName,apiList,genNum,genMax\)\{\s*return abilityHoldersForGen\(abilityName,apiList,genNum\)/.test(src),
+  'the shared resolver still resolves holders for the selected generation first');
+check(/const pokemonList=abilityHoldersFiltered\(abilityName,d\.pokemon,genNum,genMax\)/.test(src),
+  'and the ability page draws its species list from it');
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
