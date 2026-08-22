@@ -12,6 +12,77 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.32] - 2026-08-21
+
+### Added
+- **Move descriptions are now correct for the generation you have selected.** Asked as "what other
+  moves are vague like this" after the Nature Power work; the answer turned out to be a much bigger
+  problem than the one that prompted it.
+
+  PokeAPI gives one description per move with no generation dimension, written for the current
+  games. Jump Kick was described as *"takes half the damage it would have inflicted"* in every
+  generation ever made:
+
+  | Gen | Miss penalty |
+  |---|---|
+  | I | **1 HP.** Flat. |
+  | II | 1/8 of the damage dealt |
+  | III–IV | 1/2 of the damage dealt |
+  | V+ | **50% of the user's max HP** — a different quantity entirely |
+
+  Four mechanics, one sentence, and in Generation I not a rounding difference but a different move.
+  Whirlwind is blunter: Showdown's note for Generation I is *"No competitive use"*, while the app
+  said it forces trainers to switch. Guillotine in Generation I fails against a faster target, which
+  the app never mentioned.
+
+  **138 moves** are affected: 73 in Gen I, 62 in II, 58 in III, 56 in IV, 27 in V, 15 in VI, 12 in
+  VII, 7 in VIII, and 0 in Gen IX — which is the generation the old text was written for. The
+  correction shows the old wording and the modern one together, because a reader has seen the modern
+  sentence everywhere else and the contrast is the useful part.
+
+- **The game selector now changes the description too, not just the generation.** Ruby and FireRed
+  are both Generation III and do not print the same sentence for Surf. `genFlavorText` answered at
+  generation granularity, so every Gen III game showed the newest Gen III wording; it now prefers
+  the exact version group when a specific game is chosen, falling back to the generation when that
+  game has no wording of its own.
+
+### Fixed
+- **Changing generation wiped the Moves search instead of re-answering it.** Searching Jump Kick and
+  then switching to Gen I discarded the search along with the result — the wrong answer to a
+  question the reader had already asked. The move names now survive the refresh and are re-resolved
+  against the new generation, because the per-move results genuinely have to be recomputed;
+  re-rendering the stale rows would have been worse than clearing them.
+
+### Corrected
+- **A number reported earlier in this session was wrong, and is corrected here rather than quietly
+  restated.** The first measurement said 312 moves were affected and 169 on a Gen III selection.
+  312 of 882 moves do carry some per-generation override in Showdown, but most of those change only
+  the long paragraph and leave the one-line summary alone. Counting them overstated the problem by
+  more than double, and building on it produced a **437 KB** blob of paragraphs where one-line
+  summaries belong. The honest figure is 138 moves and 58 on Gen III, and the shipped table is 20 KB.
+
+  The same pass also caught overrides being resolved for moves that did not exist yet — Aurora Veil
+  carries a gen8 override, so "what did Aurora Veil do in Generation III" returned a real sentence
+  about a move that had not been invented.
+
+### Known gap
+- **Champions move mechanics are inherited, not verified.** Showdown documents the mainline games;
+  nothing published describes Champions' move behaviour separately. Champions selects Generation IX
+  here and so inherits Scarlet/Violet wording, which is very probably right and is not checked. The
+  panel names the rules it is quoting ("Scarlet/Violet rules") rather than implying otherwise, and
+  the gap is recorded in `docs/BACKLOG.md`. The app already knows Champions differs in roster,
+  legality, items and the stat system — move mechanics is the one axis with no source.
+
+### Testing
+- `tests/test-move-text.js` — 26 assertions on the cutoff arithmetic, which is the part that fails
+  silently: an off-by-one shows Generation II's wording to a Generation III reader at the same size
+  and confidence as the right answer. Pinned in both directions, including that a generation with no
+  entry of its own reads the cutoff ABOVE it rather than below.
+- 5 assertions added to `tests/test-interactions.js` for the version-group preference.
+- **Five mutations, M60–M64.** Set is now **64, all killed**; 31 suites, 1,149 assertions.
+
+---
+
 ## [5.31] - 2026-08-21
 
 ### Added

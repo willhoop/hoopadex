@@ -95,6 +95,33 @@ check(genFlavorText([{ language: { name: 'en' }, version_group: { name: 'sword-s
 check(genFlavorText([{ language: { name: 'en' }, version_group: { name: 'made-up-game' }, flavor_text: 'X' }], 9)
   === null, 'an unmapped version group is ignored rather than dated as generation undefined');
 
+/* -- the selected GAME, not just the selected generation ---------------------------------------
+   Ruby and FireRed are both Generation III and do not print the same sentence for Surf. The app has
+   a game selector sitting next to the generation one, and answering at generation granularity threw
+   away half of what the reader had told it — every Gen III game showed the newest Gen III wording.
+
+   genFlavorText reads `specificGame` and `dataGen` from the app when a game is chosen. They are
+   globals there and undefined here, so these cases set them on globalThis to exercise the branch. */
+const VG_FIXTURE = [
+  { language: { name: 'en' }, version_group: { name: 'ruby-sapphire' }, flavor_text: 'RUBY WORDING' },
+  { language: { name: 'en' }, version_group: { name: 'emerald' }, flavor_text: 'EMERALD WORDING' },
+  { language: { name: 'en' }, version_group: { name: 'firered-leafgreen' }, flavor_text: 'FIRERED WORDING' },
+];
+globalThis.specificGame = false; globalThis.dataGen = 'ruby-sapphire';
+check(genFlavorText(VG_FIXTURE, 3) === 'FIRERED WORDING',
+  'with no game chosen, a generation shows its newest wording', genFlavorText(VG_FIXTURE, 3));
+globalThis.specificGame = true;
+check(genFlavorText(VG_FIXTURE, 3) === 'RUBY WORDING',
+  'choosing Ruby shows Ruby\'s wording, not the generation\'s newest', genFlavorText(VG_FIXTURE, 3));
+globalThis.dataGen = 'firered-leafgreen';
+check(genFlavorText(VG_FIXTURE, 3) === 'FIRERED WORDING', 'and choosing FireRed shows FireRed\'s');
+/* A game with no entry of its own must not blank the description — it falls back to the
+   generation. Plenty of moves have text for some games in a generation and not others. */
+globalThis.dataGen = 'a-game-with-no-entry';
+check(genFlavorText(VG_FIXTURE, 3) === 'FIRERED WORDING',
+  'a game with no wording of its own falls back to the generation rather than showing nothing');
+globalThis.specificGame = false; globalThis.dataGen = undefined;
+
 // --- flag membership is cut to the generation --------------------------------------------------
 const pulse9 = ixFlagMoves('pulse', 9).map(x => x[0]);
 const pulse6 = ixFlagMoves('pulse', 6).map(x => x[0]);

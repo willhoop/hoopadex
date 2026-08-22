@@ -217,6 +217,25 @@ const MUTATIONS = [
     "  if(g.note){\n    return '<div class=\"env-block\">", "  if(false){\n    return '<div class=\"env-block\">", 1, 'test-environment-moves.js'],
   ['M59', 'The embedded environment table goes stale against the generated one',
     '"nature-power":{"gives"', '"nature-power-x":{"gives"', 1, 'test-environment-moves.js'],
+
+  /* Per-generation move text. The cutoff arithmetic is the part that fails silently — an
+     off-by-one shows Generation II's wording to a Generation III reader with no visible symptom. */
+  ['M60', 'The move-text cutoff resolves DOWNWARD, handing a generation the older wording',
+    '  const keys=Object.keys(rec.gens).map(Number).filter(function(n){return n>=genNum}).sort(function(a,b){return a-b});',
+    '  const keys=Object.keys(rec.gens).map(Number).filter(function(n){return n<=genNum}).sort(function(a,b){return b-a});',
+    1, 'test-move-text.js'],
+  ['M61', 'A move is described in generations before it existed',
+    '  if(rec.gen&&genNum<rec.gen)return null;      // the move did not exist yet',
+    '  // gate removed', 1, 'test-move-text.js'],
+  ['M62', 'Jump Kick loses its Generation I entry and Gen I is told the Gen II rule',
+    '"jump-kick":{"cur":"User is hurt by 50% of its max HP if it misses.","gen":1,"gens":{"1":',
+    '"jump-kick":{"cur":"User is hurt by 50% of its max HP if it misses.","gen":1,"gens":{"0":',
+    1, 'test-move-text.js'],
+  ['M63', 'The embedded move-text table goes stale against the generated one',
+    '"jump-kick":{"cur"', '"jump-kick-x":{"cur"', 1, 'test-move-text.js'],
+  ['M64', 'Champions stops naming which rules its move text is quoting',
+    "const label=isChampionsMode?'Scarlet/Violet rules':'Gen '+ixRoman(g);",
+    "const label='Gen '+ixRoman(g);", 1, 'test-move-text.js'],
 ];
 
 function runSuite(suite, srcPath) {

@@ -377,3 +377,23 @@ computed style.
 
 **Not visually confirmed by Will at time of writing.** Screenshots did not composite in that
 session, so the colour choice itself is unverified by eye — reopen if the third attempt is wrong too.
+
+## Champions move mechanics are inherited, not verified
+
+`MOVETEXT` (v5.32) corrects a move's one-line description for the generation on screen, from
+Showdown's per-generation text. Showdown documents the **mainline games**. Nothing published
+describes Pokemon Champions' move mechanics separately.
+
+Champions selects Generation IX in this app, so it inherits Scarlet/Violet wording. That is very
+probably right — Champions appears to build on SV mechanics — and it is **not verified**. The panel
+therefore names the rules it is quoting ("Scarlet/Violet rules") rather than implying the check has
+been done.
+
+What would close it: a published source for Champions move behaviour, or a diff of the Champions
+battle engine against SV. Until one exists, the honest position is the label. Do not quietly relabel
+it "Champions" — that would be a claim the data cannot support, which is the failure mode this
+project exists to prevent.
+
+Related: the app already knows Champions differs in roster, legality, items and the stat system.
+Move *mechanics* is the one axis it has no source for.
+
