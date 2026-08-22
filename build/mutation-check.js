@@ -290,6 +290,30 @@ const MUTATIONS = [
     '  swapTeamForScope();\n  triggerDataRefresh();', 1, 'test-generation-tables.js'],
   ['M77', 'The reload keeps the previous generation\'s game in the address',
     "  if(typeof locVersion!=='undefined')locVersion='';", '  // kept', 1, 'test-generation-tables.js'],
+
+  /* The arithmetic that left the DOM handler in 5.35. The review predicted a fourth untested input
+     while any of this stayed inline, and was right — `power` was it. These are the pieces that were
+     still inline after that, each mutated the way it would plausibly be got wrong. */
+  ['M78', 'The stat stage is applied before the floor instead of after',
+    '  return Math.floor(stat*stage);', '  return Math.floor(stat)*stage;', 1, 'test-damage-formula.js'],
+  ['M79', 'A physical move is resolved against the special stats',
+    "    ? {off:'attack',def:'defense'}", "    ? {off:'special-attack',def:'special-defense'}",
+    1, 'test-damage-formula.js'],
+  ['M80', 'The percentage loses its divide-by-zero guard and reports Infinity% as damage',
+    '  return hp>0?damage/hp*100:0;', '  return damage/hp*100;', 1, 'test-damage-formula.js'],
+  ['M81', 'The damage bar stops being clamped and renders wider than the bar',
+    '  return Math.max(0,Math.min(100,pct||0));', '  return pct||0;', 1, 'test-damage-formula.js'],
+  ['M82', 'The level box stops being clamped, so a typed 9999 is used as the level',
+    '  return Math.max(1,Math.min(100,parseInt(v)||50));', '  return parseInt(v)||50;',
+    1, 'test-damage-formula.js'],
+  ['M83', 'Critical hits stop ignoring the attacker\'s drops and the defender\'s boosts',
+    '  const st=calcLocalCritStages(calcStage(o.atkStage),calcStage(o.defStage),o.crit);',
+    '  const st={atk:calcStage(o.atkStage),def:calcStage(o.defStage)};', 1, 'test-damage-formula.js'],
+  /* The one that guards the structure rather than a number: arithmetic creeping back into the
+     handler is how the previous four untested inputs got there. */
+  ['M84', 'Arithmetic reappears in calcRunLocal',
+    '  const mnP=calcLocalPercent(mn,hp),mxP=calcLocalPercent(mx,hp);',
+    '  const mnP=mn/hp*100,mxP=mx/hp*100;', 1, 'test-damage-formula.js'],
 ];
 
 function runSuite(suite, srcPath) {

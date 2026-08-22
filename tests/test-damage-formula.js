@@ -33,9 +33,17 @@ if (start < 0 || end < 0) throw new Error('could not locate calcLocalRolls in in
 // restating it, so a broken lookup cannot be hidden by a correct copy living in this file.
 const effStart = lines.findIndex(l => l.startsWith('function eff('));
 if (effStart < 0) throw new Error('could not locate eff() in index.html');
-const app = (0, eval)(lines[effStart] + '\n' + lines.slice(start, end).join('\n') +
+/* calcLocalBattleStats sits on three helpers defined further up the file. They are sliced in rather
+   than restated for the same reason eff() is: a correct copy here would hide a broken original. */
+const statHelpers = ['function calcStatVal(', 'function calcHPStat(', 'function calcStage(']
+  .map(sig => { const i = lines.findIndex(l => l.startsWith(sig));
+                if (i < 0) throw new Error('could not locate ' + sig); return lines[i]; })
+  .join('\n');
+const app = (0, eval)(lines[effStart] + '\n' + statHelpers + '\n' + lines.slice(start, end).join('\n') +
   '\n;({calcLocalRolls,calcLocalCritMult,calcLocalStab,calcLocalEffectiveness,' +
-  'calcLocalModifiers,calcLocalCritStages,calcLocalKO})');
+  'calcLocalModifiers,calcLocalCritStages,calcLocalKO,' +
+  'calcLocalLevel,calcLocalApplyStage,calcLocalStatNames,calcLocalPercent,calcLocalBarWidth,' +
+  'calcLocalBattleStats})');
 const rollsOf = app.calcLocalRolls, critMult = app.calcLocalCritMult, stabOf = app.calcLocalStab;
 const effOf = app.calcLocalEffectiveness;
 const modsOf = app.calcLocalModifiers, stagesOf = app.calcLocalCritStages, koOf = app.calcLocalKO;
@@ -211,6 +219,142 @@ const ladder = [flat(100), half, flat(50), spreadTo(45, 55), flat(34), spreadTo(
   .map(r => koOf(r, 100, 1));
 check(new Set(ladder).size === ladder.length,
   'each rung of the ladder gives a distinct verdict — no two thresholds collapse', ladder.join(' | '));
+
+/* ── The last arithmetic to leave the DOM handler ───────────────────────────────────────────────
+   The 2026-08-03 engineering review demanded the whole calculation move into pure functions, and
+   made a prediction about what would happen until it did: "assume there is a fourth input nobody
+   has tested."
+
+   It was right. Three audits had each found one more untested input — the roll arithmetic, then
+   STAB, then dual-type effectiveness — and in 5.33 the fourth arrived: `power`, read as the modern
+   value and fed into a calculator that is available in every generation. Wing Attack at 60 in
+   Generation I, where it is 35.
+
+   These cover what was still inline after that. Every expected value is worked by hand below from
+   the published formulas, NOT read back out of the app, so a wrong implementation cannot validate
+   itself. */
+
+const battleOf = app.calcLocalBattleStats;
+
+/* Attacker: base 100, 252 EVs, boosting nature, +1 stage, level 50.
+     floor(252/4)             = 63
+     2*100 + 31 + 63          = 294
+     floor(294 * 50/100) + 5  = 147 + 5 = 152
+     floor(152 * 1.1)         = 167
+     stage +1 is (2+1)/2      = 1.5
+     floor(167 * 1.5)         = 250
+   Defender: base 100, 0 EVs, neutral nature, no stage.
+     2*100 + 31 + 0           = 231
+     floor(231 * 50/100) + 5  = 115 + 5 = 120
+   Defender HP:
+     floor(231 * 50/100) + 50 + 10 = 115 + 60 = 175 */
+const BS = {
+  level: '50', cat: 'physical', crit: false, atkStage: '1', defStage: '0',
+  atkBase: 100, atkEv: 252, atkNat: 1.1,
+  defBase: 100, defEv: 0, defNat: 1,
+  hpBase: 100, hpEv: 0,
+};
+const bs = battleOf(BS);
+check(bs.lv === 50, 'level 50 reads straight through', bs.lv);
+check(bs.atk === 250, 'attacker: 167 at +1 stage is 250', bs.atk);
+check(bs.def === 120, 'defender: 120 at no stage', bs.def);
+check(bs.hp === 175, 'defender HP is 175', bs.hp);
+check(bs.offName === 'attack' && bs.defName === 'defense',
+  'a physical move uses Attack against Defence', bs.offName + '/' + bs.defName);
+const bsSpec = battleOf(Object.assign({}, BS, { cat: 'special' }));
+check(bsSpec.offName === 'special-attack' && bsSpec.defName === 'special-defense',
+  'and a special move uses the special pair', bsSpec.offName + '/' + bsSpec.defName);
+
+/* The stage multiplier applies to the FINAL stat and the floor comes after it. The other order is
+   at most a one-point difference, which never looks wrong on screen and moves a KO verdict at the
+   boundary — so it is asserted on a value where the two orders disagree. */
+check(app.calcLocalApplyStage(167, 1.5) === 250, '167 at x1.5 floors to 250', app.calcLocalApplyStage(167, 1.5));
+check(Number.isInteger(app.calcLocalApplyStage(167, 1.5)), 'and the result is a whole number');
+check(app.calcLocalApplyStage(100, 1) === 100, 'no stage leaves the stat alone');
+check(app.calcLocalApplyStage(151, 2 / 3) === 100, 'a negative stage rounds down, not to nearest',
+  app.calcLocalApplyStage(151, 2 / 3));
+
+/* A critical hit ignores the attacker's drops and the defender's boosts, and the clamp has to
+   happen before the stats are computed rather than after. */
+const critBs = battleOf(Object.assign({}, BS, { crit: true, atkStage: '-1', defStage: '2' }));
+check(critBs.atkStage === 1, 'a crit ignores the attacker sitting at -1', critBs.atkStage);
+check(critBs.defStage === 1, 'and the defender sitting at +2', critBs.defStage);
+const plainBs = battleOf(Object.assign({}, BS, { crit: false, atkStage: '-1', defStage: '2' }));
+check(plainBs.atkStage < 1 && plainBs.defStage > 1, 'without a crit both stages stand',
+  plainBs.atkStage + '/' + plainBs.defStage);
+check(critBs.atk > plainBs.atk, 'so the crit produces the larger attacking stat');
+
+// --- the level box ------------------------------------------------------------------------------
+check(app.calcLocalLevel('75') === 75, 'a typed level is used');
+check(app.calcLocalLevel('') === 50, 'an empty box falls back to 50');
+check(app.calcLocalLevel('abc') === 50, 'and so does nonsense');
+check(app.calcLocalLevel('150') === 100, 'above 100 clamps to 100');
+check(app.calcLocalLevel('-5') === 1, 'below 1 clamps to 1', app.calcLocalLevel('-5'));
+/* PINNED, not endorsed. `parseInt(v)||50` treats a typed 0 the same as an empty box, because 0 is
+   falsy — so level 0 shows 50 rather than the clamped 1. That is the shipped behaviour; asserting
+   it makes it a decision on record rather than an accident, and this is the line to change if it
+   should become 1. */
+check(app.calcLocalLevel('0') === 50,
+  'a typed 0 falls back to 50 — the falsy-zero quirk, pinned deliberately', app.calcLocalLevel('0'));
+
+// --- percentage of HP ----------------------------------------------------------------------------
+check(app.calcLocalPercent(50, 200) === 25, '50 damage against 200 HP is 25%');
+check(app.calcLocalPercent(200, 200) === 100, 'a full-HP hit is 100%');
+/* A defender with no HP is a divide by zero. Unguarded it renders as "Infinity% of 0 HP", which is
+   not an error message — it is a damage report. */
+check(app.calcLocalPercent(50, 0) === 0, 'and no HP gives 0, not Infinity', app.calcLocalPercent(50, 0));
+
+// --- the bar --------------------------------------------------------------------------------------
+check(app.calcLocalBarWidth(42.5) === 42.5, 'a normal percentage passes through');
+check(app.calcLocalBarWidth(150) === 100, 'an overkill is clamped to the width of the bar');
+check(app.calcLocalBarWidth(-5) === 0, 'and a negative to zero');
+check(app.calcLocalBarWidth(undefined) === 0, 'a missing value does not render NaN into the style');
+
+// --- and the handler is now only a handler ----------------------------------------------------------
+/* The point of the whole exercise. If arithmetic reappears here, the next untested input will again
+   be reachable only through a DOM event — which is how the previous four were missed. */
+const hStart = lines.findIndex(l => l.startsWith('async function calcRunLocal('));
+const hEnd = lines.findIndex((l, i) => i > hStart && l === '}');
+const handlerRaw = lines.slice(hStart, hEnd).join('\n');
+
+/* Checking for `Math.` alone is not enough, and the mutation check proved it: reinstating
+   `mn/hp*100` in the handler uses no Math call at all and stayed green. The claim being made is
+   "no arithmetic", so the check has to look for operators — which means first removing the places
+   a `/` or `*` legitimately appears: comments, string literals, and regex literals like
+   `.replace(/-/g, ' ')`. What is left is arithmetic or nothing. */
+function stripNonCode(src) {
+  let out = '', i = 0;
+  while (i < src.length) {
+    const two = src.slice(i, i + 2);
+    if (two === '/*') { const e = src.indexOf('*/', i + 2); i = e < 0 ? src.length : e + 2; continue; }
+    if (two === '//') { const e = src.indexOf('\n', i); i = e < 0 ? src.length : e; continue; }
+    const c = src[i];
+    if (c === '"' || c === "'" || c === '`') {
+      i++;
+      while (i < src.length && src[i] !== c) { if (src[i] === '\\') i++; i++; }
+      i++; out += '""'; continue;
+    }
+    if (c === '/') {
+      // A regex literal, not a division: divisions follow a value, regexes follow an operator or
+      // an opening bracket. Looking back at the last non-space character settles which this is.
+      const prev = (out.replace(/\s+$/, '').slice(-1)) || '(';
+      if ('(,=:[!&|?{;+'.indexOf(prev) >= 0) {
+        i++;
+        while (i < src.length && src[i] !== '/') { if (src[i] === '\\') i++; i++; }
+        i++;
+        while (i < src.length && /[gimsuy]/.test(src[i])) i++;
+        out += 'RE'; continue;
+      }
+    }
+    out += c; i++;
+  }
+  return out;
+}
+const handler = stripNonCode(handlerRaw);
+const leftovers = (handler.match(/Math\.\w+|[*/]/g) || []);
+check(leftovers.length === 0,
+  'calcRunLocal contains no arithmetic at all — it reads the form and renders',
+  leftovers.join(' ') + '  in: ' + (handler.match(/^.*[*/].*$/m) || [''])[0].trim().slice(0, 90));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

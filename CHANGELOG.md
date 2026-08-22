@@ -12,6 +12,59 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.35] - 2026-08-21
+
+### Changed
+- **The last arithmetic left the damage calculator's DOM handler, closing the final condition of the
+  2026-08-03 engineering review.** That review made one structural demand and one prediction with
+  it:
+
+  > "Move the whole calculation to one pure function... Until that happens, assume there is a fourth
+  > input nobody has tested."
+
+  It was right. Three audits had each found one more untested input to the same computation — the
+  roll arithmetic, then STAB, then dual-type effectiveness — and the fourth turned up in 5.33:
+  `power`, read as the modern value and fed into a calculator available in every generation.
+
+  What was still inline after that is now pure: `calcLocalLevel`, `calcLocalApplyStage`,
+  `calcLocalStatNames`, `calcLocalPercent`, `calcLocalBarWidth` and `calcLocalBattleStats`.
+  `calcRunLocal` reads the form and renders. **Zero `Math.` calls and zero arithmetic operators
+  remain in it.**
+
+  Scope: this is the local fallback engine. The Smogon path builds `new M.Move(gen, …)` and gets its
+  numbers from the engine, which resolves the generation itself.
+
+- **Two guards that did not exist before.** `calcLocalPercent` returns 0 rather than dividing by
+  zero — unguarded, a defender with no HP rendered "Infinity% of 0 HP", which is not an error
+  message but a damage report. `calcLocalBarWidth` clamps to 0–100 so a missing value cannot put
+  `NaN%` into a style attribute.
+
+### Pinned, not endorsed
+- **`parseInt(v)||50` treats a typed level 0 the same as an empty box**, because 0 is falsy — so
+  level 0 shows 50 rather than the clamped 1. That is the shipped behaviour and it is now asserted,
+  which makes it a decision on record rather than an accident nobody had noticed. Changing it is one
+  line if it should become 1.
+
+### Testing
+- 28 assertions added to `tests/test-damage-formula.js`, every expected value worked by hand from
+  the published formulas rather than read back out of the app.
+- **Seven mutations, M78–M84.** One of them, M84, **survived the first run** and the finding is the
+  same class of error as the thing being guarded: the "no arithmetic in the handler" check looked
+  only for `Math.` calls, so reinstating `mn/hp*100` — which uses none — walked straight through it.
+  The check now strips comments, string literals and regex literals from the handler and asserts no
+  arithmetic operator survives.
+- Set is now **84, all killed**; 33 suites, 1,257 assertions.
+- End to end in Gen III: Charizard Flamethrower vs Blastoise reads 34–41 damage, 18.3%–22.0% of
+  186 HP, 0.5× resisted, 5–6HKO. No NaN, no Infinity.
+
+### Review status
+- `docs/ENGINEERING-REVIEW-2026-08-03.md` §7 required four things. **All four are now done**:
+  tag releases (5.19), merge the hash readers (5.11), audit the unguarded fetch sites (5.19, and the
+  count was one rather than 21), and this. The verdict in that document stands as written — it was
+  FIX THEN SHIP, and the fixes are complete.
+
+---
+
 ## [5.34] - 2026-08-21
 
 ### Fixed

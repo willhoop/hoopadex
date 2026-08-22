@@ -384,6 +384,21 @@ statistics remain withdrawn; see the architecture review, section 4.
 
 Four things, in order. The first is the only structural one.
 
+> **Status, 2026-08-21 (v5.35): all four are done, and condition 1 was closed last.**
+> The prediction attached to it — "assume there is a fourth input nobody has tested" — was correct.
+> The fourth input turned up in v5.33 and it was `power`: the handler read `md.power`, the modern
+> value, and fed Generation IX numbers into a calculator that is available in every generation.
+> Wing Attack at 60 in Generation I, where it is 35.
+>
+> v5.35 removed the remainder — the level clamp, the stat-stage multiplier, the stat-name selection,
+> the percentage of HP and the bar width are now pure functions with hand-worked tests, and
+> `calcRunLocal` reads the form and renders. A test strips comments, string literals and regex
+> literals from the handler and asserts no arithmetic operator survives; the first version of that
+> check looked only for `Math.` calls and a mutation reinstating `mn/hp*100` walked straight through
+> it, which is recorded here because it is the same class of error as the one being guarded against.
+>
+> The verdict below stands as written. It was FIX THEN SHIP; the fixes are done.
+
 **1. Get the damage calculation out of the DOM handler — all of it, in one pass.**
 Three separate audits have each found one more untested input to the same computation, because the
 only way to test any of it has been to carve pieces out individually. Move the whole calculation to

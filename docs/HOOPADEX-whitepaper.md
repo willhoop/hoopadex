@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.34**
+**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.35**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.29 the set is **77 mutations, all killed**, against 33 suites and 1,229 assertions. Two of
+As of v5.29 the set is **84 mutations, all killed**, against 33 suites and 1,257 assertions. Two of
 the twelve added since have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -474,6 +474,42 @@ real rather than cosmetic:
   injecting a hostile name. A defence that no real input exercises is untested by construction, and
   a suite that reports otherwise is measuring the data rather than the code.
 
+
+### 5.4 A prediction, and what it cost to be right about it
+
+The engineering review of 2026-08-03 asked for one structural change — move the damage calculation
+out of its DOM event handler — and attached a prediction to it:
+
+> "Until that happens, assume there is a fourth input nobody has tested."
+
+The reasoning was not about that particular function. It was about a shape. When a computation lives
+inside an event handler, the only way to test any part of it is to carve that part out, and every
+carve leaves the remainder untested *and looking tested*, because the suite around it is green and
+growing. Three audits had each found exactly one more untested input by that route: the roll
+arithmetic, then STAB, then dual-type effectiveness.
+
+The fourth arrived on 2026-08-21, eighteen days later, and it was the most consequential of the
+four. `power` was read as the move's modern value and fed into a calculator that is available in
+every generation, so Wing Attack was calculated at 60 base power in Generation I, where it is 35.
+It was found by a general audit of generation-correctness, not by looking at the calculator.
+
+Two things are worth taking from that. The first is that the prediction was cheap to make and
+expensive to ignore: the reviewer did not know what the fourth input would be, only that the shape
+guaranteed one. **A structural criticism can be actionable without being specific.**
+
+The second is about what "tested" meant in the interval. The suite covering that function was green
+throughout, and it was green *correctly* — every assertion in it was true. What it could not say was
+anything about the inputs it had never been given access to. A test suite reports on the code it can
+reach, and a handler that computes inside itself decides what that is.
+
+The condition was closed in v5.35. One further error inside the closing is worth recording, because
+it is the same class: the test asserting "no arithmetic remains in the handler" searched for `Math.`
+calls, and a mutation reinstating `mn / hp * 100` — which uses none — passed it. The check now
+strips comments, string literals and regex literals and asserts that no arithmetic operator
+survives. A guard that only recognises one spelling of the thing it guards against is not a guard;
+it is a description of the last bug.
+
+---
 
 ## 6. Known limitations
 

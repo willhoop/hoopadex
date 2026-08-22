@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.34**
+**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.35**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -213,7 +213,7 @@ one is all there is; two where two exist.
 
 ## Slide 12 — What we don't claim
 
-Thirty-three test suites and 1,229 assertions now cover the data, the damage formula, the derived
+Thirty-three test suites and 1,257 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

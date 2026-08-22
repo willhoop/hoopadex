@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.34 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.35 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -11097,6 +11097,79 @@ function calcLocalKO(rolls,hp,effMult){
   if(mx*3>=hp)return'Possible 3HKO';
   return Math.ceil(hp/mx)+'–'+Math.ceil(hp/mn)+'HKO';
 }
+/* ── The last arithmetic to leave the DOM handler ───────────────────────────────────────────────
+   The 2026-08-03 engineering review made one structural demand and one prediction with it:
+
+     "Move the whole calculation to one pure function... Until that happens, assume there is a
+      fourth input nobody has tested."
+
+   Three audits had each found one more untested input to the same computation — the roll
+   arithmetic, then STAB, then dual-type effectiveness — because the only way to test any of it was
+   to carve pieces out one at a time, and every carve left the rest untested and looking tested.
+
+   The prediction came true in 5.33. The fourth input was `power`: the handler read `md.power`, the
+   modern value, and fed Generation IX numbers into a calculator available in every generation.
+   Wing Attack at 60 instead of 35.
+
+   What was still inline after that is below — the level clamp, the stat-stage multiplier, the stat
+   names, and the percentage of HP. All four are now pure, so `calcRunLocal` reads the form and
+   renders, and no part of this computation can only be reached through a DOM event.
+
+   Scope: this is the LOCAL fallback engine. The Smogon path builds `new M.Move(gen, ...)` and gets
+   its numbers from the engine, which resolves the generation itself. */
+
+/* Level as the form gives it. The `||50` is deliberate and is being PINNED rather than tidied: an
+   empty box means "use the default", and it happens to mean that for a typed 0 as well, because 0
+   is falsy — so typing 0 shows 50 rather than the clamped 1. That is the shipped behaviour and the
+   test asserts it, which makes it a decision on record instead of an accident nobody noticed. */
+function calcLocalLevel(v){
+  return Math.max(1,Math.min(100,parseInt(v)||50));
+}
+
+/* A stat stage multiplies the FINAL stat, and the floor comes after the multiply. The other order
+   is a rounding difference of at most one point — exactly the kind of error that never looks wrong
+   on screen and moves a KO verdict at the boundary. */
+function calcLocalApplyStage(stat,stage){
+  return Math.floor(stat*stage);
+}
+
+/* Which stats are used follows the MOVE's category, not the attacker's. */
+function calcLocalStatNames(cat){
+  return cat==='physical'
+    ? {off:'attack',def:'defense'}
+    : {off:'special-attack',def:'special-defense'};
+}
+
+/* Damage as a percentage of the defender's HP. Guarded because a defender with no HP is a
+   divide-by-zero that renders as "Infinity% of 0 HP" rather than as an error. */
+function calcLocalPercent(damage,hp){
+  return hp>0?damage/hp*100:0;
+}
+
+/* The damage bar cannot be wider than the bar. Presentation rather than mechanics, but extracting
+   it means the claim "no arithmetic remains in the handler" is true without an asterisk. */
+function calcLocalBarWidth(pct){
+  return Math.max(0,Math.min(100,pct||0));
+}
+
+/* Everything the roll arithmetic needs, from plain values. No DOM and no globals: the caller reads
+   the form, this resolves the battle. */
+function calcLocalBattleStats(o){
+  const lv=calcLocalLevel(o.level);
+  const names=calcLocalStatNames(o.cat);
+  const st=calcLocalCritStages(calcStage(o.atkStage),calcStage(o.defStage),o.crit);
+  return {
+    lv:lv,
+    offName:names.off,
+    defName:names.def,
+    atkStage:st.atk,
+    defStage:st.def,
+    atk:calcLocalApplyStage(calcStatVal(o.atkBase,lv,o.atkEv,o.atkNat),st.atk),
+    def:calcLocalApplyStage(calcStatVal(o.defBase,lv,o.defEv,o.defNat),st.def),
+    hp:calcHPStat(o.hpBase,lv,o.hpEv),
+  };
+}
+
 async function calcRunLocal(){
   const res=document.getElementById('calc-result');
   if(!res)return;
@@ -11115,17 +11188,18 @@ async function calcRunLocal(){
   const genPower=getMovePowerForGen(md);
   if(cat==='status'||!genPower){info.innerHTML=md.name.replace(/-/g,' ')+' \u2014 status move / variable power, not supported';res.style.display='none';return}
   info.innerHTML='<span style="color:'+(TC[type]||'#888')+';font-weight:800;text-transform:uppercase">'+type+'</span> \u00b7 '+cat+' \u00b7 '+genPower+' BP';
-  const lv=Math.max(1,Math.min(100,parseInt(document.getElementById('calc-level').value)||50));
-  const offName=cat==='physical'?'attack':'special-attack';
-  const defName=cat==='physical'?'defense':'special-defense';
   const crit=document.getElementById('calc-crit').checked;
-  let aStage=calcStage(document.getElementById('calc-atk-stage').value);
-  let dStage=calcStage(document.getElementById('calc-def-stage').value);
-  const _st=calcLocalCritStages(aStage,dStage,crit); aStage=_st.atk; dStage=_st.def;
-  let atkStat=Math.floor(calcStatVal(calcBase(a,offName),lv,parseInt(document.getElementById('calc-atk-ev').value),parseFloat(document.getElementById('calc-atk-nat').value))*aStage);
-  let defStat=Math.floor(calcStatVal(calcBase(d,defName),lv,parseInt(document.getElementById('calc-def-ev').value),parseFloat(document.getElementById('calc-def-nat').value))*dStage);
-
-  const hp=calcHPStat(calcBase(d,'hp'),lv,parseInt(document.getElementById('calc-def-hpev').value));
+  const val=id=>document.getElementById(id).value;
+  /* Read the form, then resolve. Nothing below this line does arithmetic on a DOM value. */
+  const names=calcLocalStatNames(cat);
+  const bs=calcLocalBattleStats({
+    level:val('calc-level'), cat:cat, crit:crit,
+    atkStage:val('calc-atk-stage'), defStage:val('calc-def-stage'),
+    atkBase:calcBase(a,names.off), atkEv:parseInt(val('calc-atk-ev')), atkNat:parseFloat(val('calc-atk-nat')),
+    defBase:calcBase(d,names.def), defEv:parseInt(val('calc-def-ev')), defNat:parseFloat(val('calc-def-nat')),
+    hpBase:calcBase(d,'hp'), hpEv:parseInt(val('calc-def-hpev')),
+  });
+  const lv=bs.lv, atkStat=bs.atk, defStat=bs.def, hp=bs.hp;
   const chart=getChartForGen(getDataGenNum()).chart;
   const effMult=calcLocalEffectiveness(d.types,type,chart);
   const stab=calcLocalStab(a.types,type);
@@ -11138,14 +11212,14 @@ async function calcRunLocal(){
   const rolls=calcLocalRolls({lv:lv,power:genPower,atk:atkStat,def:defStat,gen:getDataGenNum(),
     spread:spread,weather:wMult,crit:crit,stab:stab,eff:effMult,burn:burn,screen:screen,item:itemMult});
   const mn=rolls[0],mx=rolls[15];
-  const mnP=mn/hp*100,mxP=mx/hp*100;
+  const mnP=calcLocalPercent(mn,hp),mxP=calcLocalPercent(mx,hp);
   const ko=calcLocalKO(rolls,hp,effMult);
   const effTxt=effMult===1?'':' \u00b7 '+(effMult>1?'<span style="color:#78C850">'+effMult+'\u00d7 super effective</span>':effMult===0?'<span style="color:#F85888">immune</span>':'<span style="color:#F85888">'+effMult+'\u00d7 resisted</span>');
   res.style.display='';
   res.innerHTML='<div class="calc-title" style="color:#78C850">Result</div>'
     +'<div style="font-size:15px;font-weight:800;color:var(--text);text-transform:capitalize">'+pokeName(a.name)+' '+md.name.replace(/-/g,' ')+' vs. '+pokeName(d.name)+'</div>'
     +'<div style="font-size:13px;color:var(--text2);margin-top:6px">'+mn+' \u2013 '+mx+' damage ('+mnP.toFixed(1)+'% \u2013 '+mxP.toFixed(1)+'% of '+hp+' HP)'+effTxt+'</div>'
-    +'<div class="calc-bar"><div style="width:'+Math.min(100,mxP).toFixed(1)+'%;background:linear-gradient(90deg,#78C850,#F8D030 60%,#F85888)"></div></div>'
+    +'<div class="calc-bar"><div style="width:'+calcLocalBarWidth(mxP).toFixed(1)+'%;background:linear-gradient(90deg,#78C850,#F8D030 60%,#F85888)"></div></div>'
     +'<div style="font-size:14px;font-weight:800;color:#F8A060">'+ko+'</div>'
     +'<div style="font-size:10px;color:#6a6a7a;margin-top:6px">Rolls: '+rolls.join(', ')+'</div>';
 }
