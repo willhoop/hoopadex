@@ -420,3 +420,17 @@ Not "too small to bother with" — the reason is that two sources for one fact i
 project spends most of its effort avoiding. If Showdown's coverage is ever found wanting for a
 specific move, this is where to look first.
 
+## The damage engine is unverified with items and abilities
+
+`tests/test-calc-engine.js` checks the formula with an inert ability and no item on both sides, on
+purpose: a species' real ability changes the damage — Thick Fat, Huge Power, Levitate — and mixing
+that in would have made the cross-check a test of ability implementations rather than of the formula.
+
+So Choice Band, Life Orb, Huge Power, Thick Fat and the rest are unverified in the engine. They are
+also exactly what a competitive player brings, which makes this the most valuable remaining gap in
+the calculator.
+
+Closing it needs a different oracle. Hand-working a damage figure with an item and an ability is
+doable but slow; the practical route is probably a published set of calculations from the Showdown
+calculator's own test suite, if one can be extracted.
+

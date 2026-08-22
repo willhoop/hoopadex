@@ -49,14 +49,6 @@ const MUTATIONS = [
     'const GEN1_SPECIAL={1:65,2:80,', 'const GEN1_SPECIAL={1:65,2:81,', 1, 'test-gen1-special.js'],
   ['M4', 'ITEM_INTRO_GEN: Absolite is Gen VI, claim Gen V',
     "'absolite':6,", "'absolite':5,", 1, 'test-generation-tables.js'],
-  ['M5', 'Damage: critical hits multiply by 2.5x instead of 1.5x',
-    'function calcLocalCritMult(gen){return gen>=6?1.5:2}',
-    'function calcLocalCritMult(gen){return gen>=6?2.5:2}', 1, 'test-damage-formula.js'],
-  ['M6', 'Damage: STAB becomes 1.9x instead of 1.5x',
-    'return (attackerTypes||[]).some(function(t){return t.type.name===moveType})?1.5:1;',
-    'return (attackerTypes||[]).some(function(t){return t.type.name===moveType})?1.9:1;', 1, 'test-damage-formula.js'],
-  ['M7', 'Damage: drop the 0.75 spread-move reduction',
-    'dm=pokeRound(base*o.spread);', 'dm=pokeRound(base*1);', 1, 'test-damage-formula.js'],
   ['M8', 'Type chart: Normal no longer resists through Steel',
     'const CM={normal:{rock:.5,ghost:0,steel:.5}', 'const CM={normal:{rock:.5,ghost:0}', 1, 'test-coverage.js'],
   ['M9', 'Champions: drop Venusaur from the Regulation M-A roster',
@@ -70,10 +62,6 @@ const MUTATIONS = [
   /* Added 2026-08-03 by the engineering review. The eleven above covered 9 of the 27 suites;
      the other 18 had never been proven to fail. Mutating them one at a time found two real
      holes (M12 and M13 below) and confirmed the rest. */
-  ['M12', 'Damage: dual-type effectiveness takes the MAX instead of the product',
-    '(defenderTypes||[]).forEach(function(t){m*=eff(moveType,t.type.name,chart)});',
-    '(defenderTypes||[]).forEach(function(t){m=Math.max(m,eff(moveType,t.type.name,chart))});',
-    1, 'test-damage-formula.js'],
   ['M13', "Routing: restoreHash goes back to its own copy of the '#' strip",
     '  const h=hashPath();', "  const h=(location.hash||'').replace(/^#/,'');", 1, 'test-hash-routing.js'],
   ['M14', 'Bulk: the HP constant changes from 75 to 70',
@@ -127,16 +115,6 @@ const MUTATIONS = [
   ['M31', 'Typing list: genMax is re-applied to the forme id, which rejects every forme',
     '      return _tcRoster.has(id);', '      return id<=genMax&&_tcRoster.has(id);',
     1, 'test-dual-typing.js'],
-  ['M32', 'Damage: burn halves special attacks too',
-    "burn:(o.burn&&o.cat==='physical')?0.5:1,", 'burn:o.burn?0.5:1,', 1, 'test-damage-formula.js'],
-  ['M33', 'Damage: a critical hit stops ignoring screens',
-    'screen:(o.screen&&!o.crit)?screenMult:1', 'screen:o.screen?screenMult:1', 1, 'test-damage-formula.js'],
-  ['M34', "Damage: a crit clamps the wrong side of the defender's stage",
-    'return{atk:aStage<1?1:aStage, def:dStage>1?1:dStage};',
-    'return{atk:aStage<1?1:aStage, def:dStage<1?1:dStage};', 1, 'test-damage-formula.js'],
-  ['M35', 'Damage: the KO verdict reports a guaranteed 2HKO from the HIGH roll',
-    'if(mn*2>=hp)return\'Guaranteed 2HKO\';', 'if(mx*2>=hp)return\'Guaranteed 2HKO\';',
-    1, 'test-damage-formula.js'],
   ['M36', 'Learnsets: a failed load is cached again, so Champions legality can never recover',
     '      _champLSLoading=null;   // let the next call try again instead of replaying the failure',
     '      /* cache the failure */', 1, 'test-champions-roster.js'],
@@ -250,16 +228,17 @@ const MUTATIONS = [
   ['M65', 'Move power stops resolving per generation, so Gen I is shown Gen IX numbers',
     "  const v=movePastField(md,'power',g);\n  return v===undefined?(md&&md.power):v;",
     '  return md&&md.power;', 1, 'test-move-stats.js'],
-  ['M66', 'The past-value cutoff resolves downward and hands a generation the wrong number',
-    '  const keys=Object.keys(md.past).map(Number).filter(function(n){return n>=genNum}).sort(function(a,b){return a-b});',
-    '  const keys=Object.keys(md.past).map(Number).filter(function(n){return n<=genNum}).sort(function(a,b){return b-a});',
+  /* Re-anchored in 5.37: the cutoff moved into the shared pastValueForGen. The mutation now takes
+     the LARGEST matching entry rather than the smallest, which is exactly what the old
+     getMoveTypeForGen did — its loop kept overwriting and ended on the highest match, so a move
+     with two recorded type changes resolved to the wrong one of them. */
+  ['M66', 'The past-value cutoff takes the highest matching entry instead of the lowest',
+    '.filter(function(n){return n>genNum}).sort(function(a,b){return a-b});',
+    '.filter(function(n){return n>genNum}).sort(function(a,b){return b-a});',
     1, 'test-move-stats.js'],
   ['M67', 'A null past value is written through and blanks a real accuracy',
     '    if(pv.accuracy!==null&&pv.accuracy!==undefined)rec.accuracy=pv.accuracy;',
     '    rec.accuracy=pv.accuracy;', 1, 'test-move-stats.js'],
-  ['M68', 'The damage calculator goes back to modern power in every generation',
-    'calcLocalRolls({lv:lv,power:genPower,', 'calcLocalRolls({lv:lv,power:md.power,',
-    1, 'test-move-stats.js'],
   ['M69', 'Gengar loses Levitate, so Gen IV is told Earthquake hits it',
     '"gengar":{"id":94,"gens":{"6":[{"slot":1,"hidden":false,"ability":"levitate"}]}}',
     '"gengar":{"id":94,"gens":{}}', 1, 'test-past-abilities.js'],
@@ -291,48 +270,23 @@ const MUTATIONS = [
   ['M77', 'The reload keeps the previous generation\'s game in the address',
     "  if(typeof locVersion!=='undefined')locVersion='';", '  // kept', 1, 'test-generation-tables.js'],
 
-  /* The arithmetic that left the DOM handler in 5.35. The review predicted a fourth untested input
-     while any of this stayed inline, and was right — `power` was it. These are the pieces that were
-     still inline after that, each mutated the way it would plausibly be got wrong. */
-  ['M78', 'The stat stage is applied before the floor instead of after',
-    '  return Math.floor(stat*stage);', '  return Math.floor(stat)*stage;', 1, 'test-damage-formula.js'],
-  ['M79', 'A physical move is resolved against the special stats',
-    "    ? {off:'attack',def:'defense'}", "    ? {off:'special-attack',def:'special-defense'}",
-    1, 'test-damage-formula.js'],
-  ['M80', 'The percentage loses its divide-by-zero guard and reports Infinity% as damage',
-    '  return hp>0?damage/hp*100:0;', '  return damage/hp*100;', 1, 'test-damage-formula.js'],
-  ['M81', 'The damage bar stops being clamped and renders wider than the bar',
-    '  return Math.max(0,Math.min(100,pct||0));', '  return pct||0;', 1, 'test-damage-formula.js'],
-  ['M82', 'The level box stops being clamped, so a typed 9999 is used as the level',
-    '  return Math.max(1,Math.min(100,parseInt(v)||50));', '  return parseInt(v)||50;',
-    1, 'test-damage-formula.js'],
-  ['M83', 'Critical hits stop ignoring the attacker\'s drops and the defender\'s boosts',
-    '  const st=calcLocalCritStages(calcStage(o.atkStage),calcStage(o.defStage),o.crit);',
-    '  const st={atk:calcStage(o.atkStage),def:calcStage(o.defStage)};', 1, 'test-damage-formula.js'],
-  /* The one that guards the structure rather than a number: arithmetic creeping back into the
-     handler is how the previous four untested inputs got there. */
-  ['M84', 'Arithmetic reappears in calcRunLocal',
-    '  const mnP=calcLocalPercent(mn,hp),mxP=calcLocalPercent(mx,hp);',
-    '  const mnP=mn/hp*100,mxP=mx/hp*100;', 1, 'test-damage-formula.js'],
-
-  /* The two engines must agree. Each of these is one of the three defects the cross-check found on
-     its first run, restored — if the suite stops catching them, it has stopped being a cross-check
-     and become a second copy of whatever the local engine currently does. */
-  ['M85', 'The spread reduction is applied to single-target moves again',
-    "    spread:(o.spread&&multi)?0.75:1,", '    spread:o.spread?0.75:1,',
-    1, 'test-calc-engine-agreement.js'],
-  ['M86', 'Screens are halved in doubles instead of 2732/4096',
-    '  const screenMult=o.spread?2732/4096:0.5;', '  const screenMult=0.5;',
-    1, 'test-calc-engine-agreement.js'],
-  ['M87', 'The spread step floors instead of rounding as the games do',
-    '    let dm=pokeRound(base*o.spread);', '    let dm=Math.floor(base*o.spread);',
-    1, 'test-calc-engine-agreement.js'],
-  ['M88', 'The screen step floors instead of rounding',
-    '    dm=pokeRound(dm*o.screen);', '    dm=Math.floor(dm*o.screen);',
-    1, 'test-calc-engine-agreement.js'],
-  ['M89', 'pokeRound rounds a half UP rather than down',
-    '  return (x%1>0.5)?Math.ceil(x):Math.floor(x);', '  return (x%1>=0.5)?Math.ceil(x):Math.floor(x);',
-    1, 'test-calc-engine-agreement.js'],
+  /* The damage engine, after the local fallback was deleted in 5.37. Every mutation that used to
+     break our own implementation of the formula went with it; what is left guards the ONE engine
+     and the plumbing around it. */
+  ['M78', 'The engine is built for a hardcoded generation, so the calculator ignores the selector',
+    'const gen=SmogonCalc.Generations.get(want);', 'const gen=SmogonCalc.Generations.get(9);',
+    1, 'test-calc-engine.js'],
+  ['M79', 'The engine cache stops being keyed by generation, so it never rebuilds',
+    '  if(CalcMaps&&CalcMapsGen===want)return;', '  if(CalcMaps)return;', 1, 'test-calc-engine.js'],
+  ['M80', 'A missing engine is guessed around instead of reported',
+    "  if(typeof SmogonCalc==='undefined'){calcShowEngineMissing();return null}", '  // no guard',
+    1, 'test-calc-engine.js'],
+  /* The past_values convention is the opposite of every other table here, and getting it wrong is
+     invisible: it shifts a move's whole history by exactly one generation. */
+  ['M81', 'past_values resolves as "this generation and below", shifting every move by one',
+    '  const keys=Object.keys(byGen).map(Number).filter(function(n){return n>genNum}).sort(function(a,b){return a-b});',
+    '  const keys=Object.keys(byGen).map(Number).filter(function(n){return n>=genNum}).sort(function(a,b){return a-b});',
+    1, 'test-move-stats.js'],
 ];
 
 function runSuite(suite, srcPath) {

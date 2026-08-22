@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.36**
+**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.37**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.29 the set is **89 mutations, all killed**, against 34 suites and 1,273 assertions. Two of
+As of v5.29 the set is **72 mutations, all killed**, against 33 suites and 1,182 assertions. Two of
 the twelve added since have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -550,6 +550,49 @@ afternoon; what it bought was the first evidence that the number on the screen i
 
 The engine's version is still unknown, and the vendor pin file continues to say so plainly. Verifying
 behaviour and establishing provenance are different problems, and only one of them is solved.
+
+---
+
+### 5.6 Deleting the second implementation
+
+Section 5.5 described cross-checking two damage engines and finding three defects in the local one.
+It reported agreement across 1,728 cases. That figure was true and the scope behind it was too
+narrow: every case ran in Generation IX. Extending the same comparison downward gave 18 of 45 in
+Generation III, 40 of 65 in Generation IV, and 59 of 65 in Generation V.
+
+The damage formula's rounding and operation order changed before Generation VI. The local engine
+implemented one formula; the games have had two. Which number a reader saw depended on whether a
+480 KB sibling file had finished loading.
+
+The engine was deleted rather than repaired. A dex whose premise is that answers depend on the era
+cannot maintain a second implementation of an era-dependent formula as a side project, and the
+alternative to a fallback is not "no calculator" — it is a calculator that states it cannot run,
+which is what section 1 of this paper argues for in every other context.
+
+Two further findings came out of the deletion, and both are more interesting than the deletion:
+
+**The calculator had never been generation-aware.** It built its lookup from a hardcoded
+`Generations.get(9)`, so it computed in Generation IX regardless of the selector. This survived
+because the *fallback* was generation-aware — the two engines disagreed about which generation they
+were even in, and the fallback is the one that had been audited three times. **A redundant component
+can conceal a defect in the one it is redundant with**, and the concealment is strongest when the
+redundant copy is the better-tested of the two.
+
+**A cutoff convention was read backwards.** PokéAPI's `past_values` records the value a move had
+*before* the version group it is filed against; every other historical table this project consumes —
+Showdown's mods, its own generated tables — uses "this generation and below". The two are off by
+exactly one generation, and the wrong one had been applied to move types for a long time and was
+copied into base power, accuracy and PP when those were added. Bite read Normal in Generation II,
+where it is Dark. Wing Attack read 35 base power in Generation II, where it is 60.
+
+Nothing about that is visible. Both values are plausible, both render identically, and the move in
+question is correct in the generation most readers use. It was found by asking a second source that
+had no reason to agree — the same engine that had just been established as trustworthy, being used
+as an oracle for something it was not built to check.
+
+The lesson is not "keep two implementations". It is that **the value of a second source is in
+disagreement, not in redundancy**: this project deleted its second damage engine and kept the
+comparison, because what was worth having was never the fallback.
 
 ---
 

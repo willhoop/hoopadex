@@ -42,7 +42,7 @@ if (!vgLine || start < 0 || end < 0) throw new Error('could not locate the move-
 const app = (0, eval)(
   vgLine + '\nvar GEN=9; function getDataGenNum(){return GEN}\n' +
   lines.slice(start, end).join('\n') +
-  '\n;({movePastValues,makeMoveRecord,getMovePowerForGen,getMoveAccForGen,getMovePPForGen,' +
+  '\n;({movePastValues,makeMoveRecord,pastValueForGen,getMovePowerForGen,getMoveAccForGen,getMovePPForGen,' +
   'setGen:function(g){GEN=g}})'
 );
 const { movePastValues, makeMoveRecord, getMovePowerForGen, getMoveAccForGen, getMovePPForGen, setGen } = app;
@@ -62,17 +62,27 @@ const JUMP_KICK = {
 const jk = makeMoveRecord(JUMP_KICK);
 
 check(jk.power === 100 && jk.pp === 10, 'the modern values stay as the baseline', jk.power + '/' + jk.pp);
-check(getMovePowerForGen(jk, 1) === 70, 'Gen I Jump Kick is 70 base power, not 100', getMovePowerForGen(jk, 1));
-check(getMovePowerForGen(jk, 4) === 70, 'and so is Gen IV — one cutoff covers both', getMovePowerForGen(jk, 4));
-check(getMovePowerForGen(jk, 5) === 85, 'Gen V is 85', getMovePowerForGen(jk, 5));
-check(getMovePowerForGen(jk, 6) === 100, 'Gen VI takes the modern value', getMovePowerForGen(jk, 6));
-check(getMovePowerForGen(jk, 9) === 100, 'and so does Gen IX');
+/* THE CONVENTION, and it is the opposite of every other table in this project. A past_values entry
+   is the value the move had BEFORE the version group it is filed against — so `diamond-pearl: 70`
+   means 70 in Generations I to III, and Generation IV is already the next value up.
+
+   These expectations were originally written the other way round and passed, because the code had
+   the same mistake. They were corrected against the Smogon engine, which carries the per-generation
+   base powers directly: Jump Kick 70/70/70/85/100 for Generations I to V. */
+check(getMovePowerForGen(jk, 1) === 70, 'Gen I Jump Kick is 70 base power', getMovePowerForGen(jk, 1));
+check(getMovePowerForGen(jk, 3) === 70, 'and Gen III is still 70', getMovePowerForGen(jk, 3));
+check(getMovePowerForGen(jk, 4) === 85,
+  'but Gen IV is 85 — the diamond-pearl entry describes the generations BELOW it',
+  getMovePowerForGen(jk, 4));
+check(getMovePowerForGen(jk, 5) === 100, 'and Gen V is already the modern 100', getMovePowerForGen(jk, 5));
+check(getMovePowerForGen(jk, 9) === 100, 'as is Gen IX');
 
 /* PP was recorded on the Gen IV row only. Generation V has no pp of its own, so it must fall
    through to the next recorded value ABOVE it — not to the Gen IV one below, and not to null. */
-check(getMovePPForGen(jk, 4) === 25, 'PP reads the Gen IV entry where one exists', getMovePPForGen(jk, 4));
-check(getMovePPForGen(jk, 5) === 10,
-  'Gen V has no PP entry of its own and takes the modern value, not the older one', getMovePPForGen(jk, 5));
+check(getMovePPForGen(jk, 3) === 25, 'PP reads the diamond-pearl entry in the generations below it',
+  getMovePPForGen(jk, 3));
+check(getMovePPForGen(jk, 4) === 10,
+  'and Gen IV, having no PP entry above it, takes the modern value', getMovePPForGen(jk, 4));
 /* A null in past_values means "unchanged at this point", not "zero". Writing it through would blank
    a real number, and a blank accuracy renders as an em dash — a move that never misses. */
 check(getMoveAccForGen(jk, 1) === 95, 'a null past value does not blank the real one', getMoveAccForGen(jk, 1));
@@ -80,6 +90,16 @@ check(getMoveAccForGen(jk, 1) === 95, 'a null past value does not blank the real
 // --- the extraction itself ----------------------------------------------------------------------
 const past = movePastValues(JUMP_KICK);
 check(past[4] && past[4].power === 70, 'a version group is mapped to its generation', JSON.stringify(past));
+/* Bite is the clearest case of the convention, and the one that proves the old code was wrong: it
+   is filed as gold-silver = normal, and Bite was Normal in Generation I ONLY. */
+const biteT = makeMoveRecord({ name: 'bite', power: 60, accuracy: 100, pp: 25, type: { name: 'dark' },
+  damage_class: { name: 'physical' }, generation: { name: 'generation-i' },
+  effect_entries: [], flavor_text_entries: [],
+  past_values: [{ version_group: { name: 'gold-silver' }, type: { name: 'normal' }, power: null, accuracy: null, pp: null }] });
+check(app.pastValueForGen(biteT.pastTypes, 1) === 'normal', 'Bite is Normal in Gen I');
+check(app.pastValueForGen(biteT.pastTypes, 2) === undefined,
+  'and Dark from Gen II — the gold-silver entry does NOT cover Generation II',
+  app.pastValueForGen(biteT.pastTypes, 2));
 check(!('accuracy' in (past[4] || {})), 'and a null field is not recorded at all');
 check(Object.keys(movePastValues({ past_values: [{ version_group: { name: 'not-a-game' }, power: 1 }] })).length === 0,
   'an unmapped version group is ignored rather than filed under generation undefined');
@@ -111,13 +131,16 @@ const emptyFromApi = lines.filter(l => /pastTypes:\{\}/.test(l) && /d\.name/.tes
 check(emptyFromApi === 0,
   'no record built from API data hard-codes an empty type history', emptyFromApi + ' sites');
 
-// --- the calculator --------------------------------------------------------------------------------
-check(/const genPower=getMovePowerForGen\(md\);/.test(src),
-  'the damage calculator resolves power for the selected generation');
-check(/calcLocalRolls\(\{lv:lv,power:genPower,/.test(src),
-  'and feeds that number to the roll arithmetic');
-check(!/calcLocalRolls\(\{lv:lv,power:md\.power,/.test(src),
-  'the modern-power call site is gone', 'md.power is still passed to calcLocalRolls');
+// --- the calculator ---------------------------------------------------------------------------------
+/* These getters used to feed the local damage engine too. That engine was deleted in 5.37 — it
+   disagreed with the Smogon bundle in every generation below VI — so the calculator now resolves
+   base power inside the engine, from the generation it was constructed with. See
+   tests/test-calc-engine.js. What remains here is the DISPLAY path: the move tooltip, the moves
+   table and the search meta, which read these getters and have no engine to ask. */
+check(!/calcLocalRolls/.test(src),
+  'the local damage engine is gone, so nothing here feeds it', 'calcLocalRolls is still present');
+check(/getMovePowerForGen\(m\)/.test(src) || /getMovePowerForGen\(md\)/.test(src),
+  'the display sites still resolve power for the selected generation');
 
 // --- the getters follow the selection ---------------------------------------------------------------
 setGen(1);

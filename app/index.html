@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.36 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.37 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1464,8 +1464,6 @@ function makeMoveRecord(d){
     flavorEntries:d.flavor_text_entries||[],
     past:past,pastTypes:pastTypes,
     priority:d.priority||0,
-    // Needed by calcLocalModifiers: the spread reduction applies to multi-target moves only.
-    target:(d.target&&d.target.name)||'',
     introGen:gm?(roman[gm[1]]||9):1,
   };
 }
@@ -1476,14 +1474,33 @@ function makeMoveRecord(d){
    generation at or above the one asked for. Jump Kick has entries at Gen IV (70) and Gen V (85)
    against a current 100 — Gen III reads the Gen IV entry, Gen V reads its own, Gen VI takes the
    current value. */
-function movePastField(md,field,genNum){
-  if(!md||!md.past)return undefined;
-  const keys=Object.keys(md.past).map(Number).filter(function(n){return n>=genNum}).sort(function(a,b){return a-b});
+/* PokeAPI's past_values convention, and it is NOT the one every other table here uses.
+   An entry recorded against a version group is the value the move had BEFORE that version group —
+   in generations strictly below it. Bite is filed as `gold-silver = normal`, and Bite was Normal in
+   Generation I only; it has been Dark since Generation II.
+
+   This was implemented as "generation N and below", which is Showdown's mod convention and the one
+   PAST_STATS, MOVETEXT and PASTABIL all correctly use. Applied to past_values it is off by exactly
+   one generation, and it was wrong in two places: `getMoveTypeForGen` had shipped that way for a
+   long time, and 5.33 copied the same mistake into power, accuracy and PP. Bite read Normal in
+   Generation II; Wing Attack read 35 base power in Generation II, where it is 60.
+
+   Caught by cross-checking against the Smogon engine, which carries the per-generation values
+   directly — the argument for having a second source even when the first one looks unambiguous.
+
+   One helper, used by both, so the two cannot drift apart again. */
+function pastValueForGen(byGen,genNum,field){
+  if(!byGen)return undefined;
+  const keys=Object.keys(byGen).map(Number).filter(function(n){return n>genNum}).sort(function(a,b){return a-b});
   for(let i=0;i<keys.length;i++){
-    const v=md.past[keys[i]][field];
+    const rec=byGen[keys[i]];
+    const v=field?(rec&&rec[field]):rec;
     if(v!==undefined&&v!==null)return v;
   }
   return undefined;
+}
+function movePastField(md,field,genNum){
+  return md?pastValueForGen(md.past,genNum,field):undefined;
 }
 function getMovePowerForGen(md,genNum){
   const g=genNum===undefined?getDataGenNum():genNum;
@@ -1594,15 +1611,11 @@ function abilityHoldersForGen(abilityName,apiList,genNum){
 function getMoveTypeForGen(md){
   if(!md)return'normal';
   const genNum=getDataGenNum();
-  // Check past_values for type changes
-  if(md.pastTypes){
-    // Find the highest gen <= current that has a past type
-    let pastType=null;
-    for(const[g,t] of Object.entries(md.pastTypes)){
-      if(parseInt(g)>=genNum)pastType=t;
-    }
-    if(pastType)return pastType;
-  }
+  /* Same convention as every other past_value: the entry applies to generations strictly BELOW the
+     one it is filed against. This loop also took the HIGHEST matching entry rather than the lowest,
+     so a move with two type changes resolved to the wrong one of them. */
+  const pastType=pastValueForGen(md.pastTypes,genNum);
+  if(pastType)return pastType;
   // Fairy didn't exist before Gen 6 - revert to Normal
   if(genNum<6&&md.type==='fairy')return'normal';
   // Dark and Steel didn't exist before Gen 2 - revert
@@ -10717,10 +10730,21 @@ function calcStatVal(base,lv,ev,natMult){return Math.floor((Math.floor((2*base+3
 function calcHPStat(base,lv,ev){return Math.floor((2*base+31+Math.floor(ev/4))*lv/100)+lv+10}
 function calcStage(s){s=parseInt(s);return s>=0?(2+s)/2:2/(2-s)}
 let CalcMaps=null;
+/* Which generation CalcMaps was built for. It is cached, and before 5.37 it was cached against a
+   HARDCODED Generations.get(9) — so the damage calculator ran in Generation IX no matter what the
+   reader had selected, in an application whose entire premise is that the generation is an input to
+   every lookup. Champions is Generation IX and was unaffected; every classic generation was wrong.
+
+   It went unnoticed because the local fallback WAS generation-aware, so the two engines disagreed
+   about which generation they were even in — and the fallback is the one that got audited. */
+let CalcMapsGen=null;
 function calcFlat(s){return String(s).toLowerCase().replace(/[^a-z0-9]/g,'')}
 function calcEnsureMaps(){
-  if(CalcMaps||typeof SmogonCalc==='undefined')return;
-  const gen=SmogonCalc.Generations.get(9);
+  if(typeof SmogonCalc==='undefined')return;
+  const want=getDataGenNum();
+  if(CalcMaps&&CalcMapsGen===want)return;
+  const gen=SmogonCalc.Generations.get(want);
+  CalcMapsGen=want;
   CalcMaps={gen,species:{},moves:{},items:{},abilities:{},itemNames:[],abilNames:[]};
   for(const s of gen.species)CalcMaps.species[calcFlat(s.name)]=s.name;
   for(const mv of gen.moves)CalcMaps.moves[calcFlat(mv.name)]=mv.name;
@@ -10871,17 +10895,55 @@ function calcRevealResult(wasHidden){
   const r=res.getBoundingClientRect();
   if(r.top>window.innerHeight-80||r.bottom<0)res.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+/* One damage engine, not two.
+   Until 5.37 this fell back to a local implementation of the damage formula when the Smogon bundle
+   had not loaded. Cross-checking the two in 5.36 showed why that was a bad trade: the fallback
+   agreed with the engine exactly in Generations VI-IX and disagreed badly below that — 18 of 45
+   comparisons in Generation III, because the formula's rounding and operation order changed before
+   Generation VI and the fallback only implemented the modern one.
+
+   Which number a reader got depended on whether a 480 KB sibling file had loaded. Two engines that
+   disagree are worse than one engine plus an honest failure, and this project's own stated
+   principle is that a reference which is silently wrong is worse than one that declines to answer.
+   So the fallback is deleted rather than fixed: maintaining a second implementation of a formula
+   that differs by generation is a standing commitment nobody asked for.
+
+   When the engine is missing the calculator says so and stops. It does not guess. */
 async function calcRun(){
   const res=document.getElementById('calc-result');
   if(!res)return;
   const wasHidden=res.style.display==='none';
   const reveal=function(){calcRevealResult(wasHidden)};
-  if(typeof SmogonCalc!=='undefined'){
-    try{const r=await calcRunSmogon();reveal();return r}catch(e){console.warn('smogon calc failed, falling back',e)}
+  if(typeof SmogonCalc==='undefined'){calcShowEngineMissing();return null}
+  try{
+    const r=await calcRunSmogon();
+    reveal();
+    return r;
+  }catch(e){
+    console.warn('damage engine failed',e);
+    calcShowEngineMissing(e);
+    return null;
   }
-  const out=await calcRunLocal();
-  reveal();
-  return out;
+}
+/* An explicit failure, not a spinner and not a number. The reader is told what is missing, where it
+   should be, and given a way to retry — the same shape as the Items tab fix in 5.19, and for the
+   same reason: a component that fails silently presents a problem with the software as an answer
+   about the data. */
+function calcShowEngineMissing(err){
+  const res=document.getElementById('calc-result');
+  const info=document.getElementById('calc-move-info');
+  if(info)info.innerHTML='';
+  if(!res)return;
+  res.style.display='';
+  res.innerHTML='<div class="calc-title" style="color:#F85888">Damage engine not loaded</div>'
+    +'<div style="font-size:13px;color:var(--text2);margin-top:6px;line-height:1.5">'
+    +'The calculator needs <code>calc-engine.js</code>, which sits next to <code>index.html</code>. '
+    +'If you have copied the page on its own, copy that file across too. Everything else on this '
+    +'page works without it.</div>'
+    +(err?'<div style="font-size:10px;color:var(--text5);margin-top:6px">'+String(err.message||err).slice(0,120)+'</div>':'')
+    +'<div style="margin-top:10px"><button onclick="location.reload()" style="padding:5px 12px;'
+    +'border-radius:8px;border:1px solid rgba(104,144,240,0.3);background:rgba(104,144,240,0.08);'
+    +'color:#6890F0;font-size:12px;font-weight:700;cursor:pointer">Reload</button></div>';
 }
 // moveOverride + collect let the same setup serve the four-move view: with collect set, this
 // returns a result row instead of writing to the DOM, so there is one implementation of the
@@ -10996,260 +11058,6 @@ async function calcRunSmogon(moveOverride,collect){
     +'<div style="font-size:14px;font-weight:700;color:var(--text)">'+descTxt+'</div>'
     +'<div class="calc-bar"><div style="width:'+Math.min(100,mxP).toFixed(1)+'%;background:linear-gradient(90deg,#78C850,#F8D030 60%,#F85888)"></div></div>'
     +'<div style="font-size:13px;color:var(--text2)">'+mn+' \u2013 '+mx+' damage \u00b7 '+mnP.toFixed(1)+'% \u2013 '+mxP.toFixed(1)+'% of '+hp+' HP'+(ko?' \u00b7 <span style="font-weight:800;color:#F8A060">'+ko+'</span>':'')+'</div>'
-    +'<div style="font-size:10px;color:#6a6a7a;margin-top:6px">Rolls: '+rolls.join(', ')+'</div>';
-}
-/* The damage arithmetic of the local fallback calculator, as a pure function.
-   It was inline in calcRunLocal() until 2026-08-03. An architecture audit mutated it three ways —
-   critical hits at 2.5x, STAB at 1.9x, and the spread reduction removed entirely — and all 23
-   suites stayed green each time, because nothing in the battery ever computed a damage number.
-   Pulling it out of the DOM handler is what makes it testable; see tests/test-damage-formula.js.
-
-   This path matters more than "fallback" suggests. index.html is published as a portable single
-   file, and calc-engine.js is a separate 480 KB sibling. Open index.html on its own and SmogonCalc
-   is undefined, so THIS is the calculator the reader gets.
-
-   gen is honoured because a critical hit was a x2 multiplier in Generations II-V and became x1.5
-   in Generation VI. It was hardcoded to 1.5 for every generation until the same audit, which made
-   every pre-VI critical hit read 25% low in a dex whose stated purpose is generation accuracy. */
-function calcLocalCritMult(gen){return gen>=6?1.5:2}
-/* Same-type attack bonus. Extracted alongside the roll loop because the first attempt at this
-   refactor left the DERIVATION of stab in the DOM handler while moving only its APPLICATION into
-   the pure function — and the 1.9x mutation went straight back to passing. Moving a value into a
-   testable function is not the same as moving the decision that produces it. */
-function calcLocalStab(attackerTypes,moveType){
-  return (attackerTypes||[]).some(function(t){return t.type.name===moveType})?1.5:1;
-}
-/* Type effectiveness against a defender, which for two types is the PRODUCT of both lookups and
-   not the larger of them. Fighting into Ice/Rock is 4x, not 2x; Fire into Water/Dragon is 0.25x,
-   not 0.5x.
-
-   Extracted 2026-08-03 by an engineering review. It replaced this exact multiplication with
-   Math.max in the shipped file and every one of the 27 suites stayed green — including
-   test-dual-typing.js, which despite the name covers filtering the dex BY dual type
-   (dualTypeMatchesGen, filterTypesForGen) and never touches damage. A suite named after the thing
-   you broke is not the same as a suite that tests it.
-
-   This is the second time the same mistake was found in this function: the earlier audit pulled
-   the roll loop out but left both STAB and this computation behind in the DOM handler, where no
-   test could reach them. Extracting the arithmetic is not finished until every decision it depends
-   on comes with it. */
-function calcLocalEffectiveness(defenderTypes,moveType,chart){
-  let m=1;
-  (defenderTypes||[]).forEach(function(t){m*=eff(moveType,t.type.name,chart)});
-  return m;
-}
-/* The games do not floor every step. A chained modifier is applied as `pokeRound(value * m / 4096)`,
-   where pokeRound rounds a half DOWN — so 138.73 becomes 139 but 104.5 stays 104.
-
-   Flooring instead is invisible almost everywhere, because most modifiers are halves and doubles
-   where the two agree exactly. It shows up on the awkward ones: a screen in doubles is 2732/4096,
-   and flooring made this fallback report 138 where the Smogon engine reported 139. One point, at
-   the low roll only, which is exactly the size of error that never looks wrong and moves a KO
-   verdict at the boundary. */
-function pokeRound(x){
-  return (x%1>0.5)?Math.ceil(x):Math.floor(x);
-}
-function calcLocalRolls(o){
-  const critM=o.crit?calcLocalCritMult(o.gen):1;
-  const base=Math.floor(Math.floor(Math.floor(2*o.lv/5+2)*o.power*o.atk/o.def)/50)+2;
-  const rolls=[];
-  for(let r=85;r<=100;r++){
-    let dm=pokeRound(base*o.spread);
-    dm=Math.floor(dm*o.weather);
-    dm=Math.floor(dm*critM);
-    dm=Math.floor(dm*r/100);
-    dm=Math.floor(dm*o.stab);
-    dm=Math.floor(dm*o.eff);
-    dm=Math.floor(dm*o.burn);
-    dm=pokeRound(dm*o.screen);
-    dm=Math.floor(dm*o.item);
-    if(o.eff>0)dm=Math.max(1,dm);
-    rolls.push(dm);
-  }
-  return rolls;
-}
-/* The rest of the local calculator's decisions, moved out of the DOM handler.
-
-   An engineering review's first recommendation was to do this in ONE pass rather than carving out a
-   piece at a time: three separate audits each found one more untested input to this calculation -
-   the roll loop, then STAB, then dual-type effectiveness - because every fix left the remainder
-   inside an event handler where no test could reach it. This is the remainder.
-
-   calcLocalKO matters most to a reader. It is the sentence they act on: "Guaranteed 2HKO" is the
-   difference between bringing a Pokemon and leaving it at home, and until now it was a seven-branch
-   ladder with no test of any kind behind it. */
-function calcLocalModifiers(o){
-  let weather=1;
-  /* Only sun and rain change damage. Sand and snow change other things - Rock's Special Defence,
-     Ice's Defence - which this fallback does not model at all, and inventing a multiplier for them
-     would be worse than leaving them alone. */
-  if(o.weather==='sun'){if(o.type==='fire')weather=1.5;else if(o.type==='water')weather=0.5}
-  if(o.weather==='rain'){if(o.type==='water')weather=1.5;else if(o.type==='fire')weather=0.5}
-  /* SPREAD applies to the move, not to the format. The checkbox says "Spread" and sets Doubles for
-     the Smogon engine, which reduces only moves that actually hit more than one target; this
-     fallback applied 0.75 to everything. Cross-checking the two engines in 5.36 caught it: with the
-     box ticked, Body Slam read 208-246 from Smogon and 156-184 here. Body Slam hits one Pokemon and
-     is never reduced. The two engines disagreeing inside one app is worse than either being wrong.
-
-     PokeAPI names the target, and only the genuinely multi-target ones are reduced. An unknown
-     target does NOT get the reduction: a missing field should not quietly cut a damage number by a
-     quarter. */
-  const multi=o.target==='all-opponents'||o.target==='all-other-pokemon'||o.target==='all-pokemon';
-
-  /* SCREENS are halved in singles and reduced to 2732/4096 in doubles — measured against the
-     Smogon engine at 0.6682, not the 0.5 this used unconditionally. With a screen up in doubles the
-     fallback was under-reporting damage by a quarter. */
-  const screenMult=o.spread?2732/4096:0.5;
-  return{
-    weather:weather,
-    spread:(o.spread&&multi)?0.75:1,
-    burn:(o.burn&&o.cat==='physical')?0.5:1,   // burn only ever halves a PHYSICAL attack
-    screen:(o.screen&&!o.crit)?screenMult:1    // a critical hit ignores screens - that is the point
-  };
-}
-/* Stat stages under a critical hit: it ignores the attacker's DROPS and the defender's BOOSTS, and
-   keeps the attacker's boosts and the defender's drops. Clamping the wrong side of that is an easy
-   mistake and makes crits quietly weaker than they are. */
-function calcLocalCritStages(aStage,dStage,crit){
-  if(!crit)return{atk:aStage,def:dStage};
-  return{atk:aStage<1?1:aStage, def:dStage>1?1:dStage};
-}
-function calcLocalKO(rolls,hp,effMult){
-  const mn=rolls[0], mx=rolls[rolls.length-1];
-  if(effMult===0)return'Immune — no damage';
-  if(mn>=hp)return'Guaranteed OHKO';
-  if(mx>=hp)return(rolls.filter(function(x){return x>=hp}).length/rolls.length*100).toFixed(1)+'% chance to OHKO';
-  if(mn*2>=hp)return'Guaranteed 2HKO';
-  if(mx*2>=hp)return'Possible 2HKO';
-  if(mn*3>=hp)return'Guaranteed 3HKO';
-  if(mx*3>=hp)return'Possible 3HKO';
-  return Math.ceil(hp/mx)+'–'+Math.ceil(hp/mn)+'HKO';
-}
-/* ── The last arithmetic to leave the DOM handler ───────────────────────────────────────────────
-   The 2026-08-03 engineering review made one structural demand and one prediction with it:
-
-     "Move the whole calculation to one pure function... Until that happens, assume there is a
-      fourth input nobody has tested."
-
-   Three audits had each found one more untested input to the same computation — the roll
-   arithmetic, then STAB, then dual-type effectiveness — because the only way to test any of it was
-   to carve pieces out one at a time, and every carve left the rest untested and looking tested.
-
-   The prediction came true in 5.33. The fourth input was `power`: the handler read `md.power`, the
-   modern value, and fed Generation IX numbers into a calculator available in every generation.
-   Wing Attack at 60 instead of 35.
-
-   What was still inline after that is below — the level clamp, the stat-stage multiplier, the stat
-   names, and the percentage of HP. All four are now pure, so `calcRunLocal` reads the form and
-   renders, and no part of this computation can only be reached through a DOM event.
-
-   Scope: this is the LOCAL fallback engine. The Smogon path builds `new M.Move(gen, ...)` and gets
-   its numbers from the engine, which resolves the generation itself. */
-
-/* Level as the form gives it. The `||50` is deliberate and is being PINNED rather than tidied: an
-   empty box means "use the default", and it happens to mean that for a typed 0 as well, because 0
-   is falsy — so typing 0 shows 50 rather than the clamped 1. That is the shipped behaviour and the
-   test asserts it, which makes it a decision on record instead of an accident nobody noticed. */
-function calcLocalLevel(v){
-  return Math.max(1,Math.min(100,parseInt(v)||50));
-}
-
-/* A stat stage multiplies the FINAL stat, and the floor comes after the multiply. The other order
-   is a rounding difference of at most one point — exactly the kind of error that never looks wrong
-   on screen and moves a KO verdict at the boundary. */
-function calcLocalApplyStage(stat,stage){
-  return Math.floor(stat*stage);
-}
-
-/* Which stats are used follows the MOVE's category, not the attacker's. */
-function calcLocalStatNames(cat){
-  return cat==='physical'
-    ? {off:'attack',def:'defense'}
-    : {off:'special-attack',def:'special-defense'};
-}
-
-/* Damage as a percentage of the defender's HP. Guarded because a defender with no HP is a
-   divide-by-zero that renders as "Infinity% of 0 HP" rather than as an error. */
-function calcLocalPercent(damage,hp){
-  return hp>0?damage/hp*100:0;
-}
-
-/* The damage bar cannot be wider than the bar. Presentation rather than mechanics, but extracting
-   it means the claim "no arithmetic remains in the handler" is true without an asterisk. */
-function calcLocalBarWidth(pct){
-  return Math.max(0,Math.min(100,pct||0));
-}
-
-/* Everything the roll arithmetic needs, from plain values. No DOM and no globals: the caller reads
-   the form, this resolves the battle. */
-function calcLocalBattleStats(o){
-  const lv=calcLocalLevel(o.level);
-  const names=calcLocalStatNames(o.cat);
-  const st=calcLocalCritStages(calcStage(o.atkStage),calcStage(o.defStage),o.crit);
-  return {
-    lv:lv,
-    offName:names.off,
-    defName:names.def,
-    atkStage:st.atk,
-    defStage:st.def,
-    atk:calcLocalApplyStage(calcStatVal(o.atkBase,lv,o.atkEv,o.atkNat),st.atk),
-    def:calcLocalApplyStage(calcStatVal(o.defBase,lv,o.defEv,o.defNat),st.def),
-    hp:calcHPStat(o.hpBase,lv,o.hpEv),
-  };
-}
-
-async function calcRunLocal(){
-  const res=document.getElementById('calc-result');
-  if(!res)return;
-  const a=calcSel.atk?dc[calcSel.atk]:null,d=calcSel.def?dc[calcSel.def]:null;
-  const mvRaw=normalizeMoveName(document.getElementById('calc-move').value.toLowerCase().trim().replace(/ /g,'-'));
-  const info=document.getElementById('calc-move-info');
-  if(!a||!d||!mvRaw){res.style.display='none';return}
-  if(isChampionsMode&&!champHasMove(mvRaw)){info.innerHTML='<span style="color:#F85888">Not useable in Pok\u00e9mon Champions</span>';res.style.display='none';return}
-  if(!moveCache[mvRaw])await fetchTMMoveDetail(mvRaw);
-  const md=moveCache[mvRaw];
-  if(!md){info.textContent='Move not found';res.style.display='none';return}
-  const type=getMoveTypeForGen(md),cat=getMoveCatForGen(md);
-  /* Generation-correct power, because this is a CALCULATOR. Reading md.power fed Generation IX
-     numbers into every generation: Wing Attack at 60 instead of 35, Jump Kick at 100 instead of
-     70. A wrong label is bad; a wrong number out of something called a calculator is worse. */
-  const genPower=getMovePowerForGen(md);
-  if(cat==='status'||!genPower){info.innerHTML=md.name.replace(/-/g,' ')+' \u2014 status move / variable power, not supported';res.style.display='none';return}
-  info.innerHTML='<span style="color:'+(TC[type]||'#888')+';font-weight:800;text-transform:uppercase">'+type+'</span> \u00b7 '+cat+' \u00b7 '+genPower+' BP';
-  const crit=document.getElementById('calc-crit').checked;
-  const val=id=>document.getElementById(id).value;
-  /* Read the form, then resolve. Nothing below this line does arithmetic on a DOM value. */
-  const names=calcLocalStatNames(cat);
-  const bs=calcLocalBattleStats({
-    level:val('calc-level'), cat:cat, crit:crit,
-    atkStage:val('calc-atk-stage'), defStage:val('calc-def-stage'),
-    atkBase:calcBase(a,names.off), atkEv:parseInt(val('calc-atk-ev')), atkNat:parseFloat(val('calc-atk-nat')),
-    defBase:calcBase(d,names.def), defEv:parseInt(val('calc-def-ev')), defNat:parseFloat(val('calc-def-nat')),
-    hpBase:calcBase(d,'hp'), hpEv:parseInt(val('calc-def-hpev')),
-  });
-  const lv=bs.lv, atkStat=bs.atk, defStat=bs.def, hp=bs.hp;
-  const chart=getChartForGen(getDataGenNum()).chart;
-  const effMult=calcLocalEffectiveness(d.types,type,chart);
-  const stab=calcLocalStab(a.types,type);
-  let itemMult=1; // items handled by Smogon engine; local fallback ignores them
-  const mods=calcLocalModifiers({weather:document.getElementById('calc-weather').value,type:type,cat:cat,crit:crit,
-    target:md.target,
-    spread:document.getElementById('calc-spread').checked,
-    burn:document.getElementById('calc-burn').checked,
-    screen:document.getElementById('calc-screen').checked});
-  const wMult=mods.weather, spread=mods.spread, burn=mods.burn, screen=mods.screen;
-  const rolls=calcLocalRolls({lv:lv,power:genPower,atk:atkStat,def:defStat,gen:getDataGenNum(),
-    spread:spread,weather:wMult,crit:crit,stab:stab,eff:effMult,burn:burn,screen:screen,item:itemMult});
-  const mn=rolls[0],mx=rolls[15];
-  const mnP=calcLocalPercent(mn,hp),mxP=calcLocalPercent(mx,hp);
-  const ko=calcLocalKO(rolls,hp,effMult);
-  const effTxt=effMult===1?'':' \u00b7 '+(effMult>1?'<span style="color:#78C850">'+effMult+'\u00d7 super effective</span>':effMult===0?'<span style="color:#F85888">immune</span>':'<span style="color:#F85888">'+effMult+'\u00d7 resisted</span>');
-  res.style.display='';
-  res.innerHTML='<div class="calc-title" style="color:#78C850">Result</div>'
-    +'<div style="font-size:15px;font-weight:800;color:var(--text);text-transform:capitalize">'+pokeName(a.name)+' '+md.name.replace(/-/g,' ')+' vs. '+pokeName(d.name)+'</div>'
-    +'<div style="font-size:13px;color:var(--text2);margin-top:6px">'+mn+' \u2013 '+mx+' damage ('+mnP.toFixed(1)+'% \u2013 '+mxP.toFixed(1)+'% of '+hp+' HP)'+effTxt+'</div>'
-    +'<div class="calc-bar"><div style="width:'+calcLocalBarWidth(mxP).toFixed(1)+'%;background:linear-gradient(90deg,#78C850,#F8D030 60%,#F85888)"></div></div>'
-    +'<div style="font-size:14px;font-weight:800;color:#F8A060">'+ko+'</div>'
     +'<div style="font-size:10px;color:#6a6a7a;margin-top:6px">Rolls: '+rolls.join(', ')+'</div>';
 }
 </script>

@@ -12,6 +12,85 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.37] - 2026-08-21
+
+### Removed
+- **The local damage engine is gone. There is one calculator now, and it is the Smogon one.**
+  A product decision, and the right one. 5.36 verified the two engines agreed exactly — in
+  Generations VI to IX. Extending the same check downward:
+
+  | | agreed | | agreed |
+  |---|---|---|---|
+  | Gen 3 | **18/45** | Gen 6 | 65/65 |
+  | Gen 4 | **40/65** | Gen 7 | 65/65 |
+  | Gen 5 | **59/65** | Gen 8 | 65/65 |
+  | | | Gen 9 | 65/65 |
+
+  The damage formula's rounding and operation order changed before Generation VI and the fallback
+  only implemented the modern one. In Generation III it was wrong more often than it was right, and
+  which number a reader got depended on whether a 480 KB sibling file had loaded.
+
+  Maintaining a second implementation of a formula that differs by generation is a standing
+  commitment nobody asked for. **240 lines and ~15 KB deleted.** When the engine is missing the
+  calculator now says so, names the file, and offers a reload — it does not guess. That follows this
+  project's own stated principle: a reference which is silently wrong is worse than one which
+  declines to answer.
+
+### Fixed
+- **The calculator has never been generation-aware.** `calcEnsureMaps()` built its lookup from a
+  hardcoded `Generations.get(9)` and cached it, so the damage calculator ran in **Generation IX
+  whatever the selector said** — in an application whose entire premise is that the generation is an
+  input to every lookup. Champions is Gen IX and was unaffected; every classic generation was wrong.
+
+  It survived this long because the deleted fallback *was* generation-aware: the two engines
+  disagreed about which generation they were even in, and the fallback is the one that kept getting
+  audited. Deleting it is what surfaced this.
+
+- **PokéAPI's `past_values` convention is the opposite of every other table here, and it was read
+  wrong.** An entry filed against a version group is the value the move had **before** that version
+  group. It was implemented as "this generation and below" — which is Showdown's mod convention, and
+  correct for `PAST_STATS`, `MOVETEXT` and `PASTABIL`. Applied to `past_values` it is off by exactly
+  one generation:
+
+  | | showed | actually |
+  |---|---|---|
+  | Bite in Gen II | Normal | **Dark** |
+  | Wing Attack in Gen II | 35 BP | **60 BP** |
+  | Jump Kick in Gen IV | 70 BP | **85 BP** |
+  | Tackle in Gen V | 35 BP | **50 BP** |
+
+  This was wrong in two places. `getMoveTypeForGen` had shipped that way for a long time — and its
+  loop also took the *highest* matching entry rather than the lowest, so a move with two recorded
+  type changes resolved to the wrong one. **5.33 then copied the same misreading into power,
+  accuracy and PP.** Both now go through one `pastValueForGen()`, so they cannot drift apart again.
+
+  Caught by cross-checking against the Smogon engine, which carries per-generation values directly.
+  That is the argument for a second source even when the first looks unambiguous — and the reason to
+  keep the engine cross-check after deleting the engine it was checking.
+
+### Changed
+- `tests/test-damage-formula.js` and `tests/test-calc-engine-agreement.js` are replaced by
+  `tests/test-calc-engine.js`. The hand-worked verification survives and now points at the engine:
+  Snorlax Body Slam vs Blissey computed from the published formula to **208–246**, including the
+  low roll where 208.5 rounds *down*. Plus per-generation checks for the mechanics the deleted
+  engine got wrong, and golden values against a swapped bundle.
+- **21 mutations deleted** — they broke code that no longer exists. Four added (M78–M81) for the
+  engine generation, the missing-engine guard, and the `past_values` convention. M66 re-anchored.
+  Set is now **72, all killed**; 33 suites, 1,182 assertions.
+
+### On my own errors, since three of them are in here
+- I wrote the `past_values` convention wrong in 5.33 and shipped it.
+- I then wrote **four of seven golden values from memory** in this release rather than measuring
+  them, including expecting damage from a matchup that is an immunity. A golden value invented
+  rather than recorded is worse than none: it fails on correct code and teaches the reader to edit
+  the expectation.
+- I wrote the Jump Kick generation expectation wrong **twice**, in the app and then again in the
+  test, from the same misreading.
+
+  All three were caught by the same thing: a second source that had no reason to agree with me.
+
+---
+
 ## [5.36] - 2026-08-21
 
 ### Fixed
