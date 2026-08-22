@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.43**
+**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.44**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -881,6 +881,58 @@ already full, and keeps the warning in the colour and the hover text. The badge 
 with no other tags — Dazzling Gleam has nothing to say about contact or sound, and being a spread
 move is the most important thing about it — which is why it is not routed through
 `moveDescriptors`; that returns Showdown flag keys, and a target is not a flag.
+
+## 4.7c The pill system
+
+**One component, one rule: a pill is a SOLID fill with an ink that contrasts against it.** Colour
+carries the meaning. Fill-versus-outline carries nothing, and opacity carries nothing — a
+translucent pill has no colour of its own, only the colour of whatever it sits on.
+
+Before 5.44 there were five treatments for the same kind of object: a 15%-opacity wash
+(`.type-badge`), three outline styles (`.mv-tag` and its two modifiers) and two more translucent
+fills (`.mv-spread`, `.mv-spread-ally`), alongside one genuinely solid pill (`.hidden-pill`).
+
+**Type pills.** `tcStyle(typeOrHex)` is the ONLY thing that writes `--tc` and `--tc-ink`, and every
+call site goes through it — `tests/test-pill-system.js` asserts the count. Setting a fill by hand
+would leave the ink inherited from a pill of a different colour, which is exactly what produced
+white text on Electric yellow. `tcInk()` derives the ink: WCAG relative luminance of the fill, then
+whichever of `#ffffff` or `#12121a` contrasts better. Worst case across the eighteen types is
+5.62:1 (Poison); most exceed 7:1. The suite asserts not only that each clears 4.5:1 but that the ink
+chosen is the *better* of the two, so a future colour change cannot quietly stop choosing.
+
+**Role pills** (`.mv-tag`). Three roles, and the fills reuse `--eff-up-solid` / `--eff-dn-solid` —
+the same tokens the type chart cells use — so colourblind mode recolours them without a second
+definition. The inks are per-theme tokens (`--pill-up-ink`, `--pill-dn-ink`, `--pill-neut`,
+`--pill-neut-ink`) because the accents invert: dark mode's fills take white, while light mode's
+paler fills and both of colourblind mode's brighter ones take near-black. All four palette blocks
+must define the accent inks; a missing one is invisible, because the pill inherits a colour that
+happens to look plausible in one theme.
+
+**Which role a tag gets is derived, not assigned.** Blue requires a boost AND nothing that punishes
+the tag; red means blocked or resisted; anything mixed is neutral. Contact is neutral — one ability
+boosts it and eighteen punish it, so calling it "good for you" is an overclaim of the same kind as
+printing a bare multiplier on the chip face. Measured over the derived table: blue for punch, bite,
+pulse and slicing; red for sound, bullet, wind, powder and reflectable; neutral for contact.
+
+**Do not print a bare multiplier on a pill face.** See 4.7a — it reads as a property of the move and
+is not one.
+
+## 4.7d The engine flag fallback, and why an empty object is not an answer
+
+`moveDescriptors()` reads move flags from the bundled `@smogon/calc` engine and falls back to the
+build-time `IX.moveFlags` table. The contract is "the engine if it is there, the table otherwise".
+
+**The engine carries `flags:{}` on a great many moves.** An empty object is truthy, so
+`if(m.flags) return Object.keys(m.flags).filter(...)` returned `[]` and short-circuited the
+fallback. 77 of the 441 moves with known tags rendered no tags at all — every reflectable move in
+the game, and every powder move — while the app held the data the whole time. The engine branch now
+returns only if it produced something.
+
+`tests/test-move-tags.js` runs with no calc engine, which is what exercises the fallback; that is
+also why the defect survived, because the engine branch was never executed there. It now tests both
+paths. The engine stub is wrapped in an IIFE: an indirect `eval` runs in global scope, so without a
+function scope the stub's `var CalcMaps` overwrites the one the rest of the suite uses and later
+assertions silently test a fake engine.
 
 ## 4.8 The colourblind toggle appears only where it applies
 

@@ -12,6 +12,67 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.44] - 2026-08-22
+
+### Changed
+- **One pill. Solid, with a derived ink.**
+
+  Reported from the live site, twice: *"we are getting a little loosey goosey with the colors of the
+  pills and whether they are opaque or not please standardize"*, then *"lets standardize the colors
+  for each type and not have the slightly transparent pills, only solid please"*.
+
+  There were five treatments in play for the same kind of object — a 15%-opacity wash for type
+  badges, three outline styles for move tags, two more translucent fills for spread, and one genuinely
+  solid pill. Because the fills were translucent, "the Fire pill" had no single colour: it was a
+  different shade depending on what sat behind it.
+
+  The rule now, and there is only one: **a pill is a solid fill with an ink that contrasts against
+  it. Colour carries the meaning; fill-versus-outline and opacity carry nothing.**
+
+  The ink is *derived*, which is what makes solid safe. The eighteen type colours run from Electric
+  `#F8D030` to Dark `#705848` and no single ink works on both, so `tcInk()` takes the WCAG relative
+  luminance of the fill and picks whichever of white or near-black contrasts better. Worst case
+  across all eighteen is **5.62:1** (Poison), clearing WCAG AA. Nobody has to remember to choose a
+  text colour when a colour changes, and nobody can choose a wrong one. Verified on the running app:
+  **253 rendered pills across dark, light, colourblind-dark and colourblind-light — none translucent,
+  none below 4.5:1.**
+
+  Move-tag fills reuse `--eff-*-solid`, the tokens the type chart already uses, so colourblind mode
+  recolours them for free.
+
+- **Contact is no longer coloured as good for you.**
+
+  The tag took the "boosted" colour because Tough Claws boosts contact moves — while eighteen
+  abilities punish them. That is the same overclaim as the `×1.3` removed in 5.43: true of one
+  ability, false of the situation. The role is now derived — blue requires a boost *and* nothing
+  punishing the tag, red means blocked or resisted, and a mixed bag is neutral:
+
+  | | |
+  |---|---|
+  | blue | punch, bite, pulse, slicing |
+  | red | sound, bullet, wind, powder, reflectable |
+  | neutral | contact (1 boost against 18 punishers) |
+
+- **Form pills drop the game reference in Champions.** `Mega X (Gen VI–VII & Z-A)` is answering a
+  question nobody in a single-game mode can ask, on every form pill. In Champions it reads
+  **`Mega X`**; the era stays on the hover, and outside Champions nothing changes.
+
+### Fixed
+- **77 of 441 moves were showing no tags at all.**
+
+  Found while checking the colour work: Sleep Powder rendered nothing, though the app knew it was
+  `powder reflectable`. The bundled engine carries `flags:{}` on many moves — an empty object is
+  **truthy**, so `if(m.flags) return Object.keys(m.flags)` returned `[]` and short-circuited the
+  build-time table that had the answer. Every reflectable move in the game and every powder move
+  silently lost its badges while the data sat right there.
+
+  The suite that claims to pin the "engine if present, table otherwise" contract ran with no engine
+  at all, so it never executed the branch that was broken. It now tests both, with the engine stub
+  wrapped in a function scope — an indirect `eval` runs in global scope, and the first attempt
+  clobbered the shared state and quietly made five later assertions test a fake engine.
+
+---
+
 ## [5.43] - 2026-08-22
 
 ### Added

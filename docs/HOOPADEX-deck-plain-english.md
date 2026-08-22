@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.43**
+**Version 2.1 · Last updated 2026-08-21 · HoopaDex v5.44**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -290,7 +290,7 @@ And below Gen III the badge says nothing about a reduction, because double battl
 
 ## Slide 12 — What we don't claim
 
-Thirty-five test suites and 1,283 assertions now cover the data, the damage formula, the derived
+Thirty-six test suites and 1,403 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

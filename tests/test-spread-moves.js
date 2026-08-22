@@ -117,8 +117,14 @@ setGen(9);
 
 // --- the badge -----------------------------------------------------------------------------------
 const rs = renderSpreadTag('rock-slide'), eq = renderSpreadTag('earthquake');
-check(/class="mv-spread"/.test(rs), 'a foes-only spread move gets the plain badge', rs);
-check(/mv-spread-ally/.test(eq), 'one that also hits your partner is marked differently', eq);
+/* Since 5.44 this is the SAME component as every other pill — one solid treatment, with colour as
+   the only thing carrying meaning. Hitting two targets is neutral: it is a fact, not a benefit, and
+   it comes with a damage cut. Hitting your own partner takes the "worse for you" colour. */
+check(/class="mv-tag"/.test(rs), 'a foes-only spread move is a plain neutral pill', rs);
+check(/class="mv-tag mv-tag-block"/.test(eq),
+  'one that also hits your partner takes the worse-for-you colour', eq);
+check(!/mv-spread/.test(rs + eq),
+  'and the one-off spread pill class is gone — there is one pill component now', rs + eq);
 check(/hits ally/.test(eq), 'and says so in words, not only in colour', eq);
 check(/×0\.75 damage when it hits more than one/.test(rs),
   'the hover text states the reduction and the condition on it', rs);
@@ -129,7 +135,7 @@ check(renderSpreadTag('flamethrower') === '', 'a single-target move renders no b
 
 // --- the compact form, for the learnset table ----------------------------------------------------
 const eqC = renderSpreadTag('earthquake', true);
-check(/mv-spread-ally/.test(eqC), 'the compact badge keeps the ally colour', eqC);
+check(/mv-tag-block/.test(eqC), 'the compact badge keeps the ally colour', eqC);
 check(!/hits ally/.test(eqC), 'but drops the words, because a table row is already full', eqC);
 check(/hits ally|your partner/.test((eqC.match(/title="([^"]*)"/) || [])[1] || ''),
   'the warning survives in the hover text', eqC);

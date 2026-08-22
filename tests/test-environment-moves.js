@@ -50,7 +50,12 @@ const app = (0, eval)(
   ixLine + '\n' + envLine + '\n' +
   'function ixRoman(g){return ["","I","II","III","IV","V","VI","VII","VIII","IX"][g]||g}\n' +
   'function ixTitle(s){return String(s).replace(/-/g," ").replace(/(^|\\s)[a-z]/g,c=>c.toUpperCase())}\n' +
-  'var TC={};\n' +
+  /* The REAL colour helpers, sliced out rather than stubbed. A test that supplies its own copy of
+     a shipped function proves nothing about the shipped one - that is exactly how a ReferenceError
+     in getAbilityIntroGen survived eight releases. */
+  (lines.find(l => l.startsWith('const TC=')) || 'const TC={};') + '\n' +
+  lines.slice(lines.findIndex(l => l.startsWith('const TC_INK=')),
+              lines.findIndex(l => l.startsWith('function typeBadge('))).join('\n') + '\n' +
   lines.slice(start, end).join('\n') +
   '\n;({ENVMOVES,renderEnvironmentMove})'
 );

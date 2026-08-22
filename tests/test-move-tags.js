@@ -169,6 +169,50 @@ check(ixFlagConsequences('contact', 9).filter(c => c.boost)
   'every boost states the relationship, not just a name and a number',
   ixFlagConsequences('contact', 9).filter(c => c.boost).map(c => c.t));
 
+/* THE COLOUR A TAG DESERVES, and why contact is not blue.
+   Contact used to render in the "good for you" colour because Tough Claws boosts it. Eighteen
+   abilities punish it. Calling that good is the same overclaim as printing x1.3 on the face: true
+   of one ability, false of the situation. Blue now requires a boost AND nothing punishing the tag. */
+const roleOf = (move, label) => {
+  const m = renderMoveTags(move).match(new RegExp('class="(mv-tag[^"]*)"[^>]*>' + label));
+  return m ? m[1] : null;
+};
+check(roleOf('aerial-ace', 'Contact') === 'mv-tag',
+  'contact is neutral - one ability boosts it, eighteen punish it', roleOf('aerial-ace', 'Contact'));
+check(roleOf('ice-punch', 'Punch') === 'mv-tag mv-tag-boost',
+  'punching is good for you - boosts and nothing that punishes it', roleOf('ice-punch', 'Punch'));
+check(roleOf('aura-sphere', 'Ballistic') === 'mv-tag mv-tag-block',
+  'ballistic is bad for you - Bulletproof stops it dead', roleOf('aura-sphere', 'Ballistic'));
+check(roleOf('aura-sphere', 'Pulse') === 'mv-tag mv-tag-boost',
+  'and the same move can carry one of each');
+
+/* THE FALLBACK CONTRACT, exercised with an engine present. Every other assertion in this file runs
+   with no calc engine at all, so the engine branch was never executed here — and that is where the
+   defect was. The bundled engine carries `flags:{}` on a great many moves; an empty object is
+   truthy, so `if(m.flags) return keys(m.flags)` returned [] and short-circuited the build-time
+   table that had the answer. 77 of the 441 moves with known tags rendered no tags at all: every
+   reflectable move in the game, and every powder move. */
+/* Wrapped in an IIFE so the slice gets a FUNCTION scope. An indirect eval runs in global scope, so
+   without this the `var CalcMaps` below would overwrite the one the rest of this file uses, and
+   every later assertion would silently be testing a fake engine. It did, on the first attempt. */
+const withEngine = (flags) => (0, eval)('(function(){\n' +
+  ixLine + '\n' + ixTitleLine + '\n' +
+  'var GEN=9; function getDataGenNum(){return GEN}\n' +
+  'var SmogonCalc={};\n' +
+  'var CalcMaps={gen:{moves:{get:function(){return {flags:' + JSON.stringify(flags) + '}}}}};\n' +
+  'function calcEnsureMaps(){}\n' +
+  lines.slice(start, end).join('\n') +
+  '\nreturn moveDescriptors;})()'
+);
+check(withEngine({})('sleep-powder').length > 0,
+  'an EMPTY engine flags object falls through to the build-time table rather than answering []',
+  JSON.stringify(withEngine({})('sleep-powder')));
+check(withEngine({})('sleep-powder').indexOf('powder') >= 0,
+  'so Sleep Powder still knows it is a powder move', JSON.stringify(withEngine({})('sleep-powder')));
+check(withEngine({ sound: 1 })('sleep-powder').join() === 'sound',
+  'but an engine that actually says something still wins over the table',
+  JSON.stringify(withEngine({ sound: 1 })('sleep-powder')));
+
 // --- consequences are cut to the generation ----------------------------------------------------
 check(ixFlagConsequences('pulse', 5).length === 0,
   'Gen V is told nothing about pulse moves, because Mega Launcher is a Gen VI ability',
