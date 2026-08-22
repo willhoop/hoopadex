@@ -12,6 +12,41 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.40] - 2026-08-21
+
+### Added
+- **The running version is now shown in the header, and the app tells you when a newer one exists.**
+
+  The search bug fixed in 5.39 was reported again immediately afterwards, from a page that was
+  already three versions behind. The report was accurate about what was on screen and told us
+  nothing, because **nothing in the interface said which build it was** — diagnosing it as a cache
+  rather than a defect cost a full round trip.
+
+  GitHub Pages serves this file with `Cache-Control: max-age=600`, so a reader can sit on a
+  ten-minute-old copy while a fix is live. That is not a bug in Pages; it is a gap in the app, which
+  had no way to say what it was.
+
+  Two small things fix it:
+
+  - **A version stamp** beside the wordmark. Muted and diagnostic, not something anyone needs to
+    read — but it makes "what are you running?" answerable at a glance.
+  - **An update check** on load. The version lives on line 2, so a `Range: bytes=0-300` request reads
+    the published version in **261 bytes** rather than refetching an 800 KB page. If it differs, a
+    chip appears offering a reload. It runs `no-store`, because asking the cache whether the cache is
+    stale answers itself.
+
+  The check is fully guarded. Offline, blocked, or a host that does not answer ranges — it does
+  nothing at all. A version indicator is not worth an error message.
+
+### Testing
+- `APP_VERSION` is a second copy of a number that already exists on line 2, and this project spends
+  most of its effort removing exactly that. The duplication is unavoidable — a comment is not
+  readable at runtime — so `tests/test-syntax.js` now asserts the two are identical. They cannot
+  drift without the build failing, which is the only thing that makes a second copy acceptable.
+- 6 assertions added covering the version match and the update check's guards.
+
+---
+
 ## [5.39] - 2026-08-21
 
 ### Fixed

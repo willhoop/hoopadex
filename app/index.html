@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.39 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.40 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -260,6 +260,19 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .logo-icon .logo-ring{position:absolute;inset:3px;border-radius:50%;border:3px solid #F8C030;box-shadow:0 0 14px rgba(248,192,48,0.55),inset 0 0 14px rgba(248,88,136,0.35);background:radial-gradient(circle,rgba(120,60,180,0.55),rgba(30,20,60,0.9))}
 .logo-icon img{position:relative;width:44px;height:44px;filter:drop-shadow(0 0 5px rgba(248,88,136,0.5))}
 .logo-text .logo-dex{background:linear-gradient(135deg,#F08030,#F8D030);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+/* The running version, in the corner of the wordmark.
+   There was no way to tell which build was loaded without opening devtools, and GitHub Pages serves
+   this file with Cache-Control: max-age=600 — so a reader can sit on a ten-minute-old copy while a
+   fix is already live. That cost a round trip: a bug was reported, fixed, published, and reported
+   again from a cached page. Small and muted, because it is diagnostic rather than something anyone
+   needs to read. */
+.app-ver{font-size:9.5px;font-weight:700;color:var(--text5);letter-spacing:.04em;margin-left:7px;
+  align-self:flex-end;padding-bottom:4px;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.app-update{margin-left:9px;align-self:center;font-size:10px;font-weight:800;letter-spacing:.04em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;cursor:pointer;white-space:nowrap;
+  background:color-mix(in srgb,var(--eff-up) 16%,transparent);color:var(--eff-up);
+  border:1px solid color-mix(in srgb,var(--eff-up) 42%,transparent)}
+.app-update:hover{background:color-mix(in srgb,var(--eff-up) 28%,transparent)}
 .logo-text{font-size:22px;font-weight:900;letter-spacing:-0.5px;background:linear-gradient(135deg,#f0f0f8,#a8a8c0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .gen-selector{display:flex;align-items:center;gap:8px}
 .gen-selector label{font-size:11px;font-weight:700;color:#5a5a6a;letter-spacing:1px;text-transform:uppercase}
@@ -994,7 +1007,7 @@ button,select,input{touch-action:manipulation}
 <body>
 <div class="header"><div class="header-inner">
 <div class="header-top">
-  <div class="logo-row" style="flex:1;cursor:pointer" onclick="switchTab('pokedex');backToList()"><div class="logo-icon"><div class="logo-ring"></div><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/720.png" alt="Hoopa"></div><div class="logo-text">Hoopa<span class="logo-dex">Dex</span></div></div>
+  <div class="logo-row" style="flex:1;cursor:pointer" onclick="switchTab('pokedex');backToList()"><div class="logo-icon"><div class="logo-ring"></div><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/720.png" alt="Hoopa"></div><div class="logo-text">Hoopa<span class="logo-dex">Dex</span></div><span class="app-ver" id="app-ver" title="Running version"></span></div>
   <div class="gen-selector">
     <label>Gen:</label>
     <select id="data-gen-num" onchange="onGenNumChange()">
@@ -1729,6 +1742,48 @@ function getMoveCatForGen(md){
 document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))positionTooltip(e)});
 
 // === DATA GEN ===
+/* ── Which build am I looking at? ───────────────────────────────────────────────────────────────
+   GitHub Pages serves this file with `Cache-Control: max-age=600`, so a reader can be sitting on a
+   ten-minute-old copy while a fix is already published. Nothing in the interface said which build
+   was loaded, so there was no way to tell a bug that is still broken from a bug that is fixed and
+   cached — and that is not hypothetical: a search defect was reported, fixed, published, and then
+   reported again from a stale page, costing a round trip to diagnose as a cache.
+
+   APP_VERSION is the one runtime copy of the version. It must match the comment on line 2, which is
+   the authoritative marker, and tests/test-syntax.js fails if the two disagree — otherwise this is
+   just a second number to forget to update.
+
+   The update check costs 261 bytes. The version lives on line 2, so a Range request for the first
+   300 bytes is enough to read the published version without downloading an 800 KB page. Pages
+   answers ranges with a 206, and if anything about that fails the check simply does nothing: a
+   version indicator is not worth an error message. */
+const APP_VERSION='5.40';
+function showAppVersion(){
+  const el=document.getElementById('app-ver');
+  if(el)el.textContent='v'+APP_VERSION;
+}
+async function checkForUpdate(){
+  try{
+    const r=await fetch(location.pathname+'?_v='+Date.now(),
+      {cache:'no-store',headers:{Range:'bytes=0-300'}});
+    if(!r.ok&&r.status!==206)return;
+    const head=await r.text();
+    const m=head.match(/HOOPADEX VERSION: ([\d.]+)/);
+    if(!m||m[1]===APP_VERSION)return;
+    const row=document.querySelector('.logo-row');
+    if(!row||document.getElementById('app-update'))return;
+    const b=document.createElement('span');
+    b.id='app-update';
+    b.className='app-update';
+    b.textContent='v'+m[1]+' available — reload';
+    b.title='You are running v'+APP_VERSION+'. v'+m[1]+' is published.';
+    /* A hard reload, because the point is to get past the cached copy. Clicking the wordmark
+       navigates, so this stops the click reaching it. */
+    b.onclick=function(e){e.stopPropagation();location.reload(true)};
+    row.appendChild(b);
+  }catch(e){ /* offline, blocked, or no range support: say nothing */ }
+}
+
 function getDataGenNum(){return selectedGenNum}
 function getGenLabel(){
   const genSel=document.getElementById('data-gen-num');
@@ -1964,6 +2019,9 @@ function triggerDataRefresh(){
 
 // === INIT ===
 async function init(){
+  // Which build is on screen, and is there a newer one? See checkForUpdate.
+  showAppVersion();
+  setTimeout(checkForUpdate,1500);   // after the page is useful, not before
   // Position search bar below sticky header
   const hdr=document.querySelector('.header');
   const sb=document.getElementById('universal-search-bar');

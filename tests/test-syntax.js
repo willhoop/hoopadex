@@ -85,5 +85,37 @@ check(strays.length === 0,
   'app/ publishes index.html and no other page — a stale copy is a wrong dex with a live URL',
   strays.join(', '));
 
+/* ── The runtime version must equal the stamped one ─────────────────────────────────────────────
+   Line 2 is the authoritative version marker. APP_VERSION is the copy the running page can actually
+   read, because a comment is not reachable at runtime — it drives the version shown in the header
+   and the update check that compares against the published build.
+
+   Two numbers for one fact is exactly what this project spends its effort removing, and the only
+   reason there are two is that one of them has to be executable. This assertion is what makes the
+   duplication safe: they cannot disagree without the build failing.
+
+   Why any of it exists: GitHub Pages serves this file with `Cache-Control: max-age=600`, so a
+   reader can sit on a ten-minute-old copy while a fix is already live. A search defect was reported,
+   fixed, published, and reported again from a stale page — the second report was accurate about
+   what was on screen and told us nothing, because nothing in the interface said which build it was. */
+const stamped = (src.match(/HOOPADEX VERSION: ([\d.]+)/) || [])[1];
+const runtime = (src.match(/const APP_VERSION='([\d.]+)'/) || [])[1];
+check(!!stamped, 'line 2 carries a version', stamped);
+check(!!runtime, 'and APP_VERSION exists for the running page to read', runtime);
+check(stamped === runtime,
+  'the stamped version and the runtime one are the same number',
+  'line 2 says ' + stamped + ', APP_VERSION says ' + runtime);
+
+/* The update check must be able to fail without saying anything. It runs on every load, against the
+   network, and a version indicator is not worth an error message in front of a reader. */
+const upd = src.slice(src.indexOf('async function checkForUpdate()'),
+                      src.indexOf('async function checkForUpdate()') + 1400);
+check(/try\{/.test(upd) && /catch\(e\)\{/.test(upd),
+  'checkForUpdate is guarded, so offline or blocked is silent', upd.slice(0, 120));
+check(/Range:'bytes=0-300'/.test(upd),
+  'and reads only the first 300 bytes rather than refetching an 800 KB page', upd.slice(0, 220));
+check(/cache:'no-store'/.test(upd),
+  'with caching off — otherwise it asks the cache whether the cache is stale');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
