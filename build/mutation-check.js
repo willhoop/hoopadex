@@ -272,6 +272,24 @@ const MUTATIONS = [
     1, 'test-past-abilities.js'],
   ['M72', 'Generation I is offered a Natures tab for a mechanic that did not exist',
     '  natures:{minGen:3},', '  natures:{},', 1, 'test-generation-tables.js'],
+
+  /* The reverse ability join, and the reload. Both are about a list being COMPLETE rather than
+     merely present — a short list still looks like an answer. */
+  ['M73', 'The ability page stops adding species that had the ability then (Levitate loses Gengar)',
+    '      if(r.ability!==abilityName||seen[species])return;',
+    '      if(true)return;', 1, 'test-past-abilities.js'],
+  ['M74', 'and stops removing the ones that did not (Cursed Body keeps Gengar in Gen VI)',
+    '      if(row&&row.ability!==abilityName)return;',
+    '      if(false)return;', 1, 'test-past-abilities.js'],
+  ['M75', 'A produced entry carries an id the sprite lookup cannot parse',
+    "out.push({pokemon:{name:species,url:'/pokemon/'+PASTABIL[species].id+'/'},is_hidden:!!r.hidden,slot:r.slot});",
+    "out.push({pokemon:{name:species,url:''},is_hidden:!!r.hidden,slot:r.slot});",
+    1, 'test-past-abilities.js'],
+  ['M76', 'Changing generation goes back to hand-clearing caches instead of reloading',
+    '  swapTeamForScope();\n  resetToHomeAndReload();',
+    '  swapTeamForScope();\n  triggerDataRefresh();', 1, 'test-generation-tables.js'],
+  ['M77', 'The reload keeps the previous generation\'s game in the address',
+    "  if(typeof locVersion!=='undefined')locVersion='';", '  // kept', 1, 'test-generation-tables.js'],
 ];
 
 function runSuite(suite, srcPath) {

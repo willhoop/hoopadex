@@ -201,5 +201,38 @@ check(rel.isTabRelevant('natures') === true && rel.isTabRelevant('abilities') ==
   'and Champions keeps them, because it is Generation IX');
 check(rel.isTabRelevant('locations') === false, 'while the rules that are about Champions still fire');
 
+/* -- changing generation or game reloads the app ------------------------------------------------
+   Reported as "sometimes it still shows old data", and that is what was happening. The app holds a
+   dozen caches scoped to the selected generation, and triggerDataRefresh cleared the ones somebody
+   had remembered to add to it. Every cache added since had to be remembered again, and the failure
+   when one was missed is not an error — it is last generation's answer, rendered with confidence.
+
+   A reload is the only clear-down that cannot be incomplete. These assertions are structural
+   because a page reload cannot be exercised in node; what they pin is that both entry points go
+   through it and that the state written into the address first is not itself stale. */
+const appSrc2 = fs.readFileSync(process.env.HOOPADEX_SRC || path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
+const reset = appSrc2.slice(appSrc2.indexOf('function resetToHomeAndReload()'),
+                            appSrc2.indexOf('function onGenNumChange()'));
+check(/location\.reload\(\)/.test(reset), 'the reset performs a real page reload', reset.slice(0, 120));
+check(/saveHash\(\)/.test(reset) && reset.indexOf('saveHash()') < reset.indexOf('location.reload()'),
+  'and writes the new selection into the address BEFORE reloading, so it comes back where asked');
+check(/currentTab='pokedex'/.test(reset), 'landing on the Pokedex');
+/* The location version belongs to the generation being left. Carrying it produced
+   #pokedex/g2/lv:diamond — a Generation IV game named in a Generation II address. */
+check(/locVersion=''/.test(reset), 'and clears the game-specific location version', reset);
+
+const genChange = appSrc2.slice(appSrc2.indexOf('function onGenNumChange()'),
+                                appSrc2.indexOf('function swapTeamForScope()'));
+check(/resetToHomeAndReload\(\)/.test(genChange), 'a generation change reloads');
+check(!/triggerDataRefresh\(\)/.test(genChange),
+  'and no longer relies on clearing caches by hand', genChange.slice(-200));
+const gameChange = appSrc2.slice(appSrc2.indexOf('function onGameChange()'),
+                                 appSrc2.indexOf('function onGameChange()') + 1400);
+check((gameChange.match(/resetToHomeAndReload\(\)/g) || []).length === 2,
+  'a game change reloads on BOTH paths — the classic game selector and the Champions regulation one',
+  (gameChange.match(/resetToHomeAndReload\(\)/g) || []).length + ' call sites');
+check(!/  triggerDataRefresh\(\);/.test(gameChange),
+  'and neither path still hand-clears', gameChange.slice(0, 200));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

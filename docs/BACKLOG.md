@@ -397,16 +397,18 @@ project exists to prevent.
 Related: the app already knows Champions differs in roster, legality, items and the stat system.
 Move *mechanics* is the one axis it has no source for.
 
-## The ability page still lists species by their modern ability
+## ~~The ability page still lists species by their modern ability~~ — CLOSED in v5.34
 
 As of v5.33 a species page resolves its abilities for the selected generation — Gengar shows Levitate
 in Generations III to VI. The REVERSE join is not done: the Levitate page does not list Gengar in
 those generations, and the Cursed Body page still does.
 
 The forward direction is the one a reader hits first, and half a fix that looks whole is worse than
-an obvious gap, so this is written down rather than partly shipped. Closing it means filtering
-`showAbilityPage`'s species list through `PASTABIL` in both directions — adding species whose past
-ability was this one, and removing species whose modern ability is this one but was not then.
+an obvious gap, so this was written down rather than partly shipped.
+
+**Closed in v5.34** by `abilityHoldersForGen`, which does both directions: it adds species whose past
+ability was this one and removes species whose modern ability is this one but was not then. Verified
+at the boundary — Levitate lists Gengar in Generations IV to VI and not in VII or IX.
 
 ## Move effect changes were audited and deliberately skipped
 

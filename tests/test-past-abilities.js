@@ -39,8 +39,8 @@ const start = lines.findIndex(l => l.startsWith('function pastAbilityOverrides('
 const end = lines.findIndex((l, i) => i > start && l.startsWith('function getMoveTypeForGen('));
 if (!paLine || start < 0 || end < 0) throw new Error('could not locate the past-ability helpers');
 const app = (0, eval)(paLine + '\n' + lines.slice(start, end).join('\n') +
-  '\n;({PASTABIL,pastAbilityOverrides,applyPastAbilities})');
-const { PASTABIL, applyPastAbilities } = app;
+  '\n;({PASTABIL,pastAbilityOverrides,applyPastAbilities,abilityHoldersForGen})');
+const { PASTABIL, applyPastAbilities, abilityHoldersForGen } = app;
 
 // --- the embedded table is the generated one ------------------------------------------------------
 const embedPath = path.join(ROOT, 'data', 'past-abilities.embed.json');
@@ -127,6 +127,61 @@ check(dupHiddenRule === 0,
 // --- and the app applies it before its other gates ----------------------------------------------------
 check(/abilityList=applyPastAbilities\(p\.name,allAbilities,genNum\)/.test(src),
   'the species page resolves history before filtering by generation');
+
+/* -- the reverse: who HAD this ability in that generation ---------------------------------------
+   5.33 fixed the species page and left this half undone on purpose, because half a fix that looks
+   whole is worse than an obvious gap. Gengar showed Levitate on its own page in Generation IV while
+   the Levitate page did not list it, and the Cursed Body page still did — so "show me every Levitate
+   Pokemon in this game" was wrong in both directions at once.
+
+   Both corrections are needed. Dropping only the stale entries leaves the question answerable and
+   incomplete, which is the worse of the two failures: a short list still looks like an answer. */
+const holders = (ability, list, g) => abilityHoldersForGen(ability, list, g).map(x => x.pokemon.name);
+
+// PokeAPI's Cursed Body list contains Gengar. In Generation VI that is wrong.
+const CB_LIST = [
+  { pokemon: { name: 'gengar', url: 'https://pokeapi.co/api/v2/pokemon/94/' }, is_hidden: false, slot: 1 },
+  { pokemon: { name: 'frillish', url: 'https://pokeapi.co/api/v2/pokemon/592/' }, is_hidden: false, slot: 1 },
+];
+check(holders('cursed-body', CB_LIST, 6).indexOf('gengar') < 0,
+  'Gen VI Cursed Body does not list Gengar — it had Levitate then', holders('cursed-body', CB_LIST, 6));
+check(holders('cursed-body', CB_LIST, 7).indexOf('gengar') >= 0,
+  'Gen VII Cursed Body does list it', holders('cursed-body', CB_LIST, 7));
+check(holders('cursed-body', CB_LIST, 6).indexOf('frillish') >= 0,
+  'and a species that never changed is untouched by any of this');
+
+// The add pass: nothing in PokeAPI's Levitate list mentions Gengar, so the entry has to be produced.
+const LEV_LIST = [{ pokemon: { name: 'flygon', url: 'https://pokeapi.co/api/v2/pokemon/330/' }, is_hidden: false, slot: 1 }];
+check(holders('levitate', LEV_LIST, 4).indexOf('gengar') >= 0,
+  'Gen IV Levitate lists Gengar even though PokeAPI never mentions it there', holders('levitate', LEV_LIST, 4));
+check(holders('levitate', LEV_LIST, 6).indexOf('gengar') >= 0, 'and so does Gen VI, the last such generation');
+check(holders('levitate', LEV_LIST, 7).indexOf('gengar') < 0, 'but Gen VII does not', holders('levitate', LEV_LIST, 7));
+check(holders('levitate', LEV_LIST, 9).indexOf('gengar') < 0, 'nor Gen IX');
+
+/* A produced entry has to be shaped exactly like a real one, because every downstream filter —
+   formAllowed, the hidden-ability gate, the sprite lookup — reads it without knowing it was
+   synthesised. An id that will not parse out of the url renders as a broken sprite. */
+const produced = abilityHoldersForGen('levitate', LEV_LIST, 4).filter(x => x.pokemon.name === 'gengar')[0];
+check(!!produced && /pokemon\/94\//.test(produced.pokemon.url),
+  'the produced entry carries a url the id parser can read', produced && produced.pokemon.url);
+check(!!produced && produced.is_hidden === false && produced.slot === 1,
+  'and the slot and hidden flag the downstream gates key off', JSON.stringify(produced));
+const idOf = u => { const q = String(u).split('/').filter(Boolean); return parseInt(q[q.length - 1]); };
+check(idOf(produced.pokemon.url) === 94, 'which resolves to the real species id', idOf(produced.pokemon.url));
+
+// No duplicates, in either direction.
+const dupList = [{ pokemon: { name: 'gengar', url: 'https://pokeapi.co/api/v2/pokemon/94/' }, is_hidden: false, slot: 1 }];
+const both = holders('levitate', dupList, 4);
+check(both.filter(n => n === 'gengar').length === 1,
+  'a species already in the list is not added a second time', both);
+check(abilityHoldersForGen('levitate', [], 4).length >= 1,
+  'an empty input still produces the species that had it then');
+check(abilityHoldersForGen('levitate', undefined, 4).length >= 1, 'and a missing list does not throw');
+check(abilityHoldersForGen('not-an-ability', [], 4).length === 0, 'an ability nobody had produces nothing');
+
+// --- and the page uses it ---------------------------------------------------------------------------
+check(/const pokemonList=abilityHoldersForGen\(abilityName,d\.pokemon,genNum\)/.test(src),
+  'the ability page resolves its species list for the selected generation');
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

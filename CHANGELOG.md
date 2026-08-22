@@ -12,6 +12,56 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.34] - 2026-08-21
+
+### Fixed
+- **"Show me every Levitate Pokemon in this game" now answers correctly.** 5.33 fixed the species
+  page and left the reverse join visibly undone; this closes it. Gengar showed Levitate on its own
+  page in Generation IV while the Levitate page did not list it — and the Cursed Body page still
+  did. The question was wrong in both directions at once.
+
+  Both halves were needed. Removing the stale entries alone would have left the question answerable
+  and **incomplete**, which is the worse of the two failures: a short list still looks like an
+  answer.
+
+  Verified at the boundary: Levitate lists Gengar in Gens IV–VI and not in VII or IX; Cursed Body
+  omits it in Gen VI (where the ability exists but Gengar did not have it) and includes it from
+  Gen VII. The add pass is a scan rather than a lookup, because nothing in PokeAPI's Levitate list
+  mentions Gengar at all — there is no entry to correct, so one has to be produced, shaped exactly
+  like a real one so every downstream filter reads it without knowing.
+
+- **Changing generation or game now reloads the whole app, on the Pokedex.** Reported as "sometimes
+  it still shows old data", and that is exactly what was happening. The app holds a dozen caches
+  scoped to the selected generation — `moveCache`, `abilityCache`, `tmMoveDetailCache`, the location
+  index, the item list, the learnset store — and `triggerDataRefresh` cleared the ones somebody had
+  remembered to add to it. Every cache added since had to be remembered again, and the failure mode
+  when one was missed is not an error: it is **last generation's answer, rendered with full
+  confidence**.
+
+  A reload is the only clear-down that cannot be incomplete. It costs a few seconds of refetching
+  and removes a whole category of bug rather than adding another entry to a list that has to be kept
+  in step by hand.
+
+- **The reload was carrying the old game into the new address.** Switching from Gen IV to Gen II
+  produced `#pokedex/g2/lv:diamond` — a Generation IV game named in a Generation II URL, which is
+  precisely the anachronism this app exists to prevent, sitting in its own address bar. Now
+  `#pokedex/g2`.
+
+### Removed
+- **The 5.32 Moves-search replay.** It re-asked your search after a generation change so the answer
+  updated instead of vanishing. The reload supersedes it entirely, so it is deleted rather than left
+  in to fire network lookups moments before the page is discarded. `triggerDataRefresh` still runs on
+  other paths and clears exactly as before.
+
+### Testing
+- 15 assertions added to `tests/test-past-abilities.js` for the reverse join, and 8 to
+  `tests/test-generation-tables.js` for the reload. The reload ones are structural — a page reload
+  cannot be exercised in node — and pin that both entry points go through it, that the address is
+  written *before* the reload, and that what gets written is not itself stale.
+- **Five mutations, M73–M77.** Set is now **77, all killed**; 33 suites, 1,229 assertions.
+
+---
+
 ## [5.33] - 2026-08-21
 
 ### Fixed

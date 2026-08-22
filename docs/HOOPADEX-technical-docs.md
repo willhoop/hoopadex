@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.33**
+**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.34**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -304,6 +304,40 @@ the app gates that already and duplicating it would be two rules to keep in step
 
 All three tables use the same cutoff convention as `PAST_STATS`: an entry recorded against
 generation N describes N and every generation below it, until a lower entry takes over.
+
+### Who had an ability in that generation, in both directions
+`applyPastAbilities` answers "what did this species have then". `abilityHoldersForGen` answers the
+reverse — "who had this ability then" — and both are needed for the same question to be answered
+consistently from either side. Until v5.34 only the first existed, so Gengar showed Levitate on its
+own page in Generation IV while the Levitate page did not list it and the Cursed Body page still did.
+
+The reverse makes two corrections:
+
+- **Remove** a species whose slot held something else then. Cursed Body exists from Generation V, but
+  Gengar did not have it until VII.
+- **Add** a species whose slot held this ability then. Nothing in PokeAPI's Levitate list mentions
+  Gengar at any point, so there is no entry to correct — one is produced, shaped exactly like a real
+  entry (including a url the id parser can read) so `formAllowed`, the hidden-ability gate and the
+  sprite lookup all read it without knowing it was synthesised.
+
+Removing only the stale entries would leave the question answerable and incomplete, which is the
+worse failure: a short list still looks like an answer.
+
+### Changing generation or game reloads the application
+`resetToHomeAndReload()` writes the new selection into the address, clears the game-specific location
+version, and calls `location.reload()`. Both `onGenNumChange` and `onGameChange` use it, including
+the Champions regulation path.
+
+This replaced `triggerDataRefresh()` on those paths in v5.34, reported as "sometimes it still shows
+old data". The application holds a dozen caches scoped to the selected generation and
+`triggerDataRefresh` cleared the ones that had been remembered. Every cache added afterwards had to
+be remembered again, and the failure when one was missed is not an error — it is the previous
+generation's answer, rendered with full confidence.
+
+A reload is the only clear-down that cannot be incomplete. The cost is a few seconds of refetching;
+what it removes is an entire category of defect rather than one more entry on a list kept in step by
+hand. The address is written BEFORE the reload so the reader returns to the selection they asked for,
+and the tab resets to the Pokedex because the previous tab's state is exactly what is being discarded.
 
 ### Tabs for mechanics an era did not have
 `TAB_RELEVANCE` supported a `minGen` rule and did not use it, so Generations I and II were offered a
