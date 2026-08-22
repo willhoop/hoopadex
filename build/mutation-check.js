@@ -283,6 +283,18 @@ const MUTATIONS = [
     1, 'test-calc-engine.js'],
   /* The past_values convention is the opposite of every other table here, and getting it wrong is
      invisible: it shifts a move's whole history by exactly one generation. */
+  /* The search switching itself off. Reported as "it's not really showing the search results, that
+     was the best feature on the whole site" — and it was not a rendering problem, it was a flag
+     that disabled the handler and was released on a chain that could fail. */
+  ['M82', 'The search-suppression failsafe is removed, so one bad navigation kills the search',
+    '  _suppressTimer=setTimeout(releaseSearchSuppression,800);', '  // no failsafe',
+    1, 'test-dex-search.js'],
+  ['M83', 'The flag goes back to being released on a later timer, swallowing what is typed meanwhile',
+    '      releaseSearchSuppression();\n      if(typedDuring)onSmartSearch();',
+    '      setTimeout(releaseSearchSuppression,300);', 1, 'test-dex-search.js'],
+  ['M84', 'Text typed while navigating is overwritten by the restored query',
+    '      if(_pendingSearchVal!==null&&!typedDuring){', '      if(_pendingSearchVal!==null){',
+    1, 'test-dex-search.js'],
   ['M81', 'past_values resolves as "this generation and below", shifting every move by one',
     '  const keys=Object.keys(byGen).map(Number).filter(function(n){return n>genNum}).sort(function(a,b){return a-b});',
     '  const keys=Object.keys(byGen).map(Number).filter(function(n){return n>=genNum}).sort(function(a,b){return a-b});',

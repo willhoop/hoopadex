@@ -178,5 +178,40 @@ check(/fuzzyPlace\(m,getMoveIntroGen/.test(fuzzySrc),
 check(!/exactMoveNames|exactAbilityNames/.test(fuzzySrc),
   'and the items-only sets that let Bullet Punch through twice are gone', fuzzySrc.slice(0, 160));
 
+/* -- the search must never be able to switch itself off --------------------------------------
+   Reported as "it's not really showing the search results, that was the best feature on the whole
+   site". Selecting a result sets `_suppressSearch` so the programmatic restore of the query text
+   does not fire the handler as though the reader had typed it. It was released at the end of
+   requestAnimationFrame -> setTimeout(150) -> setTimeout(300), and that had two failure modes:
+
+     For ~450ms after selecting anything, every keystroke was silently discarded. The handler only
+     runs on an input event, so typing inside the window and then stopping produced no dropdown at
+     all — you had to type one more character to wake it up.
+
+     And if any link in the chain did not run, the flag stayed raised and the search was dead for
+     the rest of the session. requestAnimationFrame does not fire in a hidden tab and nothing was
+     guarded, so one exception during navigation was unrecoverable without a reload. Reproduced in a
+     browser: _suppressSearch true, _pendingSearchVal orphaned, every keystroke ignored.
+
+   These assertions are structural — the flag lives in a DOM event path that node cannot drive — and
+   they pin the three properties that make it safe rather than the timings. */
+const sel = src.slice(src.indexOf('function smartSelect(idx)'),
+                      src.indexOf('function smartSelect(idx)') + 2200);
+check(/_suppressTimer=setTimeout\(releaseSearchSuppression,\d+\)/.test(sel),
+  'raising the flag also arms a failsafe that lowers it no matter what happens next', sel.slice(0, 200));
+check(!/requestAnimationFrame/.test(sel),
+  'the release does not depend on requestAnimationFrame, which never fires in a hidden tab');
+check(/releaseSearchSuppression\(\);\s*\n\s*if\(typedDuring\)onSmartSearch\(\);/.test(sel),
+  'the flag is lowered as soon as the programmatic write is done, not on a later timer', sel.slice(-400));
+check(/const typedDuring=/.test(sel) && /if\(_pendingSearchVal!==null&&!typedDuring\)/.test(sel),
+  'and text the reader typed during the window is kept rather than overwritten');
+check(/if\(typedDuring\)onSmartSearch\(\)/.test(sel),
+  'with the search re-run on what they actually typed');
+
+const release = src.slice(src.indexOf('function releaseSearchSuppression()'),
+                          src.indexOf('function smartSelect(idx)'));
+check(/_suppressSearch=false/.test(release) && /clearTimeout\(_suppressTimer\)/.test(release),
+  'and there is one release function, so every path lowers the flag the same way', release);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

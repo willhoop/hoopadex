@@ -12,6 +12,53 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.38] - 2026-08-21
+
+### Fixed
+- **The stacking search stopped showing results after you picked anything.** Reported as "it's not
+  really showing the search results, that was the best feature on the whole site", and it was not a
+  rendering problem — the search handler was being switched off.
+
+  Selecting a result sets `_suppressSearch` so that putting the query text back in the box does not
+  fire the handler as though you had typed it. It was released at the end of
+  `requestAnimationFrame` → `setTimeout(150)` → `setTimeout(300)`, and that chain had two failure
+  modes:
+
+  1. **For about 450ms after selecting anything, every keystroke was silently discarded.** The
+     handler only runs on an input event, so typing inside that window and then stopping produced no
+     dropdown at all. You had to type one more character to wake it up — which is exactly what
+     "not really showing the results" looks like from the outside.
+  2. **If any link in the chain did not run, the flag stayed raised and the search was dead for the
+     rest of the session.** `requestAnimationFrame` does not fire in a hidden tab, and nothing was
+     guarded, so a single exception during navigation was unrecoverable without a reload.
+
+  Reproduced in a browser before the fix: apply one criterion, type anything, and
+  `_suppressSearch` is `true` with `_pendingSearchVal` orphaned and every keystroke ignored.
+
+  Three changes. The flag is released as soon as the programmatic write is done rather than 300ms
+  later; a failsafe timer releases it no matter what happens in between; and if you typed during the
+  window **your text wins** and the search re-runs on it instead of being overwritten by the
+  restored query.
+
+  Verified: typing 60ms after selecting now keeps the text, shows the dropdown, and leaves the flag
+  down. Stacking still works end to end — Surf then Earthquake gives 47 Pokémon that learn both.
+
+### Testing
+- 6 assertions added to `tests/test-dex-search.js`. They are structural, because the flag lives in a
+  DOM event path node cannot drive, and they pin the three properties that make it safe — a failsafe
+  exists, no dependency on `requestAnimationFrame`, and typed text is preserved — rather than the
+  timings.
+- **Three mutations, M82–M84**, one per property. Set is now **75, all killed**; 33 suites,
+  1,188 assertions.
+
+### Worth noting
+- This is a feature I had not touched today, broken by code that predates the session, and it was
+  the most valuable thing on the site. Every release since 5.19 has been correctness work on data
+  and arithmetic; none of it would ever have found this, because nothing about it is a wrong number.
+  It needed someone using the app.
+
+---
+
 ## [5.37] - 2026-08-21
 
 ### Removed

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.37 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.38 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -2584,6 +2584,33 @@ function highlightSmart(){
 }
 let _suppressSearch=false;
 let _pendingSearchVal=null;
+let _suppressTimer=null;
+
+/* Selecting a result navigates and then puts the query back in the box, selected, so the next thing
+   typed replaces it. `_suppressSearch` exists to stop that programmatic write from firing the search
+   handler as if the reader had typed it.
+
+   The way it was released is what broke the best feature on the site. It was cleared at the end of
+   requestAnimationFrame -> setTimeout(150) -> setTimeout(300), and two things went wrong with that:
+
+     1. For roughly 450ms after selecting anything, ANY keystroke was silently discarded. The search
+        only runs on an input event, so typing during the window and then stopping meant no dropdown
+        ever appeared — you had to type one more character to wake it up. Reported as "it's not
+        really showing the search results", which is exactly what it looks like from the outside.
+     2. If any link in that chain did not run, the flag stayed true and the search was dead for the
+        rest of the session. requestAnimationFrame does not fire in a hidden tab, and nothing in the
+        chain was guarded, so an exception during navigation left it stuck with no way back except a
+        reload. Reproduced: _suppressSearch true, _pendingSearchVal orphaned, every keystroke
+        ignored.
+
+   Now: the flag is released as soon as the programmatic write is done rather than 300ms later, a
+   failsafe timer releases it no matter what happens in between, and if the reader typed during the
+   window their text wins and the search runs on it. */
+function releaseSearchSuppression(){
+  clearTimeout(_suppressTimer);
+  _suppressTimer=null;
+  _suppressSearch=false;
+}
 function smartSelect(idx){
   const items=window._smartItems||[];
   const item=items[idx];
@@ -2591,20 +2618,28 @@ function smartSelect(idx){
   document.getElementById('smart-suggest').style.display='none';
   _pendingSearchVal=document.getElementById('search-input').value;
   _suppressSearch=true;
-  
+  // Nothing below may leave the search disabled. Every other release path is best-effort; this one
+  // always runs.
+  clearTimeout(_suppressTimer);
+  _suppressTimer=setTimeout(releaseSearchSuppression,800);
+
   const afterNav=()=>{
-    requestAnimationFrame(()=>{setTimeout(()=>{
+    setTimeout(()=>{
       const si=document.getElementById('search-input');
-      if(_pendingSearchVal!==null){
+      /* If the reader has already typed something new, their text wins. Restoring the old query
+         over it would be the app arguing with the person using it. */
+      const typedDuring=!!(si.value&&_pendingSearchVal!==null&&si.value!==_pendingSearchVal);
+      if(_pendingSearchVal!==null&&!typedDuring){
         si.value=_pendingSearchVal;
         si.focus({preventScroll:true});
         si.setSelectionRange(0,_pendingSearchVal.length);
-        _pendingSearchVal=null;
       }
+      _pendingSearchVal=null;
       renderPins();
       scrollToDetail();
-      setTimeout(()=>{_suppressSearch=false},300);
-    },150)});
+      releaseSearchSuppression();
+      if(typedDuring)onSmartSearch();
+    },150);
   };
   
   if(item.type==='pokemon'){switchTab('pokedex');showDetail(item.id).then(afterNav)}
