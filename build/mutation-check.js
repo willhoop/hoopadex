@@ -240,6 +240,23 @@ const MUTATIONS = [
     "    renderMoveTags(name)\n  );",
     "    ''\n  );", 1, 'test-move-tags.js'],
 
+  /* 5.46 - the evolution chain holding two shapes at once. */
+  ['M113', "The evolution column gets an inline flex again, so evo-wide silently does nothing",
+    "'<div class=\"dx-evo-col\">",
+    "'<div class=\"dx-evo-col\" style=\"flex:1;min-width:180px\">", 1, 'test-evo-layout.js'],
+  ['M114', "The branch wrapper stops filling the column, so Eevee collapses back to one tall stack",
+    ".evo-branch-wrap{display:flex;align-items:center;gap:6px;width:100%}",
+    ".evo-branch-wrap{display:flex;align-items:center;gap:6px}", 1, 'test-evo-layout.js'],
+  ['M115', "The branches go back to a single stacked column",
+    ".evo-branch{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));",
+    ".evo-branch{display:flex;flex-direction:column;", 1, 'test-evo-layout.js'],
+  ['M116', "The column stops widening for a branching chain",
+    "if(col)col.classList.toggle('evo-wide',ec.querySelectorAll('.evo-branch-row').length>=3);",
+    "if(col)col.classList.remove('evo-wide');", 1, 'test-evo-layout.js'],
+  ['M117', "A too-wide chain stretches the page instead of scrolling in its own box",
+    "#evo-container{display:flex;justify-content:center;overflow-x:auto}",
+    "#evo-container{display:flex;justify-content:center}", 1, 'test-evo-layout.js'],
+
   ['M50', 'The ability card loses min-width:0, so a long name pushes the Hidden pill out of the card',
     '.ap-mon-body{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}',
     '.ap-mon-body{display:flex;flex-direction:column;gap:4px;flex:1}', 1, 'test-ability-desc.js'],

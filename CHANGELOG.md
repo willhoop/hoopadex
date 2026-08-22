@@ -12,6 +12,47 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.46] - 2026-08-22
+
+### Changed
+- **The evolution chain was laid out for one shape and had to hold two.**
+
+  Reported from the live site: the chain *"just seems randomly placed and doesn't use the space
+  under the stats well"* — then the hard case, *"its tricky because look at eevee"*. It is tricky,
+  and Eevee is exactly why.
+
+  A linear chain is three cards in a row. Eevee is one card and **eight branches**, and the branches
+  were stacked in a single column inside the half-width slot beside Defensive Matchups. Measured on
+  the live build:
+
+  | | Before | After |
+  |---|---|---|
+  | Eevee (8 branches) | 242px wide × **1,115px tall**, with the whole left half of the page empty beside it | 397px, a 3 × 3 grid |
+  | Tyrogue (3 branches) | 397px | 128px, three across in one row |
+  | Charizard (linear) | wrapped onto two rows | 128px, one row |
+
+  Three changes, and each one is a thing that looks harmless to remove later, so all three are
+  pinned by `tests/test-evo-layout.js` and mutations M113–M117:
+
+  - **The branches are a grid** (`auto-fill`), so one rule serves the narrow column and the wide row.
+  - **The column takes the full row at three or more branches.** The parent already wrapped, so this
+    is a flex-basis — but the column carried an inline `flex:1`, which is shorthand for
+    `flex-basis:0` and outranks any stylesheet rule. The widening class applied and nothing moved
+    until the flex was moved out of the markup.
+  - **The branch wrapper fills the column.** Without that the grid sizes to one column of content
+    and `auto-fill` has nothing to fill: the column widened to 1,106px and Eevee still rendered as a
+    single 1,068px stack.
+
+  The arrow is fixed-width **inside a branch grid**, which is what makes every sprite line up across
+  rows whether its label reads "Lv 16" or "Moss Rock or At Petalburg Woods or At Lush Jungle" — and
+  deliberately not fixed in a linear row, where forcing it wrapped Charizard onto two lines.
+
+  Narrow screens drop to one branch per row with a shorter arrow and smaller sprites. Ralts nests a
+  branch inside a branch, so one row is card-arrow-card-arrow-card and there is a width no phone
+  will fit; that scrolls inside its own container rather than stretching the document.
+
+---
+
 ## [5.45] - 2026-08-22
 
 ### Removed

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.45 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.46 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -387,21 +387,71 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .matchup-label{font-size:12px;font-weight:700;margin-bottom:8px}
 .matchup-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;margin-bottom:10px}
 /* Evolution chain */
+/* ── The evolution chain ────────────────────────────────────────────────────────────────────────
+   Two shapes have to work in the same box and they are not alike. A linear chain is three cards in
+   a row; Eevee is one card and eight branches. Stacked in a single column beside Defensive Matchups
+   the Eevee chain was 242px wide and 1,115px tall, with the entire left half of the page empty
+   next to it, and the arrows floating at ragged heights because each method label is a different
+   number of lines ("Lv 16" against "Moss Rock or At Petalburg Woods or At Lush Jungle").
+
+   So: the branches are a GRID that wraps into as many columns as the width allows, every branch row
+   is the same height with its parts on a shared baseline, and the column goes full width when it
+   has enough branches to need it (see the evo-wide toggle where the chain is rendered). */
 .evo-chain{display:flex;flex-direction:column;align-items:center;gap:10px}
-.evo-row{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
-.evo-stage{display:flex;flex-direction:column;align-items:center;cursor:pointer;padding:10px 14px;border-radius:14px;border:2px solid transparent;transition:all 0.2s;min-width:100px}
-.evo-stage:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1)}
-.evo-stage.current{background:transparent;border-color:rgba(240,128,48,0.3)}
-.evo-stage img{width:84px;height:84px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3))}
-.evo-stage .evo-name{font-size:14px;font-weight:700;color:#c8c8d8;text-transform:capitalize;margin-top:4px}
+.evo-row{display:flex;align-items:flex-start;justify-content:center;gap:6px;flex-wrap:wrap}
+.evo-stage{display:flex;flex-direction:column;align-items:center;cursor:pointer;padding:10px 12px;
+  border-radius:14px;border:2px solid transparent;transition:background .2s,border-color .2s;
+  min-width:104px;flex:0 0 auto}
+.evo-stage:hover{background:var(--hover2);border-color:var(--border3)}
+.evo-stage.current{background:transparent;border-color:rgba(240,128,48,0.45)}
+.evo-stage img{width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3))}
+.evo-stage .evo-name{font-size:13px;font-weight:700;color:var(--text2);text-transform:capitalize;
+  margin-top:4px;text-align:center;line-height:1.25}
 .evo-stage.current .evo-name{color:#F8A060}
-.evo-arrow{display:flex;flex-direction:column;align-items:center;color:#5a5a6a;padding:0 4px}
-.evo-arrow-icon{font-size:24px;color:#8a8a9a}
-.evo-arrow-down{font-size:24px;color:#8a8a9a;margin:2px 0}
-.evo-method{font-size:12px;color:#aaa;text-align:center;max-width:120px;line-height:1.3;font-weight:600}
-.evo-branch{display:flex;flex-direction:column;gap:10px;align-items:center}
-.evo-branch-row{display:flex;align-items:center;gap:6px}
-.evo-branch-line{width:2px;height:16px;background:rgba(255,255,255,0.08);margin:0 auto}
+/* The arrow column is a fixed width and its icon sits at a fixed offset from the top, so every
+   arrow in a branching chain lines up with every sprite regardless of how long its label is. The
+   label grows downward from a common top edge rather than pushing the arrow around. */
+.evo-arrow{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  color:var(--text4);padding-top:26px;flex:0 1 auto;min-width:58px;max-width:120px}
+/* Inside a branch grid the width is FIXED, because that is what makes every sprite in a column
+   line up whether its label is "Lv 16" or three lines of location names. A linear chain has no
+   column to line up with, and forcing the same width there wrapped Charizard onto two rows. */
+.evo-branch-row .evo-arrow{width:112px;flex:0 0 112px}
+.evo-arrow-icon{font-size:22px;line-height:1;color:var(--text3);margin-top:2px}
+.evo-arrow-down{font-size:22px;color:var(--text3);margin:2px 0}
+.evo-method{font-size:11px;color:var(--text3);text-align:center;line-height:1.3;font-weight:600;
+  width:100%;overflow-wrap:anywhere}
+/* One branch per grid cell. auto-fill rather than a fixed count so the same rule serves the narrow
+   column (two branches, still inline) and the full-width row (eight branches, three across). */
+/* The wrapper has to actually FILL the column, or the grid inside it sizes to one column's worth
+   of content and auto-fill has nothing to fill — which is exactly what happened: the column widened
+   to 1,106px and Eevee still came out as a single 1,068px-tall stack. */
+.evo-branch-wrap{display:flex;align-items:center;gap:6px;width:100%}
+.evo-branch{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:6px 4px;align-items:start;flex:1 1 auto;min-width:0}
+.evo-branch-row{display:flex;align-items:flex-start;gap:4px;justify-content:flex-start}
+.evo-branch-line{width:2px;height:16px;background:var(--border2);margin:0 auto}
+/* The column's own flex lives here rather than inline, because an inline `flex:1` is shorthand for
+   flex-basis:0 and would beat this class — the first attempt set evo-wide and nothing moved. */
+.dx-evo-col{flex:1 1 0;min-width:180px}
+.dx-evo-col.evo-wide{flex-basis:100%}
+.dx-evo-col.evo-wide .evo-branch{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+#evo-container{display:flex;justify-content:center;overflow-x:auto}
+.dx-evo-col.evo-wide #evo-container>*{width:100%}
+/* Narrow screens. A branch row is a card plus a 112px arrow plus a card, which does not fit 322px
+   of phone — Eevee overflowed its container by 56px. One branch per row, a shorter arrow and
+   smaller sprites; the arrow keeps a fixed width so the column still lines up. */
+@media (max-width:640px){
+  .evo-branch{grid-template-columns:1fr}
+  .dx-evo-col.evo-wide .evo-branch{grid-template-columns:1fr}
+  .evo-branch-row .evo-arrow{width:72px;flex:0 0 72px}
+  .evo-arrow{padding-top:18px;min-width:48px}
+  .evo-stage{min-width:82px;padding:6px 8px}
+  .evo-stage img{width:60px;height:60px}
+  .evo-stage .evo-name{font-size:11px}
+  .evo-method{font-size:10px}
+}
+.dx-evo-col.evo-wide #evo-container{justify-content:flex-start}
 /* Move category icons */
 .cat-icon{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;vertical-align:middle}
 .cat-icon.physical{background:linear-gradient(135deg,#c03028,#e06058);color:#fff;box-shadow:0 1px 4px rgba(192,48,40,0.3)}
@@ -1787,7 +1837,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.45';
+const APP_VERSION='5.46';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -3181,7 +3231,7 @@ function renderEvoChain(tree,currentId){
 
   // Branching: base pokemon on left, branches stacked vertically on right
   function renderBranchFrom(base,currentId){
-    let html='<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">';
+    let html='<div class="evo-branch-wrap">';
     html+=renderEvoStage(base,currentId);
     if(base.children&&base.children.length>0){
       html+='<div class="evo-branch">';
@@ -4138,7 +4188,7 @@ async function renderDetail(p){
     '</div>'+
     '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">'+
       '<div style="flex:1;min-width:180px"><div class="section-label" style="margin-bottom:6px">Defensive Matchups</div>'+iH+r4H+rH+wH+w4H+'</div>'+
-      '<div style="flex:1;min-width:180px"><div class="section-label" style="margin-bottom:6px">Evolution</div><div id="evo-container" style="display:flex;justify-content:center"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
+      '<div class="dx-evo-col"><div class="section-label" style="margin-bottom:6px">Evolution</div><div id="evo-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
     '</div>'+
     '<div><div class="section-label" style="margin-bottom:8px">Moves</div><div id="moves-container"><div style="text-align:center;padding:12px;color:#6a6a7a"><div class="spinner" style="width:24px;height:24px;border-width:2px"></div>Loading moves...</div></div></div>'+
     '<div style="margin-top:14px"><div class="section-label" style="margin-bottom:8px">Wild Encounters</div><div id="encounter-locs-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
@@ -4197,6 +4247,14 @@ async function renderDetail(p){
       }
     }
     ec.innerHTML=renderEvoChain(stages,currentId);
+    /* A branching chain is a different shape from a linear one and needs a different amount of
+       room. Eevee has eight branches: stacked in the half-width column beside Defensive Matchups
+       they made a 242px-wide strip 1,115px tall, with the whole left half of the page empty beside
+       it. The parent already wraps, so giving this column a full basis drops it onto its own line
+       where the branch grid can use the width. Three is the threshold because two branches still
+       fit the narrow column without stacking awkwardly. */
+    const col=ec.closest('.dx-evo-col');
+    if(col)col.classList.toggle('evo-wide',ec.querySelectorAll('.evo-branch-row').length>=3);
   });
 
   // Load forms (megas, regional) in background

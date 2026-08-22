@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.45**
+**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.46**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -929,6 +929,42 @@ also why the defect survived, because the engine branch was never executed there
 paths. The engine stub is wrapped in an IIFE: an indirect `eval` runs in global scope, so without a
 function scope the stub's `var CalcMaps` overwrites the one the rest of the suite uses and later
 assertions silently test a fake engine.
+
+## 4.7e The evolution chain, and the two shapes it has to hold
+
+One box renders a linear chain (three cards in a row) and a heavily branching one (Eevee: one card
+and eight branches). They are not alike, and laying both out the same way is what made the branching
+case unusable — Eevee was a 242px-wide column 1,115px tall inside the half-width slot beside
+Defensive Matchups, with the entire left half of the page empty.
+
+Three rules do the work. Each looks removable and none is:
+
+1. **`.evo-branch` is a grid**, `repeat(auto-fill, minmax(240px, 1fr))`. One declaration serves both
+   the narrow column (two branches, still inline) and the full-width row (eight branches, three
+   across). Do not replace it with a flex column.
+2. **The column takes the full row at three or more branches** — `.dx-evo-col.evo-wide` sets
+   `flex-basis:100%`, and the parent row already has `flex-wrap:wrap`. **The column must carry no
+   inline `flex`.** `flex:1` is shorthand for `flex-basis:0` and outranks the stylesheet; with it
+   present the class applies and the column does not move. That is why `.dx-evo-col{flex:1 1 0}`
+   lives in CSS and not in the markup.
+3. **`.evo-branch-wrap` fills the column** (`width:100%`). A grid whose parent hugs its content has
+   nothing to expand into: with the wrapper content-sized, the column widened to 1,106px and Eevee
+   still rendered as a single 1,068px stack.
+
+**The arrow width is context-dependent on purpose.** `.evo-branch-row .evo-arrow` is a fixed 112px,
+which is what makes every sprite line up across grid rows whether the label is "Lv 16" or three
+lines of location names; the label grows downward from a common `padding-top` rather than shoving
+the arrow around. A linear `.evo-row` arrow is *not* fixed — forcing the same width there made
+three 104px cards plus two 112px arrows exceed the 545px column and wrapped Charizard onto two rows.
+
+Below 640px the grid drops to one branch per row with a 72px arrow and 60px sprites. Ralts nests a
+branch inside a branch, producing a card-arrow-card-arrow-card row that no phone width fits, so
+`#evo-container` carries `overflow-x:auto` — it scrolls in its own box rather than stretching the
+document.
+
+`tests/test-evo-layout.js` is structural, because layout is not testable in node (white paper §5.3).
+What it pins is the set of rules above, including the two that failed silently during development:
+the inline flex outranking the widening class, and the wrapper not filling.
 
 ## 4.8 The colourblind toggle appears only where it applies
 
