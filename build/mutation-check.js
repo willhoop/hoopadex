@@ -146,9 +146,14 @@ const MUTATIONS = [
   ['M43', 'The stale-multiplier guard inverts, so PokeAPI\'s 1.33x sits next to the derived 1.3',
     '    return !mults.some(function(m){return Math.abs(m-n)<0.02});',
     '    return mults.some(function(m){return Math.abs(m-n)<0.02});', 1, 'test-interactions.js'],
-  ['M44', 'A move reports its holder-side rules as things that happen TO it',
-    "        if(r.kind==='removes'||r.kind==='strips')return;",
-    '        if(false)return;', 1, 'test-interactions.js'],
+  /* M44 used to mutate the removes/strips guard inside moveInteractions(), which was deleted in
+     5.45 along with the renderer that printed its output under a move. The invariant it protected
+     is still real and still rendered — a rule about the HOLDER's own moves has to read as one, or
+     "Long Reach" appears in a list of things that happen to your move — so it moves to the
+     surviving function that states it. */
+  ['M44', 'A holder-side rule stops saying it is one, so Long Reach reads as a punisher',
+    "        else if(r.kind==='removes')out.push({t:who+' removes it'});",
+    "        else if(r.kind==='removes')out.push({t:who});", 1, 'test-interactions.js'],
   ['M45', 'The embedded interaction table goes stale against the generated one',
     '"mega-launcher":{"rules"', '"mega-launcher-x":{"rules"', 1, 'test-interactions.js'],
   ['M46', 'Move tags stop being cut to the generation, so Gen V is told Mega Launcher boosts pulses',
@@ -171,9 +176,10 @@ const MUTATIONS = [
   ['M49', 'The tag tooltip stops filtering triggers, so contact fills with Gooey and nineteen others',
     'const cons=ixFlagConsequences(f,genNum).filter(function(c){return !c.trigger});',
     'const cons=ixFlagConsequences(f,genNum);', 1, 'test-move-tags.js'],
-  ['M94', 'A move lists every ability it merely sets off again, burying the three that matter',
-    "const hits=moveInteractions(moveSlug,genNum).filter(function(x){return x.rule.kind!=='affects'});",
-    'const hits=moveInteractions(moveSlug,genNum);', 1, 'test-interactions.js'],
+  /* M94 was here and is deleted, not repaired. It reinstated the "affects" rows under a move; the
+     renderer that could print them no longer exists (5.45), so there is nothing left to break. A
+     mutation whose target has been deliberately removed is not a gap in the tests — the same call
+     that was made for M86 and M49. test-interactions.js now asserts the functions are absent. */
   /* 5.43 — spread moves. Champions is doubles, so "how many does it hit" is a first-order fact
      about a move, and every one of these mutations puts a wrong one in front of a reader. */
   ['M95', 'Gen III stops halving spread damage and takes the modern three quarters',
@@ -225,6 +231,14 @@ const MUTATIONS = [
   ['M110', "Contact renders as good-for-you again, ignoring its eighteen punishers",
     "const role=bad?' mv-tag-block':((boost&&!punished)?' mv-tag-boost':'');",
     "const role=bad?' mv-tag-block':(boost?' mv-tag-boost':'');", 1, 'test-move-tags.js'],
+
+  /* 5.45 - what a move says about its own tags. */
+  ['M111', "The emoji comes back onto the variable-move heading",
+    "  h+='<div style=\"font-weight:700;color:#6890F0;margin-bottom:4px\">'+info.label+'</div>';",
+    "  h+='<div style=\"font-weight:700;color:#6890F0;margin-bottom:4px\">\u26a1 '+info.label+'</div>';", 1, 'test-move-tags.js'],
+  ['M112', "The move tooltip stops showing its tags",
+    "    renderMoveTags(name)\n  );",
+    "    ''\n  );", 1, 'test-move-tags.js'],
 
   ['M50', 'The ability card loses min-width:0, so a long name pushes the Hidden pill out of the card',
     '.ap-mon-body{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}',

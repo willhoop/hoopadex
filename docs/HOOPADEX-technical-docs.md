@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.44**
+**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.45**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -821,29 +821,25 @@ attempted here again should be inline or on demand, and must not displace `#tm-c
 
 ## 4.7a What a move shows about its tags
 
-A move's tag display states only what the tag **costs or buys**: rules of kind `boost`, `block`,
-`resist`, `retype` and `strips`. Rules of kind `affects` — abilities the move merely sets off — are
-excluded at the render sites.
+A move shows **what it is** — `CONTACT`, `PUNCH`, `PULSE / AURA` — and nothing about who acts on
+that. Both of the things it used to add have been removed for the same reason, one release apart:
 
-There are twenty `affects` rules on `contact` alone, and they are a property of the **tag**, not of
-the move: every contact move in the game sets off Gooey. Rendering them per move produced twenty
-identical rows on every contact move, needed a six-row cap, needed a ranking so the cap would not
-drop the one row that changes a damage number, and needed an "and 14 more" line. Ice Punch showed
-21 rows, of which 3 were about Ice Punch.
+- **No bare multiplier on the chip face** (5.43). `CONTACT ×1.3` reads as a property of the move and
+  is not one; that is what Tough Claws does to it.
+- **No list of who acts on the tag** (5.45). `Boosted ×1.3 by Tough Claws ABILITY` under a move
+  whose Pokémon does not have Tough Claws is the same overclaim one line lower down.
 
-`ixFlagConsequences` still **returns** them, marked `trigger:true`. Do not remove them from the
-derivation: `tests/test-move-tags.js` checks it, and the ability pages — which have room — are the
-right place to answer "what sets this off". The suite asserts both directions: that named triggers
-(Gooey, Aftermath, Static…) are absent from the tag tooltip, and that at least fifteen are still
-derived.
+`moveInteractions()` and `renderMoveInteractions()` are **deleted**. Do not rebuild them: the join
+they performed is real, but the place to state it is the ability page, where `ixFlagMoves` answers
+"which moves does this act on" for a reader who is asking about the ability. The reverse question,
+asked under every move, is answered wrongly for almost every Pokémon that could use the move.
 
-**The chip face carries no number.** It reads `CONTACT`, not `CONTACT ×1.3`. The multiplier is a
-fact about an *ability*, not about the move: nothing about Mortal Spin is ×1.3, that is what Tough
-Claws does to it, and only for the Pokémon that have Tough Claws. Printed on the move it is false
-for almost every Pokémon using it. It belongs in the hover text where the ability can be named, and
-the phrasing must keep the verb — `Tough Claws boosts it ×1.3`, never `Tough Claws ×1.3`, because a
-name beside a number leaves the reader to supply the relationship and the one they supply is that
-the move is ×1.3. Mutations M103 and M104 hold both halves.
+Earlier, in 5.42, the twenty `affects` rules on `contact` were dropped from the same surfaces — the
+abilities a contact move merely sets off are what the word "contact" means, identical on every
+contact move in the game. `ixFlagConsequences` still returns them, marked `trigger:true`, and
+`tests/test-move-tags.js` asserts they are still derived. The ability pages have room for them.
+
+**No emoji.** The ⚡ that headed the variable-move box was the only one in the interface.
 
 ## 4.7b Spread moves
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.44 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.45 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1424,8 +1424,12 @@ async function showMoveTip(e,name){
     '</div>'+
     '<div class="tooltip-desc">'+(genFlavorText(m.flavorEntries,getDataGenNum())||m.desc)+'</div>'+
     renderVariableMoveInfo(name)+
-    // Which class of move this is, and who acts on that class. Derived; see the IX table.
-    renderMoveInteractions(name,getDataGenNum())
+    /* Which class of move this is — and only that. This used to list who acts on the class:
+       "Boosted x1.3 by Tough Claws ABILITY" under a move whose own Pokemon almost certainly does
+       not have Tough Claws. Same overclaim the chip face was carrying until 5.43, one line lower
+       down. The tag says "Contact", which is true of the move and is the part worth knowing; what
+       an ability does about it lives on the ability's own page. */
+    renderMoveTags(name)
   );
 }
 
@@ -1783,7 +1787,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.44';
+const APP_VERSION='5.45';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -3754,54 +3758,20 @@ function renderInteractions(kind,slugName,genNum,said){
 /* The same facts read from the move's side. Aura Sphere should name Mega Launcher without anyone
    having to already suspect Mega Launcher exists. Gated on the ability's or item's own
    introduction, so Gen V is not told about Bulletproof. */
-function moveInteractions(moveSlug,genNum){
-  const flags=String(IX.moveFlags[moveSlug]||'').split(' ').filter(Boolean);
-  if(!flags.length)return [];
-  const out=[];
-  [['ability',IX.abilities],['item',IX.items]].forEach(function(pair){
-    Object.keys(pair[1]).forEach(function(name){
-      const rec=pair[1][name];
-      if(rec.gen&&rec.gen>genNum)return;
-      (rec.rules||[]).forEach(function(r){
-        if(flags.indexOf(r.flag)<0)return;
-        // "Its own moves" rules describe the holder's moves, not this move's attackers.
-        if(r.kind==='removes'||r.kind==='strips')return;
-        out.push({who:ixTitle(name),kind:pair[0],rule:r});
-      });
-    });
-  });
-  return out;
-}
-/* Reported from the live site: "see how repetitive and clunky the contact, punching, sets off list
-   are ... of course i know a contact move sets off gooey". Both halves were true.
+/* moveInteractions() and renderMoveInteractions() were here and are deleted.
 
-   The flag pills repeated, without the multipliers, the tag chips renderMoveTags had just drawn
-   immediately above — CONTACT, PUNCHING under CONTACT ×1.3, PUNCH ×1.2. And the rows below them
-   were twenty "Sets off <ability>" lines that say nothing about the move: they are what the word
-   "contact" means, identical on every contact move in the game, and they pushed the three rows
-   that ARE specific to it off the bottom of a six-row cap.
+   They joined a move's flags to every ability and item that acts on them, and printed the result
+   under the move: "Boosted x1.3 by Tough Claws ABILITY" beneath Counter. Reported from the live
+   site as "kill the tough claws all we need to know is contact", and that is right — the Pokemon
+   holding the move almost certainly does not have Tough Claws, so the line is false far more often
+   than it is true. It is the same overclaim the chip face carried until 5.43, moved one line down
+   instead of removed. What a move IS (contact) belongs on the move; what an ability does about it
+   belongs on the ability's page, which is where ixFlagMoves already answers it.
 
-   Ice Punch went from 21 rows to 3: Iron Fist ×1.2, Tough Claws ×1.3, Punching Glove ×1.1. */
-function renderMoveInteractions(moveSlug,genNum){
-  const hits=moveInteractions(moveSlug,genNum).filter(function(x){return x.rule.kind!=='affects'});
-  if(!hits.length)return '';
-  let h='<div class="ix-tip">';
-  hits.slice(0,6).forEach(function(x){
-    const k=x.rule.kind,mult=x.rule.mult?' &times;'+x.rule.mult:'';
-    /* The whole phrase per kind rather than a verb plus a fixed " by". Aftermath is not something
-       a move is "triggered by" - the move sets it off - and gluing one preposition onto every verb
-       produced "Triggers by Aftermath" on every contact move in the game. */
-    const phrase=k==='boost'?'Boosted'+mult+' by':
-                 k==='weaken'?'Weakened'+mult+' by':
-                 k==='resist'?'Resisted'+mult+' by':
-                 k==='block'?'Blocked by':
-                 k==='retype'?'Retyped by':'Interacts with';   // 'affects' is filtered out above
-    h+='<div class="ix-tip-row">'+phrase+' <b>'+x.who+'</b><span class="ix-kind">'+x.kind+'</span></div>';
-  });
-  if(hits.length>6)h+='<div class="ix-tip-row ix-more">and '+(hits.length-6)+' more</div>';
-  h+='</div>';
-  return h;
-}
+   Deleted rather than left unreferenced: this project has a rule about second implementations that
+   nothing calls. The derivation they exercised is still covered — tests/test-interactions.js now
+   reaches the same facts through IX.moveFlags and ixFlagConsequences, both of which the ability
+   pages still call on every render. */
 
 /* PokeAPI's ability text for the four weather abilities is Generation V wording and has never been
    updated: "Summons a sandstorm that lasts INDEFINITELY upon entering battle". That was true
@@ -7175,7 +7145,7 @@ function renderVariableMoveInfo(moveName){
   const info=VARIABLE_MOVE_INFO[moveName];
   if(!info)return env;
   let h='<div style="margin-top:6px;padding:6px 8px;background:transparent;border:1px solid var(--border2);border-radius:6px;font-size:10px">';
-  h+='<div style="font-weight:700;color:#6890F0;margin-bottom:4px">⚡ '+info.label+'</div>';
+  h+='<div style="font-weight:700;color:#6890F0;margin-bottom:4px">'+info.label+'</div>';
   if(info.formula)h+='<div style="color:#a8a8b8;margin-bottom:4px;font-style:italic">'+info.formula+'</div>';
   if(info.note)h+='<div style="color:#c8c8d8">'+info.note+'</div>';
   if(info.table){

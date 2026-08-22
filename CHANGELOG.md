@@ -12,6 +12,38 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.45] - 2026-08-22
+
+### Removed
+- **"Boosted ×1.3 by Tough Claws" is gone from move tooltips, and so is the renderer behind it.**
+
+  Reported from the live site, looking at Counter: *"kill the emoji, kill the tough claws all we
+  need to know is contact"*.
+
+  Right on both counts. The Pokémon holding the move almost certainly does not have Tough Claws, so
+  that line is false far more often than it is true — the same overclaim the chip face carried until
+  5.43, moved one line down rather than removed. What a move **is** (Contact) belongs on the move.
+  What an ability does about it belongs on the ability's own page, where `ixFlagMoves` already
+  answers it.
+
+  The tooltip now shows its tag pills and nothing else. `moveInteractions()` and
+  `renderMoveInteractions()` had no other caller, so both were **deleted rather than left
+  unreferenced** — this project has a rule about implementations nothing calls. The derivation they
+  exercised is still covered: `tests/test-interactions.js` now reaches the same facts through
+  `IX.moveFlags` and `ixFlagConsequences`, both of which the ability pages call on every render.
+
+  Two mutations pointed at the deleted code. `M44`'s invariant is still real and still rendered — a
+  rule about the *holder's* own moves has to read as one, or Long Reach appears in a list of things
+  that happen to your move — so it moved to the surviving function that states it. Tightening it
+  exposed that the old assertion passed while the `removes` phrasing was broken, because the
+  `strips` phrasing beside it matched the same loose pattern. `M94` was deleted: the renderer it
+  attacked no longer exists, so there is nothing left to break. Same call as `M86` and `M49`.
+
+- **The ⚡ on the variable-move heading.** It was the only emoji in the interface and carried nothing
+  the heading did not already carry.
+
+---
+
 ## [5.44] - 2026-08-22
 
 ### Changed

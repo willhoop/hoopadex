@@ -43,13 +43,20 @@ if (!vgLine || !ixLine || start < 0 || end < 0) throw new Error('could not locat
    ixContradicts is the guard that keeps a stale PokeAPI multiplier off the page and it must be the
    real one. Nothing here is restated locally: a correct copy in the test file would hide a broken
    original, which is the exact failure mode this project has already been bitten by. */
+/* ixFlagConsequences lives further down the file, past this slice, and the move-side assertions
+   below reach the derivation through it. Sliced in rather than reimplemented, for the reason in the
+   comment above: a correct copy here would hide a broken original. */
+const fcStart = lines.findIndex(l => l.startsWith('function ixFlagConsequences('));
+const fcEnd = lines.findIndex((l, i) => i > fcStart && l.startsWith('/* ── Spread moves'));
+if (fcStart < 0 || fcEnd < 0) throw new Error('could not locate ixFlagConsequences');
 const app = (0, eval)(
-  vgLine + '\n' + ixLine + '\n' + lines.slice(start, end).join('\n') +
+  vgLine + '\n' + ixLine + '\n' + lines.slice(start, end).join('\n') + '\n' +
+  lines.slice(fcStart, fcEnd).join('\n') +
   '\n;({IX,ixRoman,ixTitle,genFlavorText,ixRuleText,ixFlagMoves,ixMoveChips,' +
-  'ixContradicts,renderInteractions,moveInteractions,renderMoveInteractions})'
+  'ixContradicts,renderInteractions,ixFlagConsequences})'
 );
 const { IX, genFlavorText, ixRuleText, ixFlagMoves, ixContradicts,
-        renderInteractions, moveInteractions } = app;
+        renderInteractions, ixFlagConsequences } = app;
 
 // --- the embedded table is the generated one ---------------------------------------------------
 /* The blob in index.html is 25 KB of generated JSON inside a hand-edited file. If the two are
@@ -201,49 +208,52 @@ check(!/since Gen/.test(renderInteractions('ability', 'guard-dog', 9)),
 check(/Triggered by Intimidate/.test(renderInteractions('item', 'adrenaline-orb', 9)),
   'Adrenaline Orb is triggered BY Intimidate, not immune to it');
 
-// --- the same facts from the move's side -------------------------------------------------------
-const as9 = moveInteractions('aura-sphere', 9).map(x => x.who);
-const as5 = moveInteractions('aura-sphere', 5).map(x => x.who);
-check(as9.indexOf('Mega Launcher') >= 0, 'Aura Sphere names Mega Launcher', as9.join(','));
-check(as9.indexOf('Bulletproof') >= 0, 'and Bulletproof, because it is ballistic as well as a pulse');
-check(as5.length === 0,
-  'and neither in Gen V, because both abilities are Generation VI', as5.join(','));
-check(moveInteractions('boomburst', 5).map(x => x.who).indexOf('Soundproof') >= 0,
-  'Soundproof does reach back to Gen V');
-check(moveInteractions('sleep-powder', 9).map(x => x.who).indexOf('Safety Goggles') >= 0,
-  'items appear alongside abilities');
-check(moveInteractions('aerial-ace', 9).map(x => x.who).indexOf('Rocky Helmet') >= 0,
-  'contact punishers are found, which needs checkMoveMakesContact to be read as a contact test');
-check(moveInteractions('tackle', 9).every(x => x.rule.kind !== 'removes' && x.rule.kind !== 'strips'),
-  'a rule about the holder\'s OWN moves is not reported as something that happens to this move');
+/* --- the same facts, reached from a move ---------------------------------------------------------
+   These used to go through moveInteractions()/renderMoveInteractions(), which joined a move's flags
+   to every ability and item acting on them and printed the result under the move. Both were deleted
+   in 5.45: reported from the live site as "kill the tough claws all we need to know is contact".
+   Fair — "Boosted x1.3 by Tough Claws" sits under a move whose Pokemon almost certainly does not
+   have Tough Claws, which is the same overclaim the chip face carried until 5.43, one line lower.
 
-/* --- what a move actually RENDERS about its tags ------------------------------------------------
-   moveInteractions is the derivation and returns everything, including the twenty abilities a
-   contact move merely sets off. renderMoveInteractions is the display, and those twenty are the
-   same on every contact move in the game — they say what "contact" means, not what this move does.
-   Rendering them buried the three rows that are specific to the move under a six-row cap, and was
-   reported from the live site as repetitive. The filter lives at the render site so the derivation
-   stays whole; this pair of checks is what holds them apart. */
-const ipRaw = moveInteractions('ice-punch', 9);
-const ipHtml = renderMoveInteractions('ice-punch', 9);
-check(ipRaw.filter(x => x.rule.kind === 'affects').length >= 15,
-  'the derivation still finds every ability an Ice Punch sets off',
-  ipRaw.filter(x => x.rule.kind === 'affects').length);
-['Gooey', 'Aftermath', 'Effect Spore', 'Static', 'Cute Charm', 'Flame Body', 'Rocky Helmet']
-  .forEach(a => check(ipHtml.indexOf(a) < 0,
-    `but "${a}" is not rendered on the move — it follows from the tag, not from Ice Punch`, ipHtml));
-check(/Iron Fist/.test(ipHtml) && /Tough Claws/.test(ipHtml) && /Punching Glove/.test(ipHtml),
-  'while the three that change its damage are all shown', ipHtml);
-check(!/and \d+ more/.test(ipHtml),
-  'and nothing is truncated, because there is no longer a list long enough to need it', ipHtml);
-check(ipHtml.indexOf('Sets off') < 0, 'the phrase "Sets off" no longer appears on a move', ipHtml);
-/* The flag pills were a second copy of the tag chips renderMoveTags draws immediately above, minus
-   the multipliers that make those chips worth reading. */
-check(ipHtml.indexOf('ix-tip-flags') < 0,
-  'and the tag pills are gone, because the chips above them already name the tags', ipHtml);
-/* A move whose tags cost nothing renders nothing at all, rather than an empty bordered box. */
-check(renderMoveInteractions('splash', 9) === '', 'a move with no consequences renders nothing',
-  renderMoveInteractions('splash', 9));
+   The DERIVATION those functions exercised is still worth checking, so the join is done here
+   against the live pieces it was built from: IX.moveFlags for what a move is, and the shipped
+   ixFlagConsequences for what acts on that. Nothing below is a copy of deleted code — both halves
+   are functions the app still calls on every ability page. */
+const actsOn = (move, gen) => String(IX.moveFlags[move] || '').split(' ').filter(Boolean)
+  .flatMap(f => ixFlagConsequences(f, gen).map(c => c.t));
+
+const as9 = actsOn('aura-sphere', 9), as5 = actsOn('aura-sphere', 5);
+check(as9.some(t => /^Mega Launcher/.test(t)), 'Aura Sphere reaches Mega Launcher', as9.join(' | '));
+check(as9.indexOf('Blocked by Bulletproof') >= 0,
+  'and Bulletproof, because it is ballistic as well as a pulse', as9.join(' | '));
+check(as5.length === 0,
+  'and neither in Gen V, because both abilities are Generation VI', as5.join(' | '));
+check(actsOn('boomburst', 5).indexOf('Blocked by Soundproof') >= 0,
+  'Soundproof does reach back to Gen V');
+check(actsOn('sleep-powder', 9).some(t => /Safety Goggles/.test(t)),
+  'items appear alongside abilities', actsOn('sleep-powder', 9).join(' | '));
+check(actsOn('aerial-ace', 9).indexOf('Rocky Helmet') >= 0,
+  'contact punishers are found, which needs checkMoveMakesContact to be read as a contact test');
+/* A rule about the holder's OWN moves is not something that happens to this move. Long Reach
+   removes the contact flag from its holder's attacks; it is not a thing Tackle sets off. Those are
+   marked in the consequence text rather than silently mixed in with the punishers. */
+const tackle = actsOn('tackle', 9);
+/* Named exactly, and both branches separately. A looser check passed while the `removes` phrasing
+   was broken, because the `strips` phrasing next to it still matched the pattern. */
+check(tackle.indexOf('Long Reach removes it') >= 0,
+  'Long Reach is stated as removing contact, not as something Tackle sets off', tackle.join(' | '));
+check(tackle.some(t => /^Unseen Fist removes its .* status$/.test(t)),
+  'and a strip rule names the flag it removes', tackle.filter(t => /Unseen Fist/.test(t)));
+
+/* The twenty abilities a contact move merely sets off are still derived — they belong on the
+   ability pages, which have room — but nothing renders them under a move any more. */
+const contactSetsOff = ixFlagConsequences('contact', 9).filter(c => c.trigger);
+check(contactSetsOff.length >= 15,
+  'the derivation still finds every ability a contact move sets off', contactSetsOff.length);
+check(!/function renderMoveInteractions\(/.test(src),
+  'and the renderer that printed them under a move is gone, not merely unused');
+check(!/function moveInteractions\(/.test(src),
+  'along with the join that fed it — dead code is deleted here, not left to rot');
 
 // --- a stale multiplier from PokeAPI never sits next to the derived one -------------------------
 /* Tough Claws is the live example: Showdown multiplies by 5325/4096, which is 1.3, and PokeAPI's

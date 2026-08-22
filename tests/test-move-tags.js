@@ -213,6 +213,22 @@ check(withEngine({ sound: 1 })('sleep-powder').join() === 'sound',
   'but an engine that actually says something still wins over the table',
   JSON.stringify(withEngine({ sound: 1 })('sleep-powder')));
 
+/* WHAT THE MOVE TOOLTIP SAYS ABOUT ITS TAGS, and what it no longer says.
+   It used to print "Boosted x1.3 by Tough Claws ABILITY" under the move. Reported from the live
+   site as "kill the tough claws all we need to know is contact". The Pokemon holding the move
+   almost certainly does not have Tough Claws, so the line is false far more often than true - the
+   same overclaim the chip face carried until 5.43, moved one line down rather than removed. The
+   tooltip now shows the tag pills and nothing else. */
+check(/renderVariableMoveInfo\(name\)\+\s*\/\*[\s\S]{0,600}?renderMoveTags\(name\)/.test(src),
+  'the move tooltip shows its tags, not a list of who acts on them');
+/* The definition, not the name — the comment left where it used to live names it on purpose, so
+   that anyone about to rebuild it reads why it went first. */
+check(!/function renderMoveInteractions\(/.test(src),
+  'and the renderer that listed them is gone from the app entirely');
+/* An emoji is not a label. It carried no meaning the heading did not already carry, and it was the
+   only one in the interface. */
+check(!/⚡/.test(src), 'no lightning-bolt emoji is rendered anywhere');
+
 // --- consequences are cut to the generation ----------------------------------------------------
 check(ixFlagConsequences('pulse', 5).length === 0,
   'Gen V is told nothing about pulse moves, because Mega Launcher is a Gen VI ability',
