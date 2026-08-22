@@ -217,6 +217,34 @@ check(moveInteractions('aerial-ace', 9).map(x => x.who).indexOf('Rocky Helmet') 
 check(moveInteractions('tackle', 9).every(x => x.rule.kind !== 'removes' && x.rule.kind !== 'strips'),
   'a rule about the holder\'s OWN moves is not reported as something that happens to this move');
 
+/* --- what a move actually RENDERS about its tags ------------------------------------------------
+   moveInteractions is the derivation and returns everything, including the twenty abilities a
+   contact move merely sets off. renderMoveInteractions is the display, and those twenty are the
+   same on every contact move in the game — they say what "contact" means, not what this move does.
+   Rendering them buried the three rows that are specific to the move under a six-row cap, and was
+   reported from the live site as repetitive. The filter lives at the render site so the derivation
+   stays whole; this pair of checks is what holds them apart. */
+const ipRaw = moveInteractions('ice-punch', 9);
+const ipHtml = renderMoveInteractions('ice-punch', 9);
+check(ipRaw.filter(x => x.rule.kind === 'affects').length >= 15,
+  'the derivation still finds every ability an Ice Punch sets off',
+  ipRaw.filter(x => x.rule.kind === 'affects').length);
+['Gooey', 'Aftermath', 'Effect Spore', 'Static', 'Cute Charm', 'Flame Body', 'Rocky Helmet']
+  .forEach(a => check(ipHtml.indexOf(a) < 0,
+    `but "${a}" is not rendered on the move — it follows from the tag, not from Ice Punch`, ipHtml));
+check(/Iron Fist/.test(ipHtml) && /Tough Claws/.test(ipHtml) && /Punching Glove/.test(ipHtml),
+  'while the three that change its damage are all shown', ipHtml);
+check(!/and \d+ more/.test(ipHtml),
+  'and nothing is truncated, because there is no longer a list long enough to need it', ipHtml);
+check(ipHtml.indexOf('Sets off') < 0, 'the phrase "Sets off" no longer appears on a move', ipHtml);
+/* The flag pills were a second copy of the tag chips renderMoveTags draws immediately above, minus
+   the multipliers that make those chips worth reading. */
+check(ipHtml.indexOf('ix-tip-flags') < 0,
+  'and the tag pills are gone, because the chips above them already name the tags', ipHtml);
+/* A move whose tags cost nothing renders nothing at all, rather than an empty bordered box. */
+check(renderMoveInteractions('splash', 9) === '', 'a move with no consequences renders nothing',
+  renderMoveInteractions('splash', 9));
+
 // --- a stale multiplier from PokeAPI never sits next to the derived one -------------------------
 /* Tough Claws is the live example: Showdown multiplies by 5325/4096, which is 1.3, and PokeAPI's
    short_effect still says 1.33x — the Generation VI value, wrong since Generation VII. Both were on

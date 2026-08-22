@@ -118,16 +118,33 @@ check(contact.some(t => /^Unseen Fist removes its protectable status$/.test(t)),
   'a strip rule names the flag it removes — "Unseen Fist" alone tells a reader nothing',
   contact.filter(t => /Unseen Fist/.test(t)));
 
-/* The tag tooltip is a native title attribute and contact has twenty-two consequences, so the list
-   is capped. The cap is only safe if it can never drop the entries that change a damage number,
-   which is why boosts and blocks are hoisted before it is applied. */
+/* The tag tooltip used to be capped, ranked and truncated, because contact carries twenty-two
+   consequences and twenty of them are abilities the move merely SETS OFF. Reported from the live
+   site as repetitive — "of course i know a contact move sets off gooey" — and it was right: those
+   twenty are what the word "contact" means, they are identical on every contact move in the game,
+   and they were crowding out the three entries that are actually about this move.
+
+   They are now dropped at the render site, so the cap, the ranking that kept the boost above the
+   cap, and the overflow line are all gone with them. What a tag tooltip may contain is what the
+   tag COSTS or BUYS. */
 const contactTag = renderMoveTags('aerial-ace');
 const contactTitle = (contactTag.match(/title="([^"]*)"/) || [])[1] || '';
-check(/and \d+ more/.test(contactTitle), 'a long consequence list is capped rather than dumped', contactTitle);
-check(contactTitle.split(' · ').length <= 10,
-  'to at most eight entries plus the gloss and the overflow line', contactTitle.split(' · ').length);
-check(/Tough Claws/.test(contactTitle),
-  'and the boost survives the cap, because it is hoisted above the twenty triggers', contactTitle);
+const contactBits = contactTitle.split(' · ');
+check(!/and \d+ more/.test(contactTitle),
+  'the tooltip is short enough to state outright, so nothing is truncated', contactTitle);
+check(contactBits.length <= 6, 'and it is a handful of entries, not a paragraph', contactBits.length);
+check(/Tough Claws ×1\.3/.test(contactTitle), 'the boost is named with its multiplier', contactTitle);
+check(/Long Reach removes it/.test(contactTitle), 'and so is what removes the tag');
+/* The assertion that keeps it clean. Every one of these is a real contact consequence and every one
+   of them is noise on a move page: they follow from the tag, not from the move. */
+['Gooey', 'Aftermath', 'Effect Spore', 'Static', 'Rough Skin', 'Cute Charm', 'Flame Body']
+  .forEach(a => check(contactTitle.indexOf(a) < 0,
+    `"${a}" is not listed — it is a property of the tag, not of this move`, contactTitle));
+/* ...but the derivation still knows them, because the ability pages answer "what sets this off"
+   and that is where the list belongs. The checks above on `contact` assert exactly that. */
+check(ixFlagConsequences('contact', 9).filter(c => c.trigger).length >= 15,
+  'the triggers are still derived and marked, just not rendered here',
+  ixFlagConsequences('contact', 9).filter(c => c.trigger).length);
 
 // --- consequences are cut to the generation ----------------------------------------------------
 check(ixFlagConsequences('pulse', 5).length === 0,

@@ -163,9 +163,17 @@ const MUTATIONS = [
   ['M48', 'The tag tooltip stops escaping quotes and can break out of the title attribute',
     ".replace(/\"/g,'&quot;')+'\">'+i.label",
     "+'\">'+i.label", 1, 'test-move-tags.js'],
-  ['M49', 'The tooltip cap stops hoisting boosts, so contact drops Tough Claws for twenty triggers',
-    "    const ranked=cons.slice().sort(function(x,y){return (y.boost||y.block?1:0)-(x.boost||x.block?1:0)});",
-    '    const ranked=cons.slice();', 1, 'test-move-tags.js'],
+  /* M49 tested the ranking that hoisted boosts above the tooltip's cap. Both the cap and the
+     ranking were deleted in 5.42 along with the twenty trigger rows that made them necessary, so
+     the mutation has nothing left to break. Replaced rather than removed: the invariant it was
+     really protecting — that the useful entries are not crowded out by the generic ones — still
+     exists, and is now enforced at the filter instead of at the cap. */
+  ['M49', 'The tag tooltip stops filtering triggers, so contact fills with Gooey and nineteen others',
+    'const cons=ixFlagConsequences(f,genNum).filter(function(c){return !c.trigger});',
+    'const cons=ixFlagConsequences(f,genNum);', 1, 'test-move-tags.js'],
+  ['M94', 'A move lists every ability it merely sets off again, burying the three that matter',
+    "const hits=moveInteractions(moveSlug,genNum).filter(function(x){return x.rule.kind!=='affects'});",
+    'const hits=moveInteractions(moveSlug,genNum);', 1, 'test-interactions.js'],
   ['M50', 'The ability card loses min-width:0, so a long name pushes the Hidden pill out of the card',
     '.ap-mon-body{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}',
     '.ap-mon-body{display:flex;flex-direction:column;gap:4px;flex:1}', 1, 'test-ability-desc.js'],

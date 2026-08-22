@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.41 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.42 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -342,19 +342,6 @@ body.light .type-badge{background:color-mix(in srgb,var(--tc) 13%,transparent);c
 .spinner{width:32px;height:32px;border:3px solid rgba(240,128,48,0.2);border-top-color:#F08030;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .pinned-bar{display:none;gap:6px;margin-bottom:16px;flex-wrap:wrap;padding:10px 14px;align-items:center;background:transparent;border:1px solid var(--border2);border-radius:10px;position:sticky;top:108px;z-index:8;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-/* The move page — reading a move, which is a different act from filtering by one. */
-.move-page{border:1px solid var(--border2);border-radius:12px;padding:14px 16px;margin-bottom:16px;
-  background:rgba(255,255,255,0.02)}
-body.light .move-page{background:rgba(0,0,0,0.015)}
-.move-page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.move-page-title{font-size:19px;font-weight:800;text-transform:capitalize;color:var(--text1);
-  margin-bottom:8px;line-height:1.2}
-.move-page-close{background:none;border:1px solid var(--border2);color:var(--text4);border-radius:8px;
-  width:26px;height:26px;flex:0 0 auto;cursor:pointer;font-size:11px;line-height:1;font-family:inherit}
-.move-page-close:hover{color:#F85888;border-color:rgba(248,88,136,0.4)}
-.move-page-find{font-size:11px;font-weight:700;color:#A890F0;background:none;cursor:pointer;
-  border:1px solid rgba(168,144,240,0.3);border-radius:8px;padding:6px 14px;font-family:inherit}
-.move-page-find:hover{border-color:rgba(168,144,240,0.6);background:rgba(168,144,240,0.06)}
 .pinned-clear{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(248,88,136,0.08);border:1px solid rgba(248,88,136,0.2);color:#F85888;cursor:pointer;margin-left:4px;transition:all 0.15s}
 .pinned-clear:hover{background:transparent;border-color:rgba(248,88,136,0.4)}
 .pinned-tab{display:flex;align-items:center;gap:6px;padding:5px 10px 5px 6px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:#c8c8d8;transition:all 0.2s;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);text-transform:capitalize;white-space:nowrap;font-family:inherit}
@@ -1095,8 +1082,6 @@ button,select,input{touch-action:manipulation}
 <div id="items-container"><div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading items...</div></div>
 </div>
 <div id="tms-tab" style="display:none">
-<div class="pinned-bar" id="move-pinned-bar"></div>
-<div id="move-detail-panel" style="display:none"></div>
 <p style="font-size:14px;color:#8a8a9a;margin-bottom:12px"><span id="moves-intro-text">Find Pok&#233;mon that can learn specific moves. Search any move &#x2013; TMs, HMs, level-up, egg, or tutor moves.</span></p>
 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px">
 <div id="tm-criteria" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
@@ -1773,7 +1758,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.41';
+const APP_VERSION='5.42';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -3732,16 +3717,20 @@ function moveInteractions(moveSlug,genNum){
   });
   return out;
 }
+/* Reported from the live site: "see how repetitive and clunky the contact, punching, sets off list
+   are ... of course i know a contact move sets off gooey". Both halves were true.
+
+   The flag pills repeated, without the multipliers, the tag chips renderMoveTags had just drawn
+   immediately above — CONTACT, PUNCHING under CONTACT ×1.3, PUNCH ×1.2. And the rows below them
+   were twenty "Sets off <ability>" lines that say nothing about the move: they are what the word
+   "contact" means, identical on every contact move in the game, and they pushed the three rows
+   that ARE specific to it off the bottom of a six-row cap.
+
+   Ice Punch went from 21 rows to 3: Iron Fist ×1.2, Tough Claws ×1.3, Punching Glove ×1.1. */
 function renderMoveInteractions(moveSlug,genNum){
-  const flags=String(IX.moveFlags[moveSlug]||'').split(' ').filter(Boolean);
-  const hits=moveInteractions(moveSlug,genNum);
-  if(!flags.length&&!hits.length)return '';
+  const hits=moveInteractions(moveSlug,genNum).filter(function(x){return x.rule.kind!=='affects'});
+  if(!hits.length)return '';
   let h='<div class="ix-tip">';
-  if(flags.length){
-    h+='<div class="ix-tip-flags">'+flags.map(function(f){
-      return '<span class="ix-flag">'+((IX.flagLabels[f]||{}).adj||f)+'</span>';
-    }).join('')+'</div>';
-  }
   hits.slice(0,6).forEach(function(x){
     const k=x.rule.kind,mult=x.rule.mult?' &times;'+x.rule.mult:'';
     /* The whole phrase per kind rather than a verb plus a fixed " by". Aftermath is not something
@@ -3751,7 +3740,7 @@ function renderMoveInteractions(moveSlug,genNum){
                  k==='weaken'?'Weakened'+mult+' by':
                  k==='resist'?'Resisted'+mult+' by':
                  k==='block'?'Blocked by':
-                 k==='retype'?'Retyped by':'Sets off';
+                 k==='retype'?'Retyped by':'Interacts with';   // 'affects' is filtered out above
     h+='<div class="ix-tip-row">'+phrase+' <b>'+x.who+'</b><span class="ix-kind">'+x.kind+'</span></div>';
   });
   if(hits.length>6)h+='<div class="ix-tip-row ix-more">and '+(hits.length-6)+' more</div>';
@@ -4636,7 +4625,6 @@ function switchTab(tab){
   if(tab==='calc')renderCalcTab();
   if(tab==='abilities'){if(!currentAbilityPage)renderAbilitiesTab();else{renderAbilityPins();showAbilityPage(currentAbilityPage)}}
   if(tab==='items')renderItemsTab();
-  if(tab==='tms')renderMovePins();   // the Viewed bar survives leaving the tab and coming back
   if(tab==='pokedex')applyFilters();
   if(!_restoring)saveHash();
   updateTitle();
@@ -6381,105 +6369,12 @@ const HP_IV_SPREADS={
 
 // Save/restore scroll position per tab
 let tabScrollPositions={};
-/* ── Looking at a move, as opposed to filtering by one ──────────────────────────────────────────
-   Searching a move used to call selectTMSuggestion, which adds it as a CRITERION in the
-   "which Pokemon learn all of these" filter. So there was no way to just read a move: asking about
-   Bullet Punch silently changed what the tab was showing, and asking about a second one narrowed it
-   to the intersection of the two. Those are different questions and they now have different
-   answers — this opens the move, and "Find Pokemon that learn this" on the panel adds the criterion
-   when that is what you actually wanted.
-
-   The Viewed bar is the same idea the Pokedex, Abilities and Items tabs already have, and is
-   deliberately not the criteria row: pinning a move here does not filter anything. */
-let currentMovePage=null;
-let movePins=[];
-
-function addMovePin(name){
-  if(!movePins.some(p=>p.name===name))movePins.push({name});
-  renderMovePins();
-}
-function removeMovePin(name){
-  movePins=movePins.filter(p=>p.name!==name);
-  if(currentMovePage===name){
-    if(movePins.length)showMovePage(movePins[movePins.length-1].name);
-    else{currentMovePage=null;closeMovePage()}
-  }else renderMovePins();
-}
-function clearAllMovePins(){
-  movePins=[];currentMovePage=null;
-  closeMovePage();renderMovePins();
-}
-function closeMovePage(){
-  currentMovePage=null;
-  const p=document.getElementById('move-detail-panel');
-  if(p){p.style.display='none';p.innerHTML=''}
-  renderMovePins();
-}
-function renderMovePins(){
-  const bar=document.getElementById('move-pinned-bar');
-  if(!bar)return;
-  if(!movePins.length){bar.innerHTML='';bar.style.display='none';return}   // see renderAbilityPins
-  bar.style.display='flex';
-  bar.innerHTML='<span class="pinned-label">Viewed</span>'+movePins.map(function(p){
-    const act=currentMovePage===p.name;
-    return '<div class="pinned-tab'+(act?' active':'')+'" onclick="showMovePage(\''+p.name+'\')" '
-      +'style="border-color:'+(act?'rgba(168,144,240,0.4)':'rgba(255,255,255,0.08)')+'">'
-      +'<span>'+p.name.replace(/-/g,' ')+'</span>'
-      +'<span class="pinned-tab-close" onclick="event.stopPropagation();removeMovePin(\''+p.name+'\')">&#x2715;</span></div>';
-  }).join('')+'<button class="pinned-clear" onclick="clearAllMovePins()">Clear All</button>';
-}
-
-async function showMovePage(slug){
-  slug=normalizeMoveName(slug);
-  if(currentTab!=='tms'){tabScrollPositions[currentTab]=window.scrollY;switchTab('tms');
-    await new Promise(r=>setTimeout(r,50));}
-  const panel=document.getElementById('move-detail-panel');
-  if(!panel)return;
-  currentMovePage=slug;
-  panel.style.display='';
-  panel.innerHTML='<div style="text-align:center;padding:24px;color:#6a6a7a"><div class="spinner"></div></div>';
-  renderMovePins();
-  await fetchTMMoveDetail(slug);          // populates moveCache through makeMoveRecord
-  if(currentMovePage!==slug)return;       // a second move was opened while this one loaded
-  const m=moveCache[slug];
-  if(!m){panel.innerHTML='<div style="padding:16px;color:#8a8a9a">No data for '+slug.replace(/-/g,' ')+'.</div>';return}
-  const g=getDataGenNum();
-  const type=getMoveTypeForGen(m)||m.type||'normal';   // reads the selected generation itself
-  const cat=m.damage_class||'status';   // the field makeMoveRecord writes; see its return shape
-  const pri=m.priority||0;
-  const pw=getMovePowerForGen(m,g), ac=getMoveAccForGen(m,g), pp=getMovePPForGen(m,g);
-  let h='<div class="move-page">';
-  h+='<div class="move-page-head">';
-  h+='<div class="move-page-title">'+slug.replace(/-/g,' ')+'</div>';
-  h+='<button class="move-page-close" onclick="closeMovePage()" title="Close">&#x2715;</button>';
-  h+='</div>';
-  h+='<div class="tooltip-meta" style="margin-bottom:10px">'
-    +'<span class="type-badge small" style="--tc:'+(TC[type]||'#888')+'">'+type+'</span>'
-    +'<span class="move-cat '+cat+'">'+cat+'</span>'
-    +'<span>Power: '+(pw||'—')+'</span>'
-    +'<span>Acc: '+(ac?ac+'%':'—')+'</span>'
-    +'<span>PP: '+(pp||'—')+'</span>'
-    +'<span style="color:'+(pri>0?'#78C850':pri<0?'#F85888':'#8a8a9a')+'">Priority: '+(pri>0?'+':'')+pri+'</span>'
-    +'</div>';
-  h+='<div style="font-size:13px;color:#a8a8b8;line-height:1.45;margin-bottom:10px">'
-    +(genFlavorText(m.flavorEntries,g)||m.desc||'')+'</div>';
-  h+=renderMoveTags(slug);
-  h+=renderVariableMoveInfo(slug);
-  h+=renderMoveInteractions(slug,g);
-  /* The learn-set filter, as an explicit choice rather than a side effect of looking something up. */
-  h+='<div style="margin-top:12px"><button class="move-page-find" onclick="selectTMSuggestion(\''+slug+'\')">'
-    +'Find Pok&#233;mon that learn this</button></div>';
-  h+='</div>';
-  panel.innerHTML=h;
-  addMovePin(slug);
-  const r=panel.getBoundingClientRect();
-  window.scrollTo({top:window.scrollY+r.top-110,behavior:'smooth'});
-}
-
 async function goToMove(slug){
   slug=normalizeMoveName(slug);
   tabScrollPositions[currentTab]=window.scrollY;
-  await showMovePage(slug);
+  switchTab('tms');
+  await new Promise(r=>setTimeout(r,50));
+  await selectTMSuggestion(slug);
 }
 async function goToItem(slug){
   tabScrollPositions[currentTab]=window.scrollY;
@@ -6989,7 +6884,14 @@ function ixFlagConsequences(flag,genNum){
            the point. "Unseen Fist" on its own tells a reader nothing; what they need is that it
            makes the move go through Protect. */
         else if(r.kind==='strips')out.push({t:who+' removes its '+((IX.flagLabels[r.strips]||{}).adj||r.strips)+' status'});
-        else out.push({t:who});
+        /* Everything else is an `affects` rule: an ability the move merely SETS OFF. There are
+           twenty of them on contact alone, and they are a property of the TAG rather than of the
+           move — every contact move in the game sets off Gooey. Listing them under each move filled
+           the display with the one thing the word "contact" already tells you. They are marked here
+           and dropped at the render sites, rather than removed: the derivation is what
+           tests/test-move-tags.js checks, and the ability pages — which have room — are the right
+           place to answer "what sets this off". */
+        else out.push({t:who,trigger:true});
       });
     });
   });
@@ -7002,15 +6904,13 @@ function renderMoveTags(moveName){
   const genNum=getDataGenNum();
   return '<div class="mv-tags">'+flags.map(function(f){
     const i=MOVE_TAG_NOTE[f];
-    const cons=ixFlagConsequences(f,genNum);
-    /* Capped, because this is a native title attribute and contact has twenty-two consequences.
-       A tooltip that lists all of them is a paragraph the browser renders as one unbroken line;
-       the full list lives on the ability pages, which have room for it. Boosts and blocks are
-       hoisted first so the cap never drops the two that change a damage number. */
-    const ranked=cons.slice().sort(function(x,y){return (y.boost||y.block?1:0)-(x.boost||x.block?1:0)});
-    const shown=ranked.slice(0,8).map(function(c){return c.t});
-    if(ranked.length>8)shown.push('and '+(ranked.length-8)+' more');
-    const bits=[i.note].concat(shown);
+    /* Only what this tag COSTS or BUYS: what boosts the move, what blocks it, what resists it,
+       what strips the tag off. The abilities the move merely sets off are dropped — see the
+       `trigger` note in ixFlagConsequences. That list was twenty entries on contact and needed a
+       cap, a ranking to keep the boost above the cap, and an "and 14 more" line; none of which is
+       needed now, because what is left is three entries that a reader could not have guessed. */
+    const cons=ixFlagConsequences(f,genNum).filter(function(c){return !c.trigger});
+    const bits=[i.note].concat(cons.map(function(c){return c.t}));
     const boost=cons.filter(function(c){return c.boost})[0];
     const blocked=cons.some(function(c){return c.block})?' mv-tag-block':'';
     return '<span class="mv-tag'+(boost?' mv-tag-boost':'')+blocked+'" title="'

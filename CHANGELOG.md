@@ -12,6 +12,38 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.42] - 2026-08-21
+
+### Removed
+- **The move page added in 5.41, reverted.** It was too clunky: a tall panel that pushed the
+  learn-set filter — the thing the Moves tab is actually for — most of the way down the page, to
+  show information the tooltip already gave. The Moves tab is byte-identical to 5.40 again;
+  `goToMove` goes back to `selectTMSuggestion`, and the move Viewed bar went with it.
+
+  The Viewed bar fix on **Abilities and Locations is kept**, because that was a real defect
+  independent of the move page: both bars were built, populated, and never displayed.
+
+- **The "Sets off …" list under each move's tags.**
+
+  Reported from the live site: *"see how repetitive and clunky the contact, punching, sets off list
+  are … of course i know a contact move sets off gooey"*. Both halves were right.
+
+  The flag pills repeated, without their multipliers, the tag chips drawn immediately above them —
+  `CONTACT`, `PUNCHING` sitting under `CONTACT ×1.3`, `PUNCH ×1.2`. Below those were twenty
+  `Sets off <ability>` rows that say nothing about the move: they are what the word "contact"
+  *means*, they are identical on every contact move in the game, and they were pushing the three
+  rows that are specific to it past a six-row cap.
+
+  A move now shows only what its tags **cost or buy** — what boosts it, blocks it, resists it, or
+  strips the tag off. Ice Punch goes from 21 rows to 3: Iron Fist ×1.2, Tough Claws ×1.3,
+  Punching Glove ×1.1. The tag tooltip loses its cap, its ranking and its "and 14 more" line, all
+  of which existed only to manage the twenty entries that are now gone.
+
+  The triggers are still **derived** and still tested — they are marked rather than dropped, and
+  the ability pages, which have room, remain the place that answers "what sets this off".
+
+---
+
 ## [5.41] - 2026-08-21
 
 ### Fixed

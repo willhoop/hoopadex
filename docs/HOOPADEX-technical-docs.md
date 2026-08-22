@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.41**
+**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.42**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -799,27 +799,43 @@ The `MEGA` badge on the abilities list is therefore filtered by the roster befor
 generated data was never wrong; the heading it was displayed under was. Any future surface that
 reads this table in Champions mode must apply the same filter.
 
-## 4.7 Moves: reading one versus filtering by one
-
-The Moves tab answers two different questions and, until 5.41, had one entry point for both.
-`selectTMSuggestion(moveName)` adds a move as a **criterion** to the "which Pokémon learn all of
-these" filter, and `goToMove` — the target of universal search — called it. Searching a move
-therefore mutated the tab's filter state, and searching a second one intersected the two.
-
-- **`showMovePage(slug)`** renders the move itself into `#move-detail-panel`: type, damage class,
-  power, accuracy, PP and priority resolved for the selected generation, the generation-correct
-  description, `renderMoveTags`, `renderVariableMoveInfo` and `renderMoveInteractions`. It records
-  a pin and does **not** touch `tmCriteria`. `goToMove` now calls this.
-- **`selectTMSuggestion(slug)`** is unchanged, and is reached from the move page's explicit
-  *Find Pokémon that learn this* button and from the TM and All Moves lists as before.
-
-`movePins` / `#move-pinned-bar` is the Viewed bar, matching the Pokédex, Abilities, Items and
-Locations tabs. It is deliberately not `#tm-criteria`: pinning a move does not filter anything.
+## 4.7 Pinned bars, and a move page that was tried and removed
 
 **`.pinned-bar` is `display:none` in CSS and each renderer must set its own `display`.**
-`renderAbilityPins` and `renderLocPins` never did, so those two bars were populated and invisible
-from the time they were written until 5.41 — long enough that the Abilities one was reported as a
-missing feature rather than a broken one. Any new pinned bar must set `display` in both branches.
+`renderAbilityPins` and `renderLocPins` never did, so those two Viewed bars were built, populated
+and invisible from the time they were written until 5.41 — long enough that the Abilities one was
+reported as a missing feature rather than a broken one. Any new pinned bar must set `display` in
+both branches.
+
+**A move detail page was added in 5.41 and removed in 5.42.** The reasoning for it still stands and
+is recorded here so it is not rediscovered as a fresh idea: the Moves tab answers two different
+questions through one entry point. `selectTMSuggestion(moveName)` adds a move as a **criterion** to
+the "which Pokémon learn all of these" filter, and `goToMove` — the target of universal search —
+calls it, so searching a move mutates the tab's filter state and searching a second one intersects
+the two.
+
+The page that separated them was rejected on sight for taking the top of the tab and pushing the
+filter, which is what the tab is for, most of the way down the screen. The lesson is about the
+remedy, not the diagnosis: **a second full-height panel is the wrong shape for this tab.** Anything
+attempted here again should be inline or on demand, and must not displace `#tm-criteria`.
+
+## 4.7a What a move shows about its tags
+
+A move's tag display states only what the tag **costs or buys**: rules of kind `boost`, `block`,
+`resist`, `retype` and `strips`. Rules of kind `affects` — abilities the move merely sets off — are
+excluded at the render sites.
+
+There are twenty `affects` rules on `contact` alone, and they are a property of the **tag**, not of
+the move: every contact move in the game sets off Gooey. Rendering them per move produced twenty
+identical rows on every contact move, needed a six-row cap, needed a ranking so the cap would not
+drop the one row that changes a damage number, and needed an "and 14 more" line. Ice Punch showed
+21 rows, of which 3 were about Ice Punch.
+
+`ixFlagConsequences` still **returns** them, marked `trigger:true`. Do not remove them from the
+derivation: `tests/test-move-tags.js` checks it, and the ability pages — which have room — are the
+right place to answer "what sets this off". The suite asserts both directions: that named triggers
+(Gooey, Aftermath, Static…) are absent from the tag tooltip, and that at least fifteen are still
+derived.
 
 ## 4.8 The colourblind toggle appears only where it applies
 
