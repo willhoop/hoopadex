@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.46 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.47 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1837,7 +1837,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.46';
+const APP_VERSION='5.47';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -2174,7 +2174,7 @@ async function init(){
 
 // === FILTERING ===
 const CHAMPIONS_IDS_MA=new Set([3,6,9,15,18,24,25,26,36,38,59,65,68,71,80,94,115,121,127,128,130,132,134,135,136,142,143,149,154,157,160,168,181,184,186,196,197,199,205,208,212,214,227,229,248,279,282,302,306,308,310,319,323,324,334,350,351,354,358,359,362,389,392,395,405,407,409,411,428,442,445,448,450,454,460,461,464,470,471,472,473,475,478,479,497,500,503,505,510,512,514,516,530,531,534,547,553,563,569,571,579,584,587,609,614,618,623,635,637,652,655,658,660,663,666,670,671,675,676,678,681,683,685,693,695,697,699,700,701,702,706,707,709,711,713,715,724,727,730,733,740,745,748,750,752,758,763,765,766,778,780,784,823,841,842,844,855,858,866,867,869,877,887,899,900,902,903,908,911,914,925,934,936,937,939,952,956,959,964,968,970,981,983,1013,1018,1019]); // Regulation M-A
-const REG_MB_NEW=[45,211,254,257,260,303,376,398,518,545,560,604,668,687,689,691,861,870,904,972,979,1000]; // Added in Regulation M-B (June 17 - Sept 2, 2026)
+const REG_MB_NEW=[45,211,254,257,260,303,376,398,518,545,560,604,668,687,689,691,861,870,904,972,979,1000]; // Added in Regulation M-B (June 17 - Sept 9, 2026)
 const CHAMPIONS_IDS_MB=new Set([...CHAMPIONS_IDS_MA,...REG_MB_NEW]);
 /* ═══ CHAMPIONS REGULATIONS — newest FIRST ═══════════════════════════════
    To add a new regulation: add its ID set above, then unshift one row here.

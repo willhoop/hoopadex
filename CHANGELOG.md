@@ -12,7 +12,26 @@ comment on line 2 of `app/index.html`.
 
 ---
 
-## [5.46] - 2026-08-22
+## [5.47] - 2026-08-24
+
+### Fixed
+- **Regulation M-B's end date was recorded as the date it was originally going to end.**
+
+  The weekly regulation watch checked Serebii and Victory Road and found no new regulation — M-B is
+  still the legal format — but both sources give its window as **17 June to 9 September 2026**,
+  where the comment on `REG_MB_NEW` in `app/index.html` said *"June 17 - Sept 2, 2026"*. Sept 2 was
+  correct when the regulation was announced; the 5 August in-game update extended it by a week, and
+  nothing here was updated to match.
+
+  Nothing rendered wrong as a result. The date appears once, in a code comment, and no roster,
+  filter or legality check reads it — `CHAMPIONS_IDS_MB` and `CHAMPIONS_REGS` are untouched and the
+  208-Pokémon roster is unchanged. It is logged because it is the kind of error that only shows up
+  by being believed: a stale end date makes the next regulation look overdue, and the watch would
+  have spent that week hunting for a Regulation M-C that has not been announced.
+
+  Sources read on 2026-08-24: Victory Road, *"Regulation Set M-B is the official format of in-game
+  Ranked Battles from 17 June to 9 September 2026"*; Serebii's Regulation M-B page, *"June 17th 2026
+  - September 9th 2026"*. Neither names a successor regulation.
 
 ### Changed
 - **The evolution chain was laid out for one shape and had to hold two.**

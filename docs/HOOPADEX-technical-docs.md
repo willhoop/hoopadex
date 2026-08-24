@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-08-21 · HoopaDex v5.46**
+**Version 2.2 · Last updated 2026-08-24 · HoopaDex v5.47**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
