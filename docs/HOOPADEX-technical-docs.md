@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-09-19 · HoopaDex v5.48**
+**Version 2.2 · Last updated 2026-09-19 · HoopaDex v5.49**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -977,6 +977,27 @@ document.
 What it pins is the set of rules above, including the two that failed silently during development:
 the inline flex outranking the widening class, and the wrapper not filling.
 
+## 4.7f Card type pills and the sort badge (5.49)
+
+A Pokedex card holds its two type pills on one line. Before 5.49 the row wrapped, so a pair wider than
+the card stacked: Medicham's Fighting/Psychic measured 162px against 148px of room on a 182px card, and
+the widest pair, Electric/Fighting, measured 168px. Three rules fix it:
+
+- `.card-types` is `flex-wrap:nowrap`, and card pills are 10px (`.card-types .type-badge.small`). The
+  selector has two classes on purpose: the plain `.card-types .type-badge` was outranked by
+  `.type-badge.small` and had no effect.
+- Each `.card` is a size container, and `@container (max-width:159px)` shrinks the pills again on a
+  narrow card. The threshold sits above 157px, the widest pair at 10px in Verdana, a wide fallback font
+  that a browser blocking Google Fonts would render.
+- The narrowest grid column is 172px.
+
+These were measured in the browser at every card width from 172 to 320px in 2px steps, in Nunito and
+in Verdana. No width overflowed, and none of the 34 dual-type cards on screen stacked.
+
+The sort badge (`.card-sortstat`) shows which stat the grid is sorted by. Its markup arrived on
+2026-08-03 with no style rule, so it rendered as "HP160". It is now a flex row with a gap: a small
+quiet label and a 17px number. `tests/test-pill-system.js` pins both.
+
 ## 4.9 Champions regulations are derived from Showdown
 
 `build/generate-champions.js` is the one place a Champions regulation enters the app. Run it after a
@@ -1057,6 +1078,62 @@ The generator lists these pairs in `REG_LEARNSET_SOURCE_DIFFS`, and `regulationM
 the Regulation Changes page reports only declared changes. `data/champions-regulations.json` names them
 under `sourceDifferencesNotRuleChanges`. If a later regulation adds a new kind of source disagreement,
 `tests/test-champions-mc.js` fails until someone looks at it.
+
+### 4.9c Base stats are embedded, so Speed Tiers does not download (5.49)
+
+Speed Tiers and Bulk list every species and form in the regulation. Before 5.49 they fetched each
+one from PokeAPI first, about 70 MB of JSON for a table of numbers. On a cold load Speed Tiers took
+14,042 ms. It now takes 37 ms and makes no requests.
+
+The generator writes `CHAMP_BASE_STATS`: base stats for every entry legal in any regulation, from
+Showdown's `pokedex.ts`. That is 349 entries in about 12 KB. `rosterStatList(p)` reads a row's stats.
+It prefers the PokeAPI data already loaded in `dc[p.id]`. If that is missing, it uses
+`champBaseStats(p)`, which looks the name up through `champSdId`. That function maps PokeAPI's form
+names onto Showdown's ids: it drops `-breed` and `-cap`, turns `-battle-bond` into `-bond`, `-male`
+into `-m` and `-female` into `-f`, then removes the hyphens. If there is still no match, a species with
+an id of 1025 or below falls back to its species entry. The loader is only given the ids this cannot
+place, which is normally none.
+
+The table was checked against PokeAPI before it replaced the fetch. All 331 rows the two sources
+share matched. `tests/test-champions-mc.js` checks that every row on the Speed Tiers roster resolves.
+
+### 4.9d Forms a regulation does not allow (5.49)
+
+The roster names species, so it could not say "this species is in, but not this form of it". Every
+form of a legal species was therefore shown. The generator now writes `CHAMPIONS_ILLEGAL_FORMS_BY_REG`:
+the entries that Showdown's `formats-data.ts` explicitly marks illegal although their species is legal.
+M-C has 46 and M-B has 42. They include base Floette (only Floette-Eternal is legal), Pikachu's costume
+and cap forms, Battle Bond and Ash Greninja, Galarian Farfetch'd and Mr. Mime, Hisuian Qwilfish, the
+Gigantamax and Totem forms, and, under M-B only, the three Z-A Megas. In Champions mode `formAllowed`
+asks `champFormIllegal(name)` and hides a listed form everywhere it checks, including the roster, the
+calc and Speed Tiers. Before 5.49, Speed Tiers, Bulk and the calculator offered 20 of them. The species rule in §4.9 is unchanged: a
+species is in if any of its entries is legal, so hiding a form never removes its species.
+
+### 4.9e Held-item groups (5.49)
+
+PokeAPI files 72 items under one "held-items" category, so Life Orb, Heat Rock and Electric Seed
+appeared in one list. `HELD_ITEM_GROUP` places each of them in one of eight groups: Damage Boosters,
+Single-Use, Defensive, Recovery, Terrain Seeds, Extenders, Accuracy & Crits and Other Held Items. Fairy Feather is not placed in a held group; it goes to Type Enhancement, beside
+Charcoal. Ogerpon's masks go to Species-Specific. The Items tab applies the table only to PokeAPI
+category 12. Every other category keeps PokeAPI's name. `data/pokeapi-held-items.json` is the
+72-item snapshot the table was written against.
+
+The group names are written by hand. What each group claims is checked against `itemTraits`, which
+the generator reads from Showdown's item code:
+
+- **Terrain Seeds:** exactly the items that react to a terrain change.
+- **Extenders:** exactly the items named in a `durationCallback` of a weather, terrain, screen or trap.
+  The pattern is anchored on indentation. An earlier version ran past the end of the callback and
+  counted Binding Band, which strengthens trapping and does not lengthen it.
+- **Single-Use:** every item the engine consumes. Two are consumed outside their own entries: Air
+  Balloon clears the item directly, and Blunder Policy is consumed in `sim/battle-actions.ts`. The
+  test names both, with where it happens.
+
+`tests/test-item-groups.js` fails in five cases: a held item has no group, an item is listed twice, a
+group names an item PokeAPI does not file as held, a group's claim no longer matches Showdown, or a
+group has no place in the display order. The duplicate check was added after a mutation run. Mutation
+M134 listed Binding Band a second time, the later entry won silently, and every other assertion
+stayed green.
 
 ## 4.8 The colourblind toggle appears only where it applies
 

@@ -214,5 +214,66 @@ check(desc('dragon-cheer').join() === 'sound', 'Dragon Cheer is tagged Sound in 
 check(desc('howl').join() === '', 'Howl gains no tag it did not already have — its sound flag is not a Champions change',
   desc('howl').join());
 
+// --- Speed Tiers and Bulk read six numbers, not seventy megabytes (5.49) -----------------------
+/* Reported from the live site: "this takes forever to load the speed tiers". It fetched each
+   Pokemon's full PokeAPI record — 100 to 360 KB — for 351 entries, to read base Speed. Measured cold:
+   14 seconds. Now CHAMP_BASE_STATS carries the six numbers (12 KB) and a cold open drew all rows in
+   37 ms with no downloads.
+
+   Before the fetch was replaced, the table was checked against PokeAPI entry by entry in a browser,
+   with every record loaded: 327 identical, 0 different. The other 24 did not resolve, and that is what
+   exposed the illegal forms below. These pins are the parts of that check that can run offline. */
+const BS = valueOf('CHAMP_BASE_STATS');
+check(Object.keys(BS).length >= 340, 'CHAMP_BASE_STATS covers every legal Champions entry', Object.keys(BS).length);
+[['garchomp', '108,130,95,80,85,102'], ['charizardmegay', '78,104,78,159,115,100'],
+ ['floetteeternal', '74,65,67,125,128,92'], ['taurospaldeaaqua', '75,110,105,30,70,100'],
+ ['meowsticmmega', '74,48,76,143,101,124']].forEach(([k, v]) =>
+  check(BS[k] && BS[k].join() === v, k + ' has the base stats PokeAPI gives it', BS[k] && BS[k].join()));
+
+const bsStart = lines.findIndex(l => l.startsWith('function rosterCounts('));
+const bsEnd = lines.findIndex((l, i) => i > bsStart && l.startsWith('async function ensureRosterLoaded('));
+let dcStub = {};
+const RS = (0, eval)('var isChampionsMode=true; var CHAMP_BASE_STATS=' + JSON.stringify(BS) + ';' +
+  'var CHAMPIONS_ILLEGAL_FORMS_BY_REG=' + JSON.stringify(valueOf('CHAMPIONS_ILLEGAL_FORMS_BY_REG')) + ';' +
+  'function champRegKey(){return "reg-mc"} function getStatsForGen(d){return d.stats}' +
+  'function baseSpeciesId(n){return ({"floette-eternal":670,"charizard-mega-y":6,"tauros-paldea-aqua-breed":128})[n]||0}\n' +
+  lines.slice(bsStart, bsEnd).join('\n') +
+  '\n;({champSdId,champBaseStats,rosterStatList,champFormIllegal,rosterCounts,setDc:function(o){dc=o}})'.replace('({', 'var dc={};({'));
+const spd = p => { const l = RS.rosterStatList(p); return l ? l.find(x => x.stat.name === 'speed').base_stat : null; };
+check(spd({ id: 445, name: 'garchomp' }) === 102, 'Garchomp reads 102 Speed without fetching anything');
+check(spd({ id: 10252, name: 'tauros-paldea-aqua-breed' }) === 100,
+  'a PokeAPI name Showdown spells differently still resolves — the Paldean Tauros are "breeds" in one and not the other');
+check(spd({ id: 10314, name: 'meowstic-male-mega' }) === 124, 'and so does "meowstic-male-mega" against "meowsticmmega"');
+check(spd({ id: 668, name: 'pyroar-male' }) === 106, 'a species PokeAPI names by its default form falls back to the species');
+check(spd({ id: 10999, name: 'made-up-form' }) === null,
+  'but a FORM that does not resolve is not guessed from its species — it falls back to fetching');
+RS.setDc({ 445: { stats: [{ stat: { name: 'speed' }, base_stat: 999 }] } });
+check(spd({ id: 445, name: 'garchomp' }) === 999,
+  'a record the dex has already fetched wins, so the two sources can never sit side by side disagreeing');
+RS.setDc({});
+check(/ensureRosterLoaded\(renderSpeedTiers,roster\.filter\(function\(p\)\{return !rosterStatList\(p\)\}\)/.test(src),
+  'Speed Tiers only fetches what the table cannot place');
+check(/ensureRosterLoaded\(renderBulk,roster\.filter\(function\(m\)\{return !rosterStatList\(m\)\}\)/.test(src),
+  'and so does Bulk');
+
+// --- forms of a legal species that are not legal (5.49) ------------------------------------------
+/* Found by the stat check above: twenty entries Speed Tiers, Bulk and the damage calculator offered
+   in M-C are forms Showdown rules illegal. The roster names species, so every form of a legal
+   species used to pass. Only explicit rulings are blocked; an unmentioned form is left alone. */
+[['floette', true, 'base Floette (only Floette-Eternal is legal)'], ['floette-eternal', false, 'Floette-Eternal'],
+ ['pikachu-world-cap', true, "Pikachu in a cap"], ['pikachu-rock-star', true, 'Cosplay Pikachu'], ['pikachu', false, 'Pikachu'],
+ ['greninja-battle-bond', true, 'Battle Bond Greninja'], ['farfetchd-galar', true, "Galarian Farfetch'd"], ['farfetchd', false, "Farfetch'd"],
+ ['mr-mime-galar', true, 'Galarian Mr. Mime'], ['qwilfish-hisui', true, 'Hisuian Qwilfish'],
+ ['tauros-paldea-aqua-breed', false, 'Paldean Tauros (Aqua)'], ['charizard-mega-y', false, 'Mega Charizard Y'],
+ ['venusaur-gmax', true, 'Gigantamax Venusaur']]
+  .forEach(([n, illegal, label]) => check(RS.champFormIllegal(n) === illegal, label + (illegal ? ' is ruled out' : ' is still allowed')));
+check(/if\(isChampionsMode&&typeof champFormIllegal==='function'&&champFormIllegal\(name\)\)return false;/.test(src),
+  'formAllowed applies it — the one gate the calculator, speed tiers, bulk, team search and ability pages share');
+/* With base Floette gone, counting base entries gave "230 Pokemon" beside a Regulation Changes page
+   saying 231. Floette is legal as Floette-Eternal, so it is a species with only a form entry. */
+const cnt = RS.rosterCounts([{ id: 445, name: 'garchomp' }, { id: 10061, name: 'floette-eternal' }, { id: 10034, name: 'charizard-mega-y' }, { id: 6, name: 'charizard' }]);
+check(cnt.species === 3 && cnt.extra === 1,
+  'a species present only as a form still counts as a species — Garchomp, Floette, Charizard is three', JSON.stringify(cnt));
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

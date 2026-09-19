@@ -162,8 +162,11 @@ async function refresh() {
   extract.dex = {};
   for (const k of wanted) {
     const b = dexTs[k]; if (!b) continue;
+    // Base stats as [hp, atk, def, spa, spd, spe] — the order Showdown and PokeAPI both list them in.
+    const bs = b.match(/baseStats: \{ hp: (\d+), atk: (\d+), def: (\d+), spa: (\d+), spd: (\d+), spe: (\d+) \}/);
     extract.dex[k] = { num: +((b.match(/\bnum: (-?\d+)/) || [])[1]), name: (b.match(/name: "([^"]+)"/) || [])[1],
-      base: (b.match(/baseSpecies: "([^"]+)"/) || [])[1] || null, forme: (b.match(/forme: "([^"]+)"/) || [])[1] || null };
+      base: (b.match(/baseSpecies: "([^"]+)"/) || [])[1] || null, forme: (b.match(/forme: "([^"]+)"/) || [])[1] || null,
+      bs: bs ? bs.slice(1).map(Number) : null };
   }
   const itemTs = entries(await get(SD + 'data/items.ts'));
   extract.items = Object.fromEntries(Object.entries(itemTs).map(([k, b]) =>
@@ -180,6 +183,37 @@ async function refresh() {
       accuracy: (m => m ? (m[1] === 'true' ? true : +m[1]) : null)(b.match(/^\t\taccuracy: (\d+|true)/m)),
       pp: +((b.match(/^\t\tpp: (\d+)/m) || [])[1] || 0), flags: flagsOf(b) || [],
     };
+  }
+
+  /* What an item DOES, read off its code, for checking the Items tab's groups against. The group
+     names are presentation and are written by hand in the app; these are the facts they must agree
+     with. Four signals, each a thing the engine's own code does:
+       usesUp       the item calls useItem() or eatItem() - it is gone after it triggers
+       terrainSeed  it reacts to a terrain change (onTerrainChange) - the four Seeds
+       typeBoost    it raises the power of one type's moves (onBasePower testing move.type)
+       extends      a weather, terrain, screen or trap checks for it in its durationCallback
+     `extends` is not visible on the item at all - Heat Rock's code is nothing but a fling entry. It
+     lives in the effect that lasts longer, so it is found by reading those instead. */
+  const condTs = await get(SD + 'data/conditions.ts');
+  const moveSrc = await get(SD + 'data/moves.ts');
+  const extendedBy = new Set();
+  for (const src of [condTs, moveSrc]) {
+    /* The body ends at the closing brace on the SAME indentation as the declaration. conditions.ts
+       and moves.ts nest these at different depths; an earlier pattern assumed one depth, overran the
+       end of partiallytrapped's durationCallback into its onStart, and reported Binding Band - which
+       makes trapping hit harder, not last longer - as an extender. */
+    for (const m of src.matchAll(/^(\t+)durationCallback\([^)]*\)\s*\{\n([\s\S]*?)\n\1\}/gm)) {
+      for (const h of m[2].matchAll(/hasItem\('([a-z0-9]+)'\)/g)) extendedBy.add(h[1]);
+    }
+  }
+  extract.itemTraits = {};
+  for (const [k, b] of Object.entries(itemTs)) {
+    const t = {};
+    if (/\.useItem\(|\.eatItem\(/.test(b)) t.usesUp = true;
+    if (/^\t\tonTerrainChange\b/m.test(b)) t.terrainSeed = true;
+    if (/^\t\tonBasePower\b/m.test(b) && /move\.type === '/.test(b)) t.typeBoost = true;
+    if (extendedBy.has(k)) t.extends = true;
+    if (Object.keys(t).length) extract.itemTraits[k] = t;
   }
   fs.writeFileSync(EXTRACT, JSON.stringify(extract, null, 1) + '\n');
   return extract;
@@ -413,6 +447,23 @@ const minus = (a, b) => [...a].filter(x => !b.has(x)).sort((x, y) => (typeof x =
   };
   writeOrCheck(OUT, JSON.stringify(record, null, 1) + '\n');
 
+  function baseStatsTable() {
+    const keys = new Set([...legalEntries(extract, 'reg-mc'), ...legalEntries(extract, 'reg-mb')]);
+    const out = {};
+    for (const k of [...keys].sort()) {
+      const d = extract.dex[k];
+      if (!d || !d.bs) throw new Error('no base stats for legal entry ' + k + ' - rerun with --refresh');
+      out[k] = d.bs;
+    }
+    return out;
+  }
+
+  function illegalForms(regKey) {
+    const f = extract.mods[REGS.find(r => r.key === regKey).mod].formats;
+    const legalSpecies = new Set(legalEntries(extract, regKey).map(k => extract.dex[k].num));
+    return Object.keys(f).filter(k => !f[k] && extract.dex[k] && legalSpecies.has(extract.dex[k].num)).sort();
+  }
+
   // --- embed ---------------------------------------------------------------------------------------------
   const q = s => [...s].sort().join(',');
   const block =
@@ -431,6 +482,16 @@ const minus = (a, b) => [...a].filter(x => !b.has(x)).sort((x, y) => (typeof x =
     '/* Move values that changed between regulations, with BOTH ends stated. The page cannot work the\n' +
     '   "before" out for itself: an override only exists where a value differs from Scarlet/Violet. */\n' +
     'const REG_MOVE_CHANGES=' + JSON.stringify({ 'reg-ma->reg-mb': [], 'reg-mb->reg-mc': regMoveChanges('reg-mb', 'reg-mc') }) + ';\n' +
+    '/* Base stats for every entry legal in any Champions regulation, keyed by Showdown id, as\n' +
+    '   [hp,atk,def,spa,spd,spe]. Speed Tiers and Bulk read only these six numbers, and used to fetch each\n' +
+    '   Pokemon\'s full PokeAPI record to get them - 100 to 360 KB apiece, about 70 MB for 351 entries. */\n' +
+    'const CHAMP_BASE_STATS=' + JSON.stringify(baseStatsTable()) + ';\n' +
+    '/* Entries Showdown EXPLICITLY marks illegal although their species is legal: base Floette (only\n' +
+    '   Floette-Eternal is), Pikachu\'s costume and cap forms, Battle Bond Greninja, Galarian Farfetch\'d\n' +
+    '   and Mr. Mime, Hisuian Qwilfish and so on. The roster names species, so without this every form of\n' +
+    '   a legal species passed formAllowed. Only explicit rulings are listed; a form Showdown does not\n' +
+    '   mention is left exactly as it was. */\n' +
+    'const CHAMPIONS_ILLEGAL_FORMS_BY_REG=' + JSON.stringify({ 'reg-mc': illegalForms('reg-mc'), 'reg-mb': illegalForms('reg-mb') }) + ';\n' +
     '/*END-CHAMPIONS-DERIVED*/';
   let src = app.src;
   if (/\/\*BEGIN-CHAMPIONS-DERIVED\*\/[\s\S]*?\/\*END-CHAMPIONS-DERIVED\*\//.test(src)) {

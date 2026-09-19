@@ -153,5 +153,29 @@ check(handWritten === 1, 'only tcStyle writes --tc — every call site goes thro
 check(!/class="tc-pill" style="background:/.test(src),
   'the type-chart pills take their colour through tcStyle too');
 
+// --- two types on one line, on every Pokedex card (5.49) -----------------------------------------
+/* Reported from the live site: "why does medicham get its types stacked while everyone elses is
+   horizontal". Fighting/Psychic measured 162px against 148px of room on a 182px card; the widest pair
+   of all, Electric/Fighting, 168px. Measured again after the change across every card width from 172
+   to 320px in 2px steps, in Nunito and in Verdana (a wide fallback — a browser that blocks Google Fonts
+   renders one): no width overflowed, and 0 of 34 dual-type cards on screen were stacked. Layout is not
+   measurable in node, so these pin the rules that produced that result. */
+check(/\.card-types\{[^}]*flex-wrap:nowrap/.test(src), 'a card never wraps its type pills onto a second line');
+check(/\.card-types \.type-badge\.small\{[^}]*font-size:10px/.test(src),
+  'card pills are compact — and the selector outranks .type-badge.small, which a plain .card-types rule did not');
+check(/\.card\{[^}]*container-type:inline-size/.test(src), 'each card is a size container');
+const cq = (src.match(/@container \(max-width:(\d+)px\)\{\.card-types \.type-badge\.small\{[^}]*font-size:(\d+)px/) || []);
+check(cq.length === 3, 'narrow cards shrink the pills again by container query', cq[0]);
+/* 157px is the widest pair at 10px in Verdana. The threshold must sit above it, or the fallback font
+   overflows a card the reader's browser actually draws. */
+check(+cq[1] >= 157, 'and the threshold covers the widest pair in a wide fallback font (157px)', cq[1]);
+check(/\.grid\{[^}]*minmax\(172px,1fr\)/.test(src), 'the narrowest card is 172px');
+
+// --- the sort badge reads as a label and a number (5.49) ----------------------------------------
+/* "HP160": the markup arrived on 2026-08-03 with no style rule at all. */
+check(/\.card-sortstat\{[^}]*display:flex[^}]*gap:\d+px/.test(src), 'the sort badge puts a gap between the stat and its value');
+check(/\.card-sortstat span\{[^}]*color:var\(--text4\)/.test(src) && /\.card-sortstat b\{[^}]*font-size:1[6-9]px/.test(src),
+  'with the label quiet and the number the thing you read');
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

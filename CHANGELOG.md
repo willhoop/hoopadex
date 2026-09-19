@@ -12,6 +12,84 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.49] - 2026-09-19
+
+### Fixed
+- **Speed Tiers took 14 seconds to open. It now takes 37 milliseconds.**
+
+  Reported from the live site: *"this takes forever to load the speed tiers"*. To show one number per
+  Pokémon — base Speed — the tab downloaded each one's **entire** PokéAPI record, every move and
+  version entry included: 100 to 360 KB apiece, 351 entries with M-C's Megas and forms, so roughly
+  **70 MB of JSON**, fetched twenty at a time with the whole table redrawn after each batch. Bulk did
+  the same.
+
+  The six base stats for every Champions-legal entry now ship with the app — 12 KB, derived from
+  Showdown's Pokédex by the same generator as the rest of M-C. Measured cold, before and after: 14,042 ms
+  and ~351 downloads, then **37 ms and none**. Before the downloads were removed, the embedded numbers
+  were compared with PokéAPI's for every entry: **331 of 331 identical**. A record the dex has already
+  fetched still wins, so the two sources can never sit side by side disagreeing.
+
+- **Speed Tiers, Bulk and the damage calculator offered 20 Pokémon that are not legal in Champions.**
+
+  Found by that comparison: 24 entries did not match the stat table, and 20 of them were not naming
+  quirks. The Champions roster names *species*, so every form of a legal species was let through —
+  base Floette (only Floette-Eternal is legal), fifteen of Pikachu's costume and cap forms, Battle Bond
+  Greninja, and Galarian Farfetch'd, Galarian Mr. Mime and Hisuian Qwilfish. The calculator would quote
+  damage for a Pokémon nobody can bring. Showdown marks form legality explicitly, so the forms it rules
+  out are now blocked in the shared legality check, and only those: a form it doesn't mention is left
+  as it was. The other four were real and just spelled differently — the Paldean Tauros ("breeds" in
+  PokéAPI) and Mega Meowstic — and now resolve.
+
+  With base Floette gone the tabs said "230 Pokémon" beside a Regulation Changes page saying 231.
+  Floette is legal as Floette-Eternal, so it now counts as a species that only has a form entry:
+  **231 Pokémon plus 100 Mega and alternate forms.**
+
+- **Medicham's and Farigiraf's types were stacked while every other card's sat side by side.**
+
+  Reported from the live site. Fighting/Psychic measured 162px against 148px of room on a 182px card,
+  and the grid allowed cards as narrow as 160px; the widest pair of all, Electric/Fighting, is 168px.
+  Card pills are now a little tighter, the narrowest card a little wider, and below 160px of card the
+  pills shrink again — sized to cover a wide fallback font, because a browser that blocks Google Fonts
+  draws wider letters than the ones measured here. Checked at every card width from 172 to 320px in
+  both fonts: nothing overflows, and 0 of 34 cards stack.
+
+- **The sort badge on a card read "HP160".** It had no style rule at all — the markup arrived on
+  3 August without one. It now reads **HP 160**, the label small and quiet and the number the thing you
+  see.
+
+### Changed
+- **Held items are grouped by what they do.**
+
+  Reported from the live site: *"lets do a little better with the sorting of held items, like maybe the
+  seeds get their own, the weather extenders, the consumables"*. PokéAPI files 72 items as
+  "held-items" — Life Orb beside Heat Rock beside Electric Seed. They now sort into **Damage Boosters,
+  Single-Use, Defensive, Recovery, Terrain Seeds, Extenders, Accuracy & Crits** and **Other**.
+  Of Regulation M-C's 35, 34 spread across all eight. The 35th, **Fairy Feather**, moves to Type Enhancement: PokéAPI had
+  filed it as a held item, but it boosts Fairy moves exactly as Charcoal boosts Fire.
+
+  The group names are written by hand; what each one claims is checked against Showdown's item code. A
+  Terrain Seed must be something that reacts to terrain; an Extender must be named in a weather,
+  terrain, screen or trap's duration (Heat Rock's own code is empty — the effect lives in Sunny Day);
+  a Single-Use item must actually be consumed. Two are consumed outside their own code and are named
+  with where: Air Balloon clears itself when it pops, and the battle engine spends Blunder Policy.
+
+  Getting the Extender check right took two tries. The first pattern for "end of the duration function"
+  assumed one indentation depth; Showdown's two files use different ones, it overran into the next
+  function, and reported **Binding Band** — which makes trapping hit harder, not last longer — as an
+  extender. **Grip Claw** is the one that lengthens trapping, and it is an Extender.
+
+### Tests
+- New `tests/test-item-groups.js`. `tests/test-champions-mc.js`, `tests/test-pill-system.js` and
+  `tests/test-speed-tiers.js` extended.
+- Mutation **M134** survived on the first run, and it was a real gap: an item listed under two groups
+  resolves silently to the later one, so adding Binding Band to Extenders changed nothing and every
+  assertion stayed green. The raw lists are now checked for repeats, and M134 is killed.
+- M25 and M26 had quietly stopped testing anything — their anchor text included a line this release
+  changed — and are re-anchored. Mutations M126–M135 added; **124 killed, 0 survived, 0 skipped.**
+- 39 suites, 1,568 assertions, all passing.
+
+---
+
 ## [5.48] - 2026-09-19
 
 ### Added

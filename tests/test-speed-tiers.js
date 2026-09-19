@@ -49,8 +49,12 @@ check(!/CHAMPIONS_IDS\.has/.test(speed),
 // --- the form data actually gets fetched -------------------------------------------------------
 // calcRoster() returning a Mega is useless if nothing loads its stats: dc[] is keyed by id and
 // ensureRosterLoaded only knew about CHAMPIONS_IDS, none of which are above 10000.
-check(/ensureRosterLoaded\(renderSpeedTiers,roster\.map/.test(speed),
-  'the loader is told which ids to fetch, so form stats are actually loaded');
+/* Since 5.49 a form's stats normally come from CHAMP_BASE_STATS, embedded, rather than a fetch; the
+   loader is only handed what that table cannot place. The guarantee is the same one this check always
+   made — a Mega in the roster has stats to show — reached by a route that does not download 70 MB. */
+check(/ensureRosterLoaded\(renderSpeedTiers,roster\.filter\(function\(p\)\{return !rosterStatList\(p\)\}\)\.map/.test(speed),
+  'the loader is told which ids to fetch — those the embedded stats cannot place — so form stats always arrive');
+check(/const st=rosterStatList\(p\);/.test(speed), 'and each row reads its stats through rosterStatList, forms included');
 
 const loader = slice('async function ensureRosterLoaded(', 'function setSpeedSort(');
 check(/\(ids\|\|\[\.\.\.CHAMPIONS_IDS\]\)/.test(loader),
@@ -91,8 +95,9 @@ check(/const roster=calcRoster\(\);/.test(bulk),
 check(!/CHAMPIONS_IDS\.has/.test(bulk),
   'and does not filter CHAMPIONS_IDS directly either',
   'found a direct CHAMPIONS_IDS.has() call in renderBulk');
-check(/ensureRosterLoaded\(renderBulk,roster\.map/.test(bulk),
-  'Bulk tells the loader which ids to fetch, so form stats actually arrive');
+check(/ensureRosterLoaded\(renderBulk,roster\.filter\(function\(m\)\{return !rosterStatList\(m\)\}\)\.map/.test(bulk),
+  'Bulk tells the loader which ids to fetch — those the embedded stats cannot place — so form stats arrive');
+check(/st=rosterStatList\(p\)/.test(bulk), 'and reads its stats through rosterStatList too');
 check(/id>10000\?formDisplayName/.test(bulk),
   'and a form is labelled with formDisplayName, so the two Mega Garchomps stay distinguishable');
 check(/Mega and alternate forms/.test(bulk),

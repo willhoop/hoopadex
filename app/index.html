@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.48 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.49 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -290,8 +290,9 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
 .filter-select{padding:10px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);background:#1a1a2e;color:#8a8a9a;font-size:13px;cursor:pointer;outline:none;font-family:inherit;font-weight:600;color-scheme:dark}
 .filter-select option{background:#1a1a2e;color:#c8c8d8;font-weight:600}
 .filter-select option:checked{background:#2a2a4e;color:#e0e0e8}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-.card{border-radius:16px;padding:16px;cursor:pointer;transition:all 0.25s ease;position:relative;overflow:hidden}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:12px}
+/* container-type lets the type pills below size themselves to THIS card, not the window. */
+.card{border-radius:16px;padding:16px;cursor:pointer;transition:all 0.25s ease;position:relative;overflow:hidden;container-type:inline-size}
 .card:hover{transform:translateY(-4px)}
 /* z-index because a 96px sprite in a 16px-padded card reaches the top-right corner and drew
    straight over the dex number. The number is the thing you scan a grid by, so it wins. */
@@ -320,7 +321,27 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
   image-rendering:pixelated;filter:none}
 
 .card-name{font-size:14px;font-weight:700;color:#e8e8f0;text-transform:capitalize;margin-bottom:6px;letter-spacing:0.5px;text-align:center}
-.card-types{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+/* Two types sit on ONE line, always. Medicham and Farigiraf had their types stacked while every other
+   card showed them side by side, because Fighting/Psychic and Normal/Psychic are among the widest
+   pairs there are: measured at 162px and 158px against 148px of room on a 182px card, and the
+   widest of all, Electric/Fighting, at 168px. The grid could make a card as narrow as 160px, which
+   left 128px.
+
+   Three changes, and the third is the one that makes it hold. The pills on a card are a little
+   tighter; the narrowest card is a little wider; and when a card has under 160px inside it the pills
+   shrink again. Measured, widest pair (Electric/Fighting): 139px at 10px and 117px at 9px in Nunito;
+   157px and 133px in Verdana, a wide fallback. 160 is Verdana's 10px figure plus a little. By
+   container query — because the fonts on the reader's machine are not the fonts measured here (a
+   browser that blocks Google Fonts renders a wider fallback), so fitting "exactly" would not fit. */
+.card-types{display:flex;gap:4px;justify-content:center;flex-wrap:nowrap}
+.card-types .type-badge.small{font-size:10px;letter-spacing:.3px;padding:3px 8px;white-space:nowrap;flex:0 0 auto}
+@container (max-width:159px){.card-types .type-badge.small{font-size:9px;letter-spacing:0;padding:2px 6px}}
+/* The stat a sort is ranking by, on the card. It rendered as "HP160": a label and a number with
+   nothing between them, because the rule for it was never written - the markup arrived on
+   2026-08-03 without one. The label is small and quiet so the number is what you read. */
+.card-sortstat{display:flex;align-items:baseline;gap:6px;margin-bottom:2px}
+.card-sortstat span{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text4)}
+.card-sortstat b{font-size:17px;font-weight:800;color:var(--text);font-family:'JetBrains Mono',monospace}
 .card-placeholder{border-radius:16px;padding:20px 16px;cursor:pointer;transition:all 0.25s ease;position:relative;overflow:hidden;text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
 .card-placeholder:hover{transform:translateY(-4px);background:rgba(255,255,255,0.05)}
 /* THE TYPE COLOUR ARRIVES AS --tc, NOT AS AN INLINE background, and the ink with it as --tc-ink.
@@ -1866,7 +1887,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.48';
+const APP_VERSION='5.49';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -2220,6 +2241,16 @@ const REG_LEARNSET_SOURCE_DIFFS={"reg-mb->reg-mc":["127|slash","160|slash","186|
 /* Move values that changed between regulations, with BOTH ends stated. The page cannot work the
    "before" out for itself: an override only exists where a value differs from Scarlet/Violet. */
 const REG_MOVE_CHANGES={"reg-ma->reg-mb":[],"reg-mb->reg-mc":[{"move":"Strength Sap","field":"pp","from":10,"to":5},{"move":"Wish","field":"pp","from":10,"to":5}]};
+/* Base stats for every entry legal in any Champions regulation, keyed by Showdown id, as
+   [hp,atk,def,spa,spd,spe]. Speed Tiers and Bulk read only these six numbers, and used to fetch each
+   Pokemon's full PokeAPI record to get them - 100 to 360 KB apiece, about 70 MB for 351 entries. */
+const CHAMP_BASE_STATS={"abomasnow":[90,92,75,92,85,60],"abomasnowmega":[90,132,105,132,105,30],"absol":[65,130,60,75,60,75],"absolmega":[65,150,60,115,60,115],"absolmegaz":[65,154,60,75,60,151],"aegislash":[60,50,140,50,140,60],"aegislashblade":[60,140,50,140,50,60],"aerodactyl":[80,105,65,60,75,130],"aerodactylmega":[80,135,85,70,95,150],"aggron":[70,110,180,60,60,50],"aggronmega":[70,140,230,60,80,50],"alakazam":[55,50,45,135,95,120],"alakazammega":[55,50,65,175,105,150],"alcremie":[65,60,75,110,121,64],"altaria":[75,70,90,70,105,80],"altariamega":[75,110,110,110,105,80],"ampharos":[90,75,85,115,90,55],"ampharosmega":[90,95,105,165,110,45],"annihilape":[110,115,80,50,90,90],"appletun":[110,85,80,100,80,30],"araquanid":[68,70,92,50,132,42],"arbok":[60,95,69,65,79,80],"arboliva":[78,69,90,125,109,39],"arcanine":[90,110,80,100,80,95],"arcaninehisui":[95,115,80,95,80,90],"archaludon":[90,105,130,125,65,85],"ariados":[70,90,70,60,70,40],"armarouge":[85,60,100,125,80,75],"aromatisse":[101,72,72,99,89,29],"audino":[103,60,86,60,86,50],"audinomega":[103,60,126,80,126,50],"aurorus":[123,77,72,99,92,58],"avalugg":[95,117,184,44,46,28],"avalugghisui":[95,127,184,34,36,38],"azumarill":[100,50,80,60,80,50],"banette":[64,115,65,83,63,65],"banettemega":[64,165,75,93,83,75],"barbaracle":[72,105,115,54,86,68],"barbaraclemega":[72,140,130,64,106,88],"basculegion":[120,112,65,80,75,78],"basculegionf":[120,92,65,100,75,78],"bastiodon":[60,52,168,47,138,30],"baxcalibur":[115,145,92,75,86,87],"baxcaliburmega":[115,175,117,105,101,87],"beartic":[95,130,80,70,80,50],"beedrill":[65,90,40,45,80,75],"beedrillmega":[65,150,40,15,80,145],"bellibolt":[109,64,91,103,83,45],"blastoise":[79,83,100,85,105,78],"blastoisemega":[79,103,120,135,115,78],"blaziken":[80,120,70,110,70,80],"blazikenmega":[80,160,80,130,80,100],"camerupt":[70,100,70,105,75,40],"cameruptmega":[70,120,100,145,105,20],"castform":[70,70,70,70,70,70],"castformrainy":[70,70,70,70,70,70],"castformsnowy":[70,70,70,70,70,70],"castformsunny":[70,70,70,70,70,70],"ceruledge":[75,125,80,60,100,85],"chandelure":[60,55,90,145,90,80],"chandeluremega":[60,75,110,175,110,90],"charizard":[78,84,78,109,85,100],"charizardmegax":[78,130,111,130,85,100],"charizardmegay":[78,104,78,159,115,100],"chesnaught":[88,107,122,74,75,64],"chesnaughtmega":[88,137,172,74,115,44],"chimecho":[75,50,80,95,90,65],"chimechomega":[75,50,110,135,120,65],"cinderace":[80,116,75,65,75,119],"clawitzer":[71,73,88,120,89,59],"clefable":[95,70,73,95,90,60],"clefablemega":[95,80,93,135,110,70],"cofagrigus":[58,50,145,95,105,30],"conkeldurr":[105,140,95,55,65,45],"corviknight":[98,87,105,53,85,67],"crabominable":[97,132,77,62,67,43],"crabominablemega":[97,157,122,62,107,33],"decidueye":[78,107,75,100,100,70],"decidueyehisui":[88,112,80,95,95,60],"dedenne":[67,58,57,81,67,101],"delphox":[75,69,72,114,100,104],"delphoxmega":[75,69,72,159,125,134],"diggersby":[85,56,77,50,77,78],"ditto":[48,48,48,48,48,48],"dragalge":[65,75,90,97,123,44],"dragalgemega":[65,85,105,132,163,44],"dragapult":[88,120,75,100,75,142],"dragonite":[91,134,95,100,100,80],"dragonitemega":[91,124,115,145,125,100],"drampa":[78,60,85,135,91,36],"drampamega":[78,85,110,160,116,36],"eelektross":[85,115,80,105,80,50],"eelektrossmega":[85,145,80,135,90,80],"emboar":[110,123,65,100,65,65],"emboarmega":[110,148,75,110,110,75],"emolga":[55,75,60,75,60,103],"empoleon":[84,86,88,111,101,60],"espathra":[95,60,60,101,60,105],"espeon":[65,65,60,130,95,110],"excadrill":[110,135,60,50,65,88],"excadrillmega":[110,165,100,65,65,103],"falinks":[65,100,100,70,60,75],"falinksmega":[65,135,135,70,65,100],"farfetchd":[52,90,55,58,62,60],"farigiraf":[120,90,70,110,70,60],"feraligatr":[85,105,100,79,83,78],"feraligatrmega":[85,160,125,89,93,78],"flapple":[70,110,80,95,60,70],"flareon":[65,130,60,95,110,65],"floetteeternal":[74,65,67,125,128,92],"floettemega":[74,85,87,155,148,102],"florges":[78,65,68,112,154,75],"forretress":[75,90,140,60,60,40],"froslass":[70,80,70,80,70,110],"froslassmega":[70,80,70,140,100,120],"furfrou":[75,80,60,65,90,102],"gallade":[68,125,65,65,115,80],"gallademega":[68,165,95,65,115,110],"garbodor":[80,95,82,60,82,75],"garchomp":[108,130,95,80,85,102],"garchompmega":[108,170,115,120,95,92],"garchompmegaz":[108,130,85,141,85,151],"gardevoir":[68,65,65,125,115,80],"gardevoirmega":[68,85,65,165,135,100],"garganacl":[100,100,130,45,90,35],"gengar":[60,65,60,130,75,110],"gengarmega":[60,65,80,170,95,130],"gholdengo":[87,60,95,133,91,84],"glaceon":[65,60,110,130,95,65],"glalie":[80,80,80,80,80,80],"glaliemega":[80,120,80,120,80,100],"glimmora":[83,55,90,130,81,86],"glimmoramega":[83,90,105,150,96,101],"gliscor":[75,95,125,45,75,95],"gogoat":[123,100,62,97,81,68],"golisopod":[75,125,140,60,90,40],"golisopodmega":[75,150,175,70,120,40],"golurk":[89,124,80,55,80,55],"golurkmega":[89,159,105,70,105,55],"goodra":[90,100,70,110,150,80],"goodrahisui":[80,100,100,110,150,60],"gourgeist":[65,90,122,58,75,84],"gourgeistlarge":[75,95,122,58,75,69],"gourgeistsmall":[55,85,122,58,75,99],"gourgeistsuper":[85,100,122,58,75,54],"grapploct":[80,118,90,70,80,42],"greninja":[72,95,67,103,71,122],"greninjamega":[72,125,77,133,81,142],"grimmsnarl":[95,120,65,95,75,60],"gyarados":[95,125,79,60,100,81],"gyaradosmega":[95,155,109,70,130,81],"hatterene":[57,90,95,136,103,29],"hawlucha":[78,92,75,74,63,118],"hawluchamega":[78,137,100,74,93,118],"heliolisk":[62,55,52,109,94,109],"heracross":[80,125,75,40,95,85],"heracrossmega":[80,185,115,40,105,75],"hippowdon":[108,112,118,68,72,47],"houndoom":[75,90,50,110,80,95],"houndoommega":[75,90,90,140,90,115],"houndstone":[72,101,100,50,97,68],"hydrapple":[106,80,110,120,80,44],"hydreigon":[92,105,90,125,90,98],"incineroar":[95,115,90,80,90,60],"indeedee":[60,65,55,105,95,95],"indeedeef":[70,55,65,95,105,85],"infernape":[76,104,71,104,71,108],"inteleon":[70,85,65,125,65,120],"jolteon":[65,65,60,110,95,130],"kangaskhan":[105,95,80,40,80,90],"kangaskhanmega":[105,125,100,60,100,100],"kingambit":[100,135,120,60,85,50],"kleavor":[70,135,95,45,70,85],"klefki":[57,80,91,80,87,75],"kommoo":[75,110,125,100,105,85],"krookodile":[95,117,80,65,70,92],"leafeon":[65,110,130,60,65,95],"liepard":[64,88,50,88,50,106],"lopunny":[65,76,84,54,96,105],"lopunnymega":[65,136,94,54,96,135],"lucario":[70,110,70,115,70,90],"lucariomega":[70,145,88,140,70,112],"lucariomegaz":[70,100,70,164,70,151],"luxray":[80,120,79,95,79,70],"lycanroc":[75,115,65,55,65,112],"lycanrocdusk":[75,117,65,55,65,110],"lycanrocmidnight":[85,115,75,55,75,82],"mabosstiff":[80,120,90,60,70,85],"machamp":[90,130,80,65,85,55],"malamar":[86,92,88,68,75,73],"malamarmega":[86,102,88,98,120,88],"mamoswine":[110,130,80,70,60,80],"manectric":[70,75,60,105,60,105],"manectricmega":[70,75,80,135,80,135],"maushold":[74,75,70,65,75,111],"mawile":[50,85,85,55,55,50],"mawilemega":[50,105,125,55,95,50],"medicham":[60,60,75,60,75,80],"medichammega":[60,100,85,80,85,100],"meganium":[80,82,100,83,100,80],"meganiummega":[80,92,115,143,115,80],"meowscarada":[76,110,70,81,70,123],"meowstic":[74,48,76,83,81,104],"meowsticfmega":[74,48,76,143,101,124],"meowsticmmega":[74,48,76,143,101,124],"metagross":[80,135,130,95,90,70],"metagrossmega":[80,145,150,105,110,110],"milotic":[95,60,79,100,125,81],"mimikyu":[55,90,80,50,105,96],"morpeko":[58,95,58,70,58,97],"mrmime":[40,45,65,100,120,90],"mrrime":[80,85,75,110,100,70],"mudsdale":[100,125,100,55,85,35],"musharna":[116,55,85,107,95,29],"ninetales":[73,76,75,81,100,100],"ninetalesalola":[73,67,75,81,100,109],"noivern":[85,70,80,97,80,123],"oranguru":[90,60,80,90,110,60],"orthworm":[70,85,145,60,55,65],"overqwil":[85,115,95,65,65,85],"palafin":[100,70,72,53,62,100],"pangoro":[95,124,78,69,71,58],"passimian":[100,120,90,40,60,80],"pawmot":[70,115,70,70,60,105],"pelipper":[60,50,100,95,70,65],"perrserker":[70,110,100,50,60,50],"persian":[65,70,60,65,65,115],"persianalola":[65,60,60,75,65,115],"pidgeot":[83,80,75,70,70,101],"pidgeotmega":[83,80,80,135,80,121],"pikachu":[35,55,40,50,50,90],"pincurchin":[48,101,95,91,85,15],"pinsir":[65,125,100,55,70,85],"pinsirmega":[65,155,120,65,90,105],"politoed":[90,75,75,90,100,70],"polteageist":[60,65,65,134,114,70],"primarina":[80,74,74,126,116,60],"pyroar":[86,68,72,109,66,106],"pyroarmega":[86,88,92,129,86,126],"quaquaval":[85,120,80,85,75,85],"qwilfish":[65,95,85,55,55,85],"raichu":[60,90,55,90,80,110],"raichualola":[60,85,50,95,85,110],"raichumegax":[60,135,95,90,95,110],"raichumegay":[60,100,55,160,80,130],"rampardos":[97,165,60,65,50,58],"reuniclus":[110,65,75,125,85,30],"rhyperior":[115,140,130,55,55,40],"rillaboom":[100,125,90,60,70,85],"roserade":[60,70,65,125,105,90],"rotom":[50,50,77,95,77,91],"rotomfan":[50,65,107,105,107,86],"rotomfrost":[50,65,107,105,107,86],"rotomheat":[50,65,107,105,107,86],"rotommow":[50,65,107,105,107,86],"rotomwash":[50,65,107,105,107,86],"runerigus":[58,95,145,50,105,30],"sableye":[50,75,75,65,65,50],"sableyemega":[50,85,125,85,115,20],"salamence":[95,135,80,110,80,100],"salamencemega":[95,145,130,120,90,120],"salazzle":[68,64,60,111,60,117],"samurott":[95,100,85,108,70,70],"samurotthisui":[90,108,80,100,65,85],"sandaconda":[72,107,125,65,70,71],"sceptile":[70,85,65,105,85,120],"sceptilemega":[70,110,75,145,85,145],"scizor":[70,130,100,55,80,65],"scizormega":[70,150,140,65,100,75],"scolipede":[60,100,89,55,69,112],"scolipedemega":[60,140,149,75,99,62],"scovillain":[65,108,65,108,65,75],"scovillainmega":[65,138,85,138,85,75],"scrafty":[65,90,115,45,115,58],"scraftymega":[65,130,135,55,135,68],"serperior":[75,75,95,75,95,113],"sharpedo":[70,120,40,95,40,95],"sharpedomega":[70,140,70,110,65,105],"simipour":[75,98,63,98,63,101],"simisage":[75,98,63,98,63,101],"simisear":[75,98,63,98,63,101],"sinistcha":[71,60,106,121,80,70],"sirfetchd":[62,135,95,68,82,65],"skarmory":[65,80,140,40,70,70],"skarmorymega":[65,140,110,40,100,110],"skeledirge":[104,75,100,110,75,66],"slowbro":[95,75,110,100,80,30],"slowbrogalar":[95,100,95,100,70,30],"slowbromega":[95,75,180,130,80,30],"slowking":[95,75,80,100,110,30],"slowkinggalar":[95,65,80,110,110,30],"slurpuff":[82,80,86,85,75,72],"sneasler":[80,130,60,40,80,120],"snorlax":[160,110,65,65,110,30],"spiritomb":[50,92,108,92,108,35],"squawkabilly":[82,96,51,45,51,92],"squawkabillyblue":[82,96,51,45,51,92],"squawkabillywhite":[82,96,51,45,51,92],"squawkabillyyellow":[82,96,51,45,51,92],"staraptor":[85,120,70,50,60,100],"staraptormega":[85,140,100,60,90,110],"starmie":[60,75,85,100,85,115],"starmiemega":[60,100,105,130,105,120],"steelix":[75,85,200,55,65,30],"steelixmega":[75,125,230,55,95,30],"stunfisk":[109,66,84,81,99,32],"stunfiskgalar":[109,81,99,66,84,32],"swalot":[100,73,83,73,83,55],"swampert":[100,110,90,85,90,60],"swampertmega":[100,150,110,95,110,70],"sylveon":[95,65,65,110,130,60],"talonflame":[78,81,71,74,69,126],"tauros":[75,100,95,40,70,110],"taurospaldeaaqua":[75,110,105,30,70,100],"taurospaldeablaze":[75,110,105,30,70,100],"taurospaldeacombat":[75,110,105,30,70,100],"thievul":[70,58,58,87,92,90],"tinkaton":[85,75,77,70,105,94],"torkoal":[70,85,140,85,70,20],"torterra":[95,109,105,75,85,56],"toucannon":[80,120,75,75,75,60],"toxapex":[50,63,152,53,142,35],"toxicroak":[83,106,65,86,65,85],"toxtricity":[75,98,70,114,70,75],"toxtricitylowkey":[75,98,70,114,70,75],"trevenant":[85,110,76,65,82,56],"tsareena":[72,120,98,50,98,72],"typhlosion":[78,84,78,109,85,100],"typhlosionhisui":[73,84,78,119,85,95],"tyranitar":[100,134,110,95,100,61],"tyranitarmega":[100,164,150,95,120,71],"tyrantrum":[82,121,119,69,59,71],"umbreon":[95,65,110,60,130,65],"vanilluxe":[71,95,85,110,95,79],"vaporeon":[130,65,60,110,95,65],"venusaur":[80,82,83,100,100,80],"venusaurmega":[80,100,123,122,120,80],"victreebel":[80,105,65,100,70,70],"victreebelmega":[80,125,85,135,95,70],"vileplume":[75,80,85,110,90,50],"vivillon":[80,52,50,90,50,89],"volcarona":[85,60,65,135,105,100],"watchog":[60,85,69,60,69,77],"weavile":[70,120,65,45,85,125],"whimsicott":[60,67,85,77,75,116],"wigglytuff":[140,70,45,85,50,45],"wyrdeer":[103,105,72,105,75,65],"zoroark":[60,105,60,120,60,105],"zoroarkhisui":[55,100,60,125,60,110]};
+/* Entries Showdown EXPLICITLY marks illegal although their species is legal: base Floette (only
+   Floette-Eternal is), Pikachu's costume and cap forms, Battle Bond Greninja, Galarian Farfetch'd
+   and Mr. Mime, Hisuian Qwilfish and so on. The roster names species, so without this every form of
+   a legal species passed formAllowed. Only explicit rulings are listed; a form Showdown does not
+   mention is left exactly as it was. */
+const CHAMPIONS_ILLEGAL_FORMS_BY_REG={"reg-mc":["alcremiegmax","appletungmax","araquanidtotem","blastoisegmax","charizardgmax","cinderacegmax","corviknightgmax","farfetchdgalar","flapplegmax","floette","garbodorgmax","gengargmax","greninjaash","greninjabond","grimmsnarlgmax","hatterenegmax","inteleongmax","kommoototem","machampgmax","mimikyubustedtotem","mimikyutotem","mrmimegalar","pikachualola","pikachubelle","pikachucosplay","pikachugmax","pikachuhoenn","pikachukalos","pikachulibre","pikachuoriginal","pikachupartner","pikachuphd","pikachupopstar","pikachurockstar","pikachusinnoh","pikachustarter","pikachuunova","pikachuworld","qwilfishhisui","rillaboomgmax","salazzletotem","sandacondagmax","snorlaxgmax","toxtricitygmax","toxtricitylowkeygmax","venusaurgmax"],"reg-mb":["absolmegaz","alcremiegmax","appletungmax","araquanidtotem","blastoisegmax","charizardgmax","corviknightgmax","flapplegmax","floette","garbodorgmax","garchompmegaz","gengargmax","greninjaash","greninjabond","grimmsnarlgmax","hatterenegmax","kommoototem","lucariomegaz","machampgmax","mimikyubustedtotem","mimikyutotem","pikachualola","pikachubelle","pikachucosplay","pikachugmax","pikachuhoenn","pikachukalos","pikachulibre","pikachuoriginal","pikachupartner","pikachuphd","pikachupopstar","pikachurockstar","pikachusinnoh","pikachustarter","pikachuunova","pikachuworld","qwilfishhisui","salazzletotem","sandacondagmax","snorlaxgmax","venusaurgmax"]};
 /*END-CHAMPIONS-DERIVED*/
 /* ═══ CHAMPIONS REGULATIONS — newest FIRST ═══════════════════════════════
    To add a new regulation: add its ID set above, then unshift one row here.
@@ -3949,6 +3980,8 @@ function formAllowed(name,id,genNum,genMax){
   if(!baseId||baseId>genMax)return false;
   // The Champions roster names species, not formes, so a form's base species must be legal...
   if(isChampionsMode&&!CHAMPIONS_IDS.has(baseId))return false;
+  // ...and the form itself must not be one Showdown explicitly rules out. See champFormIllegal.
+  if(isChampionsMode&&typeof champFormIllegal==='function'&&champFormIllegal(name))return false;
   if(id>10000){
     const flat=String(name).toLowerCase().replace(/[^a-z0-9]/g,'');
     // ...and a forme you can only become mid-battle is never something you can pick.
@@ -4871,6 +4904,75 @@ let _rosterLoading=false;
    so is never in CHAMPIONS_IDS - the Champions roster names species, not formes. Without this the
    Speed Tiers table silently omitted every Mega and regional form in the format, which for a speed
    table is a real answer missing: Mega Alakazam outruns everything the old table listed. */
+/* ── Six numbers, not seventy megabytes ─────────────────────────────────────────────────────────
+   Reported from the live site: "this takes forever to load the speed tiers". It did. To show one
+   number per Pokemon - base Speed - the tab fetched each one's FULL PokeAPI record, every move and
+   every version entry included, 100 to 360 KB apiece. Regulation M-C has 351 entries counting Megas
+   and forms, so a cold open downloaded and parsed about 70 MB of JSON, in batches of twenty, redrawing
+   the whole table after each batch. Measured: 14 seconds on a fast connection. Bulk did the same.
+
+   CHAMP_BASE_STATS carries the six base stats for every Champions-legal entry, derived from
+   Showdown's Pokedex by build/generate-champions.js - 12 KB. rosterStatList is the one reader. A
+   record the dex has already fetched is preferred, so the two can never show different numbers side
+   by side; and an entry the table cannot place falls back to fetching, for that entry only.
+
+   The table was checked against PokeAPI entry by entry before this replaced the fetch: see
+   tests/test-champions-mc.js. */
+/* How many SPECIES a roster holds, and how many extra entries its forms add. Counting base entries
+   read "230 Pokemon" for Regulation M-C, whose roster is 231: Floette is legal only as Floette-Eternal,
+   so it has no base entry, only a form. The Regulation Changes page said 231 a click away. */
+function rosterCounts(roster){
+  const species=new Set(roster.map(function(p){return p.id>10000?baseSpeciesId(p.name):p.id}));
+  return {species:species.size,extra:roster.length-species.size};
+}
+const STAT_ORDER=['hp','attack','defense','special-attack','special-defense','speed'];
+/* A PokeAPI name as Showdown spells it. They mostly agree once flattened ("dragalge-mega" and
+   "Dragalge-Mega" both give dragalgemega); these are the patterns that do not, each found by the
+   stat check matching the table against all 351 roster entries: the Paldean Tauros are "breeds" in
+   PokeAPI and not in Showdown; Mega Meowstic is "meowstic-male-mega" against "meowsticmmega";
+   Pikachu's caps drop the word "cap"; Battle Bond Greninja is "greninjabond". */
+function champSdId(name){
+  return String(name).toLowerCase()
+    .replace(/-breed$/,'').replace(/-cap$/,'').replace(/-battle-bond$/,'-bond')
+    .replace(/-male(?=-|$)/,'-m').replace(/-female(?=-|$)/,'-f')
+    .replace(/[^a-z0-9]/g,'');
+}
+/* ── Forms of a legal species that are not themselves legal ──────────────────────────────────────
+   The Champions roster names SPECIES, so formAllowed let through every form of a legal species.
+   Found by the base-stat check: of the 351 entries Speed Tiers, Bulk and the damage calculator
+   offered in Regulation M-C, twenty are forms Showdown rules illegal - base Floette (only
+   Floette-Eternal is legal), fifteen of Pikachu's costume and cap forms, Battle Bond Greninja, and
+   Galarian Farfetch'd, Galarian Mr. Mime and Hisuian Qwilfish. The calculator would quote damage for
+   a Pokemon nobody can bring.
+
+   Only forms Showdown EXPLICITLY marks illegal are blocked. A form it does not mention is left as it
+   was, because "unknown to one source" is not a ruling. */
+function champFormIllegal(name){
+  if(typeof CHAMPIONS_ILLEGAL_FORMS_BY_REG==='undefined')return false;
+  const list=CHAMPIONS_ILLEGAL_FORMS_BY_REG[champRegKey()];
+  if(!list)return false;
+  if(!champFormIllegal._sets)champFormIllegal._sets={};
+  const set=champFormIllegal._sets[champRegKey()]||(champFormIllegal._sets[champRegKey()]=new Set(list));
+  return set.has(champSdId(name))||set.has(String(name).toLowerCase().replace(/[^a-z0-9]/g,''));
+}
+function champBaseStats(p){
+  if(!isChampionsMode||typeof CHAMP_BASE_STATS==='undefined'||!p)return null;
+  const sd=champSdId(p.name);
+  if(CHAMP_BASE_STATS[sd])return CHAMP_BASE_STATS[sd];
+  const flat=String(p.name).toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(CHAMP_BASE_STATS[flat])return CHAMP_BASE_STATS[flat];
+  /* PokeAPI names some SPECIES by their default form (pyroar-male, meowstic-male, toxtricity-amped,
+     aegislash-shield); Showdown names the species. Only for species ids: a form that does not match
+     is a different Pokemon, and guessing its base species' stats would be a wrong number. */
+  if(p.id<=1025){const base=String(p.name).toLowerCase().split('-')[0];if(CHAMP_BASE_STATS[base])return CHAMP_BASE_STATS[base]}
+  return null;
+}
+function rosterStatList(p){
+  if(!p)return null;
+  if(dc[p.id])return getStatsForGen(dc[p.id]);
+  const b=champBaseStats(p);
+  return b?b.map(function(v,i){return {stat:{name:STAT_ORDER[i]},base_stat:v}}):null;
+}
 async function ensureRosterLoaded(rerender,ids){
   if(_rosterLoading)return;
   const missing=(ids||[...CHAMPIONS_IDS]).filter(id=>!dc[id]);
@@ -4935,8 +5037,9 @@ function renderSpeedTiers(){
      Speed Tiers and the calculator can never disagree about what is legal - and so a Mega only has
      to be declared legal in one place. */
   const roster=calcRoster();
-  const _spForms=roster.filter(function(p){return p.id>10000}).length;
-  ensureRosterLoaded(renderSpeedTiers,roster.map(function(p){return p.id}));
+  const _spCount=rosterCounts(roster), _spForms=_spCount.extra;
+  // Only entries the embedded stat table cannot place are fetched - normally none. See rosterStatList.
+  ensureRosterLoaded(renderSpeedTiers,roster.filter(function(p){return !rosterStatList(p)}).map(function(p){return p.id}));
   // Prep for a specific game: narrow to your team, or to whatever you type.
   const q=(speedQuery||'').toLowerCase().trim();
   const teamIds=new Set(teamSlots.filter(Boolean).map(function(t){return t.id}));
@@ -4944,9 +5047,9 @@ function renderSpeedTiers(){
      because the pinned table has to be able to find a Pokemon you have since filtered away - a pin
      that vanishes when you type is not a pin. `rows` is then the filtered view for the main table. */
   const allRows=roster.map(function(p){
-    const d=dc[p.id];
-    if(!d)return null;
-    const b=(getStatsForGen(d).find(function(x){return x.stat.name==='speed'})||{}).base_stat;
+    const st=rosterStatList(p);
+    if(!st)return null;
+    const b=(st.find(function(x){return x.stat.name==='speed'})||{}).base_stat;
     if(b===undefined)return null;
     // formDisplayName is the one place that knows a form's on-screen name, so a Mega reads
     // "Alakazam (Mega)" here exactly as it does on the ability page and in the calculator.
@@ -4961,9 +5064,9 @@ function renderSpeedTiers(){
     return true;
   });
 
-  const loaded=roster.filter(function(p){return dc[p.id]}).length;
+  const loaded=roster.filter(function(p){return rosterStatList(p)}).length;
   let h='<p class="regs-intro">Every column uses the same model as the damage calculator: at level 50 with fixed 31 IVs a stat is base+20, then +1 per Stat Point, then the nature multiplier. '
-   +(roster.length-_spForms)+' Pok\u00e9mon in this regulation'
+   +_spCount.species+' Pok\u00e9mon in this regulation'
    +(_spForms?' plus '+_spForms+' Mega and alternate forms':'')
    +(loaded<roster.length?' \u2014 loading '+(roster.length-loaded)+' more':'')
    +((q||speedTeamOnly)?' \u2014 showing '+rows.length:'')+'.</p>';
@@ -5921,19 +6024,20 @@ function renderBulk(){
      is missing the entries most likely to be built around. One roster, shared with the calculator
      and the speed tiers, so all three agree on what is legal. */
   const roster=calcRoster();
-  const _bkForms=roster.filter(function(m){return m.id>10000}).length;
-  ensureRosterLoaded(renderBulk,roster.map(function(m){return m.id}));
+  const _bkCount=rosterCounts(roster), _bkForms=_bkCount.extra;
+  ensureRosterLoaded(renderBulk,roster.filter(function(m){return !rosterStatList(m)}).map(function(m){return m.id}));
+  const byId={};roster.forEach(function(m){byId[m.id]=m});
   /* Order by base species, with a species' forms directly after it, rather than by raw id.
      calcRoster() returns base species first and forms afterwards, because form ids start at 10001.
      This table shows only the first 60 rows, so in id order every single Mega fell off the end:
      the forms were in the roster and none of them was reachable. Sorting by base species puts
      Mega Absol next to Absol, which is also where a reader looking for it would expect it. */
-  const loaded=roster.filter(function(m){return dc[m.id]}).slice().sort(function(a,b){
+  const loaded=roster.filter(function(m){return rosterStatList(m)}).slice().sort(function(a,b){
     const ab=a.id>10000?baseSpeciesId(a.name):a.id, bb=b.id>10000?baseSpeciesId(b.name):b.id;
     return (ab-bb)||(a.id-b.id);
   });
   const rows=loaded.filter(function(m){return !q||m.name.includes(q)}).map(function(m){return m.id}).slice(0,60);
-  h+='<p class="bulk-count">'+(roster.length-_bkForms)+' Pokémon in this regulation'
+  h+='<p class="bulk-count">'+_bkCount.species+' Pokémon in this regulation'
     +(_bkForms?' plus '+_bkForms+' Mega and alternate forms':'')
     +(loaded.length<roster.length?', '+(roster.length-loaded.length)+' still loading':'')
     +(rows.length&&rows.length<loaded.length?' — showing '+rows.length:'')+'.</p>';
@@ -5945,7 +6049,7 @@ function renderBulk(){
   h+='<table class="bulk-table"><thead><tr><th>Pokémon</th><th>Best spread</th><th>Resulting HP/Def/SpD</th>'
     +'<th>vs physical only</th><th>vs special only</th></tr></thead><tbody>';
   rows.forEach(id=>{
-    const p=dc[id], st=getStatsForGen(p);
+    const p=byId[id], st=rosterStatList(p);
     const g=n=>((st.find(x=>x.stat.name===n)||{}).base_stat)||0;
     const bh=g('hp'), bd=g('defense'), bs=g('special-defense');
     const mix=optimalBulkSpread(bh,bd,bs,budVal,natVal);
@@ -10327,6 +10431,40 @@ let allItemsLoaded=false;
 
 // Competitive held item category IDs from PokeAPI
 const HELD_ITEM_CATEGORIES=[1,2,3,4,5,6,7,12,13,15,17,18,19,36,44,45,46,50];
+/* ── "Held Items" split by what the item does ─────────────────────────────────────────────────────
+   Reported from the live site: "lets do a little better with the sorting of held items, like maybe
+   the seeds get their own, the weather extenders, the consumables". PokeAPI's category 12 is a grab
+   bag of 72 items — Life Orb beside Heat Rock beside Electric Seed — and it also filed Fairy Feather
+   there, which is a type booster (+20% to Fairy moves) and belongs with Charcoal and Mystic Water.
+
+   The group NAMES are presentation, written here. What each group CLAIMS is checked against
+   Showdown's item code by tests/test-item-groups.js, using facts build/generate-champions.js reads
+   off that code: a Terrain Seed reacts to a terrain change; an Extender is named in a weather,
+   terrain, screen or trap's durationCallback (Heat Rock's own code is empty — the effect lives in
+   Sunny Day); a Single-Use item is consumed. So a new item filed in the wrong group, or a group
+   that stops meaning what its name says, fails a test rather than rendering quietly. */
+const HELD_ITEM_GROUP=(function(){
+  const g={
+    'Damage Boosters':['life-orb','expert-belt','muscle-band','wise-glasses','metronome','punching-glove','loaded-dice'],
+    'Single-Use':['focus-sash','air-balloon','white-herb','mental-herb','power-herb','mirror-herb','red-card','eject-button',
+      'eject-pack','weakness-policy','blunder-policy','throat-spray','room-service','adrenaline-orb','booster-energy',
+      'absorb-bulb','cell-battery','luminous-moss','snowball'],
+    'Defensive':['rocky-helmet','focus-band','bright-powder','lax-incense','eviolite','assault-vest','safety-goggles',
+      'covert-cloak','protective-pads','heavy-duty-boots','clear-amulet','ability-shield','utility-umbrella'],
+    'Recovery':['leftovers','black-sludge','shell-bell','big-root'],
+    'Terrain Seeds':['electric-seed','grassy-seed','misty-seed','psychic-seed'],
+    'Extenders':['damp-rock','heat-rock','icy-rock','smooth-rock','light-clay','terrain-extender','grip-claw'],
+    'Accuracy & Crits':['scope-lens','razor-claw','wide-lens','zoom-lens'],
+    'Other Held Items':['quick-claw','kings-rock','razor-fang','binding-band','shed-shell','destiny-knot','float-stone',
+      'ring-target','smoke-ball','pass-orb'],
+    // Filed under held-items by PokeAPI, but they are not general held items:
+    'Type Enhancement':['fairy-feather'],
+    'Species-Specific':['wellspring-mask','hearthflame-mask','cornerstone-mask'],
+  };
+  const out={};
+  Object.keys(g).forEach(function(k){g[k].forEach(function(i){out[i]=k})});
+  return out;
+})();
 const HELD_ITEM_CATEGORY_NAMES={1:'Stat Boosts',2:'EV-Reducing Berries',3:'Status/Recovery Berries',4:'Battle Effect Berries',5:'In-a-Pinch Berries',6:'Healing Berries',7:'Type Protection',12:'Held Items',13:'Choice Items',15:'Negative Held Items',17:'Plates',18:'Species-Specific',19:'Type Enhancement',36:'Scarves',44:'Mega Stones',45:'Memories',46:'Z-Crystals',50:'Nature Mints'};
 
 async function loadAllItems(){
@@ -10348,7 +10486,10 @@ async function loadAllItems(){
         if(!seen.has(item.name)){
           seen.add(item.name);
           const id=item.url.split('/').filter(Boolean).pop();
-          allItems.push({name:item.name,id:parseInt(id),category:catName,categoryId:catId});
+          // PokeAPI's "held-items" is split by function; see HELD_ITEM_GROUP. An item it has not been
+          // told about keeps the old heading rather than vanishing.
+          const cat=(catId===12&&HELD_ITEM_GROUP[item.name])||catName;
+          allItems.push({name:item.name,id:parseInt(id),category:cat,categoryId:catId});
         }
       });
     }catch(e){console.warn('Failed to load category',catId,e)}
@@ -10633,7 +10774,8 @@ function renderItemsList(groups,items,filter=''){
   let h='';
   // Berries sit above the Mega Stones: they are the items actually chosen for a competitive set,
   // while Mega Stones are a long species-locked list you scroll past rather than browse.
-  const categoryOrder=['Choice Items','Held Items','Type Enhancement','Negative Held Items',
+  const categoryOrder=['Choice Items','Damage Boosters','Single-Use','Defensive','Recovery','Terrain Seeds','Extenders',
+    'Accuracy & Crits','Other Held Items','Held Items','Type Enhancement','Negative Held Items',
     'Status/Recovery Berries','In-a-Pinch Berries','Healing Berries','Battle Effect Berries','Type Protection',
     'Species-Specific','Mega Stones','Z-Crystals','Memories','Plates'];
   const hiddenCats=new Set(['Nature Mints','EV-Reducing Berries','Scarves','Stat Boosts']);
