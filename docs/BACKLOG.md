@@ -435,24 +435,10 @@ doable but slow; the practical route is probably a published set of calculations
 calculator's own test suite, if one can be extracted.
 
 
-## 29. Champions move effects are still Scarlet/Violet's — `open`
+## 29. Champions move effects are still Scarlet/Violet's — `done` (5.51)
 
-*Found 2026-09-19 (5.48), while deriving Regulation M-C.*
-
-5.48 applies every Champions change to a move's **numbers, type and flags** — 51 of the 63 moves
-Champions changes. The other twelve changed what the move *does*: Belch, Dire Claw, Disable, Encore,
-Freeze-Dry, Iron Head, Make It Rain, Milk Drink, Moonblast, Salt Cure, Stuff Cheeks, Toxic Thread.
-Their descriptions come from PokéAPI and describe Scarlet/Violet. Moonblast's still says a 30% chance
-to lower Sp. Atk; in Champions it is 10%. Iron Head's flinch is 20%, not 30%. Make It Rain lowers
-the user's Sp. Atk by two, not one. Freeze-Dry cannot freeze.
-
-**Why it is not done.** The changes are in Showdown's `champions/moves.ts` as JavaScript
-(`secondary: {chance: 10, …}`, `condition: {onResidual…}`), not as prose. Some translate
-mechanically — a secondary chance, a stat stage — and some do not (Salt Cure's damage fraction lives
-in a function body). Generating sentences from code is how a confident wrong statement gets made,
-which is the one thing this project most avoids. The data already marks these moves
-(`behaviour: true` in `CHAMP_MOVE_OVERRIDES`), so the fix can start with the mechanical ones and state
-the rest plainly as "works differently in Champions" rather than guessing.
+All 13 now have a Champions description: the 12 that `CHAMP_MOVE_OVERRIDES` marks as `behaviour`,
+plus Rage Fist, whose change is in Showdown's battle code. See technical docs 4.9g.
 
 ## 30. Confirm Slash and Politoed's Pound in-game — `open`
 
@@ -499,10 +485,26 @@ approval.
   calculator uses its own engine data.
 - **Ruination, Comeuppance: power 1. Not a problem.** PokeAPI's marker for "power varies". Showdown
   writes 0.
-- **Take Heart: PP 10. A real error in PokeAPI.** Bulbapedia gives 15 (max 24) in the main games, and 10
-  only in Legends: Arceus. Showdown has 15. The app shows PokeAPI's 10 in Generations VIII and IX. It
-  is not in Champions. Fixing it needs a written correction with this source, like Endure's in the
-  priority generator. Waiting on a decision about where corrections to PokeAPI's move numbers should
-  live.
+- **Take Heart: PP 10. A real error in PokeAPI, fixed in 5.51.** Bulbapedia gives 15 (max 24) in the
+  main games, and 10 only in Legends: Arceus. The app now uses Showdown's 15, via
+  `build/generate-move-values.js`.
 
 `tests/test-fast-load.js` names all six, so a new disagreement cannot hide among them.
+
+## 34. Double Shock's accuracy in Champions — `open`
+
+*Found 2026-09-19 (5.51).*
+
+Serebii's Champions "Updated Attacks" page says Double Shock's accuracy changed from 100 to "--", which
+means it never misses. Showdown's Champions mod changes only its flags (it counts as a punching move)
+and keeps 100% accuracy. The app follows Showdown. Confirm in the game, as with #30.
+
+## 35. Gen I–III accuracy disagreements between PokeAPI and Showdown — `open`
+
+*Found 2026-09-19 (5.51).*
+
+`build/generate-move-values.js` corrects PP and power but not accuracy. For accuracy, 15 moves differ
+in Gens I–III. Most are the two sources recording "cannot miss" differently: Showdown writes 100 for
+Mimic, Bide, Struggle, Lock-On and Mind Reader in those generations, and PokeAPI writes nothing.
+Hypnosis is the exception: 60% (Showdown) or 70% (PokeAPI) in Gens I–III. Each needs a person to read
+it before anything is changed.

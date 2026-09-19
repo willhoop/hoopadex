@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-09-19 · HoopaDex v5.50**
+**Version 2.2 · Last updated 2026-09-19 · HoopaDex v5.51**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -727,6 +727,7 @@ true.
 | `build/generate-dex-index.js` | `app/dex-index.json`. `--check` compares it with live PokeAPI. See 4.10. |
 | `build/generate-ability-index.js` | `app/abilities-index.json`. `--check` compares it with live PokeAPI. |
 | `build/generate-move-index.js` | `app/moves-index.json`. It refuses to write unless every move builds identically through `makeMoveRecord` from the full record and from the snapshot row. |
+| `build/generate-move-values.js` | The `MOVE_GEN_FIX`, `MOVE_GAME_FIX` and `CHAMP_PP` block in `app/index.html`: PP and power corrections per generation and per game, and Champions' PP rule. See 4.9g. |
 | `build/generate-priority.js` | The `PRIORITY_MOVES` block in `app/index.html`, from Showdown's per-generation move data. See 4.9f. |
 | `build/generate-stat-formula.js` | `docs/STAT-FORMULA.md`, every figure computed by the shipped code |
 | `build/audit-champions-roster.js` | Evolution-stage audit of the Champions roster |
@@ -1065,7 +1066,7 @@ before, and that needs extending first.
 ### 4.9a Champions' move values
 
 Every move value in the app comes from PokéAPI, which describes Scarlet/Violet. Champions changes 63
-moves against that: 43 numbers (Protect 5 PP, Snipe Shot 85 power, Make It Rain 95% accuracy…), 2
+moves against that: 43 numbers (Protect 5 PP as defined, shown as 8 in the game — see 4.9g, Snipe Shot 85 power, Make It Rain 95% accuracy…), 2
 types (Snap Trap is Steel, Growth is Grass), 8 flag sets (Dragon Claw, Shadow Claw and Crush Claw are
 slicing; Double Shock is punching; Dragon Cheer is sound) and 12 effects.
 
@@ -1193,6 +1194,38 @@ named moves that sit in different brackets in other generations. A long label al
 move, which was the reported overlap. Every move now shows its description on hover and opens its page
 on click. `tests/test-priority.js` renders the real table with the app's own function in Generation IV,
 Generation IX and Champions.
+
+### 4.9g PP and power per generation and game, and Champions' changed moves (5.51)
+
+**Champions PP.** Showdown's `mods/champions/scripts.ts` caps every move's PP at 20, then converts it
+to `(PP / 5 + 1) * 4`. Moves marked `noPPBoosts` are exempt (Sketch, Revival Blessing, Struggle). The
+values in `CHAMP_MOVE_OVERRIDES` are the numbers before this conversion, and the app used to show them
+as they were. `champInGamePP` applies the conversion, and `getMovePPForGen` calls it only in Champions
+mode, for the generation being shown. `build/generate-move-values.js` refuses to run if Showdown's
+conversion code changes. The rule reproduces all 23 PP values on Serebii's "Updated Attacks" page, and
+`tests/test-champion-moves.js` checks every one.
+
+**Mainline PP and power.** The generator slices the app's own move functions, `makeMoveRecord` and
+`movePastField`, and compares their output with Showdown's per-generation files: 9,568 values across
+937 moves. Where they differ, `MOVE_GEN_FIX` holds Showdown's value, and `moveValueFix` returns it
+before PokeAPI's.
+
+A difference found in Generation VII only is a Let's Go value. PokeAPI records Let's Go's changes as
+Generation VII values. Those are kept in `MOVE_GAME_FIX` and used only when that game is selected. The
+generator accepts a move as a Let's Go change only if it appears in `KNOWN_LETSGO` and agrees with
+Showdown's `gen7letsgo` mod wherever that mod gives the value. Otherwise it refuses to run.
+
+Accuracy is not corrected. Its disagreements are in Gens I–III and are mostly the two sources
+recording "cannot miss" differently (BACKLOG #35). Legends: Arceus is not covered, because Showdown
+has no move data for it.
+
+**Champions effects.** `CHAMP_MOVE_TEXT` holds one line for each move that `CHAMP_MOVE_OVERRIDES`
+marks as `behaviour`. The lines are written by hand from the specific change in Showdown's
+`mods/champions/moves.ts`, because Showdown has no Champions wording. `CHAMP_MOVE_TEXT_EXTRA` holds
+Rage Fist, whose change is in Showdown's battle code rather than its move entry. The test fails if
+a move is marked `behaviour` without a line, or has a line without the mark. `champMoveDesc` is checked
+first by the tooltip, a Pokémon's move list and the Moves tab. On the move page,
+`renderMoveMechanics` shows "Changed in Champions" with the Scarlet/Violet rule.
 
 ## 4.10 Snapshots for the list views (5.50)
 

@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.1 · Last updated 2026-09-19 · HoopaDex v5.50**
+**Version 2.1 · Last updated 2026-09-19 · HoopaDex v5.51**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -303,7 +303,7 @@ Pokémon.com's "24 new" is those plus Alolan Persian; Victory Road's "29" is tho
 
 Looking for M-C's move changes turned up something bigger. Champions has different numbers from
 Scarlet and Violet for 63 moves, and the dex had been showing the Scarlet and Violet ones all along —
-**Protect with 10 PP when it has 5**. The damage calculator was wrong too: in Champions Dragon Claw
+**Protect with 10 PP when it has 8** (this slide said 5 until 5.51: that is the number Champions defines, but the game converts every move's PP and shows 8 — see slide 11h). The damage calculator was wrong too: in Champions Dragon Claw
 counts as a slicing move, so a Sharpness attacker hits for 146, not the 98 the calculator said.
 
 **A method you can't check against a known answer is a guess with extra steps.**
@@ -331,9 +331,29 @@ from the file as from the live data, 937 out of 937, before the file was allowed
 
 ---
 
+## Slide 11h — Champions counts PP differently
+
+Champions doesn't change PP move by move. It uses one rule for every move: anything over 20 is cut
+to 20, then the number becomes (PP ÷ 5 + 1) × 4. So 5 becomes 8, 10 becomes 12, 15 becomes 16.
+
+The dex had shown the number from before that rule, so Protect said 5 when the game shows 8. Now it
+shows 8, and all 23 numbers on Serebii's Champions list come out right. Slide 11f had repeated the
+old number, and now says so.
+
+The same check across every generation found 18 moves with the wrong PP or power somewhere. Recover
+said 5 PP back to Gen IV; it was 10. Let's Go's Solar Beam, 200, was showing for Sun and Moon, where
+it's 120.
+
+And 13 moves now say what they do in Champions: Make It Rain drops Sp. Atk by 2, Iron Head only
+flinches 20% of the time, Milk Drink can heal a partner.
+
+**Check a claim against what the player actually sees, not only against what a database stores.**
+
+---
+
 ## Slide 12 — What we don't claim
 
-Forty-one test suites and 1,661 assertions now cover the data, the damage formula, the derived
+Forty-two test suites and 1,697 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

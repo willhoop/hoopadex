@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.1 · Last updated 2026-09-19 · HoopaDex v5.50**
+**Version 2.1 · Last updated 2026-09-19 · HoopaDex v5.51**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.50 the set is **139 mutations, all killed**, against 41 suites and 1,661 assertions. Two of
+As of v5.51 the set is **149 mutations, all killed**, against 42 suites and 1,697 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -694,10 +694,10 @@ regulation changes is told explicitly that these pairs differ **because the sour
 because the regulation did**. Otherwise it would have announced that M-C taught Slash to 28 Pokémon,
 which M-C did not do.
 
-The search for M-C's two move changes — Strength Sap and Wish from 10 PP to 5 — surfaced a larger
+The search for M-C's two move changes — Strength Sap and Wish from 10 PP to 5 as Showdown defines them, 12 to 8 as the game shows them (the conversion was found in 5.51; section 5.10) — surfaced a larger
 error that predated it. Champions changes 63 moves against Scarlet/Violet, and the app had shown the
 Scarlet/Violet value for all of them in Champions mode since Champions mode existed: Protect at 10 PP
-rather than 5, and in the damage calculator, Dragon Claw without the slicing flag that lets Sharpness
+rather than 8, and in the damage calculator, Dragon Claw without the slicing flag that lets Sharpness
 boost it — 98 damage where Champions gives 146. This is section 1's failure again, in the one mode
 where the app had assumed there was only one set of rules.
 
@@ -729,6 +729,24 @@ is built with the same function as a live record, and its generator refuses to w
 moves come out identical. The faster ability code was compared with the slower code for all 374
 abilities in all nine generations. The snapshots were compared with Showdown's data, a second source,
 and every disagreement is named in a test.
+
+### 5.10 The number a source stores is not always the number a player sees
+
+Section 5.8 reported that Regulation M-C cut Strength Sap and Wish from 10 PP to 5, and that the app
+had shown Protect with 10 PP where Champions gives it 5. Both statements matched Showdown's data, and
+neither matched the game. Champions converts every move's PP with one rule: a cap of 20, then
+(PP / 5 + 1) × 4. So the player sees Wish go from 12 to 8, and Protect has 8. Serebii's list of
+Champions changes gives exactly the converted numbers, 23 of 23.
+
+The earlier claim was checked against a source, but against the wrong layer of it: the stored value,
+not the one the game displays. The correction is stated where the claim was made, not rewritten.
+
+Checking every move's PP and power in every generation against Showdown found 18 moves wrong in
+PokéAPI, in three ways. A change with no recorded history made Recover read 5 PP back to Gen IV. Two
+values were simply wrong. And one game's changes were applied to its whole generation: Let's Go's
+Solar Beam, 200, was shown for Sun/Moon. Bulbapedia sided with Showdown each time it was asked. The
+Let's Go values are now kept for Let's Go only, which is also why the app can now answer by game, not
+only by generation.
 
 ---
 

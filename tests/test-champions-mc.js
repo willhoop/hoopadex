@@ -103,18 +103,21 @@ const SV = { protect: { pp: 10 }, 'strength-sap': { pp: 10 }, wish: { pp: 10 }, 
   'make-it-rain': { accuracy: 100 }, 'snap-trap': { type: 'grass' }, 'flamethrower': { power: 90, pp: 15 } };
 const m = n => mv(n, SV[n]);
 
-check(G.getMovePPForGen(m('protect')) === 5, 'Protect has 5 PP in Champions (10 in Scarlet/Violet)', G.getMovePPForGen(m('protect')));
+/* 5.51: PP is now the number the GAME shows. Champions defines Protect with 5 PP and converts it to
+   (5 / 5 + 1) x 4 = 8 (Showdown's champions/scripts.ts; tests/test-champion-moves.js checks the rule against
+   Serebii). These four assertions used to pin the defined value, which no player ever sees. */
+check(G.getMovePPForGen(m('protect')) === 8, 'Protect has 8 PP in Champions (defined as 5; 10 in Scarlet/Violet)', G.getMovePPForGen(m('protect')));
 check(G.getMovePowerForGen(m('snipe-shot')) === 85, 'Snipe Shot has 85 power', G.getMovePowerForGen(m('snipe-shot')));
 check(G.getMoveAccForGen(m('make-it-rain')) === 95, 'Make It Rain is 95% accurate', G.getMoveAccForGen(m('make-it-rain')));
 check(G.getMoveTypeForGen(m('snap-trap')) === 'steel', 'Snap Trap is Steel-type', G.getMoveTypeForGen(m('snap-trap')));
 check(G.getMovePowerForGen(m('flamethrower')) === 90, 'a move Champions did not change is untouched', G.getMovePowerForGen(m('flamethrower')));
 
-check(G.getMovePPForGen(m('strength-sap')) === 5 && G.getMovePPForGen(m('wish')) === 5,
-  'M-C cut Strength Sap and Wish to 5 PP', G.getMovePPForGen(m('strength-sap')) + '/' + G.getMovePPForGen(m('wish')));
+check(G.getMovePPForGen(m('strength-sap')) === 8 && G.getMovePPForGen(m('wish')) === 8,
+  'M-C cut Strength Sap and Wish to 8 PP (defined 5)', G.getMovePPForGen(m('strength-sap')) + '/' + G.getMovePPForGen(m('wish')));
 MODE.reg = 'reg-mb';
-check(G.getMovePPForGen(m('strength-sap')) === 10 && G.getMovePPForGen(m('wish')) === 10,
-  'and in M-B they are still 10', G.getMovePPForGen(m('strength-sap')) + '/' + G.getMovePPForGen(m('wish')));
-check(G.getMovePPForGen(m('protect')) === 5, 'while Protect is 5 in M-B too — that one is Champions-wide, not new');
+check(G.getMovePPForGen(m('strength-sap')) === 12 && G.getMovePPForGen(m('wish')) === 12,
+  'and in M-B they are still 12 (defined 10)', G.getMovePPForGen(m('strength-sap')) + '/' + G.getMovePPForGen(m('wish')));
+check(G.getMovePPForGen(m('protect')) === 8, 'while Protect is 8 in M-B too — that one is Champions-wide, not new');
 MODE.reg = 'reg-mc';
 
 /* Outside Champions nothing may change. These are the same getters the Gen III dex uses. */

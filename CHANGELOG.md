@@ -12,6 +12,63 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.51] - 2026-09-19
+
+### Fixed
+- **Champions PP was wrong for almost every move.** Asked from the live site: *"champions did lower
+  the pp of a lot of moves so lets make sure each game and generation has its correct pp"*.
+  Champions doesn't change moves one at a time; it applies one rule to all of them. PP above 20 is cut
+  to 20, then becomes (PP ÷ 5 + 1) × 4, so 5 → 8, 10 → 12, 15 → 16 and 20 stays 20. The app showed the
+  number before that rule. **Protect showed 5; the game shows 8.** The rule comes from Showdown's
+  Champions code, and it reproduces all 23 PP values on Serebii's Champions "Updated Attacks" page.
+  Three moves are exempt and keep 1 PP (Sketch, Revival Blessing, Struggle).
+
+  This corrects earlier releases. 5.48 said M-C cut Strength Sap and Wish "from 10 PP to 5". Those
+  are the numbers Showdown stores; the game shows **12 → 8**. The Regulation Changes page, the white
+  paper and the deck now say so, each with a note on what changed.
+
+- **PP and power were wrong in some generations for 18 moves.** Every move's PP and power in every
+  generation, 9,568 values, was compared with Showdown's data for each generation. The disagreements
+  were checked against Bulbapedia, which sided with Showdown:
+  - Scarlet/Violet cut **Recover, Soft-Boiled, Rest, Milk Drink, Slack Off, Roost and Shore Up** to 5 PP.
+    The app showed 5 in every older generation too. Recover was 20 in Gens I–III and 10 in Gens IV–VIII.
+  - **Mind Reader** has always had 5 PP; the app said 40 in Gens II–IV. **Take Heart** has 15, not 10.
+  - **Luster Purge** was 70 power until Scarlet/Violet. In Sword/Shield, **Glacial Lance** was 130,
+    **Wicked Blow** 80 and **Grassy Glide** 70; the app showed their later nerfs.
+  - **Let's Go Pikachu/Eevee** changed Absorb, Mega Drain, Solar Beam and Sky Attack, and the app showed
+    those changes in all of Generation VII. Sun/Moon's Solar Beam read 200 instead of 120. Each Gen VII
+    game now shows its own numbers, and Let's Go keeps its changes.
+
+  Not covered: **Legends: Arceus**. No source available here has its move data, and its moves work
+  differently anyway.
+
+### Added
+- **What Champions changed about 13 moves.** Asked from the live site: *"champions also changed
+  effects like make it rains accuracy and lowers sp attack by 2 stages instead of one"*. The app
+  already had the numbers (Make It Rain's 95% accuracy) but still showed Scarlet/Violet's description.
+  In Champions mode these now show what the move does in Champions: in the hover tooltip, on a
+  Pokémon's move list, in the Moves tab, and on the move's page with the Scarlet/Violet rule beside it.
+  - **Make It Rain** lowers the user's Sp. Atk by 2. **Toxic Thread** lowers Speed by 2.
+  - **Iron Head** flinches 20% of the time, **Moonblast** 10%, **Dire Claw** 30%.
+  - **Freeze-Dry** can't freeze. **Salt Cure** deals 1/16 (1/8 to Steel and Water).
+  - **Milk Drink** can heal an ally. **Belch** and **Stuff Cheeks** don't need a Berry first.
+  - **Encore** takes effect the same turn. **Disable** doesn't stop Gigaton Hammer or Blood Moon.
+  - **Rage Fist**'s count resets when the user switches out.
+
+  Each line follows a specific change in Showdown's Champions code. Serebii confirms the eight
+  changes its page describes.
+
+### Found, not fixed
+- **Double Shock.** Serebii says Champions made it never miss; Showdown still has 100% accuracy. This
+  can't be settled from here, so it is recorded (BACKLOG) and the app keeps 100%.
+
+### Tests
+- New `tests/test-champion-moves.js` (36). Four assertions in `test-champions-mc.js` pinned the
+  number Showdown stores for Champions PP and now pin what the game shows.
+- Mutations M151–M160 added. **149 killed, 0 survived, 0 skipped.** 42 suites, 1,697 assertions, all passing.
+
+---
+
 ## [5.50] - 2026-09-19
 
 ### Changed
