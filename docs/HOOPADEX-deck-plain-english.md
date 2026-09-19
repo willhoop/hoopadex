@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.1 · Last updated 2026-09-19 · HoopaDex v5.49**
+**Version 2.1 · Last updated 2026-09-19 · HoopaDex v5.50**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -310,9 +310,30 @@ counts as a slicing move, so a Sharpness attacker hits for 146, not the 98 the c
 
 ---
 
+## Slide 11g — A page nobody checked, and a site that got fast
+
+The Move Priority page had a layout problem: some text ran into the moves. Fixing it meant making
+each move hoverable, which meant looking every move up. One didn't exist: "Zip Zap" is Zippy Zap.
+
+So every value got checked. **11 of the 56 were in the wrong row.** King's Shield and three other
+shields were a row too low. Counter was -6 when it is -5, a row the page didn't have. Magic Room
+was -7, which was true only back in Generation V.
+
+It was wrong for the reason slide 10 describes: it was typed once and nothing ever compared it with
+anything. Now it's generated for every generation, and all 59 current values match a second source.
+
+The same release made the site quick. The Abilities tab made 375 downloads before it could show a
+list, and a Pokémon's page made 86. Now the lists ship as three small files beside the page, and a
+Pokémon's page makes 12 downloads. Speed didn't count as proof: every move had to come out identical
+from the file as from the live data, 937 out of 937, before the file was allowed to exist.
+
+**A table nobody compares with anything is only as right as the day someone typed it.**
+
+---
+
 ## Slide 12 — What we don't claim
 
-Thirty-nine test suites and 1,568 assertions now cover the data, the damage formula, the derived
+Forty-one test suites and 1,661 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

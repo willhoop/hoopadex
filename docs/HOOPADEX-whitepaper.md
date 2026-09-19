@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.1 · Last updated 2026-09-19 · HoopaDex v5.49**
+**Version 2.1 · Last updated 2026-09-19 · HoopaDex v5.50**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.49 the set is **124 mutations, all killed**, against 39 suites and 1,568 assertions. Two of
+As of v5.50 the set is **139 mutations, all killed**, against 41 suites and 1,661 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -701,13 +701,43 @@ rather than 5, and in the damage calculator, Dragon Claw without the slicing fla
 boost it — 98 damage where Champions gives 146. This is section 1's failure again, in the one mode
 where the app had assumed there was only one set of rules.
 
+### 5.9 A hand-typed table is checked only where someone looks
+
+The Move Priority page was reported for a layout fault: a long bracket label ran under the first
+move. The fix asked for was small: make the moves hoverable and clickable. Hovering needs each move's
+record, so every name on the page was looked up, and one did not exist. "Zip Zap" is Zippy Zap. That
+prompted a check of every value, and 11 of the 56 were wrong for the current generation. Four
+shields were one bracket too low. Counter and Mirror Coat sat in a -6 row when they are -5, a row the
+table did not have. Magic Room and Wonder Room were listed at -7, true only in Generation V. Mat Block
+was listed at +4 when its priority is 0.
+
+None of this was hidden. The page was on screen and used during play. It was wrong because it was typed
+by hand, once, and nothing compared it with anything. Section 5.2 found the same pattern in August:
+generated tables were defended, typed ones were not. This table had been missed.
+
+It is now generated from Showdown's data for each generation, so it also answers for older games:
+Protect was +3 until Generation V, ExtremeSpeed +1. Every current value was checked against PokeAPI,
+a second independent source, and 59 of 59 agreed. Where Showdown's older data is itself wrong
+(Endure in Generations III and IV), the correction is written in the generator beside its source. The
+generator fails if Showdown later fixes the value itself, so the correction cannot outlive its
+reason.
+
+The same release made the site much faster, and the speed work followed the same rule. The list views
+now read three snapshot files instead of downloading records one at a time. For example, a Pokemon's
+page went from 86 requests to 12. Speed was not accepted as evidence of correctness. The move snapshot
+is built with the same function as a live record, and its generator refuses to write unless all 937
+moves come out identical. The faster ability code was compared with the slower code for all 374
+abilities in all nine generations. The snapshots were compared with Showdown's data, a second source,
+and every disagreement is named in a test.
+
 ---
 
 ## 6. Known limitations
 
 1. Layout, light theme and mobile rendering are untested (section 5.3).
-2. Run-time data depends on PokéAPI. If it is unavailable, species data degrades to
-   placeholders while the local generation tables continue to work.
+2. Run-time data depends on PokéAPI for the detail of any one Pokémon, move, ability or item. The
+   list views read snapshot files taken from PokéAPI (section 5.9), which can fall behind it; each has
+   a check against the live API, but nothing runs that check on a schedule yet.
 3. Location and encounter data exists only for the games PokéAPI covers. Brilliant Diamond,
    Shining Pearl, Legends: Arceus, Scarlet and Violet have none; Sword and Shield do, and were
    wrongly listed as unsupported until this was checked against the API rather than assumed.

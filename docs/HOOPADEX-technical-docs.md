@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-09-19 · HoopaDex v5.49**
+**Version 2.2 · Last updated 2026-09-19 · HoopaDex v5.50**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -508,11 +508,22 @@ reports and asks instead.
 `tests/test-past-stats.js` and `tests/test-past-types.js` pin the results and assert the structural
 invariants.
 
-## 3.5 Caching
+## 3.5 Caching and snapshots
 The application caches responses in memory. This reduces the number of requests. The caches are
-`evoCache`, `speciesCache`, `formSpeciesCache`, and a TM move index.
+`evoCache`, `speciesCache`, `formSpeciesCache`, and a TM move index. Since 5.50, a species record or
+an evolution chain is requested once even when several parts of a page ask for it at the same time
+(`fetchJsonShared`), and a move requested twice at once shares one request (`moveRaw`).
 
 The cache is not persistent. The cache clears when you reload the page.
+
+Three snapshot files sit beside `index.html`. Each is loaded with one same-origin request, and the
+browser caches it like any other file. See 4.10.
+
+| File | Holds | Size compressed | Read by |
+|---|---|---|---|
+| `app/dex-index.json` | Name, types, base stats, EV yield and picture for all 1,351 Pokemon and forms | 24 KB | Pokedex cards, type filter, stat sorts, evolution thumbnails, EV tables, startup name lists |
+| `app/abilities-index.json` | Name, generation, short effect and holders of all 374 abilities | 30 KB | The Abilities tab |
+| `app/moves-index.json` | Every field `makeMoveRecord` reads, for all 937 moves | 100 KB | A Pokemon's move list, the Team Builder, the team editor, the coverage panel |
 
 ## 3.6 Champions learnset export
 `app/champions-learnsets.json` lists, for each move, every Champions Pokémon that learns it and the
@@ -713,6 +724,10 @@ true.
 | `build/generate-regulations.js` | `data/regulations.json` and `docs/REGULATIONS.md` |
 | `build/generate-champions.js` | Every Champions regulation: rosters, items, usable moves, move values, learnsets, the item diff. See 4.9. |
 | `build/generate-regulation-items.js` | **Retired in 5.48.** Its Showdown source was deleted upstream and running it would erase M-C's item changes; it now refuses to run. `data/regulation-items.json` is kept as the frozen M-A → M-B record. |
+| `build/generate-dex-index.js` | `app/dex-index.json`. `--check` compares it with live PokeAPI. See 4.10. |
+| `build/generate-ability-index.js` | `app/abilities-index.json`. `--check` compares it with live PokeAPI. |
+| `build/generate-move-index.js` | `app/moves-index.json`. It refuses to write unless every move builds identically through `makeMoveRecord` from the full record and from the snapshot row. |
+| `build/generate-priority.js` | The `PRIORITY_MOVES` block in `app/index.html`, from Showdown's per-generation move data. See 4.9f. |
 | `build/generate-stat-formula.js` | `docs/STAT-FORMULA.md`, every figure computed by the shipped code |
 | `build/audit-champions-roster.js` | Evolution-stage audit of the Champions roster |
 | `build/mutation-check.js` | Pass or fail — the tests' own test |
@@ -750,6 +765,13 @@ PokeAPI does not supply well: historical types, historical stats, item introduct
 and evolution corrections.
 
 The cost is the internet requirement. This cost is accepted.
+
+**Revised in 5.50.** Reading PokeAPI one record at a time made the list views slow. The Abilities tab
+made 375 requests, and a Pokemon's page made 86. The bulk of what those views read is now shipped
+as three snapshot files (3.5, 4.10). Everything else, including the detail of any single Pokemon,
+move, ability or item, is still read live. The snapshots are the data PokeAPI supplied, written down
+by a script, not a second source. Each generator has a `--check` mode that compares its file with the
+live API.
 
 ## 4.4 Why the Champions export is a separate file
 The Champions export is a separate JSON file, not embedded in the HTML. Two reasons:
@@ -1135,28 +1157,109 @@ group has no place in the display order. The duplicate check was added after a m
 M134 listed Binding Band a second time, the later entry won silently, and every other assertion
 stayed green.
 
-## 4.8 The colourblind toggle appears only where it applies
+### 4.9f The Move Priority table is derived from Showdown (5.50)
 
-`toggleCVD` adds `body.cvd`, which redefines the `--eff-*` effectiveness palette. Those variables are
-used by the type chart, the natures table and a few analysis surfaces — not by most tabs. The button
-was labelled `CVD` and shown on every tab, so on the Abilities tab it was an unexplained acronym
-that visibly did nothing.
+The table used to be typed by hand, with one value per move for all nine generations. When the
+moves were made clickable, every entry was checked against PokeAPI, and 11 of 56 were wrong for the
+current generation:
 
-`cvdPaletteSelector()` derives where it applies, in two steps, and caches the result per theme:
+- King's Shield, Spiky Shield, Baneful Bunker and Max Guard were listed at +3. They are +4.
+- Counter and Mirror Coat were listed at -6. They are -5, and the table had no -5 row.
+- Magic Room and Wonder Room were listed at -7. They have been 0 since Generation VI.
+- Mat Block was listed at +4. Its priority is 0; working only on the first turn is a separate rule.
+- Zippy Zap was misspelt "Zip Zap" and listed at +1. It is +2.
+- Grassy Glide was listed at +1 in all cases. It is +1 only in Grassy Terrain.
 
-1. Read the custom properties declared by the `body.cvd` and `body.light.cvd` rules, then **measure**
-   which of them actually change when the class is applied *in the current theme*. In dark mode
-   `--eff-up` is the same blue either way, so surfaces using only that variable are excluded; in
-   light mode it does change. Declaring a variable is not the same as changing it.
-2. Collect the selectors of every rule that references one of the changed variables, excluding rules
-   whose selector starts with `body` (those declare the variables rather than use them).
+Moves whose priority changed between generations also showed their modern value everywhere.
 
-`updateCVDVisibility()` then shows the button only if something matching one of those selectors is
-**laid out** — `getClientRects().length > 0`, not `querySelector` alone. Every tab's markup stays in
-the document and is hidden with `display:none`, so presence in the DOM proves the app *has* that
-screen, not that it is on screen. It is called from `switchTab` and from a debounced
-`MutationObserver` watching both `childList` and the `class` attribute of `<body>` (the latter
-because which variables change is theme-dependent).
+`build/generate-priority.js` reads Showdown's `data/moves.ts` and `data/mods/gen1..gen8/moves.ts`. A
+move's priority in generation N is the first override found walking from genN up to the current file.
+It writes `PRIORITY_MOVES`: one row per move with its priority in each generation, its Champions value,
+its proper name, and a note for a priority that depends on the battle. A move with an
+`onModifyPriority` handler needs a written note in `CONDITIONAL`, and the script refuses to run without
+one.
+
+One Showdown gap is corrected, with its source written beside it in `CORRECTIONS`. Endure is +3 in
+Generations III and IV (Bulbapedia), but Showdown's gen4 mod does not override it, so Showdown gives the
+modern +4. The script fails if Showdown later adds the override or the move disappears, so the
+correction cannot go stale.
+
+Every current-generation value was cross-checked against PokeAPI when it was generated: 59 of 59
+agreed. The page builds its rows from the values the selected generation actually has, so the -5 row
+exists because Counter is -5. In Champions mode the page lists only moves legal in the regulation.
+
+The descriptive label beside each number was removed. Each label was written for one generation and
+named moves that sit in different brackets in other generations. A long label also ran under the first
+move, which was the reported overlap. Every move now shows its description on hover and opens its page
+on click. `tests/test-priority.js` renders the real table with the app's own function in Generation IV,
+Generation IX and Champions.
+
+## 4.10 Snapshots for the list views (5.50)
+
+Reported from the live site: "abilities takes forever to load", then "make the whole site flow faster
+please". Before 5.50 these were measured:
+
+| View | Before | After |
+|---|---|---|
+| Abilities tab | 375 requests, about 5 MB | 1 request, 30 KB compressed |
+| Abilities list, drawing | about 2.7 s of computation | 11 ms |
+| Pokedex, first page | about 60 full records, 100 to 360 KB each | none |
+| Type filter or stat sort | up to 1,025 full records | none |
+| Startup | two PokeAPI list requests, one after the other, before first paint | none |
+| Items tab | an unused 2,200-item list, then 18 category requests in sequence | 18 requests in parallel |
+| A Pokemon's page (Charizard) | 86 requests, 3.6 s | 12 requests, 0.23 s |
+
+**The dex snapshot lives in `dl`, not `dc`.** `dc[id]` means "the full record is here", and the
+detail page, the team builder and the calculator test it before they read moves or abilities. A
+partial record in `dc` would pass that test and break them. `dexRec(id)` returns `dc[id]` if the full
+record is loaded, and `dl[id]` otherwise. Only the list views call it.
+
+**A stat sort used to be wrong, not only slow.** Before the full records arrived, it ordered only the
+cards that had loaded and put the rest at the bottom in number order. The EV Training table and the
+Regulation Changes type counts had the same problem. They now read the snapshot for every Pokemon.
+
+**Moves go through one builder.** A snapshot row is expanded back into the shape of a PokeAPI response
+and passed to `makeMoveRecord`, the same function a live response goes through. The generator slices
+`makeMoveRecord` from `index.html`, builds all 937 moves both ways, and refuses to write if any record
+differs. Only English game text is kept. Its one reader, `genFlavorText`, discards other languages
+first. The TM lookup still reads live, because it needs machine and learner data the snapshot does not
+hold.
+
+**Drawing the Abilities list** spent most of its time in three helpers, called about 3,000 times:
+
+- `baseSpeciesId` scanned 1,025 names on every call. It now uses a name lookup, `masterByName`.
+- `getFormGenRange` built a 50-entry set on every call. It is now cached per name.
+- The reverse lookup for abilities that changed between generations scanned the whole `PASTABIL`
+  table once per ability. It now uses `pastAbilityIndex`, built once per generation, in the same
+  order the scan used.
+
+In the browser, before and after were compared for all 374 abilities in all nine generations, and for
+all 1,351 base-species lookups. They were identical.
+
+**Every snapshot has a fallback.** If a file cannot be read, for example when the app is opened from
+disk, each view falls back to the per-record requests it made before. `tests/test-fast-load.js` checks
+the snapshots against an independent source, Showdown's Pokedex and move data:
+
+- Base stats match for 1,024 of 1,025 species. The exception is Minior: PokeAPI's default entry is
+  its Meteor Form, and Showdown's is its Core. The test names it.
+- Base stats match for all 260 forms that Showdown names the same way.
+- Move type and category match for all 707 moves Showdown shares. Six power, accuracy and PP values
+  differ, all PokeAPI quirks, and the test names each one.
+- Every ability holder is present in the dex snapshot under the same id and name.
+
+## 4.8 Colourblind mode is removed from the UI (5.50)
+
+Until 5.49 a toggle added `body.cvd`, which redefined the `--eff-*` effectiveness palette, and a
+`MutationObserver` on the whole document re-measured the page after every render to decide whether
+the button should be visible. The owner asked for it to go: "kill the colorblind option for now it
+doesnt work".
+
+In 5.50 the button, `toggleCVD`, `restoreCVD` and the visibility machinery were deleted. The palette
+itself stays in the stylesheet as `body.cvd` and `body.light.cvd`, so bringing the mode back means
+adding a control and a class toggle, not redesigning the palette. Nothing adds the class now, and a
+preference saved under `hoopa-cvd` by an earlier version is ignored, so no reader is left with a
+recoloured page they cannot switch back. `tests/test-viz-palette.js` checks all three: the control
+is gone, nothing can add the class, and the observer is gone.
 
 ---
 

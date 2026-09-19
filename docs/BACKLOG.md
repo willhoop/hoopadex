@@ -477,3 +477,22 @@ which now has `reg-mc` and 511 moves. Its `data/PROVENANCE.md` also cites the ex
 `…/hoopadex/main/champions-learnsets.json`, which returns 404; the file is at
 `…/hoopadex/main/app/champions-learnsets.json`. CHOMP is a separate repository, so this is recorded
 here rather than fixed from HoopaDex.
+
+## 32. Run the snapshot checks on a schedule — `open`
+
+*Found 2026-09-19 (5.50).*
+
+`app/dex-index.json`, `app/abilities-index.json` and `app/moves-index.json` are PokeAPI's data written
+down, so they fall behind when PokeAPI changes. Each generator has `--check`, which compares its file
+with the live API, but nothing runs those checks automatically. The weekly `hoopadex-regulation-watch`
+task is the natural home. That is a change to persistent configuration, so it waits for the owner's
+approval.
+
+## 33. PokeAPI gives three status moves an accuracy of 0 — `open`
+
+*Found 2026-09-19 (5.50), by comparing the move snapshot with Showdown.*
+
+PokeAPI records Burning Bulwark, Tachyon Cutter and Dragon Cheer with accuracy 0, where Showdown has
+"never misses". It also records Ruination and Comeuppance with power 1, a marker for "varies", and
+Take Heart with 10 PP against Showdown's 15. Check how each shows on screen, and which is right for
+Take Heart. `tests/test-fast-load.js` names all six, so a new disagreement cannot hide among them.

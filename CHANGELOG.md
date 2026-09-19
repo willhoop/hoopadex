@@ -12,6 +12,79 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.50] - 2026-09-19
+
+### Changed
+- **The site loads much faster.** Reported from the live site: *"abilities takes forever to load"*,
+  then *"make the whole site flow faster please"*. Measured before and after on the same machine:
+
+  | | Before | After |
+  |---|---|---|
+  | Abilities tab | 375 downloads (about 5 MB), then 2.7 s to draw | 1 download, drawn in 11 ms |
+  | Pokedex, first page | about 60 full Pokemon records | nothing extra |
+  | Type filter or stat sort | up to 1,025 full records | nothing extra |
+  | Opening the site | two PokeAPI lists, one after the other, before anything appeared | nothing from PokeAPI |
+  | A Pokemon's page (Charizard) | 86 downloads, 3.6 s | 12 downloads, 0.23 s |
+  | Items tab | an unused 2,200-item list, then 18 lists one at a time | the 18 lists at once |
+
+  The lists the app used to build one download at a time now ship as three small files beside the
+  page: every Pokemon's name, types, stats and picture (24 KB compressed), every ability (30 KB) and
+  every move (100 KB). They are PokeAPI's own data, written down by a script. Each script has a check
+  mode that compares its file with the live API. If a file cannot be read, the old downloads still
+  run.
+
+  Nothing on screen reads differently, and this was checked, not assumed. Every move builds into
+  exactly the same record from the file as from PokeAPI, 937 of 937, and the script refuses to write
+  the file otherwise. The faster ability code gives the same holders as the old code for all 374
+  abilities in all nine generations. The stats agree with Showdown's for 1,024 of 1,025 species. The
+  one exception is Minior, where PokeAPI's default entry is its Meteor Form and Showdown's is its
+  Core.
+
+- **Move Priority: the text no longer overlaps, and every move is hoverable and clickable.** Reported
+  from the live site: *"some of the text overlaps here, make the moves clickable or a hoverable
+  description"*. Hovering a move shows its description. Clicking opens its page. The labels beside
+  each number ("Protection moves", "Room moves, always last") were removed. A long one ran under the
+  first move, and each named moves that sit in other brackets in other generations. Moves now show
+  their proper names: King's Shield, Baby-Doll Eyes.
+
+### Fixed
+- **11 of the 56 moves on the Move Priority page were in the wrong place.** Found while making them
+  clickable, by checking every one against PokeAPI:
+  - King's Shield, Spiky Shield, Baneful Bunker and Max Guard are **+4**, not +3.
+  - Counter and Mirror Coat are **-5**, not -6. There was no -5 row at all.
+  - Magic Room and Wonder Room were -7 only in Generation V. Since then they are **0**. Trick Room is
+    still -7.
+  - Mat Block is **0**. Working only on the first turn is a separate rule, not priority.
+  - Zippy Zap was spelt "Zip Zap" and listed at +1. It is **+2**.
+  - Grassy Glide is +1 **only in Grassy Terrain**, and now says so.
+
+  The table also showed today's values in every generation. Protect was +3 until Generation V,
+  ExtremeSpeed was +1 and Fake Out was +1. It is now generated from Showdown's data for each
+  generation. Every current value agrees with PokeAPI, 59 of 59. In Champions mode the page lists
+  only moves the regulation allows.
+
+  One place where Showdown's older data is wrong is corrected by hand, with the source written down:
+  Endure was +3 in Generations III and IV (Bulbapedia), not +4.
+
+- **Sorting the Pokedex by a stat only sorted the cards that had loaded.** The rest sat at the bottom
+  in number order until their data arrived. The EV Training table and the Regulation Changes type
+  counts had the same problem. All three now cover every Pokemon immediately.
+
+### Removed
+- **The colourblind toggle.** At the owner's request: *"kill the colorblind option for now it doesnt
+  work"*. A preference saved by an earlier version is ignored, so nobody is left with colours they
+  cannot switch back. The colours themselves are kept in the stylesheet, so the mode can come back
+  as a control rather than a redesign.
+
+### Tests
+- New `tests/test-fast-load.js` (54) and `tests/test-priority.js` (34). 41 suites, 1,661 assertions, all passing. `test-dex-search`,
+  `test-past-abilities` and `test-viz-palette` extended.
+- Mutations M136-M150 added. **M149 survived on the first run.** It removed the rebuild guard on the
+  new ability cache, and no test changed the table after the cache was built. A test now does, and
+  M149 is killed. M73 was re-anchored onto the new index. **139 killed, 0 survived, 0 skipped.**
+
+---
+
 ## [5.49] - 2026-09-19
 
 ### Fixed

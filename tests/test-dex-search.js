@@ -21,6 +21,12 @@ if (start < 0 || end < 0) throw new Error('could not locate the search engine in
 // Stubs for the app globals the sliced code closes over.
 let isChampionsMode = true, championsReg = 'm-b', dexSort = 'dex';
 const dc = {};
+/* 5.50: the list views read dexRec(), which prefers a full record in dc and falls back to the snapshot
+   in dl. Sliced from the app below rather than restated, so a change to the fallback order shows up here. */
+const dl = {};
+const dexRecSrc = lines.find(l => l.startsWith('function dexRec('));
+if (!dexRecSrc) throw new Error('dexRec is not in the app');
+const dexRec = eval('(' + dexRecSrc.replace(/^function dexRec/, 'function') + ')');   // direct eval: it must see dc and dl above
 const TC = { dark: '#705848' };
 let tmMoveIndex = ['rain-dance', 'surf', 'sucker-punch'];
 global.window = { _abilityIndex: ['prankster', 'sharpness', 'intimidate'] };
@@ -99,6 +105,16 @@ app.setSort('speed');
 const withMissing = [mk(1, 'a'), mk(999, 'uncached'), mk(2, 'fast')];
 const sorted = withMissing.slice().sort(app.dexSortComparator()).map(p => p.id);
 check(sorted[sorted.length - 1] === 999, 'an uncached Pokémon sorts last, not first', sorted);
+
+/* Before 5.50 "uncached" meant "not yet downloaded", which was most of the dex: a stat sort ordered
+   the ~60 loaded cards and left the rest at the bottom in number order. The snapshot answers for every
+   Pokémon, so a Pokémon with no full record still sorts by its real stat. */
+dl[999] = { stats: [{ stat: { name: 'speed' }, base_stat: 200 }] };
+const withSnapshot = withMissing.slice().sort(app.dexSortComparator()).map(p => p.id);
+check(withSnapshot[0] === 999, 'a Pokémon known only from the snapshot sorts by its real stat', withSnapshot);
+dc[999] = { stats: [{ stat: { name: 'speed' }, base_stat: 1 }] };
+check(app.dexSortComparator()(mk(999, 'x'), mk(1, 'a')) > 0, 'and a full record, once downloaded, takes precedence over the snapshot');
+delete dc[999]; delete dl[999];
 
 /* -- The universal search box, and the generation it is supposed to respect --------------------
    Reported from the live site: "im getting conflicting answers on bullet punch". Searching

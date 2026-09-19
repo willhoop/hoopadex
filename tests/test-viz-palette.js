@@ -97,10 +97,14 @@ check(/\.type-table td\.cell\{[^}]*background:rgba\(255,255,255,0\.0[0-9]\)/.tes
 // colour is the sole encoding.
 check(/body\.cvd\{[^}]*--eff-up-solid:#3987e5/.test(src), 'colourblind mode redefines the up colour', '');
 check(/body\.cvd\{[^}]*--eff-dn-solid:#d9822b/.test(src), 'colourblind mode redefines the down colour', '');
-check(/function toggleCVD\(/.test(src), 'the mode has a toggle', '');
-check(/function restoreCVD\(/.test(src), 'the mode is restored on load', '');
-check(/localStorage\.setItem\('hoopa-cvd'/.test(src), 'the preference is persisted', '');
-check(/id="cvd-btn"/.test(src), 'the toggle is reachable in the UI', '');
+/* 5.50: removed from the UI at the owner's request ("kill the colorblind option for now it doesnt
+   work"). The palette above is kept so it can return as a control, not a redesign. What must NOT
+   survive is a half-removal: a preference saved earlier silently recolouring the page with no way to
+   turn it off, or the document-wide observer that only existed to show and hide the button. */
+check(!/id="cvd-btn"/.test(src), 'the colourblind toggle is gone from the UI', '');
+check(!/function toggleCVD\(|function restoreCVD\(/.test(src), 'and nothing can switch the mode on, including a preference saved earlier', '');
+check(!/classList\.(add|toggle)\('cvd'/.test(src), 'no code path adds the cvd class', '');
+check(!/function watchCVDVisibility\(/.test(src), 'and the document-wide observer that showed and hid the button went with it', '');
 // Blue against orange, not blue against red: the point of the mode is separation under
 // deuteranopia and protanopia, measured at dE 27.1 versus 13.0 for the default pair.
 check(/body\.cvd\{[^}]*--eff-dn:#e08c2f/.test(src), 'the mode uses orange, not another red', '');

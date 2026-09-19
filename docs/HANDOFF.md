@@ -107,6 +107,8 @@ Generators in `build/`, derived data committed in `data/`:
 - `generate-stat-formula.js` — `docs/STAT-FORMULA.md`, every figure computed by the shipped code
 - `generate-champions.js` — every Champions regulation, derived from Showdown (roster, items, moves, learnsets); `--check` for drift
 - `generate-regulation-items.js` — RETIRED in 5.48; refuses to run (use `generate-champions.js`)
+- `generate-dex-index.js`, `generate-ability-index.js`, `generate-move-index.js` — the three list-view snapshots in `app/` (5.50); each has `--check` against live PokeAPI, and the move one refuses to write unless all records build identically
+- `generate-priority.js` — the Move Priority table from Showdown per generation (5.50); `--check` for drift
 - `audit-champions-roster.js`
 
 **Showdown is the workhorse.** `smogon/pokemon-showdown` carries per-generation mods AND — the find

@@ -179,6 +179,16 @@ check(abilityHoldersForGen('levitate', [], 4).length >= 1,
 check(abilityHoldersForGen('levitate', undefined, 4).length >= 1, 'and a missing list does not throw');
 check(abilityHoldersForGen('not-an-ability', [], 4).length === 0, 'an ability nobody had produces nothing');
 
+/* 5.50: the reverse lookup is an index built once per generation, because scanning the whole table
+   for each of 374 abilities was most of the 2.7 seconds the Abilities list took to draw. An index
+   can go stale, so it is rebuilt when the table changes. This asks AFTER the gen-5 index exists,
+   then changes the table - the order a stale cache would get wrong. (Mutation M149.) */
+check(!holders('zz-cache-probe', [], 5).includes('zz-late-species'), 'the gen-5 index is built without the late species');
+PASTABIL['zz-late-species'] = { id: 1, gens: { 6: [{ ability: 'zz-cache-probe', hidden: false, slot: 1 }] } };
+check(holders('zz-cache-probe', [], 5).includes('zz-late-species'), 'a species added to the table afterwards is still found');
+delete PASTABIL['zz-late-species'];
+check(!holders('zz-cache-probe', [], 5).includes('zz-late-species'), 'and one removed is gone again');
+
 // --- and the page uses it ---------------------------------------------------------------------------
 /* Both the ability page and the ability LIST now go through abilityHoldersFiltered, which wraps
    this resolution in the roster, form-era and hidden-ability gates. They used to answer the same
