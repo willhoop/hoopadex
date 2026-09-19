@@ -116,6 +116,12 @@ comment on line 2 of `app/index.html`.
   sound move in Champions. It was already one; Champions only lets it through Substitute. The
   override stores only what differs from Scarlet/Violet, which is why the app was right and the
   comment was not — both are corrected.
+- **Fixed after the first push of 5.48:** the drift check compared files byte for byte, and this
+  repository is checked out with `core.autocrlf=true`, so any fresh clone on Windows has CRLF where the
+  generator writes LF. Every fresh checkout would have failed `test-champions-mc.js` with false drift.
+  It passed here only because the working copy still held the LF files the generator had just
+  written. Found by checking the pushed commit out into a clean worktree; the comparison now ignores
+  line endings, and that clean-worktree run is how it was verified.
 - `tests/test-champions-roster.js` now pins M-C's five not-fully-evolved entries. Farfetch'd and
   Mr. Mime are new, and are Qwilfish's case exactly: only their Galarian forms evolve.
 - Mutations M118–M125, all killed.

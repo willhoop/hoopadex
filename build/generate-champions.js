@@ -54,10 +54,15 @@ const REFRESH = process.argv.includes('--refresh');                  // champion
    export or the record by hand, or edits this generator without rerunning it, the suite goes red. */
 const CHECK = process.argv.includes('--check');
 const drift = [];
+/* Line endings are not content. This repository is checked out with core.autocrlf=true, so a fresh
+   clone on Windows has CRLF files while this generator writes LF. Comparing them byte for byte made
+   --check report drift on every fresh checkout — found by checking one out, after 5.48 had already
+   been pushed, because the working copy the tests first ran in still held the LF files written here. */
+const lf = s => s.replace(/\r\n/g, '\n');
 function writeOrCheck(file, content) {
   if (!CHECK) { fs.writeFileSync(file, content); return; }
   const now = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
-  if (now !== content) drift.push(path.relative(ROOT, file));
+  if (now === null || lf(now) !== lf(content)) drift.push(path.relative(ROOT, file));
 }
 const SD = 'https://raw.githubusercontent.com/smogon/pokemon-showdown/master/';
 
@@ -247,7 +252,7 @@ function makeRegMoveChanges(extract) {
 function sidOf(extract, k) { const d = extract.dex[k]; return d.base ? toID(d.base) + '-' + toID(d.forme) : toID(d.name); }
 
 function readApp() {
-  const src = fs.readFileSync(APP, 'utf8');
+  const src = lf(fs.readFileSync(APP, 'utf8'));   // see writeOrCheck: a Windows checkout is CRLF
   const MA = eval('[' + src.match(/const CHAMPIONS_IDS_MA=new Set\(\[([^\]]*)\]\)/)[1] + ']');
   const NEW = eval('[' + src.match(/const REG_MB_NEW=\[([^\]]*)\]/)[1] + ']');
   // The M-B item and move sets live either as the original hand-typed Set or, after the first run,
