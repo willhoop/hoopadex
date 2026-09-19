@@ -105,7 +105,8 @@ Generators in `build/`, derived data committed in `data/`:
 - `generate-item-gens.js` — item introduction generations from PokéAPI
 - `generate-gen1-special.js` — the Gen I Special stat from Showdown's gen1 mod
 - `generate-stat-formula.js` — `docs/STAT-FORMULA.md`, every figure computed by the shipped code
-- `generate-regulation-items.js` — per-regulation item legality
+- `generate-champions.js` — every Champions regulation, derived from Showdown (roster, items, moves, learnsets); `--check` for drift
+- `generate-regulation-items.js` — RETIRED in 5.48; refuses to run (use `generate-champions.js`)
 - `audit-champions-roster.js`
 
 **Showdown is the workhorse.** `smogon/pokemon-showdown` carries per-generation mods AND — the find

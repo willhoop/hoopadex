@@ -434,3 +434,46 @@ Closing it needs a different oracle. Hand-working a damage figure with an item a
 doable but slow; the practical route is probably a published set of calculations from the Showdown
 calculator's own test suite, if one can be extracted.
 
+
+## 29. Champions move effects are still Scarlet/Violet's — `open`
+
+*Found 2026-09-19 (5.48), while deriving Regulation M-C.*
+
+5.48 applies every Champions change to a move's **numbers, type and flags** — 51 of the 63 moves
+Champions changes. The other twelve changed what the move *does*: Belch, Dire Claw, Disable, Encore,
+Freeze-Dry, Iron Head, Make It Rain, Milk Drink, Moonblast, Salt Cure, Stuff Cheeks, Toxic Thread.
+Their descriptions come from PokéAPI and describe Scarlet/Violet. Moonblast's still says a 30% chance
+to lower Sp. Atk; in Champions it is 10%. Iron Head's flinch is 20%, not 30%. Make It Rain lowers
+the user's Sp. Atk by two, not one. Freeze-Dry cannot freeze.
+
+**Why it is not done.** The changes are in Showdown's `champions/moves.ts` as JavaScript
+(`secondary: {chance: 10, …}`, `condition: {onResidual…}`), not as prose. Some translate
+mechanically — a secondary chance, a stat stage — and some do not (Salt Cure's damage fraction lives
+in a function body). Generating sentences from code is how a confident wrong statement gets made,
+which is the one thing this project most avoids. The data already marks these moves
+(`behaviour: true` in `CHAMP_MOVE_OVERRIDES`), so the fix can start with the mechanical ones and state
+the rest plainly as "works differently in Champions" rather than guessing.
+
+## 30. Confirm Slash and Politoed's Pound in-game — `open`
+
+*Found 2026-09-19 (5.48).*
+
+The M-B learnset list (from CHOMP) and Showdown disagree on exactly two things: Showdown gives
+**Slash** to 28 Champions Pokémon and the old list to none; the old list gives **Pound** to Politoed
+and Showdown does not. M-C follows Showdown; M-B is unchanged. Champions rebalanced Slash to 80 power,
+which strongly suggests Showdown is right about Slash. Pound is unresolved.
+
+Two checks in the game settle it: can Charizard learn Slash, and can Politoed learn Pound? If M-B
+turns out wrong, correct it in `app/champions-learnsets.json` for `reg-mb` and remove the matching
+pairs from the source-difference list — `tests/test-champions-mc.js` will fail until both agree.
+
+## 31. CHOMP needs rebuilding for Regulation M-C — `open`
+
+*Found 2026-09-19 (5.48).*
+
+CHOMP embeds a snapshot of `champions-learnsets.json` at build time ("one bitmask per species over 496
+moves, per regulation"), so it knows M-A and M-B only. It needs regenerating from the new export,
+which now has `reg-mc` and 511 moves. Its `data/PROVENANCE.md` also cites the export at
+`…/hoopadex/main/champions-learnsets.json`, which returns 404; the file is at
+`…/hoopadex/main/app/champions-learnsets.json`. CHOMP is a separate repository, so this is recorded
+here rather than fixed from HoopaDex.

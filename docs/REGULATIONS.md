@@ -9,8 +9,45 @@ page and the dex itself cannot disagree. Do not edit it by hand — add the regu
 
 | Regulation | Roster size |
 |---|---|
+| Regulation M-C | 231 |
 | Regulation M-B | 208 |
 | Regulation M-A | 186 |
+
+---
+
+## Regulation M-B → Regulation M-C
+
+208 → 231 Pokémon (+23).
+
+### Added (23)
+
+- #0040 Wigglytuff
+- #0053 Persian
+- #0083 Farfetch’d
+- #0122 Mr. Mime
+- #0317 Swalot
+- #0373 Salamence
+- #0673 Gogoat
+- #0768 Golisopod
+- #0812 Rillaboom
+- #0815 Cinderace
+- #0818 Inteleon
+- #0828 Thievul
+- #0849 Toxtricity
+- #0853 Grapploct
+- #0863 Perrserker
+- #0865 Sirfetch’d
+- #0871 Pincurchin
+- #0876 Indeedee
+- #0923 Pawmot
+- #0930 Arboliva
+- #0931 Squawkabilly
+- #0943 Mabosstiff
+- #0998 Baxcalibur
+
+### Removed (0)
+
+_None._
 
 ---
 

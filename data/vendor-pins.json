@@ -14,12 +14,13 @@
     },
     {
       "path": "app/champions-learnsets.json",
-      "bytes": 1423832,
-      "sha256": "980d4f01b17123e0ee9ade765cfa2ab95b9aad080133695cbc736c5b46084820",
-      "what": "Pokémon Champions learnsets, exported by CHOMP.",
+      "bytes": 1696115,
+      "sha256": "1a495eaaf3dc77b1b1ddbbabbedee6da30093f991e7c8e5382f7b846de3e6c6b",
+      "what": "Pokémon Champions learnsets. The reg-ma and reg-mb rows were exported by CHOMP; the reg-mc rows are derived from Showdown's champions mod by build/generate-champions.js.",
       "upstream": "CHOMP (willhoop/chomp), not yet a published repository",
-      "version": "UNKNOWN — the export carries no version or generation stamp.",
-      "known_issue": "Some entries are tagged with a TM method, which drives a \"(TM)\" badge in the app. Champions has no TMs; each Pokémon learns its moveset with VP. The flag is an artefact of how the export was generated and belongs fixed in CHOMP at the source, not patched here."
+      "version": "reg-ma/reg-mb: UNKNOWN (the CHOMP export carries no stamp). reg-mc: Showdown commit recorded in data/showdown-champions-extract.json.",
+      "known_issue": "Some entries are tagged with a TM method, which drives a \"(TM)\" badge in the app. Champions has no TMs; each Pokémon learns its moveset with VP. The flag is an artefact of how the export was generated and belongs fixed in CHOMP at the source, not patched here.",
+      "changed": "5.47 (2026-09-19): Regulation M-C added. Every M-B learner still legal in M-C gains reg-mc; the 23 new species and their formes were added; 15 moves gained entries. Rerunning the generator reproduces this file byte for byte."
     }
   ]
 }

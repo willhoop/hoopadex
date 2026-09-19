@@ -82,12 +82,23 @@ check(d[0].added.length === 0 && d[0].removed.length === 0, 'and reports it as e
 const realSrc = lines.join('\n');
 const regStart = lines.findIndex(l => l.startsWith('const CHAMPIONS_IDS_MA='));
 const regEnd = lines.findIndex((l, i) => i > regStart && l.startsWith('const LATEST_REG='));
-const realRegs = eval(lines.slice(regStart, regEnd).join('\n') + '\n;({CHAMPIONS_REGS,REG_MB_NEW})');
+const realRegs = eval(lines.slice(regStart, regEnd).join('\n') + '\n;({CHAMPIONS_REGS,REG_MB_NEW,REG_MC_NEW})');
 CHAMPIONS_REGS = realRegs.CHAMPIONS_REGS;
 d = app.regulationDiffs();
-check(d.length >= 1, 'the shipped registry produces at least one transition', d.length);
-check(JSON.stringify(d[0].added) === JSON.stringify(realRegs.REG_MB_NEW.slice().sort((a, b) => a - b)),
-  'the derived additions equal REG_MB_NEW exactly — the page is computed, not transcribed', d[0].added);
+/* Newest first, one transition per adjacent pair. Each transition's additions must equal the list
+   that DEFINES that regulation's roster, so the page reports exactly what the dex filters by for every
+   transition, not only the latest. This used to be hard-wired to M-B; when M-C arrived it failed on
+   the right answer — the test doing its job, in the wrong shape. */
+const sorted = a => JSON.stringify(a.slice().sort((x, y) => x - y));
+check(d.length === 2, 'three regulations on record make two transitions', d.length);
+check(d[0].from.key === 'reg-mb' && d[0].to.key === 'reg-mc', 'the newest transition is M-B to M-C',
+  d[0].from.key + ' -> ' + d[0].to.key);
+check(JSON.stringify(d[0].added) === sorted(realRegs.REG_MC_NEW),
+  'its additions equal REG_MC_NEW exactly — the page is computed, not transcribed', d[0].added);
+check(d[0].removed.length === 0, 'and M-C removed nobody', d[0].removed);
+check(d[1].from.key === 'reg-ma' && d[1].to.key === 'reg-mb', 'the older transition is still M-A to M-B');
+check(JSON.stringify(d[1].added) === sorted(realRegs.REG_MB_NEW),
+  'and its additions still equal REG_MB_NEW — adding a regulation must not rewrite an older one', d[1].added);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

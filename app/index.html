@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.47 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.48 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1595,17 +1595,44 @@ function pastValueForGen(byGen,genNum,field){
 function movePastField(md,field,genNum){
   return md?pastValueForGen(md.past,genNum,field):undefined;
 }
+/* ── Champions changes moves, and the dex was showing Scarlet/Violet's numbers ─────────────────
+   Every move value here came from PokeAPI, which describes Scarlet/Violet. Champions changes 63 moves
+   against that, and the dex printed the SV value for every one of them in Champions mode: Protect at
+   10 PP (it is 5), Make It Rain at 100% accuracy (95), Snipe Shot at 80 power (85), Snap Trap as
+   Grass (Steel). Regulation M-C then cut Strength Sap and Wish from 10 PP to 5.
+
+   CHAMP_MOVE_OVERRIDES is derived per regulation from Showdown's Champions mods, keeping only fields
+   that actually differ from SV. This is the one reader of it; the getters below, the move tags and
+   the damage calculator all come through here, so they cannot disagree about what a move does.
+   Outside Champions it returns nothing and every move is exactly what it was. */
+function champMoveOverride(md,field){
+  if(typeof isChampionsMode==='undefined'||!isChampionsMode||!md)return undefined;
+  if(typeof CHAMP_MOVE_OVERRIDES==='undefined')return undefined;
+  const reg=CHAMP_MOVE_OVERRIDES[champRegKey()]||{};
+  const o=reg[String(md.name||md).toLowerCase().replace(/[^a-z0-9]/g,'')];
+  return o?o[field]:undefined;
+}
+/* Only for the generation being SHOWN: a caller asking about Generation III explicitly is not asking
+   about Champions, even from inside Champions mode. */
+function champFor(md,field,genNum){
+  if(genNum!==undefined&&genNum!==getDataGenNum())return undefined;
+  return champMoveOverride(md,field);
+}
 function getMovePowerForGen(md,genNum){
+  const c=champFor(md,'bp',genNum);if(c!==undefined)return c;
   const g=genNum===undefined?getDataGenNum():genNum;
   const v=movePastField(md,'power',g);
   return v===undefined?(md&&md.power):v;
 }
 function getMoveAccForGen(md,genNum){
+  // `true` is Showdown's "never misses"; PokeAPI - and so the rest of this app - writes that as null.
+  const c=champFor(md,'acc',genNum);if(c!==undefined)return c===true?null:c;
   const g=genNum===undefined?getDataGenNum():genNum;
   const v=movePastField(md,'accuracy',g);
   return v===undefined?(md&&md.accuracy):v;
 }
 function getMovePPForGen(md,genNum){
+  const c=champFor(md,'pp',genNum);if(c!==undefined)return c;
   const g=genNum===undefined?getDataGenNum():genNum;
   const v=movePastField(md,'pp',g);
   return v===undefined?(md&&md.pp):v;
@@ -1703,6 +1730,8 @@ function abilityHoldersForGen(abilityName,apiList,genNum){
 
 function getMoveTypeForGen(md){
   if(!md)return'normal';
+  const champType=champMoveOverride(md,'type');   // Snap Trap is Steel in Champions, Growth is Grass
+  if(champType)return champType.toLowerCase();
   const genNum=getDataGenNum();
   /* Same convention as every other past_value: the entry applies to generations strictly BELOW the
      one it is filed against. This loop also took the HIGHEST matching entry rather than the lowest,
@@ -1837,7 +1866,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.47';
+const APP_VERSION='5.48';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -1936,7 +1965,7 @@ function onGenNumChange(){
   document.getElementById('data-game').value='';
   populateGameDropdown();
   applyModeVisibility();   // TMs and regulation changes only exist in some selections
-  if(isChampionsMode){CHAMPIONS_IDS=regByShort(championsReg).ids()}
+  if(isChampionsMode){setChampReg(regByShort(championsReg))}
   swapTeamForScope();
   resetToHomeAndReload();
 }
@@ -2176,6 +2205,22 @@ async function init(){
 const CHAMPIONS_IDS_MA=new Set([3,6,9,15,18,24,25,26,36,38,59,65,68,71,80,94,115,121,127,128,130,132,134,135,136,142,143,149,154,157,160,168,181,184,186,196,197,199,205,208,212,214,227,229,248,279,282,302,306,308,310,319,323,324,334,350,351,354,358,359,362,389,392,395,405,407,409,411,428,442,445,448,450,454,460,461,464,470,471,472,473,475,478,479,497,500,503,505,510,512,514,516,530,531,534,547,553,563,569,571,579,584,587,609,614,618,623,635,637,652,655,658,660,663,666,670,671,675,676,678,681,683,685,693,695,697,699,700,701,702,706,707,709,711,713,715,724,727,730,733,740,745,748,750,752,758,763,765,766,778,780,784,823,841,842,844,855,858,866,867,869,877,887,899,900,902,903,908,911,914,925,934,936,937,939,952,956,959,964,968,970,981,983,1013,1018,1019]); // Regulation M-A
 const REG_MB_NEW=[45,211,254,257,260,303,376,398,518,545,560,604,668,687,689,691,861,870,904,972,979,1000]; // Added in Regulation M-B (June 17 - Sept 9, 2026)
 const CHAMPIONS_IDS_MB=new Set([...CHAMPIONS_IDS_MA,...REG_MB_NEW]);
+/*BEGIN-CHAMPIONS-DERIVED*/
+/* Everything between these markers is generated by build/generate-champions.js from Showdown's
+   Champions mods. Do not edit by hand; rerun the generator. REG_MC_NEW is what M-C added to M-B. */
+const REG_MC_NEW=[40,53,83,122,317,373,673,768,812,815,818,828,849,853,863,865,871,876,923,930,931,943,998]; // Added in Regulation M-C (Sept 9 - Dec 2, 2026)
+const CHAMPIONS_IDS_MC=new Set([...CHAMPIONS_IDS_MB,...REG_MC_NEW]);
+const CHAMPIONS_ITEMS_BY_REG={"reg-mc":"abomasite,absolite,absolitez,aerodactylite,aggronite,airballoon,alakazite,altarianite,ampharosite,aspearberry,audinite,babiriberry,banettite,barbaracite,baxcalibrite,beedrillite,bigroot,bindingband,blackbelt,blackglasses,blastoisinite,blazikenite,brightpowder,cameruptite,chandelurite,charcoal,charizarditex,charizarditey,chartiberry,cheriberry,chesnaughtite,chestoberry,chilanberry,chimechite,choicescarf,chopleberry,clefablite,cobaberry,colburberry,crabominite,damprock,delphoxite,dragalgite,dragonfang,dragoninite,drampanite,eelektrossite,ejectbutton,electricseed,emboarite,excadrite,expertbelt,fairyfeather,falinksite,feraligite,floettite,focusband,focussash,froslassite,galladite,garchompite,garchompitez,gardevoirite,gengarite,glalitite,glimmoranite,golisopite,golurkite,grassyseed,greninjite,gyaradosite,habanberry,hardstone,hawluchanite,heatrock,heracronite,houndoominite,icyrock,ironball,kangaskhanite,kasibberry,kebiaberry,kingsrock,leek,leftovers,leppaberry,lifeorb,lightball,lightclay,lopunnite,lucarionite,lucarionitez,lumberry,magnet,malamarite,manectite,mawilite,medichamite,meganiumite,mentalherb,meowsticite,metagrossite,metalcoat,metronome,miracleseed,mistyseed,muscleband,mysticwater,nevermeltice,normalgem,occaberry,oranberry,passhoberry,payapaberry,pechaberry,persimberry,pidgeotite,pinsirite,poisonbarb,psychicseed,pyroarite,quickclaw,raichunitex,raichunitey,rawstberry,redcard,rindoberry,rockyhelmet,roseliberry,sablenite,salamencite,sceptilite,scizorite,scolipite,scopelens,scovillainite,scraftinite,sharpbeak,sharpedonite,shedshell,shellbell,shucaberry,silkscarf,silverpowder,sitrusberry,skarmorite,slowbronite,smoothrock,softsand,spelltag,staraptite,starminite,steelixite,swampertite,tangaberry,terrainextender,twistedspoon,tyranitarite,venusaurite,victreebelite,wacanberry,whiteherb,widelens,wiseglasses,yacheberry,zoomlens","reg-mb":"abomasite,absolite,aerodactylite,aggronite,alakazite,altarianite,ampharosite,aspearberry,audinite,babiriberry,banettite,barbaracite,beedrillite,bigroot,blackbelt,blackglasses,blastoisinite,blazikenite,brightpowder,cameruptite,chandelurite,charcoal,charizarditex,charizarditey,chartiberry,cheriberry,chesnaughtite,chestoberry,chilanberry,chimechite,choicescarf,chopleberry,clefablite,cobaberry,colburberry,crabominite,damprock,delphoxite,dragalgite,dragonfang,dragoninite,drampanite,eelektrossite,emboarite,excadrite,expertbelt,fairyfeather,falinksite,feraligite,floettite,focusband,focussash,froslassite,galladite,garchompite,gardevoirite,gengarite,glalitite,glimmoranite,golurkite,greninjite,gyaradosite,habanberry,hardstone,hawluchanite,heatrock,heracronite,houndoominite,icyrock,ironball,kangaskhanite,kasibberry,kebiaberry,kingsrock,leftovers,leppaberry,lifeorb,lightball,lightclay,lopunnite,lucarionite,lumberry,magnet,malamarite,manectite,mawilite,medichamite,meganiumite,mentalherb,meowsticite,metagrossite,metalcoat,metronome,miracleseed,muscleband,mysticwater,nevermeltice,occaberry,oranberry,passhoberry,payapaberry,pechaberry,persimberry,pidgeotite,pinsirite,poisonbarb,pyroarite,quickclaw,raichunitex,raichunitey,rawstberry,rindoberry,roseliberry,sablenite,sceptilite,scizorite,scolipite,scopelens,scovillainite,scraftinite,sharpbeak,sharpedonite,shedshell,shellbell,shucaberry,silkscarf,silverpowder,sitrusberry,skarmorite,slowbronite,smoothrock,softsand,spelltag,staraptite,starminite,steelixite,swampertite,tangaberry,twistedspoon,tyranitarite,venusaurite,victreebelite,wacanberry,whiteherb,widelens,wiseglasses,yacheberry,zoomlens","reg-ma":"abomasite,absolite,aerodactylite,aggronite,alakazite,altarianite,ampharosite,aspearberry,audinite,babiriberry,banettite,beedrillite,blackbelt,blackglasses,blastoisinite,brightpowder,cameruptite,chandelurite,charcoal,charizarditex,charizarditey,chartiberry,cheriberry,chesnaughtite,chestoberry,chilanberry,chimechite,choicescarf,chopleberry,clefablite,cobaberry,colburberry,crabominite,delphoxite,dragonfang,dragoninite,drampanite,emboarite,excadrite,fairyfeather,feraligite,floettite,focusband,focussash,froslassite,galladite,garchompite,gardevoirite,gengarite,glalitite,glimmoranite,golurkite,greninjite,gyaradosite,habanberry,hardstone,hawluchanite,heracronite,houndoominite,kangaskhanite,kasibberry,kebiaberry,kingsrock,leftovers,leppaberry,lightball,lopunnite,lucarionite,lumberry,magnet,manectite,medichamite,meganiumite,mentalherb,meowsticite,metalcoat,miracleseed,mysticwater,nevermeltice,occaberry,oranberry,passhoberry,payapaberry,pechaberry,persimberry,pidgeotite,pinsirite,poisonbarb,quickclaw,rawstberry,rindoberry,roseliberry,sablenite,scizorite,scopelens,scovillainite,sharpbeak,sharpedonite,shellbell,shucaberry,silkscarf,silverpowder,sitrusberry,skarmorite,slowbronite,softsand,spelltag,starminite,steelixite,tangaberry,twistedspoon,tyranitarite,venusaurite,victreebelite,wacanberry,whiteherb,yacheberry"};
+const CHAMPIONS_MOVES_BY_REG={"reg-mc":"accelerock,acidarmor,acidspray,acrobatics,acupressure,aerialace,afteryou,agility,aircutter,airslash,alluringvoice,allyswitch,amnesia,ancientpower,appleacid,aquacutter,aquajet,aquaring,aquastep,aquatail,armorcannon,aromaticmist,assurance,attract,aurasphere,aurawheel,auroraveil,avalanche,axekick,babydolleyes,banefulbunker,barbbarrage,batonpass,beakblast,beatup,belch,bellydrum,bind,bite,bitterblade,bittermalice,blastburn,blazekick,blizzard,block,bodypress,bodyslam,bonerush,boomburst,bounce,bravebird,breakingswipe,brickbreak,brutalswing,bugbite,bugbuzz,bulkup,bulldoze,bulletpunch,bulletseed,burningjealousy,burnup,calmmind,ceaselessedge,charge,chargebeam,charm,chillingwater,chillyreception,circlethrow,clangingscales,clangoroussoul,clearsmog,closecombat,coaching,coil,comeuppance,confuseray,copycat,corrosivegas,cosmicpower,cottonguard,cottonspore,counter,courtchange,covet,crabhammer,crosschop,crosspoison,crunch,crushclaw,curse,darkestlariat,darkpulse,dazzlinggleam,decorate,defog,destinybond,detect,dig,direclaw,disable,discharge,dive,doubleedge,doublehit,doubleshock,doubleteam,dracometeor,dragoncheer,dragonclaw,dragondance,dragondarts,dragonpulse,dragonrush,dragontail,drainingkiss,drainpunch,drillpeck,drillrun,drumbeating,dualwingbeat,dynamicpunch,earthpower,earthquake,eerieimpulse,eeriespell,electricterrain,electrify,electroball,electroshot,electroweb,encore,endeavor,endure,energyball,entrainment,eruption,expandingforce,explosion,extrasensory,extremespeed,facade,fairylock,fakeout,faketears,featherdance,feint,fellstinger,ficklebeam,fierydance,finalgambit,fireblast,firefang,firelash,firepunch,firespin,firstimpression,fissure,flail,flamecharge,flamethrower,flareblitz,flashcannon,flatter,fling,flipturn,flowertrick,fly,flyingpress,focusblast,focusenergy,focuspunch,followme,forestscurse,foulplay,freezedry,frenzyplant,frostbreath,futuresight,gastroacid,gigadrain,gigaimpact,gigatonhammer,glaiverush,glare,grassknot,grassyglide,grassyterrain,gravapple,gravity,growth,guardsplit,guardswap,guillotine,gunkshot,gyroball,hammerarm,hardpress,haze,headlongrush,headsmash,healbell,healingwish,healpulse,heatcrash,heatwave,heavyslam,helpinghand,hex,highhorsepower,highjumpkick,horndrill,hornleech,howl,hurricane,hydrocannon,hydropump,hyperbeam,hypervoice,hypnosis,icebeam,icefang,icehammer,icepunch,iceshard,icespinner,iciclecrash,iciclespear,icywind,imprison,infernalparade,inferno,infestation,ingrain,instruct,irondefense,ironhead,irontail,jawlock,jetpunch,kingsshield,knockoff,kowtowcleave,lashout,lastresort,lastrespects,lavaplume,leafblade,leafstorm,leechlife,leechseed,lifedew,lightofruin,lightscreen,liquidation,lockon,lowkick,lowsweep,luminacrash,lunge,machpunch,magicpowder,magicroom,magneticflux,magnetrise,makeitrain,matchagotcha,meanlook,megahorn,megakick,memento,metalburst,metalsound,meteorassault,meteorbeam,meteormash,milkdrink,minimize,mirrorcoat,mistyexplosion,mistyterrain,moonblast,moonlight,morningsun,mortalspin,mountaingale,muddywater,mudshot,mudslap,mysticalfire,nastyplot,nightdaze,nightshade,nightslash,nobleroar,noretreat,nuzzle,octolock,outrage,overdrive,overheat,painsplit,paraboliccharge,partingshot,payback,perishsong,petalblizzard,petaldance,phantomforce,pinmissile,playrough,pluck,poisonfang,poisonjab,poisonpowder,pollenpuff,poltergeist,populationbomb,pounce,powergem,powershift,powersplit,powerswap,powertrick,powertrip,powerwhip,protect,psychic,psychicfangs,psychicnoise,psychicterrain,psychocut,psychup,psyshieldbash,psyshock,pyroball,quash,quickattack,quickguard,quiverdance,ragefist,ragepowder,ragingbull,ragingfury,raindance,rapidspin,razorshell,recover,recycle,reflect,reflecttype,rest,reversal,revivalblessing,risingvoltage,roar,rockblast,rockpolish,rockslide,rocktomb,rockwrecker,roleplay,roost,round,sacredsword,safeguard,saltcure,sandstorm,sandtomb,scald,scaleshot,scaryface,scorchingsands,screech,seedbomb,seismictoss,selfdestruct,shadowball,shadowclaw,shadowpunch,shadowsneak,shedtail,sheercold,shellsidearm,shellsmash,shelter,shiftgear,simplebeam,sing,skillswap,skittersmack,skyattack,slackoff,slash,sleeppowder,sleeptalk,sludgebomb,sludgewave,smackdown,smartstrike,snaptrap,snarl,snipeshot,snore,snowscape,soak,softboiled,solarbeam,solarblade,sparklingaria,speedswap,spicyextract,spikes,spikyshield,spiritbreak,spiritshackle,spite,spitup,spore,stealthrock,steelbeam,steelroller,steelwing,stickyweb,stockpile,stompingtantrum,stoneaxe,stoneedge,storedpower,stormthrow,strengthsap,stringshot,struggle,strugglebug,stuffcheeks,stunspore,substitute,suckerpunch,sunnyday,supercellslam,superfang,superpower,surf,swagger,swallow,sweetkiss,sweetscent,switcheroo,swordsdance,synthesis,syrupbomb,tailslap,tailwind,taunt,tearfullook,teatime,teeterdance,temperflare,terrainpulse,thief,thrash,throatchop,thunder,thunderbolt,thunderfang,thunderpunch,thunderwave,tickle,tidyup,topsyturvy,torchsong,torment,toxic,toxicspikes,toxicthread,trailblaze,transform,triattack,trick,trickortreat,trickroom,triplearrows,tripleaxel,tropkick,twinbeam,upperhand,uproar,uturn,vacuumwave,venoshock,voltswitch,volttackle,waterfall,waterpulse,watershuriken,waterspout,wavecrash,weatherball,whirlpool,whirlwind,wideguard,wildcharge,willowisp,wish,wonderroom,woodhammer,worryseed,wrap,xscissor,yawn,zapcannon,zenheadbutt,zingzap","reg-mb":"accelerock,acidarmor,acidspray,acrobatics,acupressure,aerialace,afteryou,agility,aircutter,airslash,alluringvoice,allyswitch,amnesia,ancientpower,appleacid,aquacutter,aquajet,aquaring,aquastep,aquatail,armorcannon,aromaticmist,assurance,attract,aurasphere,aurawheel,auroraveil,avalanche,axekick,babydolleyes,banefulbunker,barbbarrage,batonpass,beakblast,beatup,belch,bellydrum,bind,bite,bitterblade,bittermalice,blastburn,blazekick,blizzard,block,bodypress,bodyslam,bonerush,boomburst,bounce,bravebird,breakingswipe,brickbreak,brutalswing,bugbite,bugbuzz,bulkup,bulldoze,bulletpunch,bulletseed,burningjealousy,burnup,calmmind,ceaselessedge,charge,chargebeam,charm,chillingwater,chillyreception,circlethrow,clangingscales,clangoroussoul,clearsmog,closecombat,coaching,coil,comeuppance,confuseray,copycat,corrosivegas,cosmicpower,cottonguard,cottonspore,counter,covet,crabhammer,crosschop,crosspoison,crunch,crushclaw,curse,darkestlariat,darkpulse,dazzlinggleam,decorate,defog,destinybond,detect,dig,direclaw,disable,discharge,dive,doubleedge,doublehit,doubleteam,dracometeor,dragoncheer,dragonclaw,dragondance,dragondarts,dragonpulse,dragonrush,dragontail,drainingkiss,drainpunch,drillpeck,drillrun,dualwingbeat,dynamicpunch,earthpower,earthquake,eerieimpulse,eeriespell,electricterrain,electrify,electroball,electroshot,electroweb,encore,endeavor,endure,energyball,entrainment,eruption,expandingforce,explosion,extrasensory,extremespeed,facade,fairylock,fakeout,faketears,featherdance,feint,fellstinger,ficklebeam,fierydance,finalgambit,fireblast,firefang,firelash,firepunch,firespin,firstimpression,fissure,flail,flamecharge,flamethrower,flareblitz,flashcannon,flatter,fling,flipturn,flowertrick,fly,flyingpress,focusblast,focusenergy,focuspunch,followme,forestscurse,foulplay,freezedry,frenzyplant,frostbreath,futuresight,gastroacid,gigadrain,gigaimpact,gigatonhammer,glare,grassknot,grassyglide,grassyterrain,gravapple,gravity,growth,guardsplit,guardswap,guillotine,gunkshot,gyroball,hammerarm,hardpress,haze,headlongrush,headsmash,healbell,healingwish,healpulse,heatcrash,heatwave,heavyslam,helpinghand,hex,highhorsepower,highjumpkick,horndrill,hornleech,howl,hurricane,hydrocannon,hydropump,hyperbeam,hypervoice,hypnosis,icebeam,icefang,icehammer,icepunch,iceshard,icespinner,iciclecrash,iciclespear,icywind,imprison,infernalparade,inferno,infestation,ingrain,instruct,irondefense,ironhead,irontail,jetpunch,kingsshield,knockoff,kowtowcleave,lashout,lastresort,lastrespects,lavaplume,leafblade,leafstorm,leechlife,leechseed,lifedew,lightofruin,lightscreen,liquidation,lockon,lowkick,lowsweep,luminacrash,lunge,machpunch,magicpowder,magicroom,magneticflux,magnetrise,makeitrain,matchagotcha,meanlook,megahorn,megakick,memento,metalburst,metalsound,meteorbeam,meteormash,milkdrink,minimize,mirrorcoat,mistyexplosion,mistyterrain,moonblast,moonlight,morningsun,mortalspin,mountaingale,muddywater,mudshot,mudslap,mysticalfire,nastyplot,nightdaze,nightshade,nightslash,nobleroar,noretreat,nuzzle,outrage,overheat,painsplit,paraboliccharge,partingshot,payback,perishsong,petalblizzard,petaldance,phantomforce,pinmissile,playrough,pluck,poisonfang,poisonjab,poisonpowder,pollenpuff,poltergeist,populationbomb,pounce,powergem,powershift,powersplit,powerswap,powertrick,powertrip,powerwhip,protect,psychic,psychicfangs,psychicnoise,psychicterrain,psychocut,psychup,psyshieldbash,psyshock,quash,quickattack,quickguard,quiverdance,ragefist,ragepowder,ragingbull,ragingfury,raindance,rapidspin,razorshell,recover,recycle,reflect,reflecttype,rest,reversal,risingvoltage,roar,rockblast,rockpolish,rockslide,rocktomb,rockwrecker,roleplay,roost,round,sacredsword,safeguard,saltcure,sandstorm,sandtomb,scald,scaleshot,scaryface,scorchingsands,screech,seedbomb,seismictoss,selfdestruct,shadowball,shadowclaw,shadowpunch,shadowsneak,shedtail,sheercold,shellsidearm,shellsmash,shelter,simplebeam,sing,skillswap,skittersmack,skyattack,slackoff,sleeppowder,sleeptalk,sludgebomb,sludgewave,smackdown,smartstrike,snaptrap,snarl,snore,snowscape,soak,softboiled,solarbeam,solarblade,sparklingaria,speedswap,spicyextract,spikes,spikyshield,spiritbreak,spiritshackle,spite,spitup,spore,stealthrock,steelbeam,steelroller,steelwing,stickyweb,stockpile,stompingtantrum,stoneaxe,stoneedge,storedpower,stormthrow,strengthsap,stringshot,struggle,strugglebug,stuffcheeks,stunspore,substitute,suckerpunch,sunnyday,supercellslam,superfang,superpower,surf,swagger,swallow,sweetkiss,sweetscent,switcheroo,swordsdance,synthesis,syrupbomb,tailslap,tailwind,taunt,tearfullook,teatime,teeterdance,temperflare,terrainpulse,thief,thrash,throatchop,thunder,thunderbolt,thunderfang,thunderpunch,thunderwave,tickle,tidyup,topsyturvy,torchsong,torment,toxic,toxicspikes,toxicthread,trailblaze,transform,triattack,trick,trickortreat,trickroom,triplearrows,tripleaxel,tropkick,twinbeam,upperhand,uproar,uturn,vacuumwave,venoshock,voltswitch,volttackle,waterfall,waterpulse,watershuriken,waterspout,wavecrash,weatherball,whirlpool,whirlwind,wideguard,wildcharge,willowisp,wish,wonderroom,woodhammer,worryseed,wrap,xscissor,yawn,zapcannon,zenheadbutt","reg-ma":"accelerock,acidarmor,acidspray,acrobatics,acupressure,aerialace,afteryou,agility,aircutter,airslash,alluringvoice,allyswitch,amnesia,ancientpower,appleacid,aquacutter,aquajet,aquaring,aquastep,aquatail,armorcannon,aromaticmist,assurance,attract,aurasphere,aurawheel,auroraveil,avalanche,axekick,babydolleyes,banefulbunker,barbbarrage,batonpass,beakblast,beatup,belch,bellydrum,bind,bite,bitterblade,bittermalice,blastburn,blazekick,blizzard,block,bodypress,bodyslam,bonerush,boomburst,bounce,bravebird,breakingswipe,brickbreak,brutalswing,bugbite,bugbuzz,bulkup,bulldoze,bulletpunch,bulletseed,burningjealousy,burnup,calmmind,ceaselessedge,charge,chargebeam,charm,chillingwater,chillyreception,circlethrow,clangingscales,clangoroussoul,clearsmog,closecombat,coaching,coil,comeuppance,confuseray,copycat,corrosivegas,cosmicpower,cottonguard,cottonspore,counter,covet,crabhammer,crosschop,crosspoison,crunch,crushclaw,curse,darkestlariat,darkpulse,dazzlinggleam,decorate,defog,destinybond,detect,dig,direclaw,disable,discharge,dive,doubleedge,doublehit,doubleteam,dracometeor,dragoncheer,dragonclaw,dragondance,dragondarts,dragonpulse,dragonrush,dragontail,drainingkiss,drainpunch,drillpeck,drillrun,dualwingbeat,dynamicpunch,earthpower,earthquake,eerieimpulse,eeriespell,electricterrain,electrify,electroball,electroshot,electroweb,encore,endeavor,endure,energyball,entrainment,eruption,expandingforce,explosion,extrasensory,extremespeed,facade,fairylock,fakeout,faketears,featherdance,feint,fellstinger,ficklebeam,fierydance,finalgambit,fireblast,firefang,firelash,firepunch,firespin,firstimpression,fissure,flail,flamecharge,flamethrower,flareblitz,flashcannon,flatter,fling,flipturn,flowertrick,fly,flyingpress,focusblast,focusenergy,focuspunch,followme,forestscurse,foulplay,freezedry,frenzyplant,frostbreath,futuresight,gastroacid,gigadrain,gigaimpact,gigatonhammer,glare,grassknot,grassyglide,grassyterrain,gravapple,gravity,growth,guardsplit,guardswap,guillotine,gunkshot,gyroball,hammerarm,hardpress,haze,headlongrush,headsmash,healbell,healingwish,healpulse,heatcrash,heatwave,heavyslam,helpinghand,hex,highhorsepower,highjumpkick,horndrill,hornleech,howl,hurricane,hydrocannon,hydropump,hyperbeam,hypervoice,hypnosis,icebeam,icefang,icehammer,icepunch,iceshard,icespinner,iciclecrash,iciclespear,icywind,imprison,infernalparade,inferno,infestation,ingrain,instruct,irondefense,ironhead,irontail,jetpunch,kingsshield,knockoff,kowtowcleave,lashout,lastresort,lastrespects,lavaplume,leafblade,leafstorm,leechlife,leechseed,lifedew,lightofruin,lightscreen,liquidation,lockon,lowkick,lowsweep,luminacrash,lunge,machpunch,magicpowder,magicroom,magneticflux,magnetrise,makeitrain,matchagotcha,meanlook,megahorn,megakick,memento,metalburst,metalsound,meteorbeam,meteormash,milkdrink,minimize,mirrorcoat,mistyexplosion,mistyterrain,moonblast,moonlight,morningsun,mortalspin,mountaingale,muddywater,mudshot,mudslap,mysticalfire,nastyplot,nightdaze,nightshade,nightslash,nobleroar,noretreat,nuzzle,outrage,overheat,painsplit,paraboliccharge,partingshot,payback,perishsong,petalblizzard,petaldance,phantomforce,pinmissile,playrough,pluck,poisonfang,poisonjab,poisonpowder,pollenpuff,poltergeist,populationbomb,pounce,powergem,powershift,powersplit,powerswap,powertrick,powertrip,powerwhip,protect,psychic,psychicfangs,psychicnoise,psychicterrain,psychocut,psychup,psyshieldbash,psyshock,quash,quickattack,quickguard,quiverdance,ragefist,ragepowder,ragingbull,ragingfury,raindance,rapidspin,razorshell,recover,recycle,reflect,reflecttype,rest,reversal,risingvoltage,roar,rockblast,rockpolish,rockslide,rocktomb,rockwrecker,roleplay,roost,round,sacredsword,safeguard,saltcure,sandstorm,sandtomb,scald,scaleshot,scaryface,scorchingsands,screech,seedbomb,seismictoss,selfdestruct,shadowball,shadowclaw,shadowpunch,shadowsneak,shedtail,sheercold,shellsidearm,shellsmash,shelter,simplebeam,sing,skillswap,skittersmack,skyattack,slackoff,sleeppowder,sleeptalk,sludgebomb,sludgewave,smackdown,smartstrike,snaptrap,snarl,snore,snowscape,soak,softboiled,solarbeam,solarblade,sparklingaria,speedswap,spicyextract,spikes,spikyshield,spiritbreak,spiritshackle,spite,spitup,spore,stealthrock,steelbeam,steelroller,steelwing,stickyweb,stockpile,stompingtantrum,stoneaxe,stoneedge,storedpower,stormthrow,strengthsap,stringshot,struggle,strugglebug,stuffcheeks,stunspore,substitute,suckerpunch,sunnyday,supercellslam,superfang,superpower,surf,swagger,swallow,sweetkiss,sweetscent,switcheroo,swordsdance,synthesis,syrupbomb,tailslap,tailwind,taunt,tearfullook,teatime,teeterdance,temperflare,terrainpulse,thief,thrash,throatchop,thunder,thunderbolt,thunderfang,thunderpunch,thunderwave,tickle,tidyup,topsyturvy,torchsong,torment,toxic,toxicspikes,toxicthread,trailblaze,transform,triattack,trick,trickortreat,trickroom,triplearrows,tripleaxel,tropkick,twinbeam,upperhand,uproar,uturn,vacuumwave,venoshock,voltswitch,volttackle,waterfall,waterpulse,watershuriken,waterspout,wavecrash,weatherball,whirlpool,whirlwind,wideguard,wildcharge,willowisp,wish,wonderroom,woodhammer,worryseed,wrap,xscissor,yawn,zapcannon,zenheadbutt"};
+const CHAMP_MOVE_OVERRIDES={"reg-mc":{"anchorshot":{"bp":90},"appleacid":{"bp":90},"astralbarrage":{"bp":110},"banefulbunker":{"pp":5},"beakblast":{"bp":120,"pp":5},"belch":{"behaviour":true},"bloodmoon":{"bp":130},"boltbeak":{"bp":80},"bonerush":{"bp":30},"clangoroussoul":{"acc":true},"crabhammer":{"acc":95},"crushclaw":{"flagsAdd":["slicing"]},"direclaw":{"flagsAdd":["slicing"],"behaviour":true},"disable":{"behaviour":true},"doubleshock":{"flagsAdd":["punch"]},"dragoncheer":{"flagsAdd":["sound"]},"dragonclaw":{"flagsAdd":["slicing"]},"dragonhammer":{"bp":100},"encore":{"behaviour":true},"firelash":{"bp":90},"firstimpression":{"bp":100},"fishiousrend":{"bp":80},"freezedry":{"behaviour":true},"geargrind":{"bp":60,"acc":90},"gravapple":{"bp":90},"growth":{"type":"Grass"},"howl":{"flagsAdd":["bypasssub"]},"hyperdrill":{"bp":120},"infernalparade":{"bp":65},"ironhead":{"behaviour":true},"kingsshield":{"pp":5},"makeitrain":{"acc":95,"behaviour":true},"metalclaw":{"flagsAdd":["slicing"]},"meteorassault":{"bp":170},"milkdrink":{"behaviour":true},"moonblast":{"behaviour":true},"mountaingale":{"bp":120},"nightdaze":{"bp":90},"nightslash":{"pp":20},"nihillight":{"pp":5},"obstruct":{"pp":5},"protect":{"pp":5},"psyshieldbash":{"bp":90},"purify":{"pp":5},"revelationdance":{"bp":100},"saltcure":{"behaviour":true},"sandstorm":{"pp":5},"shadowclaw":{"flagsAdd":["slicing"]},"shelltrap":{"pp":10},"slash":{"bp":80},"snaptrap":{"type":"Steel"},"snipeshot":{"bp":85},"snowscape":{"pp":5},"spikyshield":{"pp":5},"spinout":{"pp":10},"spiritshackle":{"bp":90},"strengthsap":{"pp":5},"stuffcheeks":{"behaviour":true},"syrupbomb":{"acc":90},"toxicthread":{"behaviour":true},"tripledive":{"bp":35},"tropkick":{"bp":85},"wish":{"pp":5}},"reg-mb":{"anchorshot":{"bp":90},"appleacid":{"bp":90},"astralbarrage":{"bp":110},"banefulbunker":{"pp":5},"beakblast":{"bp":120,"pp":5},"belch":{"behaviour":true},"bloodmoon":{"bp":130},"boltbeak":{"bp":80},"bonerush":{"bp":30},"clangoroussoul":{"acc":true},"crabhammer":{"acc":95},"crushclaw":{"flagsAdd":["slicing"]},"direclaw":{"flagsAdd":["slicing"],"behaviour":true},"disable":{"behaviour":true},"doubleshock":{"flagsAdd":["punch"]},"dragoncheer":{"flagsAdd":["sound"]},"dragonclaw":{"flagsAdd":["slicing"]},"dragonhammer":{"bp":100},"encore":{"behaviour":true},"firelash":{"bp":90},"firstimpression":{"bp":100},"fishiousrend":{"bp":80},"freezedry":{"behaviour":true},"geargrind":{"bp":60,"acc":90},"gravapple":{"bp":90},"growth":{"type":"Grass"},"howl":{"flagsAdd":["bypasssub"]},"hyperdrill":{"bp":120},"infernalparade":{"bp":65},"ironhead":{"behaviour":true},"kingsshield":{"pp":5},"makeitrain":{"acc":95,"behaviour":true},"metalclaw":{"flagsAdd":["slicing"]},"meteorassault":{"bp":170},"milkdrink":{"behaviour":true},"moonblast":{"behaviour":true},"mountaingale":{"bp":120},"nightdaze":{"bp":90},"nightslash":{"pp":20},"nihillight":{"pp":5},"obstruct":{"pp":5},"protect":{"pp":5},"psyshieldbash":{"bp":90},"purify":{"pp":5},"revelationdance":{"bp":100},"saltcure":{"behaviour":true},"sandstorm":{"pp":5},"shadowclaw":{"flagsAdd":["slicing"]},"shelltrap":{"pp":10},"slash":{"bp":80},"snaptrap":{"type":"Steel"},"snipeshot":{"bp":85},"snowscape":{"pp":5},"spikyshield":{"pp":5},"spinout":{"pp":10},"spiritshackle":{"bp":90},"stuffcheeks":{"behaviour":true},"syrupbomb":{"acc":90},"toxicthread":{"behaviour":true},"tripledive":{"bp":35},"tropkick":{"bp":85}},"reg-ma":{"anchorshot":{"bp":90},"appleacid":{"bp":90},"astralbarrage":{"bp":110},"banefulbunker":{"pp":5},"beakblast":{"bp":120,"pp":5},"belch":{"behaviour":true},"bloodmoon":{"bp":130},"boltbeak":{"bp":80},"bonerush":{"bp":30},"clangoroussoul":{"acc":true},"crabhammer":{"acc":95},"crushclaw":{"flagsAdd":["slicing"]},"direclaw":{"flagsAdd":["slicing"],"behaviour":true},"disable":{"behaviour":true},"doubleshock":{"flagsAdd":["punch"]},"dragoncheer":{"flagsAdd":["sound"]},"dragonclaw":{"flagsAdd":["slicing"]},"dragonhammer":{"bp":100},"encore":{"behaviour":true},"firelash":{"bp":90},"firstimpression":{"bp":100},"fishiousrend":{"bp":80},"freezedry":{"behaviour":true},"geargrind":{"bp":60,"acc":90},"gravapple":{"bp":90},"growth":{"type":"Grass"},"howl":{"flagsAdd":["bypasssub"]},"hyperdrill":{"bp":120},"infernalparade":{"bp":65},"ironhead":{"behaviour":true},"kingsshield":{"pp":5},"makeitrain":{"acc":95,"behaviour":true},"metalclaw":{"flagsAdd":["slicing"]},"meteorassault":{"bp":170},"milkdrink":{"behaviour":true},"moonblast":{"behaviour":true},"mountaingale":{"bp":120},"nightdaze":{"bp":90},"nightslash":{"pp":20},"nihillight":{"pp":5},"obstruct":{"pp":5},"protect":{"pp":5},"psyshieldbash":{"bp":90},"purify":{"pp":5},"revelationdance":{"bp":100},"saltcure":{"behaviour":true},"sandstorm":{"pp":5},"shadowclaw":{"flagsAdd":["slicing"]},"shelltrap":{"pp":10},"slash":{"bp":80},"snaptrap":{"type":"Steel"},"snipeshot":{"bp":85},"snowscape":{"pp":5},"spikyshield":{"pp":5},"spinout":{"pp":10},"spiritshackle":{"bp":90},"stuffcheeks":{"behaviour":true},"syrupbomb":{"acc":90},"toxicthread":{"behaviour":true},"tripledive":{"bp":35},"tropkick":{"bp":85}}};
+/* Learnset pairs ("dex|move") that differ between M-B and M-C because the two regulations' learnsets
+   came from DIFFERENT SOURCES, not because M-C changed them. The Regulation Changes page must not
+   report these as rule changes. See data/champions-regulations.json for the named list. */
+const REG_LEARNSET_SOURCE_DIFFS={"reg-mb->reg-mc":["127|slash","160|slash","186|pound","212|slash","227|slash","254|slash","257|slash","319|slash","354|slash","359|slash","445|slash","461|slash","472|slash","475|slash","503|slash","510|slash","530|slash","614|slash","675|slash","681|slash","687|slash","689|slash","6|slash","778|slash","900|slash","903|slash","908|slash","983|slash"]};
+/* Move values that changed between regulations, with BOTH ends stated. The page cannot work the
+   "before" out for itself: an override only exists where a value differs from Scarlet/Violet. */
+const REG_MOVE_CHANGES={"reg-ma->reg-mb":[],"reg-mb->reg-mc":[{"move":"Strength Sap","field":"pp","from":10,"to":5},{"move":"Wish","field":"pp","from":10,"to":5}]};
+/*END-CHAMPIONS-DERIVED*/
 /* ═══ CHAMPIONS REGULATIONS — newest FIRST ═══════════════════════════════
    To add a new regulation: add its ID set above, then unshift one row here.
    The app defaults to CHAMPIONS_REGS[0] on open. Nothing else needs editing. */
@@ -2183,8 +2228,9 @@ const CHAMPIONS_IDS_MB=new Set([...CHAMPIONS_IDS_MA,...REG_MB_NEW]);
    build/generate-regulation-items.js from Showdown, which carries the two regulations as
    separate mods - championsregma inherits from champions, so its items.ts IS the change list.
    Do not edit by hand; rerun the generator. */
-const REG_ITEM_CHANGES={"reg-ma->reg-mb":{added:["Barbaracite","Big Root","Blazikenite","Damp Rock","Dragalgite","Eelektrossite","Expert Belt","Falinksite","Heat Rock","Icy Rock","Iron Ball","Life Orb","Light Clay","Malamarite","Mawilite","Metagrossite","Metronome","Muscle Band","Pyroarite","Raichunite X","Raichunite Y","Sceptilite","Scolipite","Scraftinite","Shed Shell","Smooth Rock","Staraptite","Swampertite","Wide Lens","Wise Glasses","Zoom Lens"],removed:[]}};
+const REG_ITEM_CHANGES={"reg-ma->reg-mb":{added:["Barbaracite","Big Root","Blazikenite","Damp Rock","Dragalgite","Eelektrossite","Expert Belt","Falinksite","Heat Rock","Icy Rock","Iron Ball","Life Orb","Light Clay","Malamarite","Mawilite","Metagrossite","Metronome","Muscle Band","Pyroarite","Raichunite X","Raichunite Y","Sceptilite","Scolipite","Scraftinite","Shed Shell","Smooth Rock","Staraptite","Swampertite","Wide Lens","Wise Glasses","Zoom Lens"],removed:[]},"reg-mb->reg-mc":{added:["Absolite Z","Air Balloon","Baxcalibrite","Binding Band","Eject Button","Electric Seed","Garchompite Z","Golisopite","Grassy Seed","Leek","Lucarionite Z","Misty Seed","Normal Gem","Psychic Seed","Red Card","Rocky Helmet","Salamencite","Terrain Extender"],removed:[]}};
 const CHAMPIONS_REGS=[
+  {key:'reg-mc', short:'m-c', label:'Regulation M-C', ids:()=>CHAMPIONS_IDS_MC},
   {key:'reg-mb', short:'m-b', label:'Regulation M-B', ids:()=>CHAMPIONS_IDS_MB},
   {key:'reg-ma', short:'m-a', label:'Regulation M-A', ids:()=>CHAMPIONS_IDS_MA}
 ];
@@ -2192,12 +2238,25 @@ const LATEST_REG=CHAMPIONS_REGS[0];
 function regByKey(k){return CHAMPIONS_REGS.find(r=>r.key===k)||LATEST_REG}
 function regByShort(v){return CHAMPIONS_REGS.find(r=>r.short===v)||LATEST_REG}
 function isRegKey(k){return /^reg-m/i.test(k||'')}
-function applyReg(key){const r=regByKey(key);championsReg=r.short;CHAMPIONS_IDS=r.ids();return r}
+/* Items and usable moves are per regulation, like the roster. They were ONE set each, a Serebii
+   snapshot of Regulation M-B, so choosing M-A showed M-B's 31 extra items as legal, and a single set
+   would now show M-C's new mega stones in M-B. setChampReg is the one place a regulation takes
+   effect; every path that changes it goes through here. */
+function setChampReg(r){
+  championsReg=r.short;CHAMPIONS_IDS=r.ids();
+  CHAMPIONS_ITEMS=new Set(CHAMPIONS_ITEMS_BY_REG[r.key].split(','));
+  CHAMPIONS_MOVES=new Set(CHAMPIONS_MOVES_BY_REG[r.key].split(','));
+  return r;
+}
+function applyReg(key){return setChampReg(regByKey(key))}
 let championsReg=LATEST_REG.short;
 let CHAMPIONS_IDS=LATEST_REG.ids();
-// Pokemon Champions useable moves & items (Serebii, Reg M-B) - stored flattened (a-z0-9 only)
-const CHAMPIONS_MOVES=new Set('accelerock,acidarmor,acidspray,acrobatics,acupressure,aerialace,afteryou,agility,aircutter,airslash,alluringvoice,allyswitch,amnesia,ancientpower,appleacid,aquacutter,aquajet,aquaring,aquastep,aquatail,armorcannon,aromaticmist,assurance,attract,aurasphere,aurawheel,auroraveil,avalanche,axekick,babydolleyes,banefulbunker,barbbarrage,batonpass,beakblast,beatup,belch,bellydrum,bind,bite,bitterblade,bittermalice,blastburn,blazekick,blizzard,block,bodypress,bodyslam,bonerush,boomburst,bounce,bravebird,breakingswipe,brickbreak,brutalswing,bugbite,bugbuzz,bulkup,bulldoze,bulletpunch,bulletseed,burningjealousy,burnup,calmmind,ceaselessedge,charge,chargebeam,charm,chillingwater,chillyreception,circlethrow,clangingscales,clangoroussoul,clearsmog,closecombat,coaching,coil,comeuppance,confuseray,copycat,corrosivegas,cosmicpower,cottonguard,cottonspore,counter,covet,crabhammer,crosschop,crosspoison,crunch,crushclaw,curse,darkestlariat,darkpulse,dazzlinggleam,decorate,defog,destinybond,detect,dig,direclaw,disable,discharge,dive,doubleedge,doublehit,doubleteam,dracometeor,dragoncheer,dragonclaw,dragondance,dragondarts,dragonpulse,dragonrush,dragontail,drainingkiss,drainpunch,drillpeck,drillrun,dualwingbeat,dynamicpunch,earthpower,earthquake,eerieimpulse,eeriespell,electricterrain,electrify,electroball,electroshot,electroweb,encore,endeavor,endure,energyball,entrainment,eruption,expandingforce,explosion,extrasensory,extremespeed,facade,fairylock,fakeout,faketears,featherdance,feint,fellstinger,ficklebeam,fierydance,finalgambit,fireblast,firefang,firelash,firepunch,firespin,firstimpression,fissure,flail,flamecharge,flamethrower,flareblitz,flashcannon,flatter,fling,flipturn,flowertrick,fly,flyingpress,focusblast,focusenergy,focuspunch,followme,forestscurse,foulplay,freezedry,frenzyplant,frostbreath,futuresight,gastroacid,gigadrain,gigaimpact,gigatonhammer,glare,grassknot,grassyglide,grassyterrain,gravapple,gravity,growth,guardsplit,guardswap,guillotine,gunkshot,gyroball,hammerarm,hardpress,haze,headlongrush,headsmash,healbell,healingwish,healpulse,heatcrash,heatwave,heavyslam,helpinghand,hex,highhorsepower,highjumpkick,horndrill,hornleech,howl,hurricane,hydrocannon,hydropump,hyperbeam,hypervoice,hypnosis,icebeam,icefang,icehammer,icepunch,iceshard,icespinner,iciclecrash,iciclespear,icywind,imprison,infernalparade,inferno,infestation,ingrain,instruct,irondefense,ironhead,irontail,jetpunch,kingsshield,knockoff,kowtowcleave,lashout,lastresort,lastrespects,lavaplume,leafblade,leafstorm,leechlife,leechseed,lifedew,lightofruin,lightscreen,liquidation,lockon,lowkick,lowsweep,luminacrash,lunge,machpunch,magicpowder,magicroom,magneticflux,magnetrise,makeitrain,matchagotcha,meanlook,megahorn,megakick,memento,metalburst,metalsound,meteorbeam,meteormash,milkdrink,minimize,mirrorcoat,mistyexplosion,mistyterrain,moonblast,moonlight,morningsun,mortalspin,mountaingale,muddywater,mudshot,mudslap,mysticalfire,nastyplot,nightdaze,nightshade,nightslash,nobleroar,noretreat,nuzzle,outrage,overheat,painsplit,paraboliccharge,partingshot,payback,perishsong,petalblizzard,petaldance,phantomforce,pinmissile,playrough,pluck,poisonfang,poisonjab,poisonpowder,pollenpuff,poltergeist,populationbomb,pounce,powergem,powershift,powersplit,powerswap,powertrick,powertrip,powerwhip,protect,psychic,psychicfangs,psychicnoise,psychicterrain,psychocut,psychup,psyshieldbash,psyshock,quash,quickattack,quickguard,quiverdance,ragefist,ragepowder,ragingbull,ragingfury,raindance,rapidspin,razorshell,recover,recycle,reflect,reflecttype,rest,reversal,risingvoltage,roar,rockblast,rockpolish,rockslide,rocktomb,rockwrecker,roleplay,roost,round,sacredsword,safeguard,saltcure,sandstorm,sandtomb,scald,scaleshot,scaryface,scorchingsands,screech,seedbomb,seismictoss,selfdestruct,shadowball,shadowclaw,shadowpunch,shadowsneak,shedtail,sheercold,shellsidearm,shellsmash,shelter,simplebeam,sing,skillswap,skittersmack,skyattack,slackoff,sleeppowder,sleeptalk,sludgebomb,sludgewave,smackdown,smartstrike,snaptrap,snarl,snore,snowscape,soak,softboiled,solarbeam,solarblade,sparklingaria,speedswap,spicyextract,spikes,spikyshield,spiritbreak,spiritshackle,spite,spitup,spore,stealthrock,steelbeam,steelroller,steelwing,stickyweb,stockpile,stompingtantrum,stoneaxe,stoneedge,storedpower,stormthrow,strengthsap,stringshot,struggle,strugglebug,stuffcheeks,stunspore,substitute,suckerpunch,sunnyday,supercellslam,superfang,superpower,surf,swagger,swallow,sweetkiss,sweetscent,switcheroo,swordsdance,synthesis,syrupbomb,tailslap,tailwind,taunt,tearfullook,teatime,teeterdance,temperflare,terrainpulse,thief,thrash,throatchop,thunder,thunderbolt,thunderfang,thunderpunch,thunderwave,tickle,tidyup,topsyturvy,torchsong,torment,toxic,toxicspikes,toxicthread,trailblaze,transform,triattack,trick,trickortreat,trickroom,triplearrows,tripleaxel,tropkick,twinbeam,upperhand,uproar,uturn,vacuumwave,venoshock,voltswitch,volttackle,waterfall,waterpulse,watershuriken,waterspout,wavecrash,weatherball,whirlpool,whirlwind,wideguard,wildcharge,willowisp,wish,wonderroom,woodhammer,worryseed,wrap,xscissor,yawn,zapcannon,zenheadbutt'.split(','));
-const CHAMPIONS_ITEMS=new Set('abomasite,absolite,aerodactylite,aggronite,alakazite,altarianite,ampharosite,aspearberry,audinite,babiriberry,banettite,barbaracite,beedrillite,bigroot,blackbelt,blackglasses,blastoisinite,blazikenite,brightpowder,cameruptite,chandelurite,charcoal,charizarditex,charizarditey,chartiberry,cheriberry,chesnaughtite,chestoberry,chilanberry,chimechite,choicescarf,chopleberry,clefablite,cobaberry,colburberry,crabominite,damprock,delphoxite,dragalgite,dragonfang,dragoninite,drampanite,eelektrossite,emboarite,excadrite,expertbelt,fairyfeather,falinksite,feraligite,floettite,focusband,focussash,froslassite,galladite,garchompite,gardevoirite,gengarite,glalitite,glimmoranite,golurkite,greninjite,gyaradosite,habanberry,hardstone,hawluchanite,heatrock,heracronite,houndoominite,icyrock,ironball,kangaskhanite,kasibberry,kebiaberry,kingsrock,leftovers,leppaberry,lifeorb,lightball,lightclay,lopunnite,lucarionite,lumberry,magnet,malamarite,manectite,mawilite,medichamite,meganiumite,mentalherb,meowsticite,metagrossite,metalcoat,metronome,miracleseed,muscleband,mysticwater,nevermeltice,occaberry,oranberry,passhoberry,payapaberry,pechaberry,persimberry,pidgeotite,pinsirite,poisonbarb,pyroarite,quickclaw,raichunitex,raichunitey,rawstberry,rindoberry,roseliberry,sablenite,sceptilite,scizorite,scolipite,scopelens,scovillainite,scraftinite,sharpbeak,sharpedonite,shedshell,shellbell,shucaberry,silkscarf,silverpowder,sitrusberry,skarmorite,slowbronite,smoothrock,softsand,spelltag,staraptite,starminite,steelixite,swampertite,tangaberry,twistedspoon,tyranitarite,venusaurite,victreebelite,wacanberry,whiteherb,widelens,wiseglasses,yacheberry,zoomlens'.split(','));
+/* Usable moves and legal items for the regulation on screen. These were hand-typed Serebii snapshots
+   of Regulation M-B; they now come from CHAMPIONS_*_BY_REG (build/generate-champions.js), and
+   setChampReg swaps them when the regulation changes. The generator verified the derived M-B items
+   against the hand-typed 148 before replacing them: identical, 0 missing, 0 extra. */
+let CHAMPIONS_MOVES=new Set(CHAMPIONS_MOVES_BY_REG[LATEST_REG.key].split(','));
+let CHAMPIONS_ITEMS=new Set(CHAMPIONS_ITEMS_BY_REG[LATEST_REG.key].split(','));
 function champFlat(n){return String(n).toLowerCase().replace(/[^a-z0-9]/g,'')}
 function champHasMove(n){return CHAMPIONS_MOVES.has(champFlat(n))}
 function champHasItem(n){return CHAMPIONS_ITEMS.has(champFlat(n))}
@@ -4982,14 +5041,20 @@ function regulationMoveDiff(fromKey,toKey){
   for(const move in champLS){
     for(const e of (champLS[move].learnedBy||[])){
       const legal=e.legalIn||[], key=e.num+'|'+move;
-      if(legal.indexOf(fromKey)>=0){inFrom.set(key,{move:move,species:e.species,num:e.num});sFrom.add(e.num)}
-      if(legal.indexOf(toKey)>=0){inTo.set(key,{move:move,species:e.species,num:e.num});sTo.add(e.num)}
+      const nm=champLS[move].name||move;
+      if(legal.indexOf(fromKey)>=0){inFrom.set(key,{move:move,name:nm,species:e.species,num:e.num});sFrom.add(e.num)}
+      if(legal.indexOf(toKey)>=0){inTo.set(key,{move:move,name:nm,species:e.species,num:e.num});sTo.add(e.num)}
     }
   }
   const both=new Set([...sFrom].filter(function(n){return sTo.has(n)}));
+  /* M-B's learnsets came from an older list and M-C's from Showdown, and the two sources disagree on
+     a handful of pairs (Slash on 28 species, Pound on Politoed). Comparing the export naively reported
+     those as things Regulation M-C changed. It changed none of them - the only learnset change M-C
+     declared is Archaludon's - so they are excluded here, by the generator's own list. */
+  const srcDiff=new Set((typeof REG_LEARNSET_SOURCE_DIFFS!=='undefined'&&REG_LEARNSET_SOURCE_DIFFS[fromKey+'->'+toKey])||[]);
   const gained=[],lost=[];
-  inTo.forEach(function(v,k){if(!inFrom.has(k)&&both.has(v.num))gained.push(v)});
-  inFrom.forEach(function(v,k){if(!inTo.has(k)&&both.has(v.num))lost.push(v)});
+  inTo.forEach(function(v,k){if(!inFrom.has(k)&&both.has(v.num)&&!srcDiff.has(k))gained.push(v)});
+  inFrom.forEach(function(v,k){if(!inTo.has(k)&&both.has(v.num)&&!srcDiff.has(k))lost.push(v)});
   const byName=function(a,b){return a.species.localeCompare(b.species)||a.move.localeCompare(b.move)};
   return {shared:both.size,gained:gained.sort(byName),lost:lost.sort(byName)};
 }
@@ -5101,16 +5166,31 @@ function regulationArticle(d){
   /* 3. Items, and specifically which of them are Mega Stones for the species that just arrived. */
   const idiff=REG_ITEM_CHANGES[d.from.key+'->'+d.to.key];
   if(idiff&&(idiff.added.length||idiff.removed.length)){
-    const stones=[],general=[];
+    /* A Mega Stone is looked for among the species that just arrived FIRST, then among everything in
+       the regulation. M-C added Absolite Z, Garchompite Z and Lucarionite Z - stones for Pokemon that
+       were already in M-B - and with only the arrivals to match against, all three were called "held
+       items", which is the one thing a Mega Stone is not. */
+    const stones=[],stonesHere=[],general=[];
+    const everyone=[...d.to.ids()].map(regRosterName);
     idiff.added.forEach(function(n){
       const owner=stoneOwner(n,names);
-      if(owner)stones.push(owner); else general.push(n);
+      if(owner){stones.push(owner);return}
+      const resident=stoneOwner(n,everyone);
+      /* The STONE's name, not the owner's: a species can gain two at once (Raichunite X and Y), and
+         naming owners printed "Raichu and Raichu". The stone names also carry the useful part - the
+         Z in Garchompite Z is what says this is Z-A's Mega, not the one M-B already had. */
+      if(resident){stonesHere.push(n);return}
+      general.push(n);
     });
     let s=numWord(idiff.added.length)+' item'+(idiff.added.length===1?'':'s')+' became legal';
     s=sentenceCase(s)+(idiff.removed.length?' and '+numWord(idiff.removed.length)+' were withdrawn.':'.');
     if(stones.length){
       s+=' '+sentenceCase(numWord(stones.length))+' of them '+(stones.length===1?'is a Mega Stone':'are Mega Stones')
         +' arriving with '+(stones.length===1?'its species':'their species')+' — '+joinList(stones.map(function(n){return '<b>'+proseName(n)+'</b>'}))+'.';
+    }
+    if(stonesHere.length){
+      s+=' '+sentenceCase(numWord(stonesHere.length))+(stones.length?' more':'')+' '+(stonesHere.length===1?'is a new Mega Stone':'are new Mega Stones')
+        +' for Pokémon already in the regulation — '+joinList(stonesHere.map(function(n){return '<b>'+n+'</b>'}))+'.';
     }
     if(general.length){
       /* joinList already ends with "and", so appending " and N more" produced "...Icy Rock and Iron
@@ -5136,9 +5216,40 @@ function regulationArticle(d){
     const bits=[];
     if(md.gained.length)bits.push(numWord(md.gained.length)+' move'+(md.gained.length===1?'':'s')+' gained');
     if(md.lost.length)bits.push(numWord(md.lost.length)+' lost');
-    paras.push(sentenceCase(joinList(bits))+': '
-      +joinList(md.gained.slice(0,4).map(function(x){return '<b>'+x.species+'</b> now learns '+x.move.replace(/-/g,' ')})
-        .concat(md.lost.slice(0,4).map(function(x){return '<b>'+x.species+'</b> loses '+x.move.replace(/-/g,' ')})))+'.');
+    /* Grouped by Pokemon and using the move's real name. This printed "Archaludon now learns slash,
+       Archaludon loses metalburst and Archaludon loses mirrorcoat" - the export's flattened keys, and
+       one species named three times for one change. */
+    const bySp={},order=[];
+    const put=function(x,k){if(!bySp[x.species]){bySp[x.species]={g:[],l:[]};order.push(x.species)}bySp[x.species][k].push(x.name||x.move)};
+    md.gained.forEach(function(x){put(x,'g')});md.lost.forEach(function(x){put(x,'l')});
+    const shown=order.slice(0,4).map(function(sp){
+      const e=bySp[sp],parts=[];
+      if(e.g.length)parts.push('learns '+joinList(e.g));
+      if(e.l.length)parts.push('loses '+joinList(e.l));
+      return '<b>'+sp+'</b> '+parts.join(' but ');
+    });
+    paras.push(sentenceCase(joinList(bits))+': '+joinList(shown)
+      +(order.length>shown.length?', plus changes to '+numWord(order.length-shown.length)+' more Pokémon':'')+'.');
+  }
+
+  /* 5. What moves DO, not just who learns them. Regulation M-C cut Strength Sap and Wish from 10 PP
+        to 5, and nothing on this page could say so: it compared rosters, items and learnsets, and a
+        PP change is none of those. Moves that change the same field by the same amount are grouped,
+        so this reads "Strength Sap and Wish drop from 10 PP to 5" rather than two sentences. */
+  const vchg=(typeof REG_MOVE_CHANGES!=='undefined'&&REG_MOVE_CHANGES[d.from.key+'->'+d.to.key])||[];
+  if(vchg.length){
+    const unit={pp:' PP',basePower:' power',accuracy:'% accuracy',type:''};
+    const groups={};
+    vchg.forEach(function(c){const g=c.field+'|'+c.from+'|'+c.to;(groups[g]=groups[g]||[]).push(c)});
+    const lines=Object.keys(groups).map(function(g){
+      const cs=groups[g], c=cs[0], u=unit[c.field]||'';
+      const who=joinList(cs.map(function(x){return '<b>'+x.move+'</b>'}));
+      if(c.field==='type')return who+' '+(cs.length===1?'becomes':'become')+' '+c.to+'-type instead of '+c.from;
+      const down=typeof c.to==='number'&&typeof c.from==='number'&&c.to<c.from;
+      const verb=down?(cs.length===1?'drops':'drop'):(cs.length===1?'rises':'rise');
+      return who+' '+verb+' from '+c.from+u+' to '+c.to+(c.field==='pp'?'':u);
+    });
+    paras.push(sentenceCase(joinList(lines))+'.');
   }
   return paras;
 }
@@ -6941,7 +7052,7 @@ const MOVE_TAG_NOTE={
    from it cannot disagree with the calculator. But "the engine is not loaded yet" is not a reason
    to tell the reader a move has no flags - before 5.29 that returned [], and a move opened before
    the calculator had ever been visited showed nothing at all. */
-function moveDescriptors(moveName){
+function moveDescriptorsBase(moveName){
   const id=String(moveName).toLowerCase().replace(/[^a-z0-9]/g,'');
   try{
     if(typeof SmogonCalc!=='undefined'){
@@ -6968,6 +7079,22 @@ function moveDescriptors(moveName){
   // this function is sliced out and run on its own by tests/test-move-tags.js.
   const slug=(typeof normalizeMoveName==='function')?normalizeMoveName(moveName):String(moveName||'').toLowerCase();
   return String(IX.moveFlags[slug]||'').split(' ').filter(function(f){return f&&MOVE_TAG_NOTE[f]});
+}
+/* The tags a move has HERE. The base lookup is Scarlet/Violet's; Champions re-flags several moves,
+   and those changes decide what boosts them. Dragon Claw, Shadow Claw and Crush Claw are SLICING in
+   Champions, so Sharpness boosts them; Double Shock is a PUNCH, so Iron Fist does; Dragon Cheer is
+   SOUND, so Soundproof blocks it. (Howl also appears in Champions' flag changes, but it was already a
+   sound move - Champions only lets it through Substitute. Reading a flag list as a change list is how
+   that got misreported once; the override stores only what differs from SV, which is why it is safe.)
+   typeof, because this is sliced and run alone by the tests. */
+function moveDescriptors(moveName){
+  const base=moveDescriptorsBase(moveName);
+  if(typeof champMoveOverride!=='function')return base;
+  const add=champMoveOverride(moveName,'flagsAdd')||[], rem=champMoveOverride(moveName,'flagsRemove')||[];
+  if(!add.length&&!rem.length)return base;
+  const out=base.filter(function(f){return rem.indexOf(f)<0});
+  add.forEach(function(f){if(MOVE_TAG_NOTE[f]&&out.indexOf(f)<0)out.push(f)});
+  return out;
 }
 /* Every ability and item that acts on a flag, in the generation on screen. This is the derived
    replacement for the hand-written boosts/risks/negatedBy lists. */
@@ -11406,6 +11533,31 @@ function calcShowEngineMissing(err){
 // moveOverride + collect let the same setup serve the four-move view: with collect set, this
 // returns a result row instead of writing to the DOM, so there is one implementation of the
 // calculation and no way for the two views to drift apart.
+/* Champions' move changes, in the shape the calc engine's Move accepts. Without this the calculator
+   ran Scarlet/Violet's moves in Champions mode: Snipe Shot at 80 power instead of 85, Snap Trap as
+   Grass instead of Steel, and Dragon Claw without the slicing flag, so a Sharpness attacker came out
+   at 98 where Champions gives 146. Measured on the bundled engine, all three.
+
+   FLAGS ARE MERGED, NOT HANDED OVER. The engine's `overrides` replaces the flags object wholesale,
+   so passing only {slicing:1} would silently strip Dragon Claw's contact flag - and with it every
+   Tough Claws boost and Rocky Helmet chip. The base flags come from the engine and the change is
+   applied to a copy of them. */
+function champCalcOverrides(gen,mvName){
+  if(!isChampionsMode||typeof CHAMP_MOVE_OVERRIDES==='undefined')return undefined;
+  const id=champFlat(mvName);
+  const o=(CHAMP_MOVE_OVERRIDES[champRegKey()]||{})[id];
+  if(!o)return undefined;
+  const ov={};
+  if(o.bp!==undefined)ov.basePower=o.bp;
+  if(o.type)ov.type=o.type;
+  if(o.flagsAdd||o.flagsRemove){
+    const base=Object.assign({},((gen.moves&&gen.moves.get(id))||{}).flags||{});
+    (o.flagsRemove||[]).forEach(function(f){delete base[f]});
+    (o.flagsAdd||[]).forEach(function(f){base[f]=1});
+    ov.flags=base;
+  }
+  return Object.keys(ov).length?ov:undefined;
+}
 async function calcRunSmogon(moveOverride,collect){
   calcEnsureMaps();
   const res=document.getElementById('calc-result');
@@ -11426,7 +11578,8 @@ async function calcRunSmogon(moveOverride,collect){
   }
   const lv=Math.max(1,Math.min(100,parseInt(document.getElementById('calc-level').value)||50));
   // move meta for category-aware natures/EVs
-  const probe=new M.Move(gen,mvName);
+  const champOv=champCalcOverrides(gen,mvName);
+  const probe=new M.Move(gen,mvName,champOv?{overrides:champOv}:{});
   const isPhys=probe.category==='Physical';
   if(probe.category==='Status'){info.innerHTML=mvName+' — status move';if(!collect)res.style.display='none';return collect?{move:mvName,skipped:'status move'}:null}
   info.innerHTML='<span style="color:'+(TC[probe.type.toLowerCase()]||'#888')+';font-weight:800;text-transform:uppercase">'+probe.type+'</span> \u00b7 '+probe.category.toLowerCase()+' \u00b7 '+(probe.bp||'\u2014')+' BP';
@@ -11478,7 +11631,7 @@ async function calcRunSmogon(moveOverride,collect){
       boosts:isPhys?{def:dStage}:{spd:dStage}
     });
   }
-  const mv=new M.Move(gen,mvName,{isCrit:document.getElementById('calc-crit').checked});
+  const mv=new M.Move(gen,mvName,Object.assign({isCrit:document.getElementById('calc-crit').checked},champOv?{overrides:champOv}:{}));
   const wSel=document.getElementById('calc-weather').value;
   const weather=wSel==='sun'?'Sun':wSel==='rain'?'Rain':wSel==='sand'?'Sand':wSel==='snow'?'Snow':undefined;
   const tSel=document.getElementById('calc-terrain').value;

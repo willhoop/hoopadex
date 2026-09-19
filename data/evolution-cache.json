@@ -71,12 +71,26 @@
   "isBaby": false,
   "stage": 1
  },
+ "40": {
+  "name": "wigglytuff",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
  "45": {
   "name": "vileplume",
   "fullyEvolved": true,
   "evolvesTo": [],
   "isBaby": false,
   "stage": 2
+ },
+ "53": {
+  "name": "persian",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
  },
  "59": {
   "name": "arcanine",
@@ -113,6 +127,15 @@
   "isBaby": false,
   "stage": 1
  },
+ "83": {
+  "name": "farfetchd",
+  "fullyEvolved": false,
+  "evolvesTo": [
+   "sirfetchd"
+  ],
+  "isBaby": false,
+  "stage": 0
+ },
  "94": {
   "name": "gengar",
   "fullyEvolved": true,
@@ -131,6 +154,15 @@
   "name": "starmie",
   "fullyEvolved": true,
   "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "122": {
+  "name": "mr-mime",
+  "fullyEvolved": false,
+  "evolvesTo": [
+   "mr-rime"
+  ],
   "isBaby": false,
   "stage": 1
  },
@@ -402,6 +434,13 @@
   "isBaby": false,
   "stage": 1
  },
+ "317": {
+  "name": "swalot",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
  "319": {
   "name": "sharpedo",
   "fullyEvolved": true,
@@ -471,6 +510,13 @@
   "evolvesTo": [],
   "isBaby": false,
   "stage": 1
+ },
+ "373": {
+  "name": "salamence",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
  },
  "376": {
   "name": "metagross",
@@ -915,6 +961,13 @@
   "isBaby": false,
   "stage": 2
  },
+ "673": {
+  "name": "gogoat",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
  "675": {
   "name": "pangoro",
   "fullyEvolved": true,
@@ -1160,6 +1213,13 @@
   "isBaby": false,
   "stage": 0
  },
+ "768": {
+  "name": "golisopod",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
  "778": {
   "name": "mimikyu",
   "fullyEvolved": true,
@@ -1181,12 +1241,40 @@
   "isBaby": false,
   "stage": 2
  },
+ "812": {
+  "name": "rillaboom",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "815": {
+  "name": "cinderace",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "818": {
+  "name": "inteleon",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
  "823": {
   "name": "corviknight",
   "fullyEvolved": true,
   "evolvesTo": [],
   "isBaby": false,
   "stage": 2
+ },
+ "828": {
+  "name": "thievul",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
  },
  "841": {
   "name": "flapple",
@@ -1204,6 +1292,20 @@
  },
  "844": {
   "name": "sandaconda",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "849": {
+  "name": "toxtricity",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "853": {
+  "name": "grapploct",
   "fullyEvolved": true,
   "evolvesTo": [],
   "isBaby": false,
@@ -1230,6 +1332,20 @@
   "isBaby": false,
   "stage": 2
  },
+ "863": {
+  "name": "perrserker",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "865": {
+  "name": "sirfetchd",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
  "866": {
   "name": "mr-rime",
   "fullyEvolved": true,
@@ -1253,6 +1369,20 @@
  },
  "870": {
   "name": "falinks",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "871": {
+  "name": "pincurchin",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
+ },
+ "876": {
+  "name": "indeedee",
   "fullyEvolved": true,
   "evolvesTo": [],
   "isBaby": false,
@@ -1328,12 +1458,33 @@
   "isBaby": false,
   "stage": 2
  },
+ "923": {
+  "name": "pawmot",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
  "925": {
   "name": "maushold",
   "fullyEvolved": true,
   "evolvesTo": [],
   "isBaby": false,
   "stage": 1
+ },
+ "930": {
+  "name": "arboliva",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "931": {
+  "name": "squawkabilly",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 0
  },
  "934": {
   "name": "garganacl",
@@ -1358,6 +1509,13 @@
  },
  "939": {
   "name": "bellibolt",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 1
+ },
+ "943": {
+  "name": "mabosstiff",
   "fullyEvolved": true,
   "evolvesTo": [],
   "isBaby": false,
@@ -1428,6 +1586,13 @@
  },
  "983": {
   "name": "kingambit",
+  "fullyEvolved": true,
+  "evolvesTo": [],
+  "isBaby": false,
+  "stage": 2
+ },
+ "998": {
+  "name": "baxcalibur",
   "fullyEvolved": true,
   "evolvesTo": [],
   "isBaby": false,

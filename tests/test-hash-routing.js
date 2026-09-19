@@ -30,6 +30,10 @@ const hashPathFn = slice('function hashPath()', '\n');
 const harness = `
 const CHAMPIONS_IDS_MA=new Set([1,2,3]);
 const CHAMPIONS_IDS_MB=new Set([1,2,3,4,5]);
+const CHAMPIONS_IDS_MC=new Set([1,2,3,4,5,6]);
+// setChampReg swaps the item and move sets with the roster; the harness only needs them to exist.
+const CHAMPIONS_ITEMS_BY_REG={'reg-mc':'x','reg-mb':'x','reg-ma':'x'}, CHAMPIONS_MOVES_BY_REG=CHAMPIONS_ITEMS_BY_REG;
+let CHAMPIONS_ITEMS, CHAMPIONS_MOVES;
 ${registry}
 let isChampionsMode=true, selectedGenNum=9, dataGen='', specificGame=false,
     selectedVersion='', locVersion='';
@@ -72,14 +76,14 @@ function t(name, hash, exp) {
 
 // The core promise: no hash at all opens Champions on the newest regulation.
 t('bare URL opens Champions + newest regulation', '',
-  {champ:true, reg:'m-b', genSel:'champions', gameSel:'reg-mb', ids:5});
+  {champ:true, reg:'m-c', genSel:'champions', gameSel:'reg-mc', ids:6});
 
 // The '#' itself, asserted explicitly rather than left to the harness. Every real deep link
 // arrives with one, and the strip that removes it had no coverage at all until 2026-08-03.
 t('a link written with an explicit # routes identically', '#pokedex/g9/gm:reg-ma',
   {champ:true, reg:'m-a', genSel:'champions', gameSel:'reg-ma', ids:3});
 t('a lone # is treated as no fragment', '#',
-  {champ:true, reg:'m-b', genSel:'champions', gameSel:'reg-mb', ids:5});
+  {champ:true, reg:'m-c', genSel:'champions', gameSel:'reg-mc', ids:6});
 
 // The regression this suite exists for. saveHash() used to emit g9 while in
 // Champions mode, and the reader treated g9 as "leave Champions mode".
@@ -92,7 +96,7 @@ t('legacy g9 link, older regulation', 'pokedex/g9/gm:reg-ma',
 t('gchampions token', 'pokedex/gchampions/gm:reg-mb',
   {champ:true, reg:'m-b', genSel:'champions', gameSel:'reg-mb'});
 t('gchampions token alone', 'pokedex/gchampions',
-  {champ:true, reg:'m-b', genSel:'champions'});
+  {champ:true, reg:'m-c', genSel:'champions'});
 
 // Real generation links must still leave Champions mode.
 t('Gen III link leaves Champions', 'pokedex/g3/gm:emerald',
@@ -102,7 +106,14 @@ t('Gen IX game link leaves Champions', 'pokedex/g9/gm:scarlet-violet|scarlet',
 
 // An unknown regulation must degrade to the newest, never to a blank dex.
 t('unknown regulation falls back to newest', 'pokedex/gchampions/gm:reg-zz',
-  {champ:true, reg:'m-b', genSel:'champions'});
+  {champ:true, reg:'m-c', genSel:'champions'});
+/* A link written while M-B was current still says M-B, and must still open M-B. Every bookmark and
+   shared team from before 2026-09-10 is one of these; quietly re-pointing them at M-C would change
+   what a link means without anyone having asked. */
+t('an M-B link written before M-C existed still opens M-B', 'pokedex/p6/gchampions/gm:reg-mb',
+  {champ:true, reg:'m-b', genSel:'champions', gameSel:'reg-mb', ids:5});
+t('and an explicit M-C link opens M-C', 'pokedex/gchampions/gm:reg-mc',
+  {champ:true, reg:'m-c', genSel:'champions', gameSel:'reg-mc', ids:6});
 
 /* --- the OTHER hash reader -----------------------------------------------------------------
    Everything above tests the parser inside init(). It is not the only one. restoreHash() has its

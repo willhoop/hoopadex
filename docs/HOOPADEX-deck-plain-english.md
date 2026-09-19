@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.1 · Last updated 2026-08-24 · HoopaDex v5.47**
+**Version 2.1 · Last updated 2026-09-19 · HoopaDex v5.48**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -288,9 +288,31 @@ And below Gen III the badge says nothing about a reduction, because double battl
 
 ---
 
+## Slide 11f — A new regulation, and a test it had to pass first
+
+Regulation M-C started on 9 September: 23 new Pokémon, 18 new items, and two moves nerfed. None of
+it was typed in. It came from Pokémon Showdown, which publishes each regulation's rules as data.
+
+But "Showdown is reliable" isn't a reason to trust it. So before it was allowed to write M-C, the
+same method was aimed at M-B — which the dex already had, entered by hand — and asked to get it
+right. It did: 208 Pokémon out of 208, 148 items out of 148. Not one missing, not one extra. It
+re-checks that every time it runs, and refuses to write anything if it ever stops matching.
+
+Then three other sites agreed on M-C without being asked: Serebii named the same 23 Pokémon;
+Pokémon.com's "24 new" is those plus Alolan Persian; Victory Road's "29" is those plus six new Megas.
+
+Looking for M-C's move changes turned up something bigger. Champions has different numbers from
+Scarlet and Violet for 63 moves, and the dex had been showing the Scarlet and Violet ones all along —
+**Protect with 10 PP when it has 5**. The damage calculator was wrong too: in Champions Dragon Claw
+counts as a slicing move, so a Sharpness attacker hits for 146, not the 98 the calculator said.
+
+**A method you can't check against a known answer is a guess with extra steps.**
+
+---
+
 ## Slide 12 — What we don't claim
 
-Thirty-seven test suites and 1,417 assertions now cover the data, the damage formula, the derived
+Thirty-eight test suites and 1,465 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

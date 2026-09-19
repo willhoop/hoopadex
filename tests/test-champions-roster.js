@@ -22,8 +22,8 @@ const a = lines.findIndex(l => l.startsWith('const CHAMPIONS_IDS_MA='));
 const b = lines.findIndex((l, i) => i > a && l.startsWith('const LATEST_REG='));
 if (a < 0 || b < 0) throw new Error('could not locate the Champions registry');
 const src = lines.slice(a, b).join('\n');
-const { CHAMPIONS_REGS, CHAMPIONS_IDS_MA, CHAMPIONS_IDS_MB, REG_MB_NEW } =
-  eval(src + '\n;({CHAMPIONS_REGS,CHAMPIONS_IDS_MA,CHAMPIONS_IDS_MB,REG_MB_NEW})');
+const { CHAMPIONS_REGS, CHAMPIONS_IDS_MA, CHAMPIONS_IDS_MB, REG_MB_NEW, CHAMPIONS_IDS_MC, REG_MC_NEW } =
+  eval(src + '\n;({CHAMPIONS_REGS,CHAMPIONS_IDS_MA,CHAMPIONS_IDS_MB,REG_MB_NEW,CHAMPIONS_IDS_MC,REG_MC_NEW})');
 
 let pass = 0, fail = 0;
 function check(ok, label, detail) {
@@ -112,6 +112,30 @@ check(new Set(shorts).size === shorts.length, 'regulation short names are unique
 const KNOWN_NON_FINAL = [25, 211, 670];
 check(KNOWN_NON_FINAL.every(id => CHAMPIONS_IDS_MB.has(id)),
   'the three known non-final-stage entries are still in the roster', '');
+/* Regulation M-C adds two more, found by the same audit on 2026-09-19 and predicted independently by
+   the weekly regulation watch on 2026-09-14. Both are Qwilfish's case exactly: the species evolves
+   only as a REGIONAL form. Galarian Farfetch'd becomes Sirfetch'd and Galarian Mr. Mime becomes
+   Mr. Rime; the Kantonian forms legal here are final stages in practice. Five, and a sixth has to be
+   explained before it can be added. */
+const KNOWN_NON_FINAL_MC = [25, 83, 122, 211, 670];
+check(KNOWN_NON_FINAL_MC.every(id => CHAMPIONS_IDS_MC.has(id)),
+  'M-C\'s five known non-final entries are present: Pikachu, Farfetch\'d, Mr. Mime, Qwilfish, Floette', '');
+check(REG_MC_NEW.includes(83) && REG_MC_NEW.includes(122),
+  'and the two new ones arrived with M-C, rather than having been missed in M-B');
+
+// --- M-C is built the same way as M-B, so the same relations must hold ------------------------------
+check(CHAMPIONS_IDS_MC.size === CHAMPIONS_IDS_MB.size + REG_MC_NEW.length,
+  'M-C size equals M-B plus the additions', [CHAMPIONS_IDS_MC.size, CHAMPIONS_IDS_MB.size, REG_MC_NEW.length]);
+check(REG_MC_NEW.every(id => !CHAMPIONS_IDS_MB.has(id)),
+  'nothing in REG_MC_NEW was already in M-B', REG_MC_NEW.filter(id => CHAMPIONS_IDS_MB.has(id)));
+check(new Set(REG_MC_NEW).size === REG_MC_NEW.length, 'REG_MC_NEW has no duplicates');
+/* The absolute anchor, for the same reason as M-A's: relational checks alone let both sides shrink
+   together. 23 is not a number chosen here — Serebii's M-C page, read by the weekly watch on
+   2026-09-14, lists the same 23 dex numbers the Showdown derivation produced, and Pokémon.com's
+   "24 newly available" is these 23 plus Alolan Persian. */
+check(REG_MC_NEW.length === 23 && CHAMPIONS_IDS_MC.size === 231,
+  'M-C adds exactly 23 species for 231 in total — agreed by Showdown, Serebii and Pokémon.com',
+  REG_MC_NEW.length + ' / ' + CHAMPIONS_IDS_MC.size);
 console.log('      note: run `node build/audit-champions-roster.js` to re-check evolution stages');
 
 /* --- the learnset loader must not cache its own failure ---------------------------------------

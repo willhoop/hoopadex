@@ -12,6 +12,116 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.48] - 2026-09-19
+
+### Added
+- **Regulation M-C.** It started on 9 September and is now the regulation the app opens on.
+
+  | | M-B | M-C |
+  |---|---|---|
+  | Pokémon | 208 | **231** (+23, none removed) |
+  | Items | 148 | **166** (+18) |
+  | Usable moves | 500 | **514** (+14) |
+
+  New: Wigglytuff, Persian, Farfetch'd, Mr. Mime, Swalot, Salamence, Gogoat, Golisopod, Rillaboom,
+  Cinderace, Inteleon, Thievul, Toxtricity, Grapploct, Perrserker, Sirfetch'd, Pincurchin,
+  Indeedee, Pawmot, Arboliva, Squawkabilly, Mabosstiff and Baxcalibur. New Megas for Salamence,
+  Golisopod and Baxcalibur, and Z-A Megas for Absol, Garchomp and Lucario. Golisopod and
+  Baxcalibur were two of the eight Z-A Megas whose badge was withdrawn in 5.41 because their species
+  were not legal; the roster gate turned both back on without being touched.
+
+  **What M-C changed about moves**, and it is only this: **Strength Sap and Wish drop from 10 PP to
+  5**, and **Archaludon gains Slash but loses Metal Burst and Mirror Coat.**
+
+  M-B and M-A are unchanged, and a link written while M-B was current still opens M-B.
+
+- **Where it came from.** Nothing in M-C was typed in. Showdown carries each Champions regulation as
+  its own mod — `champions` is now M-C, and `championsregmb` holds only what M-B did differently —
+  and `build/generate-champions.js` derives the roster, items, usable moves, move changes and
+  learnsets from them.
+
+  The derivation was only allowed to write M-C after it reproduced what was already here: **208 of
+  208** hand-typed M-B species and **148 of 148** hand-typed M-B items, exactly, nothing missing and
+  nothing extra. It re-checks that on every run and refuses to write if it stops holding.
+
+  Three other sources then agreed with it independently. The weekly regulation watch read Serebii's
+  M-C page on 14 September and listed the same 23 dex numbers, and a total of 231 matching Serebii's
+  full list. Pokémon.com's "24 Pokémon newly available" is those 23 plus Alolan Persian. Victory
+  Road's "29 Pokémon additions" is those 23 plus the six new Megas.
+
+  The watch had in fact flagged M-C on the 14th. It is instructed never to type in a roster without
+  approval, so it stopped and reported; that report is what this release acts on.
+
+### Fixed
+- **Champions changes 63 moves, and the dex showed the Scarlet/Violet value for every one of them —
+  in the damage calculator too.**
+
+  Found while looking for M-C's move changes. Every move value came from PokéAPI, which describes
+  Scarlet/Violet, so in Champions mode the dex said **Protect has 10 PP (it has 5)**, Make It Rain is
+  100% accurate (95), Snipe Shot has 80 power (85), and Snap Trap is Grass (Steel). This was already
+  wrong in M-A and M-B; M-C is only when it was noticed.
+
+  The calculator had the same problem, and it mattered more. Champions makes Dragon Claw, Shadow
+  Claw and Crush Claw **slicing** moves, so Sharpness boosts them. Measured on the bundled engine:
+  Kleavor's Dragon Claw into Garchomp was calculated at **98**; Champions gives **146**. Double Shock
+  became a punching move (Iron Fist), and Dragon Cheer a sound move (Soundproof).
+
+  All of it is now derived per regulation, from the same Showdown mods, and fed to the move tooltip,
+  the learnset tables, the move tags and the calculator from one place. Outside Champions every move
+  is exactly what it was. In the calculator the flags are **merged** onto the move's own rather than
+  handed over: the engine's override replaces the flag set wholesale, and passing only `slicing`
+  would have silently stripped Dragon Claw's contact flag.
+
+  Not yet shown: twelve moves whose *effect* changed rather than a number — Belch, Dire Claw,
+  Disable, Encore, Freeze-Dry, Iron Head, Make It Rain, Milk Drink, Moonblast, Salt Cure, Stuff
+  Cheeks and Toxic Thread. Their descriptions are still Scarlet/Violet's. Moonblast, for instance,
+  still says 30% where Champions has 10%. Recorded in `docs/BACKLOG.md`.
+
+- **Items were one list for every regulation.** It was a Serebii snapshot of M-B, so choosing M-A
+  showed M-B's 31 extra items — Life Orb among them — as legal. Items and usable moves now change
+  with the regulation, the same as the roster.
+
+- **The Regulation Changes page could not describe a move change, and called three Mega Stones
+  "held items".** It compared rosters, items and learnsets, and a PP change is none of those; it
+  now has a sentence for it. Absolite Z, Garchompite Z and Lucarionite Z are stones for Pokémon that
+  were already legal, and the page only looked for owners among the new arrivals. Raichunite X and Y
+  in M-B's paragraph had been mislabelled the same way. The move sentence also
+  printed the export's internal keys ("loses metalburst"); it now reads "Archaludon learns Slash but
+  loses Metal Burst and Mirror Coat".
+
+### Not a rule change — recorded so it is never reported as one
+- The M-B learnsets came from an older list; M-C's come from Showdown. They agree on 12,900 of the
+  M-B species–move pairs they share. They disagree on **Slash for 28 species** (Showdown has it; the
+  old list has nobody learning Slash at all) and **Pound for Politoed** (the other way round).
+  Champions rebalanced Slash to 80 power, which settles that it is in the game, so M-C follows
+  Showdown. M-B is left as it was, because rewriting a past regulation from a different source
+  changes answers nobody asked to change. The Regulation Changes page is told these pairs by the
+  generator and does not report them.
+
+### Changed
+- `app/champions-learnsets.json` gained M-C: every M-B learner still legal gains `reg-mc`, the new
+  species and 15 new moves were added, and Floette-Eternal — which Showdown has no movepool for — is
+  carried forward from M-B. The vendor pin is updated to match, as its own note requires.
+- `build/generate-regulation-items.js` is **retired**. Showdown deleted the `championsregma` mod it
+  read, and running it would have rewritten `REG_ITEM_CHANGES` with only the M-A → M-B entry,
+  silently erasing M-C's. It now refuses to run and says why; the new generator owns that table,
+  reading the frozen M-A diff from `data/regulation-items.json`.
+
+### Tests
+- New `tests/test-champions-mc.js` — including a drift check: the generator's `--check` mode
+  recomputes everything from the committed Showdown snapshot and fails if the app, the export or the
+  record have been edited by hand or gone stale. Proven both ways: passes on the real files, fails on
+  a single changed digit.
+- It caught a false claim in this release before it shipped. An early draft said Howl "becomes" a
+  sound move in Champions. It was already one; Champions only lets it through Substitute. The
+  override stores only what differs from Scarlet/Violet, which is why the app was right and the
+  comment was not — both are corrected.
+- `tests/test-champions-roster.js` now pins M-C's five not-fully-evolved entries. Farfetch'd and
+  Mr. Mime are new, and are Qwilfish's case exactly: only their Galarian forms evolve.
+- Mutations M118–M125, all killed.
+
+---
+
 ## [5.47] - 2026-08-24
 
 ### Fixed

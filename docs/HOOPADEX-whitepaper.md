@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.1 · Last updated 2026-08-24 · HoopaDex v5.47**
+**Version 2.1 · Last updated 2026-09-19 · HoopaDex v5.48**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.46 the set is **106 mutations, all killed**, against 37 suites and 1,417 assertions. Two of
+As of v5.48 the set is **114 mutations, all killed**, against 38 suites and 1,465 assertions. Two of
 the twelve added since have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -654,6 +654,52 @@ game where nothing can have it. The generated table was correct; the question it
 not the question it answers. **Derived data is only as good as the claim attached to it** — a
 correctly generated table used under the wrong heading is indistinguishable, on screen, from a
 fabricated one.
+
+### 5.8 Earning the right to derive the unknown answer
+
+Regulation M-C began on 9 September 2026. Its roster, items and move changes were not typed in. They
+were derived from Pokémon Showdown, which carries each Champions regulation as its own mod — the
+current one as `champions`, each older one as a mod that inherits it and overrides only what
+differed.
+
+The method was not trusted because the source is reputable. It was trusted because, before it was
+allowed to write M-C, it was pointed at M-B — which the app already held, typed by hand from Serebii
+— and asked to reproduce it:
+
+| | Hand-typed | Derived | Missing | Extra |
+|---|---|---|---|---|
+| M-B roster | 208 | 208 | 0 | 0 |
+| M-B items | 148 | 148 | 0 | 0 |
+
+The roster rule that reproduces it is not the obvious one. Counting only base species gives 207,
+because base Floette is illegal while Floette-Eternal, the line that becomes Mega Floette, is legal.
+The rule is "a species is in if any of its entries is legal", and it was found by failing the
+comparison, not by reasoning about Floette in advance.
+
+That comparison is not a one-off. The generator repeats it on every run and refuses to write if it no
+longer holds. **A derivation that has stopped reproducing the known answer is not entitled to produce
+the unknown one.**
+
+Three further sources then agreed without being asked to. A scheduled job read Serebii's M-C page and
+listed the same 23 dex numbers; Pokémon.com's "24 newly available" is those 23 plus Alolan Persian;
+Victory Road's "29 additions" is those 23 plus the six new Megas. Four sources, one answer, and three
+of them unaware of the other.
+
+The same method did **not** reproduce the app's list of usable moves, and that result matters as much
+as the ones that matched. Showdown and the older list agree on 12,900 M-B species–move pairs and
+disagree on two moves: Slash (Showdown gives it to 28 species; the old list to none) and Pound on
+Politoed. Neither source can be checked against the game from here. So neither was allowed to
+overwrite the other: M-B keeps the list it had, M-C follows Showdown, and the page that reports
+regulation changes is told explicitly that these pairs differ **because the sources differ, not
+because the regulation did**. Otherwise it would have announced that M-C taught Slash to 28 Pokémon,
+which M-C did not do.
+
+The search for M-C's two move changes — Strength Sap and Wish from 10 PP to 5 — surfaced a larger
+error that predated it. Champions changes 63 moves against Scarlet/Violet, and the app had shown the
+Scarlet/Violet value for all of them in Champions mode since Champions mode existed: Protect at 10 PP
+rather than 5, and in the damage calculator, Dragon Claw without the slicing flag that lets Sharpness
+boost it — 98 damage where Champions gives 146. This is section 1's failure again, in the one mode
+where the app had assumed there was only one set of rules.
 
 ---
 

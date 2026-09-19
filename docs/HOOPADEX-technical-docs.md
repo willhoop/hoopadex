@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-08-24 · HoopaDex v5.47**
+**Version 2.2 · Last updated 2026-09-19 · HoopaDex v5.48**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -515,11 +515,21 @@ The application caches responses in memory. This reduces the number of requests.
 The cache is not persistent. The cache clears when you reload the page.
 
 ## 3.6 Champions learnset export
-The published version produces `champions-learnsets.json`. CHOMP consumes this file to check move
-legality. The file is approximately 1.4 MB.
+`app/champions-learnsets.json` lists, for each move, every Champions Pokémon that learns it and the
+regulations in which that is legal. CHOMP embeds a snapshot of it to check move legality. The file is
+approximately 1.7 MB.
 
 **Canonical location:**
-`https://raw.githubusercontent.com/willhoop/hoopadex/main/champions-learnsets.json`
+`https://raw.githubusercontent.com/willhoop/hoopadex/main/app/champions-learnsets.json`
+
+**Correction (5.48).** This section, and CHOMP's `data/PROVENANCE.md`, gave the location without the
+`app/` directory. That URL returns 404. The file has only ever been served from `app/`. CHOMP was not
+broken by this, because it embeds a snapshot at build time rather than fetching the file, but anyone
+following this document would have found nothing.
+
+**Where the rows come from.** The `reg-ma` and `reg-mb` rows were exported by CHOMP; their original
+source is not recorded. The `reg-mc` rows are derived from Showdown's `champions` mod by
+`build/generate-champions.js`, which rewrites the file byte for byte on every run. See 4.9.
 
 ### Schema
 The file is a JSON object. Each key is a move key: the move name in lowercase, with spaces and
@@ -555,7 +565,7 @@ punctuation removed.
 | `learnedBy[].num` | number | The National Dex number. |
 | `learnedBy[].sid` | string | The species id. Lowercase. |
 | `learnedBy[].methods` | array of string | How the species learns the move, for example `TM`. |
-| `learnedBy[].legalIn` | array of string | The regulations that allow it, for example `reg-ma`, `reg-mb`. |
+| `learnedBy[].legalIn` | array of string | The regulations that allow it: `reg-ma`, `reg-mb`, `reg-mc`. |
 
 **Multiple regulations.** The export holds more than one regulation. A species can be legal in one
 regulation and not legal in another. Always check `legalIn` for the regulation that you use.
@@ -701,7 +711,8 @@ true.
 | `build/generate-past-abilities.js` | `data/past-abilities.json` and `.embed.json` — abilities a species had in an earlier generation |
 | `build/embed-past-abilities.js` | Rewrites the `PASTABIL` table inside `app/index.html` from the generated copy |
 | `build/generate-regulations.js` | `data/regulations.json` and `docs/REGULATIONS.md` |
-| `build/generate-regulation-items.js` | `data/regulation-items.json` — per-regulation item legality |
+| `build/generate-champions.js` | Every Champions regulation: rosters, items, usable moves, move values, learnsets, the item diff. See 4.9. |
+| `build/generate-regulation-items.js` | **Retired in 5.48.** Its Showdown source was deleted upstream and running it would erase M-C's item changes; it now refuses to run. `data/regulation-items.json` is kept as the frozen M-A → M-B record. |
 | `build/generate-stat-formula.js` | `docs/STAT-FORMULA.md`, every figure computed by the shipped code |
 | `build/audit-champions-roster.js` | Evolution-stage audit of the Champions roster |
 | `build/mutation-check.js` | Pass or fail — the tests' own test |
@@ -965,6 +976,87 @@ document.
 `tests/test-evo-layout.js` is structural, because layout is not testable in node (white paper §5.3).
 What it pins is the set of rules above, including the two that failed silently during development:
 the inline flex outranking the widening class, and the wrapper not filling.
+
+## 4.9 Champions regulations are derived from Showdown
+
+`build/generate-champions.js` is the one place a Champions regulation enters the app. Run it after a
+new regulation appears:
+
+```
+node build/generate-champions.js --refresh   # re-read Showdown, then write everything
+node build/generate-champions.js             # rewrite from the committed snapshot (offline)
+node build/generate-champions.js --check     # write nothing; fail if anything is stale
+```
+
+**Source.** Showdown carries each Champions regulation as its own mod. The current one is always
+`data/mods/champions`. Each older one is a mod that inherits it and overrides only what differed —
+when M-C arrived, `champions` became M-C, `championsregmb` appeared, and `championsregma` was deleted
+upstream. An older regulation's mod files are therefore its change list.
+
+**Snapshot.** `--refresh` parses the mods into `data/showdown-champions-extract.json`, recording the
+Showdown commit. Every other run reads that file, so reruns are offline and byte-identical.
+
+**What it writes.** Between `/*BEGIN-CHAMPIONS-DERIVED*/` and `/*END-CHAMPIONS-DERIVED*/` in
+`app/index.html`: `REG_MC_NEW` and `CHAMPIONS_IDS_MC`; `CHAMPIONS_ITEMS_BY_REG` and
+`CHAMPIONS_MOVES_BY_REG`; `CHAMP_MOVE_OVERRIDES`; `REG_LEARNSET_SOURCE_DIFFS`; `REG_MOVE_CHANGES`. It
+also rewrites `REG_ITEM_CHANGES`, `app/champions-learnsets.json`, and `data/champions-regulations.json`.
+Do not edit any of these by hand. `tests/test-champions-mc.js` runs `--check` and fails if you do.
+
+**The trust anchor.** Before writing anything, the generator derives M-B and compares it with the M-B
+already in the app: the roster (208) and the items (148) must match exactly. If they do not, it stops.
+A derivation that no longer reproduces the known answer may not produce the unknown one.
+
+**Rules it uses — each one was chosen because it reproduced M-B:**
+
+- A species is in a regulation if **any** of its entries is legal. Base-species-only gives 207, because
+  base Floette is illegal and Floette-Eternal (the Mega Floette line) is legal.
+- Items: the base item table, then each mod in the inheritance chain, later overriding earlier.
+- A learnset row exists for every legal entry with a movepool of its **own**. Megas and battle formes
+  share their base's movepool and have no row.
+
+**Adding the next regulation.** Add a row to `REGS` at the top of the generator (newest first; the old
+current regulation gains `inherits`), add its row to `CHAMPIONS_REGS` in the app, and run `--refresh`.
+If the new regulation *removes* species, the generator stops: rosters are built by adding to the one
+before, and that needs extending first.
+
+### 4.9a Champions' move values
+
+Every move value in the app comes from PokéAPI, which describes Scarlet/Violet. Champions changes 63
+moves against that: 43 numbers (Protect 5 PP, Snipe Shot 85 power, Make It Rain 95% accuracy…), 2
+types (Snap Trap is Steel, Growth is Grass), 8 flag sets (Dragon Claw, Shadow Claw and Crush Claw are
+slicing; Double Shock is punching; Dragon Cheer is sound) and 12 effects.
+
+`CHAMP_MOVE_OVERRIDES[reg][moveId]` holds only the fields that **differ** from Scarlet/Violet, per
+regulation. `champMoveOverride(md, field)` is its only reader. It returns nothing outside Champions
+mode, and `champFor` returns nothing when a caller asks about a generation other than the one shown.
+
+It reaches four places:
+
+| Where | How |
+|---|---|
+| Move power, accuracy, PP | `getMovePowerForGen`, `getMoveAccForGen`, `getMovePPForGen` check it first. An accuracy of `true` becomes `null`, this app's "never misses". |
+| Move type | `getMoveTypeForGen` |
+| Move tags | `moveDescriptors` wraps `moveDescriptorsBase` and applies `flagsAdd` / `flagsRemove` |
+| Damage calculator | `champCalcOverrides` builds the engine's `overrides` |
+
+**Flags are merged in the calculator, not replaced.** The engine's `overrides.flags` replaces the move's
+whole flag object. Passing `{slicing:1}` for Dragon Claw would remove `contact`, and with it every Tough
+Claws boost and Rocky Helmet chip. `champCalcOverrides` copies the engine's own flags and applies the
+change to the copy.
+
+**Not yet applied:** the 12 effect changes (entries with `behaviour: true`). Their descriptions are
+still Scarlet/Violet's. See `docs/BACKLOG.md`.
+
+### 4.9b Two sources, and a difference that is not a rule change
+
+M-A and M-B learnsets came from CHOMP's export; M-C's come from Showdown. Compared on M-B they agree on
+12,900 species–move pairs. They disagree on Slash for 28 species and Pound for Politoed. Neither is
+something M-C changed — the only learnset change M-C declared is Archaludon's.
+
+The generator lists these pairs in `REG_LEARNSET_SOURCE_DIFFS`, and `regulationMoveDiff` skips them, so
+the Regulation Changes page reports only declared changes. `data/champions-regulations.json` names them
+under `sourceDifferencesNotRuleChanges`. If a later regulation adds a new kind of source disagreement,
+`tests/test-champions-mc.js` fails until someone looks at it.
 
 ## 4.8 The colourblind toggle appears only where it applies
 
