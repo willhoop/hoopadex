@@ -147,8 +147,11 @@ check(idFromUrl('https://pokeapi.co/api/v2/pokemon/10034/') === 10034, 'and that
 /* A Pokemon's page downloaded each learnable move's full record: 76 requests, 3.6 s for Charizard. */
 const MOV = JSON.parse(fs.readFileSync(path.join(ROOT, 'app', 'moves-index.json'), 'utf8')).moves;
 check(MOV.length >= 900 && MOV.every(r => r.length === 13 && typeof r[0] === 'string'), 'the move snapshot holds ' + MOV.length + ' complete rows', MOV.length);
-/* Independent check against Showdown. Six values differ, all PokeAPI's own quirks, named so a new
-   disagreement cannot hide among them: 1 as a "varies" marker for power, 0 for "never misses". */
+/* Independent check against Showdown. Six values differ, named so a new disagreement cannot hide
+   among them. Five are PokeAPI notation: 1 as a "varies" marker for power, and 0 instead of its usual
+   null for "never misses", which every accuracy display treats the same. The sixth is a real PokeAPI
+   error: Take Heart is 15 PP in the main games (Bulbapedia), and 10 only in Legends: Arceus. See
+   BACKLOG #33. */
 const SDM = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'showdown-champions-extract.json'), 'utf8')).moves;
 const KNOWN_MOVE_DIFFS = ['ruination:bp', 'comeuppance:bp', 'burning-bulwark:acc', 'tachyon-cutter:acc', 'dragon-cheer:acc', 'take-heart:pp'];
 const mdiff = [];

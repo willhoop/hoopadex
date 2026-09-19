@@ -488,11 +488,21 @@ with the live API, but nothing runs those checks automatically. The weekly `hoop
 task is the natural home. That is a change to persistent configuration, so it waits for the owner's
 approval.
 
-## 33. PokeAPI gives three status moves an accuracy of 0 — `open`
+## 33. Six PokeAPI values that disagree with Showdown — checked, one real error left `open`
 
-*Found 2026-09-19 (5.50), by comparing the move snapshot with Showdown.*
+*Found 2026-09-19 (5.50), by comparing the move snapshot with Showdown. Checked the same day.*
 
-PokeAPI records Burning Bulwark, Tachyon Cutter and Dragon Cheer with accuracy 0, where Showdown has
-"never misses". It also records Ruination and Comeuppance with power 1, a marker for "varies", and
-Take Heart with 10 PP against Showdown's 15. Check how each shows on screen, and which is right for
-Take Heart. `tests/test-fast-load.js` names all six, so a new disagreement cannot hide among them.
+- **Burning Bulwark, Tachyon Cutter, Dragon Cheer: accuracy 0. Not a problem.** None of them can miss.
+  Burning Bulwark, like Protect, only affects the user. PokeAPI usually writes "never misses" as null,
+  as it does for Protect and Aerial Ace, and wrote 0 only for these three. Every place the app shows
+  accuracy treats 0 and null alike (a dash, or nothing), so they already look like Protect. The
+  calculator uses its own engine data.
+- **Ruination, Comeuppance: power 1. Not a problem.** PokeAPI's marker for "power varies". Showdown
+  writes 0.
+- **Take Heart: PP 10. A real error in PokeAPI.** Bulbapedia gives 15 (max 24) in the main games, and 10
+  only in Legends: Arceus. Showdown has 15. The app shows PokeAPI's 10 in Generations VIII and IX. It
+  is not in Champions. Fixing it needs a written correction with this source, like Endure's in the
+  priority generator. Waiting on a decision about where corrections to PokeAPI's move numbers should
+  live.
+
+`tests/test-fast-load.js` names all six, so a new disagreement cannot hide among them.
