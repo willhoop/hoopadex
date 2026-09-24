@@ -508,3 +508,16 @@ in Gens I–III. Most are the two sources recording "cannot miss" differently: S
 Mimic, Bide, Struggle, Lock-On and Mind Reader in those generations, and PokeAPI writes nothing.
 Hypnosis is the exception: 60% (Showdown) or 70% (PokeAPI) in Gens I–III. Each needs a person to read
 it before anything is changed.
+
+## 36. Genesect's Drive forms are not separate entries — `wont-fix`
+
+*Asked 2026-09-24 (5.52): "do we have all the gensect forms? do they matter".*
+
+PokéAPI files Douse, Shock, Burn and Chill Genesect as `pokemon-form` entries under one `pokemon`
+entry, unlike Megas and regional forms, which are their own entries. The app builds its form list from
+`pokemon` entries, so it has one Genesect. That is right: the Drive changes no stat, type or ability.
+Its only effect is on Techno Blast's type, which 5.52 now shows, and the four Drives are already in
+the Items tab. Recorded so the question is not re-asked.
+
+Cosmetic-only form families in the same position (Vivillon patterns, Furfrou trims, Alcremie sweets,
+Deerling seasons) need nothing either.

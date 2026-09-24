@@ -12,6 +12,42 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.52] - 2026-09-24
+
+### Added
+- **Nine moves now say what their type depends on.** Asked from the live site, about Genesect:
+  *"do we have all the gensect forms? do they matter"*. The Drive forms are not missing data — PokéAPI
+  files Douse, Shock, Burn and Chill Genesect as appearance variants of one Pokémon, not as separate
+  entries — and a Drive changes nothing about Genesect itself. It changes **Techno Blast**, which the
+  dex showed as a plain Normal move while the four Drives sat in its own Items tab.
+
+  The dex already explained about 70 moves whose **power** varies (Weather Ball, Low Kick, Gyro Ball).
+  Moves whose **type** varies were missing, except four that happened to be covered. Now shown, each
+  with the type it produces:
+  - **Techno Blast** — the Drive (4)
+  - **Judgment** — the Plate (17)
+  - **Multi-Attack** — the Memory (17)
+  - **Ivy Cudgel** — Ogerpon's mask
+  - **Raging Bull** — the Tauros form
+  - **Aura Wheel** — Morpeko's form
+  - **Revelation Dance** — the user's own type
+  - **Tera Blast** — the Tera type
+  - **Tera Starstorm** — Stellar for Terapagos-Stellar
+
+  Ivy Cudgel and Tera Blast are the two that come up in Champions.
+
+  The mappings are generated, not typed: the Drives, Plates and Memories each record the type they
+  grant, and Ogerpon's, Tauros' and Morpeko's forms are named in the move's own code. Showdown marks a
+  move whose type is decided at use time, and there are 13 of them; the generator fails if a
+  fourteenth appears with nothing describing it, so the list cannot fall behind. It also refuses to
+  write a move name the app cannot look up.
+
+### Tests
+- New `tests/test-type-changing-moves.js` (18); 43 suites, 1,715 assertions, all passing. Mutations M161–M165 added. **154 killed, 0 survived,
+  0 skipped.**
+
+---
+
 ## [5.51] - 2026-09-19
 
 ### Fixed

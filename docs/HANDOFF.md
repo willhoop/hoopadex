@@ -110,6 +110,7 @@ Generators in `build/`, derived data committed in `data/`:
 - `generate-dex-index.js`, `generate-ability-index.js`, `generate-move-index.js` — the three list-view snapshots in `app/` (5.50); each has `--check` against live PokeAPI, and the move one refuses to write unless all records build identically
 - `generate-priority.js` — the Move Priority table from Showdown per generation (5.50); `--check` for drift
 - `generate-move-values.js` — PP and power corrections per generation and per game (Let's Go), and Champions' PP rule (5.51); `--check` for drift
+- `generate-type-changing-moves.js` — moves whose type is decided when used, from Showdown (5.52); `--check` for drift
 - `audit-champions-roster.js`
 
 **Showdown is the workhorse.** `smogon/pokemon-showdown` carries per-generation mods AND — the find

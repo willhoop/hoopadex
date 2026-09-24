@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-09-19 · HoopaDex v5.51**
+**Version 2.2 · Last updated 2026-09-24 · HoopaDex v5.52**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -727,6 +727,7 @@ true.
 | `build/generate-dex-index.js` | `app/dex-index.json`. `--check` compares it with live PokeAPI. See 4.10. |
 | `build/generate-ability-index.js` | `app/abilities-index.json`. `--check` compares it with live PokeAPI. |
 | `build/generate-move-index.js` | `app/moves-index.json`. It refuses to write unless every move builds identically through `makeMoveRecord` from the full record and from the snapshot row. |
+| `build/generate-type-changing-moves.js` | The `TYPE_CHANGING_MOVES` block in `app/index.html`: moves whose type is decided when used. See 4.9h. |
 | `build/generate-move-values.js` | The `MOVE_GEN_FIX`, `MOVE_GAME_FIX` and `CHAMP_PP` block in `app/index.html`: PP and power corrections per generation and per game, and Champions' PP rule. See 4.9g. |
 | `build/generate-priority.js` | The `PRIORITY_MOVES` block in `app/index.html`, from Showdown's per-generation move data. See 4.9f. |
 | `build/generate-stat-formula.js` | `docs/STAT-FORMULA.md`, every figure computed by the shipped code |
@@ -1226,6 +1227,35 @@ Rage Fist, whose change is in Showdown's battle code rather than its move entry.
 a move is marked `behaviour` without a line, or has a line without the mark. `champMoveDesc` is checked
 first by the tooltip, a Pokémon's move list and the Moves tab. On the move page,
 `renderMoveMechanics` shows "Changed in Champions" with the Scarlet/Violet rule.
+
+### 4.9h Moves whose type is decided when they are used (5.52)
+
+`VARIABLE_MOVE_INFO` explains about 70 moves whose power varies. It is hand-written, and four of its
+entries happen to cover type as well (Weather Ball, Hidden Power, Natural Gift, Terrain Pulse). The
+other nine type-changing moves had nothing, so Techno Blast rendered as a Normal move with no link to
+the Drives.
+
+Showdown marks a move whose type is decided at use time with an `onModifyType` handler. There are 13.
+`build/generate-type-changing-moves.js` writes the nine not already covered, and fails if a
+fourteenth appears that nothing describes, so the list cannot fall behind a new generation.
+
+Each mapping is read from Showdown rather than typed:
+
+- Items carry the type they grant: `onDrive` (4 Drives), `onPlate` (17 Plates) and `onMemory` (17
+  Memories). Judgment's own code ignores Z-crystals, which also carry `onPlate`, so the generator
+  excludes them the same way.
+- Form-based moves name their forms in the move's code, as a `switch` (Ivy Cudgel, Raging Bull) or an
+  `if/else` (Aura Wheel). The generator reads both shapes, then adds the form that keeps the move's
+  own type — plain Ogerpon, Tauros and Morpeko — which the code never mentions because it does
+  nothing. It refuses to run if Showdown ever does name that form, since the added row would hide it.
+- Three have no table: Revelation Dance, Tera Blast and Tera Starstorm follow the battle. They have a
+  written line each, in `NOTES`.
+
+Two further guards: every key must be a move name the snapshot knows, or the panel would silently
+never appear; and every type produced must be a real type. `renderVariableMoveInfo` draws a mapping as
+the condition plus a type pill, wrapped, because a 17-row table of Plates is a wall. Both surfaces
+that show move detail already route through that function, so the move page and a Pokémon's move list
+get it together.
 
 ## 4.10 Snapshots for the list views (5.50)
 

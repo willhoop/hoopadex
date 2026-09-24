@@ -367,6 +367,17 @@ const MUTATIONS = [
     "champMoveDesc(m)||genFlavorText(m.flavorEntries", "genFlavorText(m.flavorEntries", 1, 'test-champion-moves.js'],
   ['M160', "The Regulation Changes page states PP as defined, not as the game shows it",
     "return c.field==='pp'?champInGamePP(c.move,v):v", "return v", 1, 'test-champion-moves.js'],
+  // 5.52: moves whose type is decided when they are used.
+  ['M161', "The move panel stops reading the generated type-changing table",
+    "||(typeof TYPE_CHANGING_MOVES!=='undefined'?TYPE_CHANGING_MOVES[moveName]:null)", "", 1, 'test-type-changing-moves.js'],
+  ['M162', "A type mapping is carried but never drawn",
+    "if(info.pairs){", "if(false){", 1, 'test-type-changing-moves.js'],
+  ['M163', "Techno Blast's Douse Drive gives the wrong type",
+    '["Douse Drive","water"]', '["Douse Drive","normal"]', 1, 'test-type-changing-moves.js'],
+  ['M164', "Ogerpon's Hearthflame mask stops making Ivy Cudgel Fire",
+    '["Ogerpon-Hearthflame","fire"]', '["Ogerpon-Hearthflame","grass"]', 1, 'test-type-changing-moves.js'],
+  ['M165', "Aura Wheel forgets Morpeko's Hangry form",
+    ',["Morpeko-Hangry","dark"]', '', 1, 'test-type-changing-moves.js'],
 
   ['M50', 'The ability card loses min-width:0, so a long name pushes the Hidden pill out of the card',
     '.ap-mon-body{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}',
