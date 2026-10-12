@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-09-24 · HoopaDex v5.52**
+**Version 2.2 · Last updated 2026-10-12 · HoopaDex v5.53**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -1256,6 +1256,31 @@ never appear; and every type produced must be a real type. `renderVariableMoveIn
 the condition plus a type pill, wrapped, because a 17-row table of Plates is a wall. Both surfaces
 that show move detail already route through that function, so the move page and a Pokémon's move list
 get it together.
+
+## 4.11 One sprite set per game, not per generation (5.53)
+
+PokéAPI ships a sprite set per game group, and a generation can have several. The app held one set
+per generation, so FireRed/LeafGreen drew Emerald's sprites. Two tables decide the picture now:
+
+- `GEN_SPRITE_SET` — the set for a generation when no single game is selected. Generations I–VII only.
+- `SPRITE_SET_FOR_GAME` — the set for a chosen game, by version group, with `SPRITE_SET_FOR_VERSION`
+  for Gold and Silver, which have a set each. A game that keeps the official artwork maps to `null`
+  and is listed rather than omitted, so the choice is visible.
+
+Generations VIII and IX keep the official artwork. That decision predates this change (2.6): their
+sets are large 3D renders, and Scarlet/Violet's set is empty.
+
+Two facts come from PokéAPI rather than being assumed, both recorded in `app/dex-index.json`:
+
+1. **The file type.** Generation VII is `.gif` and Generation VIII `.webp`. Every URL used to be
+   built as `.png`, so Generation VII sprites 404'd on every card and fell back to artwork.
+2. **Coverage.** No Generation IV species has a Generation III sprite. Each row carries one bit per
+   set, as hex, against the `spriteSets` list in the same file. `periodSprite` returns `''` when the
+   selected game has no picture of that Pokémon, and the caller shows the artwork instead. The
+   document-wide error handler stays as a backstop.
+
+`spriteSetFor(gen)` answers which set to use; it only honours the selected game when that game
+belongs to the generation being drawn, so a Let's Go choice never leaks into a Generation III view.
 
 ## 4.10 Snapshots for the list views (5.50)
 

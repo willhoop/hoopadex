@@ -145,23 +145,110 @@ check(outOfRange.length === 0, 'every item generation is between I and IX', outO
 
 /* ---- period-accurate sprites -------------------------------------------------------------
    Selecting Generation I and being handed the modern artwork is the same class of wrongness as
-   showing modern base stats there. Generations I–VII get their own sprites; VIII and IX do not,
-   deliberately — both are large 3D renders that look broken beside pixel sprites, and for IX the
-   default sprite already IS the Scarlet/Violet one, so nothing is lost. */
-const dirs = src.match(/^const GEN_SPRITE_DIR=\{([\s\S]*?)\};$/m);
-check(!!dirs, 'GEN_SPRITE_DIR is present');
+   showing modern base stats there. Generations I-VII get their own sprites; VIII and IX do not,
+   deliberately - both are large 3D renders that look broken beside pixel sprites, and for IX the
+   default sprite already IS the Scarlet/Violet one, so nothing is lost.
+
+   5.53: a generation can have SEVERAL sets, and the chosen game decides which. Reported from the
+   live site, on FireRed/LeafGreen: "lets have things that have several sprites for each gen like
+   gen 3 does make sure the game uses the correct sprites". GEN_SPRITE_SET is the fallback when no
+   one game is selected; SPRITE_SET_FOR_GAME is the per-game answer. */
+const dirs = src.match(/^const GEN_SPRITE_SET=\{([\s\S]*?)\};$/m);
+check(!!dirs, 'GEN_SPRITE_SET is present');
 if (dirs) {
   const map = eval('({' + dirs[1] + '})');
   check(Object.keys(map).map(Number).sort((a, b) => a - b).join(',') === '1,2,3,4,5,6,7',
-    'exactly Generations I–VII have period sprites', Object.keys(map));
+    'exactly Generations I-VII have period sprites by default', Object.keys(map));
   // The icons/ sets are 68x56 menu icons, not box sprites. Using one would look like a bug.
   const icons = Object.entries(map).filter(([, v]) => /icons/.test(v));
   check(icons.length === 0, 'no generation points at an icons/ directory', icons);
   check(map[7] === 'generation-vii/ultra-sun-ultra-moon',
     'Gen VII uses the real sprites rather than its icons set', map[7]);
   check(!(8 in map) && !(9 in map),
-    'Gen VIII and IX fall through to the default sprite on purpose');
+    'Gen VIII and IX fall through to the official artwork on purpose');
 }
+
+/* Every game in the picker resolves to a set, and every set it names is one the snapshot has. */
+const games = eval('(' + src.match(/^const GEN_GAMES=(\{[\s\S]*?\n\});$/m)[1] + ')');
+const perGame = eval('(' + src.match(/^const SPRITE_SET_FOR_GAME=\{([\s\S]*?)^\};$/m)[1].replace(/^/, '{') + '})');
+const byVersion = eval('(' + src.match(/^const SPRITE_SET_FOR_VERSION=(\{[^\n]*?\});$/m)[1] + ')');
+const SETS = new Set(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'app', 'dex-index.json'), 'utf8')).spriteSets.map(x => x[0]));
+const vgs = [...new Set(Object.values(games).flat().map(g => g.vg))];
+const unmapped = vgs.filter(vg => !Object.prototype.hasOwnProperty.call(perGame, vg));
+check(unmapped.length === 0, 'every game in the picker says which sprites it uses', unmapped.join(', '));
+const bogus = Object.entries(perGame).concat(Object.entries(byVersion)).filter(([, v]) => v && !SETS.has(v));
+check(bogus.length === 0, 'and names a set PokeAPI actually ships', bogus.map(x => x.join('=')).join(', '));
+check(Object.values(byVersion).join() === 'generation-ii/gold,generation-ii/silver',
+  'Gold and Silver are chosen by version, because they have a set each', Object.values(byVersion));
+/* The report: three Generation III games, three different sets. */
+check(perGame['firered-leafgreen'] === 'generation-iii/firered-leafgreen' &&
+      perGame['ruby-sapphire'] === 'generation-iii/ruby-sapphire' &&
+      perGame['emerald'] === 'generation-iii/emerald',
+  'Ruby/Sapphire, Emerald and FireRed/LeafGreen each use their own sprites');
+check(perGame['diamond-pearl'] === 'generation-iv/diamond-pearl' && perGame['heartgold-soulsilver'] === 'generation-iv/heartgold-soulsilver',
+  'and Diamond/Pearl and HeartGold/SoulSilver are not shown as Platinum');
+check(perGame['sun-moon'] === perGame['ultra-sun-ultra-moon'],
+  'Sun/Moon has no set of its own, so it borrows Ultra Sun/Ultra Moon\'s');
+check(perGame['sword-shield'] === null && perGame['scarlet-violet'] === null,
+  'Gen VIII and IX games keep the artwork, the same decision as above');
+
+/* The file type is read from PokeAPI per set, not assumed: Gen VII is .gif, Gen VIII .webp. Before
+   5.53 every URL was built as .png, so Generation VII period sprites 404'd on every card. */
+const EXT = Object.fromEntries(JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'app', 'dex-index.json'), 'utf8')).spriteSets);
+check(EXT['generation-vii/ultra-sun-ultra-moon'] === 'gif' && EXT['generation-i/red-blue'] === 'png',
+  'the snapshot records each set\'s file type', EXT['generation-vii/ultra-sun-ultra-moon']);
+check(/'\.'\+\(SPRITE_EXT\[set\]\|\|'png'\)/.test(src), 'and the URL is built with it');
+check(/function haveSprite\(id,set\)\{/.test(src) && /function periodSprite\(id,g\)\{/.test(src),
+  'a sprite is only drawn when the snapshot says that game has one of that Pokemon');
+
+/* Behaviour, with the app's own functions and the real snapshot: the reported case is a game whose
+   sprites differ from its generation's default. */
+const SPR = (() => {
+  const cut = (a, b) => { const i = src.indexOf(a), j = src.indexOf(b, i + 1); if (i < 0 || j < 0) throw new Error('not found ' + a); return src.slice(i, j); };
+  const fn = n => cut('function ' + n + '(', '\n}\n') + '\n}\n';
+  const dex = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'app', 'dex-index.json'), 'utf8'));
+  const code = 'var isChampionsMode=false,specificGame=false,dataGen="",selectedVersion="";\n' +
+    'function getDataGenNum(){return SPRENV.gen}\n' +
+    src.split(/\r?\n/).find(l => l.startsWith('const VG_GEN=')) + '\n' +
+    src.split(/\r?\n/).find(l => l.startsWith("const SPRITE_ROOT=")) + '\n' +
+    cut('const GEN_SPRITE_SET=', 'function periodArt(') +
+    fn('periodSprite') + fn('spriteFor') +
+    ';({set(o){isChampionsMode=!!o.champ;specificGame=!!o.game;dataGen=o.game||"";selectedVersion=o.ver||"";' +
+    'SPRITE_SETS=dexSets;SPRITE_EXT=dexExt;spriteBits=dexBits},periodSprite,spriteFor,spriteSetFor})';
+  global.SPRENV = { gen: 9 };
+  global.dexSets = dex.spriteSets.map(x => x[0]);
+  global.dexExt = Object.fromEntries(dex.spriteSets);
+  global.dexBits = {};
+  dex.pokemon.forEach(r => { if (r[7]) global.dexBits[r[0]] = r[7]; });
+  return (0, eval)(code);
+})();
+const at = (gen, game, ver) => { SPRENV.gen = gen; SPR.set({ game, ver }); };
+const shortOf = u => (u || '').split('/sprites/pokemon/')[1] || '(artwork)';
+
+at(3, 'firered-leafgreen', 'leafgreen');
+check(shortOf(SPR.periodSprite(1, 3)) === 'versions/generation-iii/firered-leafgreen/1.png',
+  'LeafGreen draws the FireRed/LeafGreen Bulbasaur — the reported case', shortOf(SPR.periodSprite(1, 3)));
+at(3, 'emerald', 'emerald');
+check(shortOf(SPR.periodSprite(1, 3)) === 'versions/generation-iii/emerald/1.png', 'Emerald draws Emerald\'s');
+at(3, 'ruby-sapphire', 'ruby');
+check(shortOf(SPR.periodSprite(1, 3)) === 'versions/generation-iii/ruby-sapphire/1.png', 'Ruby draws Ruby/Sapphire\'s');
+at(3, '', '');
+check(shortOf(SPR.periodSprite(1, 3)) === 'versions/generation-iii/emerald/1.png',
+  'and with no single game chosen, the generation\'s own set');
+at(2, 'gold-silver', 'gold');
+check(shortOf(SPR.periodSprite(25, 2)) === 'versions/generation-ii/gold/25.png', 'Gold draws Gold\'s Pikachu');
+at(2, 'gold-silver', 'silver');
+check(shortOf(SPR.periodSprite(25, 2)) === 'versions/generation-ii/silver/25.png', 'and Silver draws Silver\'s');
+at(7, 'ultra-sun-ultra-moon', 'ultra-sun');
+check(shortOf(SPR.periodSprite(25, 7)) === 'versions/generation-vii/ultra-sun-ultra-moon/25.gif',
+  'Generation VII asks for .gif, which is what PokeAPI has — it asked for .png before 5.53 and got nothing',
+  shortOf(SPR.periodSprite(25, 7)));
+at(3, 'firered-leafgreen', 'leafgreen');
+check(SPR.periodSprite(445, 3) === '', 'a Generation IV species has no Generation III sprite, and none is claimed');
+check(shortOf(SPR.spriteFor(445, 3)) === '445.png', 'it falls back to the modern sprite instead of a broken image');
+at(8, 'sword-shield', 'sword');
+check(SPR.periodSprite(25, 8) === '', 'Generation VIII keeps the official artwork, as decided above');
+
 check(/function spriteFor\(id,genNum\)\{/.test(src), 'spriteFor builds the per-generation URL');
 check(/function periodArt\(p\)\{/.test(src),
   'periodArt overrides the official artwork where a period sprite exists');

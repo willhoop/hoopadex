@@ -12,6 +12,59 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.53] - 2026-10-12
+
+### Fixed
+- **A game now shows its own sprites.** Reported from the live site, with LeafGreen selected:
+  *"lets have things that have several sprites for each gen like gen 3 does make sure the game uses
+  the correct sprites"*. The app held one sprite set per generation, so all of Generation III drew
+  Emerald's sprites, all of Generation II drew Crystal's, and all of Generation IV drew Platinum's.
+  Each game group now draws its own:
+
+  | Generation | Before | Now |
+  |---|---|---|
+  | I | Red/Blue | Red/Blue, Yellow |
+  | II | Crystal | Gold, Silver, Crystal |
+  | III | Emerald | Ruby/Sapphire, Emerald, FireRed/LeafGreen |
+  | IV | Platinum | Diamond/Pearl, Platinum, HeartGold/SoulSilver |
+  | VI | X/Y | X/Y, Omega Ruby/Alpha Sapphire |
+  | VII | Ultra Sun/Ultra Moon | Ultra Sun/Ultra Moon, Let's Go |
+
+  Gold and Silver differ from each other, so those two are chosen by version rather than by version
+  group. Sun/Moon has no set of its own in PokéAPI and borrows Ultra Sun/Ultra Moon's. Generations
+  VIII and IX keep the official artwork, which is the decision already recorded in 2.6 — their sets
+  are large 3D renders that look broken beside pixel sprites.
+
+- **Generation VII's sprites never loaded at all.** Every sprite URL was built as `.png`. PokéAPI
+  serves Generation VII as `.gif` and Generation VIII as `.webp`, so every Generation VII request
+  404'd and fell back to modern artwork. The file type is now read per set from PokéAPI. Ultra Sun /
+  Ultra Moon draws its own animated sprites, 960 of them.
+
+- **A sprite is only drawn when that game has one.** No Generation IV species has a Generation III
+  sprite. The app used to request one anyway and recover from the broken image. `app/dex-index.json`
+  now records which of the 20 sets covers each of the 1,351 entries, so the request is never made.
+  The snapshot grew by 3 KB compressed.
+
+### Record
+- **Measured.** Sprite set per game: 19 of 19 games in the picker resolve to the set PokéAPI ships
+  for them (was 7 of 19, one per generation). Generation VII period sprites shown: 960, was 0.
+  Source: `app/dex-index.json`, generated from PokéAPI by `build/generate-dex-index.js`.
+- **Basis.** CHANGED — a reader can no longer be told that a generation has one set of sprites. The
+  question the picture answers is now "what did this Pokémon look like in *this game*", not "in this
+  generation".
+- **Supersedes.** ~~`GEN_SPRITE_DIR`, one directory per generation~~ retracted, replaced by
+  `GEN_SPRITE_SET` (the fallback when no single game is chosen) and `SPRITE_SET_FOR_GAME`.
+  ~~Generation VII sprites at `.png`~~ retracted: those URLs do not exist.
+- **Owed to the next major.** Nothing: the technical documentation is updated in this pass (4.11).
+
+### Tests
+- `tests/test-generation-tables.js` extended: the tables, and the behaviour, with the real snapshot.
+  43 suites, 1,735 assertions, all passing.
+- Mutations M166–M170 added. M137 was re-anchored — the snapshot loader changed under it, and it had
+  silently stopped testing anything. **159 killed, 0 survived, 0 skipped.**
+
+---
+
 ## [5.52] - 2026-09-24
 
 ### Added

@@ -18,10 +18,11 @@
  * used. Every field is copied, not re-derived: the file is the app's own input, written down.
  * A detail page still loads the full record; this file only replaces the list views' downloads.
  *
- * Format: pokemon: [[id, name, [type, type?], [hp, atk, def, spa, spd, spe], art, front, evYield], ...]
+ * Format: pokemon: [[id, name, [type, type?], [hp, atk, def, spa, spd, spe], art, front, evYield, spriteSets], ...]
  *   art / front: 1 = PokeAPI has the image at its standard URL, 0 = it has none,
  *                or the URL itself if it is anywhere else (none are, today; the check keeps it honest).
  *   evYield:     six digits, the EV yield in the same stat order ("000300"), for the EV Training table.
+ *   spriteSets:  hex bits over the file's `spriteSets` list: which games have a sprite of this Pokemon.
  */
 const fs = require('fs');
 const path = require('path');
@@ -47,6 +48,45 @@ async function getJson(url, tries = 5) {
 const idOf = url => +url.split('/').filter(Boolean).pop();
 const img = (url, std) => url == null ? 0 : (url === std ? 1 : url);
 
+/* Which per-game sprite set has a picture of this Pokemon (5.53). PokeAPI ships one set per game
+   group - Ruby/Sapphire, Emerald, FireRed/LeafGreen and so on - and the app used ONE set per
+   generation, so FireRed showed Emerald's sprites. Coverage differs per Pokemon (no Gen IV species
+   has a Gen III sprite) and the file type differs per set (.png, .gif for Generation VII, .webp for
+   Generation VIII), which is why both are read here rather than assumed.
+   `icons` and `red-green-japan` are skipped: menu icons, and a Japanese release the app does not list. */
+const SKIP_SET = /(^|\/)icons$|red-green-japan/;
+const spriteSets = {};   // "generation-iii/emerald" -> { ext, count }
+function spriteBits(p) {
+  const v = (p.sprites && p.sprites.versions) || {};
+  const have = new Set();
+  for (const gen of Object.keys(v)) {
+    for (const set of Object.keys(v[gen])) {
+      const key = gen + '/' + set;
+      if (SKIP_SET.test(key)) continue;
+      const url = v[gen][set] && v[gen][set].front_default;
+      const rec = spriteSets[key] || (spriteSets[key] = { ext: null, count: 0 });
+      if (!url) continue;
+      const expect = SPRITE_ROOT + 'versions/' + key + '/' + p.id + '.';
+      if (url.indexOf(expect) !== 0) throw new Error(p.name + ': ' + key + ' sits at an unexpected URL: ' + url);
+      const ext = url.slice(expect.length);
+      if (rec.ext && rec.ext !== ext) throw new Error(key + ' mixes file types: ' + rec.ext + ' and ' + ext);
+      rec.ext = ext; rec.count++;
+      have.add(key);
+    }
+  }
+  return have;
+}
+/* One bit per set, in the order the sets are written to the file, as hex. */
+function bitsToHex(have, order) {
+  let out = '';
+  for (let i = 0; i < order.length; i += 4) {
+    let nib = 0;
+    for (let b = 0; b < 4; b++) if (have.has(order[i + b])) nib |= 1 << b;
+    out += nib.toString(16);
+  }
+  return out.replace(/0+$/, '');
+}
+
 function reduce(p) {
   const types = p.types.slice().sort((a, b) => a.slot - b.slot).map(t => t.type.name);
   const st = STATS.map(n => { const s = p.stats.find(x => x.stat.name === n); if (!s) throw new Error(p.name + ' has no ' + n); return s; });
@@ -55,7 +95,7 @@ function reduce(p) {
   const art = p.sprites && p.sprites.other && p.sprites.other['official-artwork'] ? p.sprites.other['official-artwork'].front_default : null;
   return [p.id, p.name, types, stats,
     img(art, SPRITE_ROOT + 'other/official-artwork/' + p.id + '.png'),
-    img(p.sprites ? p.sprites.front_default : null, SPRITE_ROOT + p.id + '.png'), effort];
+    img(p.sprites ? p.sprites.front_default : null, SPRITE_ROOT + p.id + '.png'), effort, spriteBits(p)];
 }
 
 async function build() {
@@ -79,7 +119,12 @@ async function build() {
       if (++done % 200 === 0) process.stderr.write('  ' + done + '/' + all.length + '\n');
     }
   }));
-  return { speciesCount: species.length, formsCount: forms.length, pokemon: out };
+  /* The sets, in a fixed order, with the file type each one uses. The rows' bit strings are written
+     against this order, so it is part of the file. */
+  const order = Object.keys(spriteSets).filter(k => spriteSets[k].count > 0).sort();
+  out.forEach(r => { r[7] = bitsToHex(r[7], order); });
+  return { speciesCount: species.length, formsCount: forms.length, pokemon: out,
+    spriteSets: order.map(k => [k, spriteSets[k].ext]) };
 }
 
 (async () => {
@@ -87,7 +132,7 @@ async function build() {
   const b = await build();
   if (check) {
     const cur = JSON.parse(fs.readFileSync(OUT, 'utf8'));
-    const same = JSON.stringify(cur.pokemon) === JSON.stringify(b.pokemon);
+    const same = JSON.stringify(cur.pokemon) === JSON.stringify(b.pokemon) && JSON.stringify(cur.spriteSets) === JSON.stringify(b.spriteSets);
     console.log(same
       ? 'check: app/dex-index.json matches PokeAPI (' + b.pokemon.length + ' entries, taken ' + cur.fetched + ')'
       : 'STALE: app/dex-index.json differs from PokeAPI; rerun without --check');
@@ -97,6 +142,7 @@ async function build() {
     about: 'Generated by build/generate-dex-index.js from PokeAPI. Do not edit by hand.',
     fetched: new Date().toISOString().slice(0, 10),
     species: b.speciesCount, forms: b.formsCount,
+    spriteSets: b.spriteSets,
     pokemon: b.pokemon,
   };
   fs.writeFileSync(OUT, JSON.stringify(doc) + '\n');

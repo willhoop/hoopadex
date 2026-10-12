@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.52 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.53 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1436,7 +1436,9 @@ async function loadDexIndex(){
     const j=await r.json();
     const rows=j&&j.pokemon;
     if(!Array.isArray(rows)||!rows.length)return false;
-    rows.forEach(function(row){dl[row[0]]=liteRecord(row)});
+    SPRITE_SETS=(j.spriteSets||[]).map(function(x){return x[0]});
+    SPRITE_EXT={};(j.spriteSets||[]).forEach(function(x){SPRITE_EXT[x[0]]=x[1]});
+    rows.forEach(function(row){dl[row[0]]=liteRecord(row);if(row[7])spriteBits[row[0]]=row[7]});
     master=rows.filter(function(r){return r[0]<=1025}).map(function(r){return {id:r[0],name:r[1]}});
     formsIndex=rows.filter(function(r){return r[0]>10000}).map(function(r){return {id:r[0],name:r[1]}});
     return master.length===1025;
@@ -2051,7 +2053,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.52';
+const APP_VERSION='5.53';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -3429,9 +3431,8 @@ function renderEvoStage(node,currentId){
      to the modern sprite on its own when a generation has no period art, so the artwork is only
      used where there is no period sprite to prefer. */
   const g=isChampionsMode?9:getDataGenNum();
-  const sprite=GEN_SPRITE_DIR[g]
-    ? spriteFor(node.id)
-    : ((cached&&cached.sprites&&cached.sprites.other&&cached.sprites.other['official-artwork']&&
+  const sprite=periodSprite(node.id,g)
+    || ((cached&&cached.sprites&&cached.sprites.other&&cached.sprites.other['official-artwork']&&
         cached.sprites.other['official-artwork'].front_default)||spriteFor(node.id));
   return '<div class="evo-stage'+(isCurrent?' current':'')+'" onclick="showDetail('+node.id+')">'+
     '<img src="'+sprite+'" alt="'+node.name+'" loading="lazy">'+
@@ -10904,23 +10905,83 @@ function itemSpriteHtml(name,size){
    A sprite that does not exist for a given game 404s; the listener below quietly falls back to the
    modern sprite rather than leaving a broken image. */
 const SPRITE_ROOT='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
-const GEN_SPRITE_DIR={1:'generation-i/red-blue',2:'generation-ii/crystal',3:'generation-iii/emerald',
+/* ── Which game's sprites to draw (5.53) ────────────────────────────────────────────────────────
+   PokeAPI ships one sprite set per game group, and a generation can have several: Ruby/Sapphire,
+   Emerald and FireRed/LeafGreen all look different. The app used ONE set per generation, so with
+   LeafGreen selected it drew Emerald's sprites. It also built every URL as .png, while Generation VII
+   is .gif and Generation VIII is .webp, so those requests 404'd and quietly fell back to modern art.
+
+   GEN_SPRITE_SET is the set to use when no single game is chosen ("All Games"). SPRITE_SET_FOR_GAME
+   maps a chosen game to its own set, by version group, and by version for Gold and Silver, which have
+   a set each. A game whose set the app has no sprites for maps to null, and the generation's set is
+   used instead. app/dex-index.json carries which sets exist, their file types, and which Pokemon each
+   one covers, all read from PokeAPI (build/generate-dex-index.js). */
+const GEN_SPRITE_SET={1:'generation-i/red-blue',2:'generation-ii/crystal',3:'generation-iii/emerald',
   4:'generation-iv/platinum',5:'generation-v/black-white',6:'generation-vi/x-y',
   7:'generation-vii/ultra-sun-ultra-moon'};
+const SPRITE_SET_FOR_GAME={
+  'red-blue':'generation-i/red-blue','yellow':'generation-i/yellow',
+  'gold-silver':'generation-ii/gold','crystal':'generation-ii/crystal',
+  'ruby-sapphire':'generation-iii/ruby-sapphire','emerald':'generation-iii/emerald',
+  'firered-leafgreen':'generation-iii/firered-leafgreen',
+  'diamond-pearl':'generation-iv/diamond-pearl','platinum':'generation-iv/platinum',
+  'heartgold-soulsilver':'generation-iv/heartgold-soulsilver',
+  'black-white':'generation-v/black-white','black-2-white-2':'generation-v/black-white',
+  'x-y':'generation-vi/x-y','omega-ruby-alpha-sapphire':'generation-vi/omega-ruby-alpha-sapphire',
+  // Sun/Moon has no set of its own in PokeAPI; Ultra Sun/Ultra Moon's is the Generation VII sprite.
+  'sun-moon':'generation-vii/ultra-sun-ultra-moon','ultra-sun-ultra-moon':'generation-vii/ultra-sun-ultra-moon',
+  'lets-go-pikachu-lets-go-eevee':'generation-vii/lets-go-pikachu-lets-go-eevee',
+  /* Generation VIII and IX keep the official artwork, as they did before: PokeAPI's sets for them
+     are large 3D renders, which look broken beside pixel sprites. Scarlet/Violet's set is empty
+     anyway. Listed rather than omitted so a reader can see the choice was made. */
+  'sword-shield':null,'legends-arceus':null,'brilliant-diamond-and-shining-pearl':null,'scarlet-violet':null,
+};
+// Gold and Silver differ from each other, so they are chosen by version rather than version group.
+const SPRITE_SET_FOR_VERSION={gold:'generation-ii/gold',silver:'generation-ii/silver'};
+/* Filled from the snapshot. Empty when it could not be read - opened from disk, say - and then
+   spriteFor falls back to the old behaviour, which is a plain .png guess and the error handler below. */
+let SPRITE_SETS=[],SPRITE_EXT={},spriteBits={};
+function haveSprite(id,set){
+  const i=SPRITE_SETS.indexOf(set);
+  if(i<0)return false;
+  const hex=spriteBits[id];
+  if(!hex)return false;
+  const nib=parseInt(hex[Math.floor(i/4)]||'0',16);
+  return !!(nib&(1<<(i%4)));
+}
+/* The set a given generation should draw, honouring the selected game. */
+function spriteSetFor(g){
+  if(typeof specificGame!=='undefined'&&specificGame&&typeof dataGen!=='undefined'&&dataGen){
+    const byVer=SPRITE_SET_FOR_VERSION[typeof selectedVersion!=='undefined'?selectedVersion:''];
+    if(byVer&&VG_GEN[dataGen]===g)return byVer;
+    if(VG_GEN[dataGen]===g&&Object.prototype.hasOwnProperty.call(SPRITE_SET_FOR_GAME,dataGen))return SPRITE_SET_FOR_GAME[dataGen];
+  }
+  return GEN_SPRITE_SET[g]||null;
+}
 /* The dex card and the detail panel prefer PokeAPI's official artwork, which is modern art with no
    per-generation variant. In a generation that has its own sprites, the period sprite IS the
    accurate picture; outside those, the artwork is still the best image available. */
 function periodArt(p){
   if(!p)return '';
   const g=isChampionsMode?9:getDataGenNum();
-  if(GEN_SPRITE_DIR[g])return spriteFor(p.id,g);
+  const period=periodSprite(p.id,g);
+  if(period)return period;
   return (p.sprites&&p.sprites.other&&p.sprites.other['official-artwork']&&p.sprites.other['official-artwork'].front_default)
     ||(p.sprites&&p.sprites.front_default)||spriteFor(p.id,g);
 }
+/* The period picture, or '' when this generation has none of this Pokemon - a Generation IV species
+   has no Generation III sprite, and asking for one used to draw a broken image until it failed. */
+function periodSprite(id,g){
+  const want=spriteSetFor(g),def=GEN_SPRITE_SET[g];
+  if(!SPRITE_SETS.length)return want?SPRITE_ROOT+'versions/'+want+'/'+id+'.png':'';   // no snapshot: guess, as before
+  for(const set of [want,def]){
+    if(set&&haveSprite(id,set))return SPRITE_ROOT+'versions/'+set+'/'+id+'.'+(SPRITE_EXT[set]||'png');
+  }
+  return '';
+}
 function spriteFor(id,genNum){
   const g=(genNum===undefined)?(isChampionsMode?9:getDataGenNum()):genNum;
-  const dir=GEN_SPRITE_DIR[g];
-  return dir?SPRITE_ROOT+'versions/'+dir+'/'+id+'.png':SPRITE_ROOT+id+'.png';
+  return periodSprite(id,g)||SPRITE_ROOT+id+'.png';
 }
 /* One capture-phase listener instead of an onerror on every img: a period sprite that does not
    exist falls back to the modern one, once, and never loops. */
