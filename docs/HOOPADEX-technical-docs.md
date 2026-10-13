@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-10-12 · HoopaDex v5.53**
+**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.54**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -1269,6 +1269,10 @@ per generation, so FireRed/LeafGreen drew Emerald's sprites. Two tables decide t
 
 Generations VIII and IX keep the official artwork. That decision predates this change (2.6): their
 sets are large 3D renders, and Scarlet/Violet's set is empty.
+
+Champions mode is the exception (5.54). `spriteSetFor` returns `generation-ix/champions` when Champions
+mode is on and the generation drawn is IX. The set covers 230 of the 231 Regulation M-C species. Base
+Floette has no sprite and is not legal; Floette-Eternal has one.
 
 Two facts come from PokéAPI rather than being assumed, both recorded in `app/dex-index.json`:
 

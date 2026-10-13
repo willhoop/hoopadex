@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.53 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.54 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -2053,7 +2053,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.53';
+const APP_VERSION='5.54';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -10951,6 +10951,10 @@ function haveSprite(id,set){
 }
 /* The set a given generation should draw, honouring the selected game. */
 function spriteSetFor(g){
+  /* Champions has its own set (5.54): PokeAPI's generation-ix/champions, which covers 230 of M-C's
+     231 species and 123 forms. Only for the Champions view - a Scarlet/Violet Gen IX view keeps the
+     artwork. The one roster gap is base Floette, which is not legal; Floette-Eternal is, and has one. */
+  if(typeof isChampionsMode!=='undefined'&&isChampionsMode&&g===9)return 'generation-ix/champions';
   if(typeof specificGame!=='undefined'&&specificGame&&typeof dataGen!=='undefined'&&dataGen){
     const byVer=SPRITE_SET_FOR_VERSION[typeof selectedVersion!=='undefined'?selectedVersion:''];
     if(byVer&&VG_GEN[dataGen]===g)return byVer;

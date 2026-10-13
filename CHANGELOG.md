@@ -12,6 +12,28 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.54] - 2026-10-13
+
+### Changed
+- **Champions mode draws Champions' own sprites.** Asked for after 5.53 found the set: PokéAPI ships
+  `generation-ix/champions`, which covers 230 of Regulation M-C's 231 species and 123 forms. Champions
+  mode showed the official artwork before. The one gap is base Floette, which is not legal in
+  Champions; Floette-Eternal is, and has a sprite. A Scarlet/Violet view keeps the artwork.
+
+### Record
+- **Measured.** Champions cards drawn with a Champions sprite: 230 of 231 roster species (was 0).
+  Source: `app/dex-index.json`, the `spriteSets` coverage written by `build/generate-dex-index.js`.
+- **Basis.** unchanged — the rule from 5.53 (a game draws its own set) now covers Champions.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing: technical documentation 4.11 is updated in this pass.
+
+### Tests
+- `tests/test-generation-tables.js`: Champions draws its own Pikachu, base Floette keeps the artwork,
+  and a Scarlet/Violet view does not borrow the set. Mutations M171–M172. **161 killed, 0 survived,
+  0 skipped.** 43 suites, 1,738 assertions, all passing.
+
+---
+
 ## [5.53] - 2026-10-12
 
 ### Fixed
@@ -97,7 +119,7 @@ comment on line 2 of `app/index.html`.
 
 ### Tests
 - New `tests/test-type-changing-moves.js` (18); 43 suites, 1,715 assertions, all passing. Mutations M161–M165 added. **154 killed, 0 survived,
-  0 skipped.**
+  0 skipped.** 43 suites, 1,738 assertions, all passing.
 
 ---
 

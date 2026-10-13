@@ -248,6 +248,12 @@ check(SPR.periodSprite(445, 3) === '', 'a Generation IV species has no Generatio
 check(shortOf(SPR.spriteFor(445, 3)) === '445.png', 'it falls back to the modern sprite instead of a broken image');
 at(8, 'sword-shield', 'sword');
 check(SPR.periodSprite(25, 8) === '', 'Generation VIII keeps the official artwork, as decided above');
+/* 5.54: Champions draws its own set, which PokeAPI ships for 230 of the 231 Regulation M-C species. */
+SPR.set({ champ: true }); SPRENV.gen = 9;
+check(shortOf(SPR.periodSprite(25, 9)) === 'versions/generation-ix/champions/25.png', 'Champions draws its own Pikachu');
+check(SPR.periodSprite(670, 9) === '', 'base Floette has no Champions sprite (it is not legal), so it keeps the artwork');
+SPR.set({}); SPRENV.gen = 9;
+check(SPR.periodSprite(25, 9) === '', 'and a Scarlet/Violet view does not borrow the Champions set');
 
 check(/function spriteFor\(id,genNum\)\{/.test(src), 'spriteFor builds the per-generation URL');
 check(/function periodArt\(p\)\{/.test(src),

@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.1 · Last updated 2026-10-12 · HoopaDex v5.53**
+**Version 2.1 · Last updated 2026-10-13 · HoopaDex v5.54**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.53 the set is **159 mutations, all killed**, against 43 suites and 1,735 assertions. Two of
+As of v5.54 the set is **161 mutations, all killed**, against 43 suites and 1,738 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 

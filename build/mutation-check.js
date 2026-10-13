@@ -390,6 +390,10 @@ const MUTATIONS = [
     "+'.'+(SPRITE_EXT[set]||'png')", "+'.png'", 1, 'test-generation-tables.js'],
   ['M169', "A sprite is claimed for a Pokemon the game never had",
     "    if(set&&haveSprite(id,set))return SPRITE_ROOT", "    if(set)return SPRITE_ROOT", 1, 'test-generation-tables.js'],
+  ['M171', "Champions goes back to the official artwork",
+    "if(typeof isChampionsMode!=='undefined'&&isChampionsMode&&g===9)return 'generation-ix/champions';", "", 1, 'test-generation-tables.js'],
+  ['M172', "Champions' sprites leak into a Scarlet/Violet view",
+    "&&isChampionsMode&&g===9)return 'generation-ix/champions';", "&&g===9)return 'generation-ix/champions';", 1, 'test-generation-tables.js'],
   ['M170', "FireRed/LeafGreen is pointed at the wrong sprite set",
     "'firered-leafgreen':'generation-iii/firered-leafgreen',", "'firered-leafgreen':'generation-iii/emerald',", 1, 'test-generation-tables.js'],
 
