@@ -18,11 +18,12 @@
  * used. Every field is copied, not re-derived: the file is the app's own input, written down.
  * A detail page still loads the full record; this file only replaces the list views' downloads.
  *
- * Format: pokemon: [[id, name, [type, type?], [hp, atk, def, spa, spd, spe], art, front, evYield, spriteSets], ...]
+ * Format: pokemon: [[id, name, [type, type?], [hp, atk, def, spa, spd, spe], art, front, evYield, spriteSets, abilities], ...]
  *   art / front: 1 = PokeAPI has the image at its standard URL, 0 = it has none,
  *                or the URL itself if it is anywhere else (none are, today; the check keeps it honest).
  *   evYield:     six digits, the EV yield in the same stat order ("000300"), for the EV Training table.
  *   spriteSets:  hex bits over the file's `spriteSets` list: which games have a sprite of this Pokemon.
+ *   abilities:   [slot 1, slot 2, hidden] as PokeAPI names them today, '' for an empty slot.
  */
 const fs = require('fs');
 const path = require('path');
@@ -95,7 +96,16 @@ function reduce(p) {
   const art = p.sprites && p.sprites.other && p.sprites.other['official-artwork'] ? p.sprites.other['official-artwork'].front_default : null;
   return [p.id, p.name, types, stats,
     img(art, SPRITE_ROOT + 'other/official-artwork/' + p.id + '.png'),
-    img(p.sprites ? p.sprites.front_default : null, SPRITE_ROOT + p.id + '.png'), effort, spriteBits(p)];
+    img(p.sprites ? p.sprites.front_default : null, SPRITE_ROOT + p.id + '.png'), effort, spriteBits(p), abilitySlots(p)];
+}
+/* Abilities by slot, as PokeAPI lists them today: [slot 1, slot 2, hidden], '' where a slot is empty
+   (5.55). The ROM-hack tables need a base game's abilities, and three of the six hacks document only
+   what they CHANGED, so the unchanged ones have to come from somewhere; the app's past-ability table
+   (PASTABIL) turns these into an older generation's answer. */
+function abilitySlots(p) {
+  const out = ['', '', ''];
+  (p.abilities || []).forEach(a => { const i = a.is_hidden ? 2 : a.slot - 1; if (i >= 0 && i < 3) out[i] = a.ability.name; });
+  return out;
 }
 
 async function build() {

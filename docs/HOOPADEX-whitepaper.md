@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.1 · Last updated 2026-10-13 · HoopaDex v5.54**
+**Version 2.1 · Last updated 2026-10-13 · HoopaDex v5.55**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.54 the set is **161 mutations, all killed**, against 43 suites and 1,738 assertions. Two of
+As of v5.55 the set is **171 mutations, all killed**, against 45 suites and 1,800 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -747,6 +747,40 @@ values were simply wrong. And one game's changes were applied to its whole gener
 Solar Beam, 200, was shown for Sun/Moon. Bulbapedia sided with Showdown each time it was asked. The
 Let's Go values are now kept for Let's Go only, which is also why the app can now answer by game, not
 only by generation.
+
+### 5.11 Six ROM hacks, and a second source for each
+
+A ROM hack has no PokéAPI and no Showdown. Its data comes from its author, when the author publishes
+any, and from the community that plays it. HoopaDex takes the author's document as the primary source
+and a second, independent source as the check.
+
+| Hack | Primary | Second source | Compared | Unexplained |
+|---|---|---|---|---|
+| Renegade Platinum | Drayano's "Pokémon Changes" | Dynamic Calc | 493 | 0 |
+| Sacred Gold / Storm Silver | Drayano's "Pokemon Changes" | Dynamic Calc | 493 | 0 |
+| Run & Bun | dekzeh's own data files | Dynamic Calc | 903 | 0 |
+| Emerald Kaizo | emerald-kaizo-db (community) | Dynamic Calc | 386 | 0 |
+| Platinum Kaizo | the authors' Mastersheet | its own "(+n)" deltas vs Platinum | 490 | 0 |
+| FireRed Omega | Dynamic Calc (community) | — | — | — |
+
+"Unexplained" is 0 because of classification, not luck. Every disagreement was read, and each is
+recorded with its reason:
+
+- 8 for Sacred Gold, where the calculator data lacks a change the author's doc makes, and the doc's
+  own stated total agrees with it.
+- 3 for Run & Bun: the calculator has the official stats where the author changed them, keeps
+  slightly wrong stats where the author kept the official ones, or names a different Minior form.
+
+The comparison also found errors in the primary sources: two mislabelled stat lines, two wrong "old"
+abilities and a misspelling in Renegade Platinum's document, and six totals in Sacred Gold's that
+contradict their own stats. They are named, not corrected silently.
+
+The largest failure was not in any source. Platinum Kaizo's sheet, read through one of Google's two
+CSV exports, returned every changed stat blank. That export drops cells that do not match their
+column's format, and the sheet writes changes as "92 (+10)". The result would have shown Platinum's
+stats for the 208 Pokémon the hack changed, and nothing downstream could have told: a record with a
+blank stat looks like a record. Two checks now stand in front of that. Every record is validated
+before it is written, and every "(+n)" is checked against Platinum's own value; 490 of 490 agree.
 
 ---
 

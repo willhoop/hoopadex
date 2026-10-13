@@ -22,7 +22,8 @@ const slice = (a, b) => {
 
 const registry = slice('const CHAMPIONS_REGS=[', 'let CHAMPIONS_IDS=LATEST_REG.ids();')
               + 'let CHAMPIONS_IDS=LATEST_REG.ids();';
-const reader   = slice('const _initHash=hashPath();', '  applyFilters();');
+/* Up to the marker before the ROM-hack loader (5.55), which awaits a fetch and is not part of reading the address. */
+const reader   = slice('const _initHash=hashPath();', '  /* END-OF-HASH-READER');
 // The real hashPath(), sliced rather than restated: this suite exists to test the '#' handling,
 // so a copy of it living in the harness would test the copy.
 const hashPathFn = slice('function hashPath()', '\n');
@@ -37,6 +38,7 @@ let CHAMPIONS_ITEMS, CHAMPIONS_MOVES;
 ${registry}
 let isChampionsMode=true, selectedGenNum=9, dataGen='', specificGame=false,
     selectedVersion='', locVersion='';
+let isRomHack=false, romHackKey='', romHackVariant='', romHackFairy=false;
 const _sel={'data-gen-num':{value:'champions'},'data-game':{value:'',style:{},innerHTML:''}};
 const document={getElementById:id=>_sel[id]};
 function populateGameDropdown(){ if(isChampionsMode) _sel['data-game'].value=regByShort(championsReg).key; }
@@ -45,6 +47,7 @@ ${hashPathFn}
 
 function run(hash){
   isChampionsMode=true; selectedGenNum=9;
+  isRomHack=false; romHackKey=''; romHackVariant=''; romHackFairy=false;
   championsReg=LATEST_REG.short; CHAMPIONS_IDS=LATEST_REG.ids();
   _sel['data-gen-num'].value='champions'; _sel['data-game'].value=''; specificGame=false;
   populateGameDropdown();          // init() does this before parsing the hash
@@ -57,7 +60,7 @@ function run(hash){
 ${reader}
   return {champ:isChampionsMode, gen:selectedGenNum, reg:championsReg,
           genSel:_sel['data-gen-num'].value, gameSel:_sel['data-game'].value,
-          ids:CHAMPIONS_IDS.size};
+          ids:CHAMPIONS_IDS.size, hack:isRomHack, hackKey:romHackKey, variant:romHackVariant, fairy:romHackFairy};
 }
 module.exports={run,LATEST_REG,CHAMPIONS_REGS,regByKey,isRegKey};
 `;
@@ -114,6 +117,16 @@ t('an M-B link written before M-C existed still opens M-B', 'pokedex/p6/gchampio
   {champ:true, reg:'m-b', genSel:'champions', gameSel:'reg-mb', ids:5});
 t('and an explicit M-C link opens M-C', 'pokedex/gchampions/gm:reg-mc',
   {champ:true, reg:'m-c', genSel:'champions', gameSel:'reg-mc', ids:6});
+
+// --- ROM hacks (5.55): the hack, its variant and its optional patch all live in the address ---------
+t('a ROM hack link opens that hack, out of Champions', 'pokedex/ghacks/gm:renegade-platinum',
+  {hack:true, champ:false, hackKey:'renegade-platinum', variant:'', fairy:false, genSel:'romhacks'});
+t('with its variant', 'pokedex/p38/ghacks/gm:renegade-platinum/hv:classic',
+  {hack:true, hackKey:'renegade-platinum', variant:'classic', fairy:false});
+t('and its optional Fairy patch', 'calc/ghacks/gm:sacred-gold/hf:1',
+  {hack:true, hackKey:'sacred-gold', variant:'', fairy:true});
+t('a gm: token outside hack mode is still a game, not a hack', 'pokedex/g3/gm:emerald',
+  {hack:false, hackKey:''});
 
 /* --- the OTHER hash reader -----------------------------------------------------------------
    Everything above tests the parser inside init(). It is not the only one. restoreHash() has its

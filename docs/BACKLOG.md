@@ -521,3 +521,35 @@ the Items tab. Recorded so the question is not re-asked.
 
 Cosmetic-only form families in the same position (Vivillon patterns, Furfrou trims, Alcremie sweets,
 Deerling seasons) need nothing either.
+
+## 37. ROM hacks, phase 2 and after — `open`
+
+*Phase 1 shipped in 5.55: species types, stats and abilities, type chart, roster, calculator links.*
+
+In order:
+1. Learnsets (Renegade Platinum and Sacred Gold docs carry level-up lists; Platinum Kaizo's sheet has
+   level-up and TM tabs; Run & Bun has `level_up_learnsets.h` and `teachable_learnsets.h`).
+2. Evolution methods.
+3. Wild encounters.
+4. Trainers. The calculators already carry every trainer's team.
+5. Alternate forms (Rotom, Wormadam, regional forms in Run & Bun).
+
+Also asked for and not started: **Radical Red** (needs its sources researched), and a **nuzlocke
+tracker** in the style of nuzlocketracker.org.
+
+## 38. Trainer AI tab, and trainer documentation — `open`
+
+*Asked 2026-10-13: "build a very important tab, switch logic for the ai, and relevant ai flags, etc.
+this is for each game and rom hack if possible", "and trainer docs as well".*
+
+A tab explaining how the in-game trainer AI chooses moves and when it switches, and which AI flags
+each trainer has, for each game and hack. Then each game's and hack's trainers and teams. Candidate
+sources, to be researched before anything is built:
+- **Main games:** the pret decompilations (pokeemerald, pokefirered, pokeplatinum, pokeheartgold)
+  define the AI flags per trainer and the switching logic in source.
+- **Hacks:** Platinum Kaizo's Mastersheet has an "AI Changes" tab and per-split trainer tabs; Run & Bun
+  publishes an AI document and trainer sheets; Renegade Platinum and Sacred Gold publish "Trainer
+  Pokémon" text files; emerald-kaizo-db has `trainers.json`; the calculators carry every trainer's
+  team.
+
+

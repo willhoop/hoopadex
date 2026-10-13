@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.54 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.55 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -794,6 +794,19 @@ body.light .usearch-box{box-shadow:0 16px 64px rgba(0,0,0,0.15)}
   letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;
   background:#7b3f96;color:#fff;border:1px solid #7b3f96}
 body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
+/* ROM hack bar and panels (5.55) */
+#hack-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 10px;font-size:12px;color:var(--text4)}
+#hack-bar .hack-name{font-weight:800;color:var(--text);font-size:13px}
+.hack-meta{color:var(--text5);font-size:12px}
+.hack-seg{display:inline-flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden}
+.hack-seg button{background:none;border:0;color:var(--text4);padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.hack-seg button.on{background:var(--pill-neut);color:var(--pill-neut-ink)}
+.hack-toggle{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-weight:700}
+.hack-note{font-size:12px;color:var(--text5);font-style:italic;margin:4px 0 12px}
+.hack-calc{max-width:560px;padding:16px 0}
+.hack-calc p{font-size:13px;color:var(--text3);margin:6px 0 12px;line-height:1.5}
+.hack-calc-link{display:inline-block;padding:8px 14px;border:1px solid var(--border2);border-radius:8px;font-weight:700;font-size:13px;color:var(--text);text-decoration:none}
+.hack-calc-link:hover{border-color:var(--text4)}
 .pri-tools{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .pri-tools #pri-filter{max-width:280px}
 .pri-count{font-size:12px;color:var(--text4)}
@@ -1120,6 +1133,7 @@ button,select,input{touch-action:manipulation}
       <option value="8">Gen VIII</option>
       <option value="9">Gen IX</option>
       <option value="champions" selected>Champions</option>
+      <option value="romhacks">ROM Hacks</option>
     </select>
     <select id="data-game" onchange="onGameChange()" style="min-width:120px">
     </select>
@@ -1154,6 +1168,7 @@ button,select,input{touch-action:manipulation}
 <option value="">All Gens</option><option value="1">Gen 1</option><option value="2">Gen 2</option><option value="3">Gen 3</option><option value="4">Gen 4</option><option value="5">Gen 5</option><option value="6">Gen 6</option><option value="7">Gen 7</option><option value="8">Gen 8</option><option value="9">Gen 9</option>
 </select></div>
 <div id="pokedex-tab">
+<div id="hack-bar" style="display:none"></div>
 <div id="dex-search-hint">Type a <b>type</b>, <b>ability</b> or <b>move</b> and press <kbd>Enter</kbd> to add it as a filter. Stack as many as you like — <a href="#" onclick="event.preventDefault();demoDexSearch()">try dark + prankster + rain dance</a>.</div>
 <div id="dex-filter-chips" style="display:none"></div>
 <div class="pinned-bar" id="pinned-bar"></div>
@@ -1335,6 +1350,61 @@ button,select,input{touch-action:manipulation}
 </div></div>
 <script src="calc-engine.js"></script>
 <script>
+/* ── PokeAPI fallback archive (5.55) ──────────────────────────────────────────────────────────────
+   Asked from the live site: "what happens if the api we rely on fails, can we build a historical
+   record of the data and put it in an archive that activates only if the api fails. i just want the
+   raw data". willhoop/pokeapi-data is a fork of PokeAPI/api-data - PokeAPI's own static copy of its
+   whole API - kept current every Monday by a sync that adds and updates and never deletes.
+
+   Every request to pokeapi.co passes through here. It goes to pokeapi.co first; only a network
+   error, a timeout or a server error (5xx, 429) sends it to the archive. A 404 is a real answer
+   and is returned as one. After a failure the archive is used directly for a minute, so a site that
+   is down costs one timeout rather than one per request.
+
+   The archive stores a list once, whole, so ?limit/?offset are applied here. It also writes links
+   as "/api/v2/...", where the app follows "https://pokeapi.co/api/v2/..."; they are rewritten in the
+   copy handed to the app, so a link followed later is still a PokeAPI request and still falls back. */
+const POKEAPI_ROOT='https://pokeapi.co/api/v2/';
+const POKEAPI_ARCHIVE='https://raw.githubusercontent.com/willhoop/pokeapi-data/master/data/api/v2/';
+let pokeapiDownUntil=0,pokeapiFallbacks=0;
+function pokeapiArchiveUrl(url){
+  const rest=url.slice(POKEAPI_ROOT.length).split('?')[0].replace(/\/+$/,'');
+  return POKEAPI_ARCHIVE+rest+'/index.json';
+}
+async function pokeapiFromArchive(url){
+  const r=await _nativeFetch(pokeapiArchiveUrl(url));
+  if(!r.ok)return r;   // not in the archive either; the caller sees the failure as it would have
+  let text=(await r.text()).replace(/"\/api\/v2\//g,'"'+POKEAPI_ROOT);
+  const q=url.split('?')[1];
+  if(q){
+    const p=new URLSearchParams(q),j=JSON.parse(text);
+    if(Array.isArray(j.results)&&(p.has('limit')||p.has('offset'))){
+      const off=+(p.get('offset')||0),lim=p.has('limit')?+p.get('limit'):j.results.length;
+      j.results=j.results.slice(off,off+lim);j.next=null;j.previous=null;
+      text=JSON.stringify(j);
+    }
+  }
+  pokeapiFallbacks++;
+  if(pokeapiFallbacks===1)console.warn('[HoopaDex] pokeapi.co is not answering; using the archive at '+POKEAPI_ARCHIVE);
+  return new Response(text,{status:200,headers:{'content-type':'application/json'}});
+}
+const _nativeFetch=window.fetch.bind(window);
+window.fetch=async function(input,init){
+  const url=typeof input==='string'?input:(input&&input.url)||'';
+  if(url.indexOf(POKEAPI_ROOT)!==0)return _nativeFetch(input,init);
+  if(Date.now()<pokeapiDownUntil)return pokeapiFromArchive(url);
+  const ctl=typeof AbortController!=='undefined'?new AbortController():null;
+  const timer=ctl?setTimeout(function(){ctl.abort()},10000):null;
+  try{
+    const r=await _nativeFetch(input,Object.assign({},init||{},ctl?{signal:ctl.signal}:{}));
+    if(r.ok||r.status===404)return r;
+    throw new Error('HTTP '+r.status);
+  }catch(e){
+    pokeapiDownUntil=Date.now()+60000;
+    return pokeapiFromArchive(url);
+  }finally{if(timer)clearTimeout(timer)}
+};
+
 // === CONSTANTS ===
 // Stat bar colour bands. Absolute thresholds, not a percentile against the current Pokedex and
 // not a ramp scaled to the highest stat, so a given number reads the same in every generation and
@@ -1398,6 +1468,8 @@ const C2={normal:{rock:.5,ghost:0,steel:.5},fire:{fire:.5,water:.5,grass:2,ice:2
 const C1={normal:{rock:.5,ghost:0},fire:{fire:.5,water:.5,grass:2,ice:2,bug:2,rock:.5,dragon:.5},water:{fire:2,water:.5,grass:.5,ground:2,rock:2,dragon:.5},electric:{water:2,electric:.5,grass:.5,ground:0,flying:2,dragon:.5},grass:{fire:.5,water:2,grass:.5,poison:.5,ground:2,flying:.5,bug:.5,rock:2,dragon:.5},ice:{water:.5,grass:2,ice:.5,ground:2,flying:2,dragon:2},fighting:{normal:2,ice:2,poison:.5,flying:.5,psychic:.5,bug:.5,rock:2,ghost:0},poison:{grass:2,poison:.5,ground:.5,rock:.5,ghost:.5,bug:2},ground:{fire:2,electric:2,grass:.5,poison:2,flying:0,bug:.5,rock:2},flying:{electric:.5,grass:2,fighting:2,bug:2,rock:.5},psychic:{fighting:2,poison:2,psychic:.5},bug:{fire:.5,grass:2,fighting:.5,poison:2,flying:.5,psychic:2,ghost:.5},rock:{fire:2,ice:2,fighting:.5,ground:.5,flying:2,bug:2},ghost:{normal:0,psychic:0,ghost:2},dragon:{dragon:2}};
 
 function getChartForGen(genNum){
+  // A hack with the Fairy type uses the Generation VI chart, as its calculator does (5.55).
+  if(typeof isRomHack!=='undefined'&&isRomHack&&genNum===getDataGenNum()&&romHackHasFairy())genNum=6;
   if(genNum<=1)return{chart:C1,types:["normal","fire","water","electric","grass","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon"]};
   if(genNum<=5)return{chart:C2,types:["normal","fire","water","electric","grass","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel"]};
   return{chart:CM,types:AT};
@@ -1994,6 +2066,9 @@ function gen1StatRows(stats){
 }
 
 function getStatsForGen(pokemon){
+  // A ROM hack's own base stats (5.55).
+  const hr=typeof hackRec==='function'&&pokemon?hackRec(pokemon.id):null;
+  if(hr)return ['hp','attack','defense','special-attack','special-defense','speed'].map(function(n,i){return {base_stat:hr[1][i],effort:0,stat:{name:n}}});
   const genNum=getDataGenNum();
   const stats=JSON.parse(JSON.stringify(pokemon.stats||[]));
   const revisions=PAST_STATS[pokemon.id]||{};
@@ -2053,7 +2128,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.54';
+const APP_VERSION='5.55';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -2087,6 +2162,12 @@ function getGenLabel(){
 
 function populateGameDropdown(){
   const sel=document.getElementById('data-game');
+  if(isRomHack){
+    sel.innerHTML=ROM_HACKS.map(function(h){return '<option value="'+h.key+'">'+h.label+'</option>'}).join('');
+    sel.value=romHack().key;
+    sel.style.display='';
+    return;
+  }
   if(isChampionsMode){
     sel.innerHTML=CHAMPIONS_REGS.map(r=>'<option value="'+r.key+'">'+r.label+'</option>').join('');
     sel.value=regByShort(championsReg).key;
@@ -2139,7 +2220,12 @@ function resetToHomeAndReload(){
 
 function onGenNumChange(){
   const val=document.getElementById('data-gen-num').value;
-  if(val==='champions'){
+  isRomHack=false;
+  if(val==='romhacks'){
+    isRomHack=true;isChampionsMode=false;
+    romHackKey=ROM_HACKS[0].key;romHackVariant='';romHackFairy=false;
+    applyRomHackSelection();
+  }else if(val==='champions'){
     isChampionsMode=true;
     selectedGenNum=9;
     document.getElementById('data-game').style.display='';
@@ -2148,8 +2234,7 @@ function onGenNumChange(){
     selectedGenNum=parseInt(val);
     document.getElementById('data-game').style.display='';
   }
-  specificGame=false;
-  document.getElementById('data-game').value='';
+  if(!isRomHack){specificGame=false;document.getElementById('data-game').value=''}
   populateGameDropdown();
   applyModeVisibility();   // TMs and regulation changes only exist in some selections
   if(isChampionsMode){setChampReg(regByShort(championsReg))}
@@ -2167,9 +2252,21 @@ function swapTeamForScope(){
   if(typeof renderTeamBuilder==='function'){renderTeamBuilder();renderTeamAnalysis();renderTeamStoreUI()}
 }
 
+/* A hack runs on its base game: its generation's rules, its game's sprites and text. */
+function applyRomHackSelection(){
+  const h=romHack();
+  selectedGenNum=h.rules;
+  specificGame=true;dataGen=h.base.vg;selectedVersion=h.base.ver;
+}
 function onGameChange(){
   const sel=document.getElementById('data-game');
   const val=sel.value;
+  if(isRomHack){
+    romHackKey=val;romHackVariant='';romHackFairy=false;
+    applyRomHackSelection();
+    resetToHomeAndReload();
+    return;
+  }
   if(isChampionsMode){
     // The game dropdown IS the regulation selector in Champions, and a regulation change swaps the
     // legal roster, so it clears down the same way a generation change does.
@@ -2201,16 +2298,22 @@ function onGameChange(){
    Abilities tab. Neither mechanic existed: abilities and natures both arrived in Generation III.
    The tabs rendered a full modern list, which is not a smaller answer than the truth — it is a
    confident answer to a question the games of that era cannot be asked. */
+/* hack:false - not yet loaded for ROM hacks (5.55), so the tab would show the base game's answer. */
 const TAB_RELEVANCE={
-  locations:{champions:false},
-  evs:{champions:false},
+  locations:{champions:false,hack:false},
+  evs:{champions:false,hack:false},
   natures:{minGen:3},
-  abilities:{minGen:3},
+  abilities:{minGen:3,hack:false},
+  tms:{hack:false},
+  items:{hack:false},
+  team:{hack:false},
+  other:{hack:false},
 };
 function isTabRelevant(tab){
   const rule=TAB_RELEVANCE[tab];
   if(!rule)return true;
   if(rule.champions===false&&isChampionsMode)return false;
+  if(rule.hack===false&&typeof isRomHack!=='undefined'&&isRomHack)return false;
   if(rule.minGen&&!isChampionsMode&&selectedGenNum<rule.minGen)return false;
   return true;
 }
@@ -2346,6 +2449,10 @@ async function init(){
     // regulation token first so the stale gen number cannot override it.
     const _hasRegToken=_initHash.split('/').some(p=>p.startsWith('gm:')&&isRegKey(decodeURIComponent(p.slice(3))));
     _initHash.split('/').forEach(p=>{
+      if(p==='ghacks'){isRomHack=true;isChampionsMode=false;document.getElementById('data-gen-num').value='romhacks';return}
+      if(isRomHack&&p.startsWith('gm:')){romHackKey=decodeURIComponent(p.slice(3));return}
+      if(p.startsWith('hv:')){romHackVariant=decodeURIComponent(p.slice(3));return}
+      if(p==='hf:1'){romHackFairy=true;return}
       if(p==='gchampions'){
         isChampionsMode=true;selectedGenNum=9;
         document.getElementById('data-gen-num').value='champions';populateGameDropdown();
@@ -2367,6 +2474,13 @@ async function init(){
       if(p.startsWith('lv:'))locVersion=decodeURIComponent(p.slice(3));
     });
   }
+  /* END-OF-HASH-READER: a ROM hack's data loads once the address has been read (5.55). */
+  if(isRomHack){
+    if(!ROM_HACKS.some(function(h){return h.key===romHackKey}))romHackKey=ROM_HACKS[0].key;
+    applyRomHackSelection();populateGameDropdown();
+    await loadRomHack();
+  }
+  renderHackBar();
   applyFilters();
   // Team restoration sits AFTER applyFilters on purpose: the hash reader ends at that call,
   // and tests/test-hash-routing.js slices exactly that range out of this file. Putting team
@@ -2389,6 +2503,93 @@ async function init(){
       (d.moves||[]).forEach(m=>{window._moveGenMap[m.name]=g});
     }).catch(()=>{});
   }
+}
+
+/* ── ROM hacks (5.55) ──────────────────────────────────────────────────────────────────────────────
+   Asked for from the live site: "add emerald kaizo and platinum kaizo. omega fire red, sacred gold,
+   renegade platinum (the drayano games) run and bun", "have those be in its own romhack section", and
+   "some games (like ren) have different patches that do things like add fairy type, lets add that
+   toggle". Each hack's species - types, base stats, abilities - comes from app/hacks/<file>.json,
+   written by build/generate-romhacks.js from the hack's own documentation where the author publishes
+   it, and checked against a second source. See that file for the sources, and for every disagreement
+   and how it was settled.
+
+   This is phase 1: the Pokedex, the type chart, natures, and a link to each hack's established damage
+   calculator. Learnsets, wild encounters, evolution methods and trainers are not loaded yet, so the
+   tabs and detail sections that would show them stay out of hack mode rather than showing the base
+   game's answer as if it were the hack's.
+
+   rules     the generation whose rules the hack runs on (its engine; Run & Bun runs Gen VIII rules)
+   sprites   the sprite set it draws - its base game's, or null for official artwork
+   fairy     'always' (built in), 'never', or 'patch' (an optional patch, offered as a toggle) */
+const ROM_HACKS=[
+  {key:'renegade-platinum',label:'Renegade Platinum',author:'Drayano',version:'1.3.0',year:2019,rules:4,
+   base:{vg:'platinum',ver:'platinum'},sprites:'generation-iv/platinum',fairy:'always',
+   variants:[{key:'',label:'Complete'},{key:'classic',label:'Classic'}],
+   calc:{url:'https://hzla.github.io/Dynamic-Calc/?data=26138cc1d500b0cf7334&gen=7&switchIn=4&types=6&dmgGen=4'}},
+  {key:'sacred-gold',label:'Sacred Gold / Storm Silver',author:'Drayano',version:'1.05',year:2012,rules:4,
+   base:{vg:'heartgold-soulsilver',ver:'heartgold'},sprites:'generation-iv/heartgold-soulsilver',fairy:'patch',
+   fairyPatch:{label:'Fairy patch',by:'mikelan98'},
+   variants:[{key:'',label:'Complete'},{key:'classic',label:'Classic'}],
+   calc:{url:'https://hzla.github.io/Dynamic-Calc/?data=03e577af7cc9856a1f42&gen=7&switchIn=4&types=4&dmgGen=4',
+         fairyUrl:'https://hzla.github.io/Dynamic-Calc/?data=03e577af7cc9856a1f42&gen=7&switchIn=4&types=6&dmgGen=4&fairy=1'}},
+  {key:'platinum-kaizo',label:'Platinum Kaizo',author:'SinisterHoodedFigure and Mr. Keating',version:'',year:2026,rules:4,
+   base:{vg:'platinum',ver:'platinum'},sprites:'generation-iv/platinum',fairy:'never',
+   calc:{url:'https://pkcalc.anastarawneh.com/'}},
+  {key:'emerald-kaizo',label:'Emerald Kaizo',author:'SinisterHoodedFigure',version:'2.1',year:2020,rules:3,
+   base:{vg:'emerald',ver:'emerald'},sprites:'generation-iii/emerald',fairy:'never',
+   calc:{url:'https://hzla.github.io/Dynamic-Calc-Decomps/?data=ek'}},
+  {key:'firered-omega',label:'FireRed Omega',author:'Drayano',version:'',year:2009,rules:3,
+   base:{vg:'firered-leafgreen',ver:'firered'},sprites:'generation-iii/firered-leafgreen',fairy:'never',
+   calc:{url:'https://hzla.github.io/Dynamic-Calc-Decomps/?data=fro'}},
+  {key:'run-and-bun',label:'Run & Bun',author:'dekzeh',version:'1.07',year:2023,rules:8,
+   base:{vg:'emerald',ver:'emerald'},sprites:null,fairy:'always',
+   calc:{url:'https://hzla.github.io/Dynamic-Calc/?data=8c3ca30ba346734d5e4f&gen=8&types=6&dmgGen=8'}},
+];
+let isRomHack=false,romHackKey='',romHackVariant='',romHackFairy=false,HACK=null;
+function romHack(){return ROM_HACKS.find(function(h){return h.key===romHackKey})||ROM_HACKS[0]}
+function romHackFile(){
+  const h=romHack();
+  return h.key+(romHackVariant?'-'+romHackVariant:'')+(romHackFairy&&h.fairy==='patch'?'-fairy':'');
+}
+function romHackHasFairy(){const h=romHack();return h.fairy==='always'||(h.fairy==='patch'&&romHackFairy)}
+async function loadRomHack(){
+  try{const r=await fetch('hacks/'+romHackFile()+'.json');HACK=r.ok?await r.json():null}catch(e){HACK=null}
+}
+/* [types, [hp, atk, def, spa, spd, spe], [ability 1, ability 2, hidden]] for a species in this hack. */
+function hackRec(id){return isRomHack&&HACK&&HACK.species?HACK.species[id]||null:null}
+function hackAbilities(id){
+  const r=hackRec(id);
+  if(!r)return null;
+  return r[2].map(function(a,i){return a?{ability:{name:a,url:''},is_hidden:i===2,slot:i===2?3:i+1}:null}).filter(Boolean);
+}
+function romHackCalcUrl(){const h=romHack();return (romHackFairy&&h.calc.fairyUrl)||h.calc.url}
+/* Switching variant or patch swaps the whole species table, so it reloads like a game change. */
+function setRomHackVariant(v){romHackVariant=v;resetToHomeAndReload()}
+function toggleRomHackFairy(){romHackFairy=!romHackFairy;resetToHomeAndReload()}
+function renderHackBar(){
+  const el=document.getElementById('hack-bar');
+  if(!el)return;
+  if(!isRomHack){el.style.display='none';return}
+  const h=romHack();
+  let html='<span class="hack-name">'+h.label+'</span><span class="hack-meta">'+h.author+(h.version?' · v'+h.version:'')+' · '+h.year+'</span>';
+  if(h.variants)html+='<span class="hack-seg">'+h.variants.map(function(v){
+    return '<button class="'+(v.key===romHackVariant?'on':'')+'" onclick="setRomHackVariant(\''+v.key+'\')">'+v.label+'</button>'}).join('')+'</span>';
+  if(h.fairy==='patch')html+='<label class="hack-toggle"><input type="checkbox" '+(romHackFairy?'checked':'')+' onchange="toggleRomHackFairy()"> '+h.fairyPatch.label+'</label>';
+  if(!HACK)html+='<span class="hack-meta">This hack\u2019s data could not be loaded.</span>';
+  el.innerHTML=html;
+  el.style.display='';
+}
+function hackDetailNote(){
+  return '<div class="hack-note">Learnsets, evolution methods and wild encounters for '+romHack().label+' are not in HoopaDex yet.</div>';
+}
+function hackCalcPanel(){
+  const h=romHack();
+  const host=romHackCalcUrl().replace(/^https?:\/\//,'').split('/')[0];
+  return '<div class="hack-calc"><div class="section-label">Damage calculator</div>'
+    +'<p>'+h.label+' has its own calculator, built and kept current by its community, with every trainer\u2019s team loaded.</p>'
+    +'<a class="hack-calc-link" href="'+romHackCalcUrl()+'" target="_blank" rel="noopener">Open the '+h.label+(romHackFairy&&h.calc.fairyUrl?' (Fairy patch)':'')+' calculator</a>'
+    +'<div class="hack-meta">'+host+'</div></div>';
 }
 
 // === FILTERING ===
@@ -2606,6 +2807,7 @@ function applyFilters(){
   // roster is deliberately cross-generational, so "which Gen 2 Pokemon are legal here" is a real
   // question and the filter now answers it.
   if(isChampionsMode)f=f.filter(p=>CHAMPIONS_IDS.has(p.id));
+  if(isRomHack&&HACK)f=f.filter(p=>!!HACK.species[p.id]);   // the hack's species, no more and no fewer
   if(g){const[a,b]=GR[g];f=f.filter(p=>p.id>=a&&p.id<=b)}
   if(s){const sH=s.replace(/ /g,'-');const sFlat=s.replace(/[\s-]/g,'');f=f.filter(p=>p.name.includes(sH)||p.name.replace(/-/g,'').includes(sFlat)||String(p.id)===s||String(p.id).padStart(4,'0').includes(s)||(s.length>=3&&fuzzyScore(sFlat,p.name)>0.4))}
   if(t)f=f.filter(p=>{const d=dexRec(p.id);return d?d.types.some(x=>x.type.name===t):false});
@@ -3129,6 +3331,9 @@ const POKEMON_PAST_TYPES={
 };
 
 function filterTypesForGen(types,genNum,id){
+  // A ROM hack's own typing, for the generation being shown (5.55).
+  const hr=typeof hackRec==='function'?hackRec(id):null;
+  if(hr&&genNum===getDataGenNum())return hr[0].slice();
   // Entries are complete type lists rather than diffs, so the smallest applicable cutoff - the era
   // closest to the selected generation - is the answer on its own.
   const revisions=POKEMON_PAST_TYPES[id];
@@ -4328,7 +4533,8 @@ async function renderDetail(p){
     abs='<span style="color:#5a5a6a;font-size:12px;font-style:italic">Abilities did not exist in this generation</span>';
   }else{
   // Pre-load ability intro gen data
-    const allAbilities=(p.abilities||[]);
+    const hackAb=hackAbilities(p.id);   // a ROM hack's abilities replace the base game's (5.55)
+    const allAbilities=hackAb||(p.abilities||[]);
     await Promise.all(allAbilities.map(async a=>{
       const name=a.ability.name;
       if(!abilityCache[name]){
@@ -4350,7 +4556,7 @@ async function renderDetail(p){
     /* Historical ability overrides FIRST, then the generation gates. Order matters: Gengar's
        Generation IV ability is Levitate, and asking "did Cursed Body exist in Gen IV" is the wrong
        question — the species did not have Cursed Body then. */
-    abilityList=applyPastAbilities(p.name,allAbilities,genNum).filter(a=>{
+    abilityList=hackAb?hackAb:applyPastAbilities(p.name,allAbilities,genNum).filter(a=>{
       if(a.is_hidden&&genNum<5)return false;
       const cached=abilityCache[a.ability.name];
       if(cached&&cached.introGen>genNum)return false;
@@ -4364,7 +4570,7 @@ async function renderDetail(p){
          was to stop picking one. The caption below is the same pattern used a few lines later for
          SUPER RESIST / RESISTS / WEAK TO, so this reuses the page's own vocabulary instead of
          inventing more of it. "(H)" goes too: the heading says it in words. */
-      const abPill=a=>'<span class="ability-tag'+(a.is_hidden?' hidden':'')+'" style="cursor:pointer" onclick="showAbilityPage(\''+a.ability.name+'\')" onmouseenter="showAbilityTip(event,\''+a.ability.name+'\','+a.is_hidden+')" onmouseleave="hideTooltip()">'+a.ability.name.replace(/-/g,' ')+'</span>';
+      const abPill=a=>'<span class="ability-tag'+(a.is_hidden?' hidden':'')+'" '+(isRomHack?'':'style="cursor:pointer" onclick="showAbilityPage(\''+a.ability.name+'\')" ')+'onmouseenter="showAbilityTip(event,\''+a.ability.name+'\','+a.is_hidden+')" onmouseleave="hideTooltip()">'+a.ability.name.replace(/-/g,' ')+'</span>';
       const abNormal=abilityList.filter(a=>!a.is_hidden), abHidden=abilityList.filter(a=>a.is_hidden);
       abs='';
       if(abNormal.length)abs+='<div class="matchup-label" style="color:var(--text4)">'
@@ -4372,6 +4578,11 @@ async function renderDetail(p){
         +abNormal.map(abPill).join('')+'</div>';
       if(abHidden.length)abs+='<div class="matchup-label" style="color:var(--text4)">HIDDEN ABILITY</div><div>'
         +abHidden.map(abPill).join('')+'</div>';
+      /* A hack's doc can add an ability to a species whose slots are both full without saying which
+         one it replaces (Sacred Gold: Glalie, Budew, Roserade). Neither is guessed; the doc is quoted. */
+      const hn=isRomHack&&HACK&&HACK.abilityNotes&&HACK.abilityNotes[p.id];
+      if(hn)abs+='<div class="hack-note" style="margin:6px 0 0">'+romHack().label+'’s documentation also gives '
+        +hn.map(function(a){return a.replace(/-/g,' ')}).join(', ')+', without saying which ability it replaces.</div>';
     }else{
       abs='<span style="color:#5a5a6a;font-size:12px;font-style:italic">No abilities in this generation</span>';
     }
@@ -4480,11 +4691,12 @@ async function renderDetail(p){
     '</div>'+
     '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">'+
       '<div style="flex:1;min-width:180px"><div class="section-label" style="margin-bottom:6px">Defensive Matchups</div>'+iH+r4H+rH+wH+w4H+'</div>'+
-      '<div class="dx-evo-col"><div class="section-label" style="margin-bottom:6px">Evolution</div><div id="evo-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
+      (isRomHack?'':'<div class="dx-evo-col"><div class="section-label" style="margin-bottom:6px">Evolution</div><div id="evo-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>')+
     '</div>'+
-    '<div><div class="section-label" style="margin-bottom:8px">Moves</div><div id="moves-container"><div style="text-align:center;padding:12px;color:#6a6a7a"><div class="spinner" style="width:24px;height:24px;border-width:2px"></div>Loading moves...</div></div></div>'+
+    (isRomHack?hackDetailNote():'')+
+    (isRomHack?'':'<div><div class="section-label" style="margin-bottom:8px">Moves</div><div id="moves-container"><div style="text-align:center;padding:12px;color:#6a6a7a"><div class="spinner" style="width:24px;height:24px;border-width:2px"></div>Loading moves...</div></div></div>'+
     '<div style="margin-top:14px"><div class="section-label" style="margin-bottom:8px">Wild Encounters</div><div id="encounter-locs-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
-    '<div style="margin-top:14px"><div class="section-label" style="margin-bottom:8px">'+(isChampionsMode?'VGC Sets <span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--text5)">— closest published reference; Champions uses SP, not EVs</span>':'Smogon Sets')+'</div><div id="smogon-sets-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
+    '<div style="margin-top:14px"><div class="section-label" style="margin-bottom:8px">'+(isChampionsMode?'VGC Sets <span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--text5)">— closest published reference; Champions uses SP, not EVs</span>':'Smogon Sets')+'</div><div id="smogon-sets-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>')+
   '</div>';
 
   // Load evo chain in background - pre-fetch all members for official artwork
@@ -5633,9 +5845,13 @@ function saveHash(){
   if(currentTab==='pokedex'&&vm==='detail'&&adId)parts.push('p'+adId);
   if(currentTab==='locations'&&locActiveGroup)parts.push('loc:'+encodeURIComponent(locActiveGroup));
   // Save gen+game state
-  parts.push(isChampionsMode?'gchampions':'g'+selectedGenNum);
+  parts.push(isRomHack?'ghacks':isChampionsMode?'gchampions':'g'+selectedGenNum);
   const gameSel=document.getElementById('data-game');
-  if(gameSel.value)parts.push('gm:'+encodeURIComponent(gameSel.value));
+  if(isRomHack){
+    parts.push('gm:'+encodeURIComponent(romHackKey));
+    if(romHackVariant)parts.push('hv:'+encodeURIComponent(romHackVariant));
+    if(romHackFairy)parts.push('hf:1');
+  }else if(gameSel.value)parts.push('gm:'+encodeURIComponent(gameSel.value));
   if(locVersion)parts.push('lv:'+encodeURIComponent(locVersion));
   location.hash=parts.join('/');
   updateTitle();
@@ -10955,6 +11171,7 @@ function spriteSetFor(g){
      231 species and 123 forms. Only for the Champions view - a Scarlet/Violet Gen IX view keeps the
      artwork. The one roster gap is base Floette, which is not legal; Floette-Eternal is, and has one. */
   if(typeof isChampionsMode!=='undefined'&&isChampionsMode&&g===9)return 'generation-ix/champions';
+  if(typeof isRomHack!=='undefined'&&isRomHack)return romHack().sprites;   // the hack's base game, or artwork
   if(typeof specificGame!=='undefined'&&specificGame&&typeof dataGen!=='undefined'&&dataGen){
     const byVer=SPRITE_SET_FOR_VERSION[typeof selectedVersion!=='undefined'?selectedVersion:''];
     if(byVer&&VG_GEN[dataGen]===g)return byVer;
@@ -11444,6 +11661,7 @@ function calcRoster(){
   return master.filter(ok).concat(formsIndex.filter(ok));
 }
 function renderCalcTab(){
+  if(isRomHack){document.getElementById('calc-tab').innerHTML=hackCalcPanel();return}   // the hack's own calculator (5.55)
   calcInitAC();
   calcRefreshTeamPickers();   // the team can change between visits
   const lv=document.getElementById('calc-level');

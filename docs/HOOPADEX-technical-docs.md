@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.54**
+**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.55**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -727,6 +727,7 @@ true.
 | `build/generate-dex-index.js` | `app/dex-index.json`. `--check` compares it with live PokeAPI. See 4.10. |
 | `build/generate-ability-index.js` | `app/abilities-index.json`. `--check` compares it with live PokeAPI. |
 | `build/generate-move-index.js` | `app/moves-index.json`. It refuses to write unless every move builds identically through `makeMoveRecord` from the full record and from the snapshot row. |
+| `build/generate-romhacks.js` | `app/hacks/*.json`: each ROM hack's species data, with its cross-check. See 4.12. |
 | `build/generate-type-changing-moves.js` | The `TYPE_CHANGING_MOVES` block in `app/index.html`: moves whose type is decided when used. See 4.9h. |
 | `build/generate-move-values.js` | The `MOVE_GEN_FIX`, `MOVE_GAME_FIX` and `CHAMP_PP` block in `app/index.html`: PP and power corrections per generation and per game, and Champions' PP rule. See 4.9g. |
 | `build/generate-priority.js` | The `PRIORITY_MOVES` block in `app/index.html`, from Showdown's per-generation move data. See 4.9f. |
@@ -1285,6 +1286,73 @@ Two facts come from PokéAPI rather than being assumed, both recorded in `app/de
 
 `spriteSetFor(gen)` answers which set to use; it only honours the selected game when that game
 belongs to the generation being drawn, so a Let's Go choice never leaks into a Generation III view.
+
+## 4.12 ROM hacks (5.55)
+
+**Selection.** `ROM Hacks` is an option of `#data-gen-num`. The hack list comes from `ROM_HACKS`, the
+one configuration block for hacks. Each entry gives:
+
+- `rules` — the generation whose rules the hack runs on. This sets `selectedGenNum`.
+- `base` — the version group and version the hack is built on. This sets `dataGen` and
+  `selectedVersion`, so text follows the base game.
+- `sprites` — the sprite set to draw, or `null` for official artwork.
+- `fairy` — `always`, `never`, or `patch` (an optional patch, shown as a toggle).
+- `variants` — for example Complete and Classic.
+- `calc` — the URL of the hack's own damage calculator.
+
+The address carries the selection: `ghacks/gm:<hack>/hv:<variant>/hf:1`. A change of hack, variant
+or patch reloads the app, as a change of game does.
+
+**Data.** `loadRomHack()` fetches `app/hacks/<hack>[-<variant>][-fairy].json`. Each species is
+`[types, [hp, atk, def, spa, spd, spe], [ability 1, ability 2, hidden]]`. The app reads it through
+three existing functions, so every view that uses them follows:
+
+- `filterTypesForGen` returns the hack's types.
+- `getStatsForGen` returns the hack's stats.
+- The detail page's ability list uses `hackAbilities`.
+
+`getChartForGen` uses the Generation VI chart for a hack with the Fairy type. `applyFilters` limits
+the roster to the hack's species. `TAB_RELEVANCE` holds back the tabs whose data is not loaded yet,
+and the detail page shows a note in place of moves, evolution and encounters.
+
+**Generation.** `build/generate-romhacks.js` builds every file. Three sources list only changes
+(Renegade Platinum, Sacred Gold) or part of a record (FireRed Omega). For those, each species starts
+from its base game, read through the app's own generation tables sliced from `index.html`, and the
+documented changes are applied. Rules worth knowing:
+
+- Drayano's Renegade Platinum headings carry qualifiers. `(Complete)` and `(Classic)` select a
+  version; a form name ("Plant Cloak", "Fan Rotom") applies only when it names the default form.
+- Sacred Gold's "+ Ability: X" with no slot number fills an empty second slot. When both slots are
+  full, the doc does not say which one it replaces, so nothing is placed and the doc is quoted on the
+  species page.
+- Sacred Gold's Fairy patch is the canon Generation VI retype, read from the app's type history. The
+  two calculator datasets were not usable for it: they disagree with each other about more than Fairy.
+- Run & Bun's source is pokeemerald-expansion C. The generator resolves its `#if P_UPDATED_*`
+  branches to Generation VIII and expands its macros.
+- Platinum Kaizo's sheet is read through the plain CSV export, never gviz. Gviz blanks the "92 (+10)"
+  cells, which are exactly the changed stats.
+
+Every record is validated before it is written: one or two real types, six stats from 1 to 255, and
+known abilities. Every disagreement with the second source is listed. One the primary source
+explains is listed under `explained` with the reason; any other fails `tests/test-romhacks.js`.
+
+## 4.13 The PokéAPI fallback archive (5.55)
+
+`window.fetch` is wrapped at the top of the script. A request to `https://pokeapi.co/api/v2/` goes to
+pokeapi.co first. A network error, a 10-second timeout, a 5xx or a 429 sends it to
+`raw.githubusercontent.com/willhoop/pokeapi-data/master/data/api/v2/<path>/index.json`. A 404 is
+returned as it is. After a failure, requests go straight to the archive for 60 seconds.
+
+The archive differs from the API in two ways, and the wrapper corrects both in the copy it returns:
+
+1. A list is stored whole, so `?limit` and `?offset` are applied by slicing.
+2. Links are written as `/api/v2/...`. They are rewritten to `https://pokeapi.co/api/v2/...`, so a
+   link the app follows later is still a PokéAPI request, and still falls back.
+
+**The archive repository.** It is a fork of PokeAPI/api-data. `.github/workflows/archive-sync.yml`
+runs every Monday. It runs `rsync` without `--delete`, refuses to commit if any file would be
+removed, and never force-pushes. Do not use GitHub's "Sync fork" button: it merges upstream
+deletions. PokéAPI's two server-update workflows are moved to `.github/workflows-upstream-disabled/`.
 
 ## 4.10 Snapshots for the list views (5.50)
 

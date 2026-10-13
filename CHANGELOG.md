@@ -12,6 +12,85 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.55] - 2026-10-13
+
+### Added
+- **ROM hacks, in their own section.** Asked for from the live site: *"add emerald kaizo and platinum
+  kaizo. omega fire red, sacred gold, renegade platinum (the drayano games) run and bun"*, *"have
+  those be in its own romhack section"*, and a toggle for patches *"that do things like add fairy
+  type"*. **ROM Hacks** is now an entry in the first dropdown, next to Champions, with six hacks:
+
+  | Hack | Variants | Source of its data | Checked against |
+  |---|---|---|---|
+  | Renegade Platinum | Complete / Classic | Drayano's own "Pokémon Changes" | Dynamic Calc data: 493 species, 0 unexplained |
+  | Sacred Gold / Storm Silver | Complete / Classic, + Fairy patch | Drayano's own "Pokemon Changes" | Dynamic Calc data: 493, 0 unexplained |
+  | Platinum Kaizo | — | the authors' Mastersheet | its own "(+n)" deltas: 490 of 490 consistent |
+  | Run & Bun | — | dekzeh's own data files | Dynamic Calc data: 903, 0 unexplained |
+  | Emerald Kaizo | — | Isotarge's emerald-kaizo-db (community) | Dynamic Calc data: 386, 0 differences |
+  | FireRed Omega | — | Dynamic Calc data (no author docs exist) | — |
+
+  Each hack shows **its own types, base stats and abilities**, uses **its own type chart** (Fairy
+  where the hack has it), draws **its base game's sprites**, and lists **only its own species**. The
+  Dmg Calc tab links to the hack's established calculator (hzla's Dynamic Calc, or Platinum Kaizo's
+  official one) instead of running ours.
+
+  Renegade Platinum's Fairy type is built in, not a patch: its 32 Fairy Pokémon are the 20 official
+  ones and 12 of Drayano's. Its real option is **Classic**, which drops Drayano's non-canon changes;
+  Classic keeps the Fairy type but only the 20 official Fairy Pokémon. Sacred Gold's Fairy type *is* a
+  separate patch (by mikelan98), and turning it on retypes the 20 official Fairy Pokémon and switches
+  the calculator link to its Fairy version.
+
+  **Not yet:** learnsets, evolution methods, wild encounters, trainers and alternate forms. The tabs
+  that would show them (Moves, Abilities, Items, Locations, Team Builder, Other) are held back in hack
+  mode, and a species page says what is missing, rather than showing the base game's data as if it
+  were the hack's.
+
+- **A fallback archive of PokéAPI.** Asked from the live site: *"what happens if the api we rely on
+  fails, can we build a historical record of the data and put it in an archive that activates only if
+  the api fails. i just want the raw data"*, and *"make sure the sync is for future things only, no
+  deleting"*. [willhoop/pokeapi-data](https://github.com/willhoop/pokeapi-data) is a fork of
+  PokeAPI/api-data — PokéAPI's own raw JSON copy of its whole API — synced every Monday by a job that
+  copies new and changed files, **never removes one**, stops if a run would, and never force-pushes,
+  so every earlier version stays in the history. Every request the app makes to pokeapi.co goes there
+  first; only a network error, a timeout or a server error sends it to the archive. Tested by cutting
+  pokeapi.co off: Lucario's page made 0 requests to it, 8 to the archive, and rendered completely.
+
+- `llms.txt` at the repository root, for agents.
+
+### Fixed
+- **Errors found in the hack sources, recorded rather than smoothed over.** Drayano's Renegade
+  Platinum document labels two new stat lines "Old" (Volbeat, Illumise), gives Rhyperior's and
+  Pelipper's old abilities wrongly, and misspells Intimidate; Sacred Gold's lists stats that
+  contradict its own totals for six Pokémon (two settled by the calculator data, which agrees with the
+  totals). Each is named in the hack's file.
+- **A bad export caught before it shipped.** Platinum Kaizo's sheet, read through Google's gviz
+  export, came back with every changed stat blank — the export drops cells like "92 (+10)" that do
+  not match their column's format. That would have shown Platinum's stats for the 208 Pokémon the hack
+  changed. The plain export is used instead, and every record is now validated before it is written.
+- **README** was eleven versions stale and gave a learnset URL that 404s. Rewritten.
+
+### Record
+- **Measured.** ROM hacks: 6 hacks, 10 data files; disagreements with the second source left
+  unexplained: 0 (Renegade Platinum 0 of 493, Sacred Gold 0 of 493, Run & Bun 0 of 903, Emerald
+  Kaizo 0 of 386); Platinum Kaizo deltas consistent 490 of 490. Fallback: requests to pokeapi.co with
+  it cut off, 0 of 8. Source: `app/hacks/*.json` (`crossCheck`, `statDeltasChecked`), written by
+  `build/generate-romhacks.js`; `tests/test-api-fallback.js`.
+- **Basis.** unchanged for every existing figure — hack mode is a new selection beside the others.
+- **Supersedes.** ~~README "Version 5.28", "27 suites", learnset URL `/main/champions-learnsets.json`~~
+  retracted: stale.
+- **Owed to the next major.** Nothing: the white paper (5.11), deck (11i) and technical docs (4.12,
+  4.13) are updated in this pass.
+
+### Tests
+- New `tests/test-romhacks.js` (49) and `tests/test-api-fallback.js` (9). `test-hash-routing.js`
+  gained ROM-hack addresses; `test-generation-tables.js` and `test-past-abilities.js` were updated for
+  the new paths. 45 suites, 1,800 assertions, all passing.
+- Mutations M173–M182. **M177 survived on the first run**: the suite checked that the tab table
+  *said* hack mode hides a tab, never that the rule was applied. It now runs the real function, and
+  M177 is killed. **171 killed, 0 survived, 0 skipped.**
+
+---
+
 ## [5.54] - 2026-10-13
 
 ### Changed

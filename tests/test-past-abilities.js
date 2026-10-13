@@ -125,7 +125,8 @@ check(dupHiddenRule === 0,
   'the Generation V hidden-ability rule is not duplicated into this table', dupHiddenRule + ' species');
 
 // --- and the app applies it before its other gates ----------------------------------------------------
-check(/abilityList=applyPastAbilities\(p\.name,allAbilities,genNum\)/.test(src),
+/* 5.55: a ROM hack's own abilities come first when one is selected; otherwise history, then the gates. */
+check(/abilityList=(hackAb\?hackAb:)?applyPastAbilities\(p\.name,allAbilities,genNum\)/.test(src),
   'the species page resolves history before filtering by generation');
 
 /* -- the reverse: who HAD this ability in that generation ---------------------------------------

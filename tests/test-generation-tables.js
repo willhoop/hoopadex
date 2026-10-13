@@ -271,7 +271,7 @@ check(/indexOf\('\/versions\/'\)</.test(src),
 const appSrc = fs.readFileSync(process.env.HOOPADEX_SRC || path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
 const relBlock = appSrc.slice(appSrc.indexOf('const TAB_RELEVANCE='), appSrc.indexOf('function isTabRelevant('));
 check(/natures:\{minGen:3\}/.test(relBlock), 'Natures is gated to Generation III and above', relBlock);
-check(/abilities:\{minGen:3\}/.test(relBlock), 'and so is Abilities');
+check(/abilities:\{minGen:3[,}]/.test(relBlock), 'and so is Abilities');
 
 const relStart = appSrc.indexOf('function isTabRelevant(');
 const relEnd = appSrc.indexOf('function applyTabVisibility(');
@@ -321,8 +321,8 @@ check(!/triggerDataRefresh\(\)/.test(genChange),
   'and no longer relies on clearing caches by hand', genChange.slice(-200));
 const gameChange = appSrc2.slice(appSrc2.indexOf('function onGameChange()'),
                                  appSrc2.indexOf('function onGameChange()') + 1400);
-check((gameChange.match(/resetToHomeAndReload\(\)/g) || []).length === 2,
-  'a game change reloads on BOTH paths — the classic game selector and the Champions regulation one',
+check((gameChange.match(/resetToHomeAndReload\(\)/g) || []).length === 3,
+  'a game change reloads on all THREE paths — the classic game selector, the Champions regulation one, and the ROM hack one (5.55)',
   (gameChange.match(/resetToHomeAndReload\(\)/g) || []).length + ' call sites');
 check(!/  triggerDataRefresh\(\);/.test(gameChange),
   'and neither path still hand-clears', gameChange.slice(0, 200));

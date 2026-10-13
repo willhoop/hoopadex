@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.1 · Last updated 2026-10-13 · HoopaDex v5.54**
+**Version 2.1 · Last updated 2026-10-13 · HoopaDex v5.55**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -351,9 +351,27 @@ flinches 20% of the time, Milk Drink can heal a partner.
 
 ---
 
+## Slide 11i — ROM hacks, and a safety net
+
+HoopaDex now covers six ROM hacks: Renegade Platinum, Sacred Gold and Storm Silver, Platinum Kaizo,
+Emerald Kaizo, FireRed Omega and Run & Bun. Pick one, and the dex shows that hack's types, stats and
+abilities, its type chart, and only its Pokémon.
+
+Nobody publishes this data in a tidy database. So each hack's numbers come from its author's own notes
+where they exist, and are checked against a second source. Across more than 2,000 Pokémon, every
+difference between the two has a known reason, and the authors' own typos are written down.
+
+The worst mistake was caught before it shipped. One spreadsheet download quietly blanked every stat
+Platinum Kaizo had changed, which would have shown the original game's numbers for 208 Pokémon.
+
+And if PokéAPI ever goes down, HoopaDex now falls back to our own copy of its data, which is updated
+every week and never deletes anything.
+
+---
+
 ## Slide 12 — What we don't claim
 
-Forty-three test suites and 1,738 assertions now cover the data, the damage formula, the derived
+Forty-five test suites and 1,800 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

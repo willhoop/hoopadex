@@ -1,74 +1,60 @@
 # HoopaDex
 
-A complete Pokédex that runs from a folder of static files. No build step, no server, no install —
-open `app/index.html` and it runs.
+A generation-aware Pokédex that runs from a folder of static files. It shows types, stats,
+abilities, moves and evolutions **as they were in the game you pick** — every generation, every main
+game, Pokémon Champions, and six ROM hacks.
 
-**Version 5.28 · 2026-08-03**
+**Version 5.55 · 2026-10-13** · Live: [willhoop.github.io/hoopadex/app](https://willhoop.github.io/hoopadex/app/)
 
-> Precisely: `app/index.html` is the application, and it is genuinely self-contained apart from two
-> siblings it loads — `calc-engine.js` (the vendored `@smogon/calc` damage engine) and
-> `champions-learnsets.json`. Open `index.html` on its own and everything works except that the
-> damage calculator falls back to a simpler built-in engine, which ignores held items. It also
-> pulls a webfont from Google, so it is not fully offline. The project described itself as "one
-> HTML file, no dependencies" until an architecture review on 2026-08-03 measured it.
+## What it covers
 
-Its distinguishing feature is that it is **generation-aware**: it shows the type chart, base stats,
-types, abilities, items, and evolution chains *as they were in the generation you select*, not only
-as they are today. Steel resisted Ghost and Dark before generation 6. Fairy didn't exist. Several
-Pokémon changed type. A dex that ignores that gives wrong answers about older games.
+- **Generations I–IX, game by game.** Steel resisted Ghost and Dark before Generation VI, Fairy did
+  not exist, Recover had 20 PP in Generation III. FireRed shows FireRed's sprites, not Emerald's.
+- **Pokémon Champions**, regulation by regulation, with Champions' own PP rule, move changes and
+  sprites, and a damage calculator built on `@smogon/calc`.
+- **ROM hacks** in their own section: Renegade Platinum (Complete / Classic), Sacred Gold / Storm
+  Silver (Complete / Classic, optional Fairy patch), Platinum Kaizo, Emerald Kaizo, FireRed Omega and
+  Run & Bun. Each hack's own types, base stats and abilities, from its author's documentation where
+  one exists, checked against a second source; the Dmg Calc tab links to the hack's own calculator.
+- **A fallback archive.** If pokeapi.co fails, every request is answered from
+  [willhoop/pokeapi-data](https://github.com/willhoop/pokeapi-data), a raw copy of PokéAPI synced
+  weekly that never deletes.
 
-## Features
-Ten tabs: Pokédex · Moves · Abilities · Items · Locations · Type Chart · Natures · Team Builder ·
-EV Training · Other (move priority, physical/special split, compare, EV yields, training spots).
+## Components
 
-Plus fuzzy search, pinning and side-by-side comparison, per-game encounter locations, TM lists,
-a six-slot team builder with importable competitive sets, and a light/dark theme.
-
-## Where it lives
-| | Where | Notes |
+| Part | Where | What it is |
 |---|---|---|
-| **Published (current)** | [willhoop.github.io/hoopadex](https://willhoop.github.io/hoopadex/) · [repo](https://github.com/willhoop/hoopadex) | Adds **Champions mode**, a **damage calculator** built on the official `@smogon/calc` engine, and the **SP stat system** (0–32 per stat, 66 budget, fixed 31 IVs, level 50). |
+| App | `app/index.html` | The application. Version on line 2. |
+| Damage engine | `app/calc-engine.js` | Vendored `@smogon/calc`, checksum-pinned (`data/vendor-pins.json`). |
+| List snapshots | `app/dex-index.json`, `app/abilities-index.json`, `app/moves-index.json` | PokéAPI data the list views read in one request each. |
+| Champions learnsets | `app/champions-learnsets.json` | Move legality per regulation. Read by CHOMP. |
+| ROM hack data | `app/hacks/*.json` | One file per hack and variant. |
+| Generators | `build/generate-*.js` | Every derived table and snapshot. Each has `--check` for drift. |
+| Tests | `tests/test-*.js` | 45 suites, 1,800 assertions. |
+| Mutation check | `build/mutation-check.js` | 171 deliberate defects; each must turn a suite red. |
+| API archive | [willhoop/pokeapi-data](https://github.com/willhoop/pokeapi-data) | Fork of PokeAPI/api-data. Weekly add-and-update sync. |
 
-Both need an internet connection — they read live data from PokéAPI.
+## Documentation
 
-## Versioning rule
-The version is recorded on line 2 of `app/index.html`. **Every edit increments it**, and the newest
-`CHANGELOG.md` entry must match — `tests/test-syntax.js` fails if they disagree, and
-`tests/test-doc-versions.js` fails if the white paper, deck or technical documentation are stamped
-for a different version.
+- [White paper](docs/HOOPADEX-whitepaper.md) — results, figures and sources.
+- [Plain-English deck](docs/HOOPADEX-deck-plain-english.md) — the same story without the jargon.
+- [Technical documentation](docs/HOOPADEX-technical-docs.md) — install, run and maintain (ASD-STE100, Diátaxis).
+- [CHANGELOG](CHANGELOG.md) — every change, with the reason.
+- [Regulation changes](docs/REGULATIONS.md) — generated; do not edit.
 
 ## Running the tests, and publishing
 
 ```
-for f in tests/test-*.js; do node "$f"; done   # 27 suites
-node build/mutation-check.js                   # the tests' own test
-bash build/publish.sh                          # test, push, verify it deployed
+for f in tests/test-*.js; do node "$f"; done
+node build/mutation-check.js
+bash build/publish.sh
 ```
 
-`mutation-check.js` breaks the app on purpose in eleven specific ways and fails if the suite that
-claims to cover each one stays green. It exists because on 2026-08-03, with 23 suites and 778
-assertions all passing, five of ten deliberate defects went undetected — three of them in the damage
-calculator, which had no test that computed a damage number. A green suite proves the code has not
-changed, not that it is right.
-
-`publish.sh` is the only publisher. It refuses to push a red suite or an app that does not parse.
-
-## Documentation
-`docs/HOOPADEX-technical-docs.md` — full technical documentation (ASD-STE100, Diátaxis).
+The version on line 2 of `app/index.html` and the newest CHANGELOG entry must match;
+`tests/test-syntax.js` fails if they do not. `publish.sh` refuses to push a red suite.
 
 ## The Champions export
-The published version produces **`champions-learnsets.json`** (~1.4 MB), the authoritative answer to
-"can this Pokémon legally use this move in this regulation?". It covers multiple regulations
-(`reg-ma`, `reg-mb`) and records how each move is learned.
 
-**CHOMP consumes this file** to validate every recommended move. Its schema is documented in
-section 3.6 of the technical docs and is treated as a public contract — changing it breaks CHOMP.
-
-Canonical URL:
-`https://raw.githubusercontent.com/willhoop/hoopadex/main/champions-learnsets.json`
-
-## Regulation changes
-
-[`docs/REGULATIONS.md`](docs/REGULATIONS.md) lists what changed between each Pokémon Champions
-regulation. It is generated by `node build/generate-regulations.js` from the roster the app itself
-filters by — do not edit it by hand.
+`app/champions-learnsets.json` answers "can this Pokémon legally use this move in this regulation?"
+for every regulation. CHOMP reads it; its schema is section 3.6 of the technical documentation.
+Canonical URL: `https://raw.githubusercontent.com/willhoop/hoopadex/main/app/champions-learnsets.json`
