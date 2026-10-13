@@ -556,7 +556,7 @@ function write(key, meta, built, checks, check) {
   return true;
 }
 
-(async () => {
+async function main() {
   const check = process.argv.includes('--check');
   if (!fs.existsSync(OUTDIR)) fs.mkdirSync(OUTDIR);
   const fetched = new Date().toISOString().slice(0, 10);
@@ -643,4 +643,8 @@ function write(key, meta, built, checks, check) {
   });
   console.log(summary.join('\n'));
   if (check) { console.log(stale ? 'STALE: ' + stale + ' hack files differ' : 'check: every hack file matches its sources'); process.exit(stale ? 1 : 0); }
-})().catch(e => { console.error(e); process.exit(1); });
+}
+/* build/generate-romhack-data.js reads the same sources with the same parsers, so it requires this
+   file rather than keeping a second copy of them. */
+module.exports = { URL, get, calcObj, flat, speciesId, SPECIES, TYPES, typeName, abilityName, resolvePre, expandMacros, speciesBlocks, csvRows, baseRecord };
+if (require.main === module) main().catch(e => { console.error(e); process.exit(1); });

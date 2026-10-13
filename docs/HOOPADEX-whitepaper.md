@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.1 · Last updated 2026-10-13 · HoopaDex v5.55**
+**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.56**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.55 the set is **171 mutations, all killed**, against 45 suites and 1,800 assertions. Two of
+As of v5.56 the set is **180 mutations, all killed**, against 46 suites and 1,855 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -781,6 +781,73 @@ column's format, and the sheet writes changes as "92 (+10)". The result would ha
 stats for the 208 Pokémon the hack changed, and nothing downstream could have told: a record with a
 blank stat looks like a record. Two checks now stand in front of that. Every record is validated
 before it is written, and every "(+n)" is checked against Platinum's own value; 490 of 490 agree.
+
+### 5.12 A hack's moves, learnsets and evolutions
+
+Types, stats and abilities are only part of what a hack changes. Its moves can be retuned or
+replaced outright, and its learnsets and evolutions rewritten. From v5.56 each hack also carries its
+own move table, learnsets and evolution table, built the same way as §5.11: the author's data first,
+the base game (from PokéAPI's own CSV tables) where the author lists only changes.
+
+| Hack | Moves | Changed from base | New | Learnsets | Evolving species |
+|---|---|---|---|---|---|
+| Renegade Platinum | 467 | 113 | 11 | 493 | 229 |
+| Sacred Gold / Storm Silver | 467 | 43 | 0 | 493 | 229 |
+| Platinum Kaizo | 467 | 318 | 17 | 493 | 227 |
+| Run & Bun | 795 | 201 | 0 | 903 | 403 |
+| Emerald Kaizo | 354 | 219 | 15 | 386 | 172 |
+| FireRed Omega | 354 | 32 | 0 | 386 | 172 |
+
+"Changed" means at least one of type, category, power, accuracy, PP or priority differs from the
+base game in that generation. Run & Bun's 201 are mostly accuracy: its own move file makes many
+moves 100% accurate. Platinum Kaizo's 318 include Rollout, which is Rock-type with +1 priority, 40
+power and 5 PP — Accelerock in all but name.
+
+**Cross-checks.** The move tables were compared with each hack's calculator data for type, power and
+category.
+
+| Hack | Compared | Unexplained | Which |
+|---|---|---|---|
+| Renegade Platinum | 467 | 2 | Hidden Power (60, Ultra Sun and Ultra Moon's value, vs the calculator's "set in battle"); Feint (30 vs 50) |
+| Sacred Gold / Storm Silver | 456 | 2 | Curse's type; Strength's power (60, Drayano's stated value, vs 75) |
+| Run & Bun | 757 | 4 | Return and Frustration (102, the hack's file); Punishment; Misty Explosion |
+| Emerald Kaizo | 336 | 4 | Curse's type; Pin Missile 15 vs 14; Return and Frustration (103) |
+
+A calculator writes 1 for a move whose power the battle code sets (Low Kick, Seismic Toss); the app
+writes 0. Those agree, and are counted rather than listed (31 to 35 per hack).
+
+Learnsets have no independent second source for most hacks, and the file says so for each rather than
+calling a single source checked. Two internal checks stand in for one:
+
+- **Renegade Platinum's TM rule.** Drayano writes that TM compatibility "matches Ultra Sun and Ultra
+  Moon plus extras", and lists the extras. The rule as implemented was tested against his list: of
+  211 listed extras, 8 were already given by the rule. A wrong reading of his sentence would have
+  made the list largely redundant.
+- **Sacred Gold's calculator learnsets were rejected as a check.** Ten of its move names are other
+  moves — Ember appears as "Hp Fire", Rollout as "Accelerock", Slam as "Night Daze", names no
+  Generation IV game has. The mapping was worked out from the data (a name that never matches its own
+  move and always stands where one other move is), written into the file, and the comparison run
+  through it. 255 of 493 species still differ, so the calculator does not describe v1.05's learnsets
+  as written and is recorded as not confirming them.
+
+**A move is its slot.** Two hacks overwrite moves in place. Platinum Kaizo has two moves called Solar
+Beam (one replaced Skull Bash) and teaches "HP Dark" from the TM its own sheet labels Taunt. Emerald
+Kaizo's game names three different moves "Weather Ball". Matched by name, each set merged into one
+move; each is now read by its position in the hack's move table. Eight Emerald Kaizo learnset
+entries name only "Weather Ball", and the database cannot say which; they are listed in the file.
+
+**Priority by generation.** A move's base values are its values in the hack's base generation. PokéAPI
+gives only today's priority, so the base priority comes from the app's Move Priority table, derived from Showdown's per-generation files by `build/generate-priority.js`:
+Protect is +3 in Platinum, not +4.
+
+*Sources: Drayano, "Move Changes", "Item Changes" and "Evolution Changes" for Renegade Platinum
+v1.3.0 (pastebin.com/u/RenegadePlatinum; the evolution document as archived at
+github.com/zhenga8533-archive/renegade-platinum-wiki, MIT); Drayano, "Evolution Changes" and "Item
+Locations" for Sacred Gold v1.05 (github.com/zhenga8533-archive/sgss-wiki); the Platinum Kaizo
+Mastersheet, tabs Moves, Move Changes, Level-Up Learnsets, TM Learnsets and Evolutions; dekzeh,
+runandbundex `battle_moves.h`, `level_up_learnsets.h`, `teachable_learnsets.h`, `evolution.h`;
+Isotarge, emerald-kaizo-db `moves.json`, `pkmn.json`, `state.js` (MIT); PokeAPI, `data/v2/csv`
+(`pokemon_moves`, `machines`, `pokemon_evolution`).*
 
 ---
 

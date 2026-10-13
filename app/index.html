@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.55 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.56 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -804,6 +804,31 @@ body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
 .hack-toggle{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-weight:700}
 .hack-note{font-size:12px;color:var(--text5);font-style:italic;margin:4px 0 12px}
 .hack-calc{max-width:560px;padding:16px 0}
+/* ROM hacks, phase 2 (5.56) */
+.hack-mode-tab>:not(.hack-panel){display:none!important}
+.hack-panel{margin-bottom:14px}
+.hack-panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:10px}
+.hack-ctl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.hack-ctl input{flex:1;min-width:160px}
+.hack-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.hack-tbl th{text-align:left;font-size:11px;color:var(--text5);font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--border2);cursor:pointer;white-space:nowrap}
+.hack-tbl td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.hack-tbl td.num{font-family:'JetBrains Mono',monospace;text-align:right;white-space:nowrap}
+.hack-tbl tr.hack-row{cursor:pointer}
+.hack-tbl tr.hack-row:hover td{background:var(--pill-neut)}
+.hack-was{font-size:11px;color:var(--text5)}
+.hack-chg{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border:1px solid #F08030;color:#F08030;border-radius:3px;padding:0 3px;flex-shrink:0}
+.hack-chg.new{border-color:#78C850;color:#78C850}
+.hack-learners{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0 8px}
+.hack-mon{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--border2);border-radius:8px;padding:2px 8px 2px 2px;font-size:12px;cursor:pointer;background:none;color:var(--text)}
+.hack-mon img{width:32px;height:32px;image-rendering:pixelated}
+.hack-mon{text-transform:capitalize}
+.hack-mon small{color:var(--text5)}
+.hack-changes{font-size:12px;color:var(--text3);margin:0 0 12px;line-height:1.6}
+.hack-changes b{color:var(--text)}
+.hack-section{margin:14px 0}
+.hack-scroll{max-height:520px;overflow:auto;border:1px solid var(--border);border-radius:8px}
+@media (max-width:640px){.hack-tbl .hide-sm{display:none}}
 .hack-calc p{font-size:13px;color:var(--text3);margin:6px 0 12px;line-height:1.5}
 .hack-calc-link{display:inline-block;padding:8px 14px;border:1px solid var(--border2);border-radius:8px;font-weight:700;font-size:13px;color:var(--text);text-decoration:none}
 .hack-calc-link:hover{border-color:var(--text4)}
@@ -1184,16 +1209,19 @@ button,select,input{touch-action:manipulation}
 <div id="chart-container"></div>
 </div>
 <div id="abilities-tab" style="display:none">
+<div class="hack-panel" id="hack-abilities-panel" style="display:none"></div>
 <div class="pinned-bar" id="ability-pinned-bar"></div>
 <div id="abilities-container"><div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading abilities...</div></div>
 </div>
 <div id="items-tab" style="display:none">
+<div class="hack-panel" id="hack-items-panel" style="display:none"></div>
 <p style="font-size:14px;color:#8a8a9a;margin-bottom:12px">Browse held items available in the selected generation. Click an item for details.</p>
 <div class="pinned-bar" id="item-pinned-bar" style="margin-bottom:8px"></div>
 <div id="item-detail-panel" style="display:none"></div>
 <div id="items-container"><div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading items...</div></div>
 </div>
 <div id="tms-tab" style="display:none">
+<div class="hack-panel" id="hack-tms-panel" style="display:none"></div>
 <p style="font-size:14px;color:#8a8a9a;margin-bottom:12px"><span id="moves-intro-text">Find Pok&#233;mon that can learn specific moves. Search any move &#x2013; TMs, HMs, level-up, egg, or tutor moves.</span></p>
 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px">
 <div id="tm-criteria" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
@@ -1591,10 +1619,12 @@ async function showMoveTip(e,name){
   const type=getMoveTypeForGen(m);
   const cat=getMoveCatForGen(m);
   const typeColor=TC[type]||'#888';
-  const priLabel=m.priority>0?'+'+m.priority:m.priority<0?''+m.priority:'0';
-  const priColor=m.priority>0?'#78C850':m.priority<0?'#F85888':'#8a8a9a';
+  const pr=movePriority(m);
+  const priLabel=pr>0?'+'+pr:pr<0?''+pr:'0';
+  const priColor=pr>0?'#78C850':pr<0?'#F85888':'#8a8a9a';
+  const was=hackMoveWas(name);
   showTooltip(e,
-    '<div class="tooltip-title">'+m.name.replace(/-/g,' ')+'</div>'+
+    '<div class="tooltip-title">'+hackMoveLabel(m.name)+'</div>'+
     '<div class="tooltip-meta">'+
       '<span class="type-badge small" style="'+tcStyle(typeColor)+'">'+type+'</span>'+
       '<span class="move-cat '+cat+'">'+cat+'</span>'+
@@ -1605,7 +1635,8 @@ async function showMoveTip(e,name){
       // How many it hits, which in a doubles format belongs next to the power, not below it.
       renderSpreadTag(name)+
     '</div>'+
-    '<div class="tooltip-desc">'+(champMoveDesc(m)||genFlavorText(m.flavorEntries,getDataGenNum())||m.desc)+'</div>'+
+    (was?'<div class="tooltip-desc" style="color:#F08030">'+romHack().label+': '+was+'</div>':'')+
+    '<div class="tooltip-desc">'+(hackMoveNote(name)||champMoveDesc(m)||genFlavorText(m.flavorEntries,getDataGenNum())||m.desc)+'</div>'+
     renderVariableMoveInfo(name)+
     /* Which class of move this is — and only that. This used to list who acts on the class:
        "Boosted x1.3 by Tough Claws ABILITY" under a move whose own Pokemon almost certainly does
@@ -1618,6 +1649,7 @@ async function showMoveTip(e,name){
 
 async function ensureMoveData(name){
   if(moveCache[name])return;
+  const own=hackCustomMoveRecord(name);if(own){moveCache[name]=own;return}
   try{
     const d=await moveRaw(name);
     const en=d.effect_entries?.find(x=>x.language.name==='en');
@@ -1854,6 +1886,7 @@ function champInGamePP(md,pp){
   return (Math.min(pp,CHAMP_PP.cap)/5+1)*4;
 }
 function getMovePowerForGen(md,genNum){
+  const hk=typeof hackMove==="function"?hackMove(md):null;if(hk&&(genNum===undefined||genNum===getDataGenNum()))return hk[2]||null;
   const c=champFor(md,'bp',genNum);if(c!==undefined)return c;
   const g=genNum===undefined?getDataGenNum():genNum;
   const fix=moveValueFix(md,'power',g);if(fix!==undefined)return fix;
@@ -1862,12 +1895,14 @@ function getMovePowerForGen(md,genNum){
 }
 function getMoveAccForGen(md,genNum){
   // `true` is Showdown's "never misses"; PokeAPI - and so the rest of this app - writes that as null.
+  const hk=typeof hackMove==="function"?hackMove(md):null;if(hk&&(genNum===undefined||genNum===getDataGenNum()))return hk[3]||null;
   const c=champFor(md,'acc',genNum);if(c!==undefined)return c===true?null:c;
   const g=genNum===undefined?getDataGenNum():genNum;
   const v=movePastField(md,'accuracy',g);
   return v===undefined?(md&&md.accuracy):v;
 }
 function getMovePPForGen(md,genNum){
+  const hk=typeof hackMove==="function"?hackMove(md):null;if(hk&&(genNum===undefined||genNum===getDataGenNum()))return hk[4];
   const g=genNum===undefined?getDataGenNum():genNum;
   let v=champFor(md,'pp',genNum);
   if(v===undefined){
@@ -1989,6 +2024,7 @@ function pastAbilityIndex(genNum){
 
 function getMoveTypeForGen(md){
   if(!md)return'normal';
+  const hk=typeof hackMove==="function"?hackMove(md):null;if(hk)return hk[0];
   const champType=champMoveOverride(md,'type');   // Snap Trap is Steel in Champions, Growth is Grass
   if(champType)return champType.toLowerCase();
   const genNum=getDataGenNum();
@@ -2102,6 +2138,7 @@ function getStatsForGen(pokemon){
 }
 function getMoveCatForGen(md){
   if(!md)return'status';
+  const hk=typeof hackMove==="function"?hackMove(md):null;if(hk)return hk[1];
   const genNum=getDataGenNum();
   if(genNum<4&&md.damage_class!=='status'){
     const t=getMoveTypeForGen(md);
@@ -2128,7 +2165,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.55';
+const APP_VERSION='5.56';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -2298,14 +2335,13 @@ function onGameChange(){
    Abilities tab. Neither mechanic existed: abilities and natures both arrived in Generation III.
    The tabs rendered a full modern list, which is not a smaller answer than the truth — it is a
    confident answer to a question the games of that era cannot be asked. */
-/* hack:false - not yet loaded for ROM hacks (5.55), so the tab would show the base game's answer. */
+/* hack:false - not yet loaded for ROM hacks, so the tab would show the base game's answer. Moves,
+   Abilities and Items have each hack's own data from 5.56 (renderHackTab). */
 const TAB_RELEVANCE={
   locations:{champions:false,hack:false},
   evs:{champions:false,hack:false},
   natures:{minGen:3},
-  abilities:{minGen:3,hack:false},
-  tms:{hack:false},
-  items:{hack:false},
+  abilities:{minGen:3},
   team:{hack:false},
   other:{hack:false},
 };
@@ -2523,26 +2559,26 @@ async function init(){
    sprites   the sprite set it draws - its base game's, or null for official artwork
    fairy     'always' (built in), 'never', or 'patch' (an optional patch, offered as a toggle) */
 const ROM_HACKS=[
-  {key:'renegade-platinum',label:'Renegade Platinum',author:'Drayano',version:'1.3.0',year:2019,rules:4,
+  {key:'renegade-platinum',label:'Renegade Platinum',author:'Drayano',version:'1.3.0',year:2019,rules:4,baseLabel:'Platinum',
    base:{vg:'platinum',ver:'platinum'},sprites:'generation-iv/platinum',fairy:'always',
    variants:[{key:'',label:'Complete'},{key:'classic',label:'Classic'}],
    calc:{url:'https://hzla.github.io/Dynamic-Calc/?data=26138cc1d500b0cf7334&gen=7&switchIn=4&types=6&dmgGen=4'}},
-  {key:'sacred-gold',label:'Sacred Gold / Storm Silver',author:'Drayano',version:'1.05',year:2012,rules:4,
+  {key:'sacred-gold',label:'Sacred Gold / Storm Silver',author:'Drayano',version:'1.05',year:2012,rules:4,baseLabel:'HeartGold / SoulSilver',
    base:{vg:'heartgold-soulsilver',ver:'heartgold'},sprites:'generation-iv/heartgold-soulsilver',fairy:'patch',
    fairyPatch:{label:'Fairy patch',by:'mikelan98'},
    variants:[{key:'',label:'Complete'},{key:'classic',label:'Classic'}],
    calc:{url:'https://hzla.github.io/Dynamic-Calc/?data=03e577af7cc9856a1f42&gen=7&switchIn=4&types=4&dmgGen=4',
          fairyUrl:'https://hzla.github.io/Dynamic-Calc/?data=03e577af7cc9856a1f42&gen=7&switchIn=4&types=6&dmgGen=4&fairy=1'}},
-  {key:'platinum-kaizo',label:'Platinum Kaizo',author:'SinisterHoodedFigure and Mr. Keating',version:'',year:2026,rules:4,
+  {key:'platinum-kaizo',label:'Platinum Kaizo',author:'SinisterHoodedFigure and Mr. Keating',version:'',year:2026,rules:4,baseLabel:'Platinum',
    base:{vg:'platinum',ver:'platinum'},sprites:'generation-iv/platinum',fairy:'never',
    calc:{url:'https://pkcalc.anastarawneh.com/'}},
-  {key:'emerald-kaizo',label:'Emerald Kaizo',author:'SinisterHoodedFigure',version:'2.1',year:2020,rules:3,
+  {key:'emerald-kaizo',label:'Emerald Kaizo',author:'SinisterHoodedFigure',version:'2.1',year:2020,rules:3,baseLabel:'Emerald',
    base:{vg:'emerald',ver:'emerald'},sprites:'generation-iii/emerald',fairy:'never',
    calc:{url:'https://hzla.github.io/Dynamic-Calc-Decomps/?data=ek'}},
-  {key:'firered-omega',label:'FireRed Omega',author:'Drayano',version:'',year:2009,rules:3,
+  {key:'firered-omega',label:'FireRed Omega',author:'Drayano',version:'',year:2009,rules:3,baseLabel:'FireRed',
    base:{vg:'firered-leafgreen',ver:'firered'},sprites:'generation-iii/firered-leafgreen',fairy:'never',
    calc:{url:'https://hzla.github.io/Dynamic-Calc-Decomps/?data=fro'}},
-  {key:'run-and-bun',label:'Run & Bun',author:'dekzeh',version:'1.07',year:2023,rules:8,
+  {key:'run-and-bun',label:'Run & Bun',author:'dekzeh',version:'1.07',year:2023,rules:8,baseLabel:'Generation VIII',
    base:{vg:'emerald',ver:'emerald'},sprites:null,fairy:'always',
    calc:{url:'https://hzla.github.io/Dynamic-Calc/?data=8c3ca30ba346734d5e4f&gen=8&types=6&dmgGen=8'}},
 ];
@@ -2553,8 +2589,15 @@ function romHackFile(){
   return h.key+(romHackVariant?'-'+romHackVariant:'')+(romHackFairy&&h.fairy==='patch'?'-fairy':'');
 }
 function romHackHasFairy(){const h=romHack();return h.fairy==='always'||(h.fairy==='patch'&&romHackFairy)}
+/* Two files per hack and variant: <file>.json (types, stats, abilities - build/generate-romhacks.js)
+   and <file>.data.json (moves, learnsets, evolutions, items - build/generate-romhack-data.js). They
+   load together; a hack without its data file still shows its species, and says what is missing. */
 async function loadRomHack(){
-  try{const r=await fetch('hacks/'+romHackFile()+'.json');HACK=r.ok?await r.json():null}catch(e){HACK=null}
+  const get=function(u){return fetch(u).then(function(r){return r.ok?r.json():null}).catch(function(){return null})};
+  const f=romHackFile();
+  const both=await Promise.all([get('hacks/'+f+'.json'),get('hacks/'+f+'.data.json')]);
+  HACK=both[0];
+  if(HACK)HACK.data=both[1];
 }
 /* [types, [hp, atk, def, spa, spd, spe], [ability 1, ability 2, hidden]] for a species in this hack. */
 function hackRec(id){return isRomHack&&HACK&&HACK.species?HACK.species[id]||null:null}
@@ -2580,8 +2623,244 @@ function renderHackBar(){
   el.innerHTML=html;
   el.style.display='';
 }
+/* ── ROM hacks, phase 2 (5.56): each hack's own moves, learnsets, evolutions and items ──────────
+   "other rom hacks might have different stats/abilities/moves etc than base game", "we need learn
+   sets and evolution", "we need the other tabs like items, moves, abilities, even if lots of them are
+   the same as base there will be some changes", and "some moves get really changed or invented, like
+   accelerock as rock type quick attack in platinum kaizo".
+   HACK.data.moves[slug] = [type, category, power, accuracy, pp, priority, [changed fields], effect
+   text or null, base game's six values or null]. Every move getter asks hackMove() first, so a
+   learnset, a tooltip, the Moves tab and a type filter cannot disagree about what a move is here. */
+function hackData(){return isRomHack&&HACK&&HACK.data?HACK.data:null}
+function hackMove(md){const d=hackData();if(!d||!md)return null;return d.moves[typeof md==='string'?md:md.name]||null}
+/* A hack's own moves have no PokeAPI name ("pk-hp-dark" is Platinum Kaizo's "HP Dark"). */
+function hackMoveLabel(slug){const d=hackData();return (d&&d.customMoves&&d.customMoves[slug])||(d?capName(String(slug)):String(slug).replace(/-/g,' '))}
+function hackMoveNote(md){const h=hackMove(md);return h&&h[7]?h[7]:null}
+function movePriority(md){const h=hackMove(md);return h?h[5]:(md&&md.priority)||0}
+function hackMoveIsNew(slug){const h=hackMove(slug);return !!h&&!h[8]&&h[6].length===6}
+const HACK_MOVE_FIELDS=['type','category','power','accuracy','pp','priority'];
+function hackBaseLabel(){return romHack().baseLabel}
+/* "was Normal · 30 power · 90% accuracy · 20 PP" - only the fields the hack changed. */
+function hackMoveWas(slug){
+  const h=hackMove(slug);
+  if(!h||!h[8])return '';
+  const b=h[8];
+  return 'was '+h[6].map(function(f){
+    const v=b[HACK_MOVE_FIELDS.indexOf(f)];
+    if(f==='type')return capName(v==='unknown'?'???':v);
+    if(f==='category')return v;
+    if(f==='power')return (v||'\u2014')+' power';
+    if(f==='accuracy')return (v?v+'%':'\u2014')+' accuracy';
+    if(f==='pp')return v+' PP';
+    return (v>0?'+':'')+v+' priority';
+  }).join(' \u00b7 ');
+}
+function hackMoveTag(slug){
+  if(!hackData())return '';
+  if(hackMoveIsNew(slug))return '<span class="hack-chg new" title="Not in '+hackBaseLabel()+'">new</span>';
+  const w=hackMoveWas(slug);
+  return w?'<span class="hack-chg" title="'+w+'">changed</span>':'';
+}
+/* A move made for the hack has no PokeAPI record; its whole record is the hack's. */
+function hackCustomMoveRecord(name){
+  const d=hackData();
+  if(!d||!d.customMoves||!d.customMoves[name])return null;
+  const h=d.moves[name];
+  return {name:name,type:h[0],damage_class:h[1],power:h[2]||null,accuracy:h[3]||null,pp:h[4],desc:h[7]||'A move made for '+romHack().label+'.',
+    flavorEntries:[],past:{},pastTypes:{},priority:h[5],introGen:1};
+}
+/* The species' learnset in the hack, in getMovesForGen's shape. */
+function hackMovesFor(id){
+  const d=hackData();
+  const L=d&&d.learn[id];
+  const out={levelup:[],tm:[],egg:[],tutor:[]};
+  if(!L)return out;
+  for(let i=0;i<L[0].length;i+=2)out.levelup.push({name:L[0][i+1],level:L[0][i]});
+  out.tm=L[1].map(function(n){return {name:n,level:0}});
+  return out;
+}
+/* The evolution family in parseChain's shape ({name, id, method, children}), from the hack's own
+   evolution table, so renderEvoChain draws it like any other. */
+function hackEvoTree(id){
+  const d=hackData();
+  if(!d||id>10000)return null;
+  const parent={};
+  Object.keys(d.evo).forEach(function(f){d.evo[f].forEach(function(e){parent[e[0]]=+f})});
+  let root=+id;const seen={};
+  while(parent[root]&&!seen[root]){seen[root]=1;root=parent[root]}
+  const nm=function(i){const r=dexRec(i);return r&&r.name?r.name:String(i)};
+  function build(i,method){
+    return {name:nm(i),id:i,method:method||'',children:(d.evo[i]||[]).filter(function(e){return HACK.species[e[0]]})
+      .map(function(e){return build(e[0],e[1].join('\nor\n'))})};
+  }
+  return build(root,'');
+}
+const HACK_STAT_LABEL=['HP','Attack','Defense','Sp. Atk','Sp. Def','Speed'];
+/* What the hack changed on this species, against its base game. */
+function hackChangesHtml(id){
+  const d=hackData(),r=hackRec(id);
+  if(!r)return '';
+  const b=d&&d.base?d.base[id]:null;
+  const base=hackBaseLabel();
+  if(!d)return '';
+  if(!b)return '<div class="hack-changes">Same types, base stats and abilities as in '+base+'.</div>';
+  const parts=[];
+  if(b[0].join('/')!==r[0].join('/'))parts.push('<b>Type</b> '+b[0].map(capName).join(' / ')+' \u2192 '+r[0].map(capName).join(' / '));
+  const st=[];
+  r[1].forEach(function(v,i){if(v!==b[1][i])st.push(HACK_STAT_LABEL[i]+' '+b[1][i]+' \u2192 '+v)});
+  if(st.length)parts.push('<b>Stats</b> '+st.join(', ')+' (total '+b[1].reduce(function(a,x){return a+x},0)+' \u2192 '+r[1].reduce(function(a,x){return a+x},0)+')');
+  const ab=function(a){return a.filter(Boolean).map(capName).join(' / ')||'\u2014'};
+  if(b[2].join('|')!==r[2].join('|'))parts.push('<b>Abilities</b> '+ab(b[2])+' \u2192 '+ab(r[2]));
+  return '<div class="hack-changes"><span class="section-label" style="margin-right:6px">Changed from '+base+'</span>'+parts.join(' \u00b7 ')+'</div>';
+}
 function hackDetailNote(){
-  return '<div class="hack-note">Learnsets, evolution methods and wild encounters for '+romHack().label+' are not in HoopaDex yet.</div>';
+  return '<div class="hack-note">Wild encounters and trainers for '+romHack().label+' are not in HoopaDex yet.</div>';
+}
+function hackMonChip(id,extra){
+  const r=dexRec(id);
+  const img=typeof spriteFor==='function'?spriteFor(id,getDataGenNum()):'';
+  return '<button class="hack-mon" onclick="switchTab(\'pokedex\');showDetail('+id+')">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'')+
+    (r?pokeName(r.name):'#'+id)+(extra?' <small>'+extra+'</small>':'')+'</button>';
+}
+const hackEsc=function(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
+
+/* The three tabs in hack mode. Moves and Abilities are the hack's own, so the base-game views are
+   hidden; Items keeps the base game's item list below, because most items are unchanged, and puts
+   what the hack documents above it. */
+function renderHackTab(tab){
+  ['tms','abilities','items'].forEach(function(t){
+    const host=document.getElementById(t+'-tab'),panel=document.getElementById('hack-'+t+'-panel');
+    if(!host||!panel)return;
+    const on=isRomHack&&t===tab;
+    panel.style.display=isRomHack?'':'none';
+    host.classList.toggle('hack-mode-tab',isRomHack&&t!=='items');
+    if(on){if(t==='tms')renderHackMoves();else if(t==='abilities')renderHackAbilities();else renderHackItems()}
+  });
+}
+let hackMovesUI={q:'',type:'',show:'',sort:'name',dir:1,open:''};
+function hackMovesSet(k,v){hackMovesUI[k]=v;if(k!=='open')hackMovesUI.open='';renderHackMovesTable()}
+function hackMovesSort(k){if(hackMovesUI.sort===k)hackMovesUI.dir=-hackMovesUI.dir;else{hackMovesUI.sort=k;hackMovesUI.dir=1}renderHackMovesTable()}
+function hackMovesOpen(slug){hackMovesUI.open=hackMovesUI.open===slug?'':slug;renderHackMovesTable();
+  const row=document.getElementById('hm-'+slug);if(row)row.scrollIntoView({block:'center'})}
+function renderHackMoves(){
+  const el=document.getElementById('hack-tms-panel'),d=hackData(),h=romHack();
+  if(!d){el.innerHTML='<div class="hack-note">'+h.label+'\u2019s move data could not be loaded.</div>';return}
+  const all=Object.keys(d.moves);
+  const nChanged=all.filter(function(m){return d.moves[m][8]}).length,nNew=all.filter(hackMoveIsNew).length;
+  const types=[...new Set(all.map(function(m){return d.moves[m][0]}))].sort();
+  let html='<div class="hack-panel-head"><span class="section-label" style="margin:0">'+h.label+' moves</span><span class="hack-meta">'+all.length+' moves \u00b7 '+nChanged+' changed from '+hackBaseLabel()+' \u00b7 '+nNew+' not in '+hackBaseLabel()+'</span></div>'+
+    '<div class="hack-ctl"><input class="filter-select" type="search" placeholder="Find a move" value="'+hackEsc(hackMovesUI.q)+'" oninput="hackMovesSet(\'q\',this.value)">'+
+    '<select class="filter-select" onchange="hackMovesSet(\'type\',this.value)"><option value="">All types</option>'+types.map(function(t){return '<option value="'+t+'"'+(hackMovesUI.type===t?' selected':'')+'>'+capName(t==='unknown'?'???':t)+'</option>'}).join('')+'</select>'+
+    '<select class="filter-select" onchange="hackMovesSet(\'show\',this.value)"><option value="">All moves</option><option value="changed"'+(hackMovesUI.show==='changed'?' selected':'')+'>Changed or new</option></select></div>'+
+    '<div id="hack-moves-table"></div>';
+  if(d.machines&&d.machines.length){
+    const chg={};((d.items&&d.items.tmChanges)||[]).forEach(function(c){chg[c[0]]=c[1]});
+    html+='<details class="hack-section"><summary class="section-label" style="cursor:pointer">TM and HM list ('+d.machines.length+')</summary><div class="hack-scroll" style="margin-top:8px"><table class="hack-tbl"><thead><tr><th>TM</th><th>Move</th><th>Type</th></tr></thead><tbody>'+
+      d.machines.map(function(m){const mv=d.moves[m[1]];return '<tr class="hack-row" onclick="hackMovesOpen(\''+m[1]+'\')"><td class="num" style="text-align:left">'+m[0]+'</td><td>'+hackEsc(hackMoveLabel(m[1]))+(chg[m[0]]?' <span class="hack-was">(was '+hackEsc(hackMoveLabel(chg[m[0]]))+')</span>':'')+'</td><td>'+(mv?typeBadge(mv[0],true):'')+'</td></tr>'}).join('')+
+      '</tbody></table></div></details>';
+  }
+  el.innerHTML=html;
+  renderHackMovesTable();
+}
+function hackLearners(slug){
+  const d=hackData(),out=[];
+  Object.keys(d.learn).forEach(function(id){
+    const L=d.learn[id];const how=[];
+    for(let i=0;i<L[0].length;i+=2)if(L[0][i+1]===slug)how.push('Lv '+L[0][i]);
+    if(L[1].indexOf(slug)>=0)how.push(d.machines?'TM':'TM/Tutor');
+    if(how.length&&HACK.species[id])out.push([+id,how.join(', ')]);
+  });
+  return out.sort(function(a,b){return a[0]-b[0]});
+}
+function renderHackMovesTable(){
+  const el=document.getElementById('hack-moves-table'),d=hackData();
+  if(!el||!d)return;
+  const q=hackMovesUI.q.trim().toLowerCase(),U=hackMovesUI;
+  let rows=Object.keys(d.moves).filter(function(m){
+    const v=d.moves[m];
+    if(U.type&&v[0]!==U.type)return false;
+    if(U.show==='changed'&&!v[8]&&!hackMoveIsNew(m))return false;
+    return !q||hackMoveLabel(m).toLowerCase().indexOf(q)>=0;
+  });
+  const key={name:function(m){return hackMoveLabel(m)},type:function(m){return d.moves[m][0]},cat:function(m){return d.moves[m][1]},pow:function(m){return d.moves[m][2]},acc:function(m){return d.moves[m][3]},pp:function(m){return d.moves[m][4]},pri:function(m){return d.moves[m][5]}}[U.sort];
+  rows.sort(function(a,b){const x=key(a),y=key(b);return (x<y?-1:x>y?1:0)*U.dir});
+  const th=function(k,l,cls){return '<th class="'+(cls||'')+'" onclick="hackMovesSort(\''+k+'\')">'+l+(U.sort===k?(U.dir>0?' \u25b2':' \u25bc'):'')+'</th>'};
+  let html='<div class="hack-scroll"><table class="hack-tbl"><thead><tr>'+th('name','Move')+th('type','Type')+th('cat','Cat')+th('pow','Pow')+th('acc','Acc','hide-sm')+th('pp','PP','hide-sm')+th('pri','Pri','hide-sm')+'</tr></thead><tbody>';
+  rows.forEach(function(m){
+    const v=d.moves[m],was=hackMoveWas(m),note=v[7];
+    html+='<tr class="hack-row" id="hm-'+m+'" onclick="hackMovesOpen(\''+m+'\')"><td><div style="display:flex;gap:6px;align-items:baseline;flex-wrap:wrap"><b>'+hackEsc(hackMoveLabel(m))+'</b>'+hackMoveTag(m)+'</div>'+
+      (was?'<div class="hack-was">'+was+'</div>':'')+(note?'<div class="hack-was">'+hackEsc(note)+'</div>':'')+'</td>'+
+      '<td>'+typeBadge(v[0]==='unknown'?'???':v[0],true)+'</td><td>'+catIcon(v[1])+'</td><td class="num">'+(v[2]||'\u2014')+'</td><td class="num hide-sm">'+(v[3]?v[3]+'%':'\u2014')+'</td><td class="num hide-sm">'+v[4]+'</td><td class="num hide-sm">'+(v[5]>0?'+':'')+v[5]+'</td></tr>';
+    if(U.open===m){
+      const ls=hackLearners(m);
+      html+='<tr><td colspan="7"><div class="hack-meta">'+(ls.length?ls.length+' Pok\u00e9mon learn it in '+romHack().label:'No Pok\u00e9mon learns it by level or TM in '+romHack().label)+'</div><div class="hack-learners">'+ls.map(function(x){return hackMonChip(x[0],x[1])}).join('')+'</div></td></tr>';
+    }
+  });
+  html+='</tbody></table></div><div class="hack-meta" style="margin-top:6px">'+rows.length+' shown. Select a move to see who learns it.</div>';
+  el.innerHTML=html;
+}
+let hackAbilUI={q:'',show:'',open:''};
+function hackAbilSet(k,v){hackAbilUI[k]=v;renderHackAbilitiesList()}
+async function renderHackAbilities(){
+  const el=document.getElementById('hack-abilities-panel');
+  if(!HACK){el.innerHTML='<div class="hack-note">'+romHack().label+'\u2019s data could not be loaded.</div>';return}
+  if(!window._hackAbilityText){
+    try{const r=await fetch('abilities-index.json');const j=r.ok?await r.json():null;window._hackAbilityText={};(j&&j.abilities||[]).forEach(function(a){window._hackAbilityText[a[0]]=a[2]})}catch(e){window._hackAbilityText={}}
+  }
+  el.innerHTML='<div class="hack-panel-head"><span class="section-label" style="margin:0">'+romHack().label+' abilities</span><span class="hack-meta">Who has each ability in this hack. Effects are '+hackBaseLabel()+'\u2019s unless the hack\u2019s notes say otherwise.</span></div>'+
+    '<div class="hack-ctl"><input class="filter-select" type="search" placeholder="Find an ability or Pok\u00e9mon" value="'+hackEsc(hackAbilUI.q)+'" oninput="hackAbilSet(\'q\',this.value)">'+
+    '<select class="filter-select" onchange="hackAbilSet(\'show\',this.value)"><option value="">All abilities</option><option value="changed"'+(hackAbilUI.show==='changed'?' selected':'')+'>Given to new Pok\u00e9mon</option></select></div><div id="hack-abil-list"></div>';
+  renderHackAbilitiesList();
+}
+function renderHackAbilitiesList(){
+  const el=document.getElementById('hack-abil-list');
+  if(!el||!HACK)return;
+  const d=hackData(),by={};
+  Object.keys(HACK.species).forEach(function(id){
+    const r=HACK.species[id],b=d&&d.base&&d.base[id];
+    r[2].forEach(function(a,i){
+      if(!a)return;
+      const isNew=!!b&&b[2].indexOf(a)<0;
+      (by[a]=by[a]||[]).push([+id,i===2?'hidden':'',isNew]);
+    });
+  });
+  const q=hackAbilUI.q.trim().toLowerCase();
+  let names=Object.keys(by).sort();
+  if(hackAbilUI.show==='changed')names=names.filter(function(a){return by[a].some(function(x){return x[2]})});
+  if(q)names=names.filter(function(a){return a.replace(/-/g,' ').indexOf(q)>=0||by[a].some(function(x){const r=dexRec(x[0]);return r&&r.name.indexOf(q.replace(/ /g,'-'))>=0})});
+  el.innerHTML='<div class="hack-scroll"><table class="hack-tbl"><thead><tr><th>Ability</th><th class="hide-sm">Effect</th><th>Pok\u00e9mon</th></tr></thead><tbody>'+names.map(function(a){
+    const hs=by[a],nNew=hs.filter(function(x){return x[2]}).length,open=hackAbilUI.open===a;
+    return '<tr class="hack-row" onclick="hackAbilUI.open=hackAbilUI.open===\''+a+'\'?\'\':\''+a+'\';renderHackAbilitiesList()"><td><b>'+capName(a)+'</b></td><td class="hide-sm hack-was">'+hackEsc((window._hackAbilityText||{})[a]||'')+'</td><td class="num">'+hs.length+(nNew?' <span class="hack-chg new" title="Pok\u00e9mon that did not have it in '+hackBaseLabel()+'">+'+nNew+' new</span>':'')+'</td></tr>'+
+      (open?'<tr><td colspan="3"><div class="hack-learners">'+hs.map(function(x){return hackMonChip(x[0],[x[1],x[2]?'new':''].filter(Boolean).join(', '))}).join('')+'</div></td></tr>':'');
+  }).join('')+'</tbody></table></div><div class="hack-meta" style="margin-top:6px">'+names.length+' abilities. Select one to see who has it.</div>';
+}
+let hackItemsQ='';
+function renderHackItems(){
+  const el=document.getElementById('hack-items-panel'),d=hackData(),h=romHack();
+  if(!d){el.innerHTML='<div class="hack-note">'+h.label+'\u2019s item data could not be loaded.</div>';return}
+  const it=d.items||{sections:[],tmChanges:[]};
+  let html='<div class="hack-panel-head"><span class="section-label" style="margin:0">'+h.label+' items</span><span class="hack-meta">What the hack changes. Every item not listed here works as in '+hackBaseLabel()+'; that list is below.</span></div>';
+  if(it.sections.some(function(x){return x.rows}))html+='<div class="hack-ctl"><input class="filter-select" type="search" placeholder="Find an item or place" value="'+hackEsc(hackItemsQ)+'" oninput="hackItemsQ=this.value;renderHackItemsBody()"></div>';
+  html+='<div id="hack-items-body"></div>';
+  el.innerHTML=html;
+  renderHackItemsBody();
+}
+function renderHackItemsBody(){
+  const el=document.getElementById('hack-items-body'),d=hackData();
+  if(!el||!d)return;
+  const it=d.items||{sections:[],tmChanges:[]},q=hackItemsQ.trim().toLowerCase();
+  let html='';
+  if(it.tmChanges.length)html+='<div class="hack-section"><div class="section-label">TMs that teach a different move</div><table class="hack-tbl"><tbody>'+
+    it.tmChanges.map(function(c){return '<tr><td class="num" style="text-align:left;width:60px">'+c[0]+'</td><td>'+hackEsc(hackMoveLabel(c[2]))+' <span class="hack-was">(was '+hackEsc(hackMoveLabel(c[1]))+')</span></td></tr>'}).join('')+'</tbody></table></div>';
+  it.sections.forEach(function(sec){
+    if(sec.notes){html+='<div class="hack-section"><div class="section-label">'+hackEsc(sec.title)+'</div>'+sec.notes.map(function(n){return '<p class="hack-changes" style="white-space:pre-line">'+hackEsc(n)+'</p>'}).join('')+'</div>';return}
+    const rows=q?sec.rows.filter(function(r){return r.join(' ').toLowerCase().indexOf(q)>=0}):sec.rows;
+    if(!rows.length)return;
+    html+='<details class="hack-section"'+(q||sec.rows.length<=12?' open':'')+'><summary class="section-label" style="cursor:pointer">'+hackEsc(sec.title)+' ('+rows.length+')</summary><div class="hack-scroll" style="margin-top:8px"><table class="hack-tbl"><thead><tr>'+sec.cols.map(function(c){return '<th>'+c+'</th>'}).join('')+'</tr></thead><tbody>'+
+      rows.map(function(r){return '<tr>'+r.map(function(c,i){return '<td'+(i?'':' style="white-space:nowrap;font-weight:700"')+'>'+hackEsc(c)+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table></div></details>';
+  });
+  if(!html)html='<div class="hack-note">'+romHack().label+'\u2019s sources document no item changes.</div>';
+  el.innerHTML=html+'<div class="section-label" style="margin-top:18px">'+hackBaseLabel()+' items</div>';
 }
 function hackCalcPanel(){
   const h=romHack();
@@ -3428,6 +3707,7 @@ let evoCache={};// species id -> chain data
 let speciesCache={};
 
 async function getEvoChain(pokemonId){
+  if(isRomHack)return hackEvoTree(pokemonId);
   if(evoCache[pokemonId])return evoCache[pokemonId];
   try{
     // For alternate forms (id > 10000), resolve base species URL from cached pokemon data
@@ -3834,6 +4114,7 @@ function champUseableFor(p){
   return {useable:out,levelup:[],tm:[],egg:[],tutor:[]};
 }
 function getMovesForGen(p){
+  if(isRomHack)return hackMovesFor(p&&p.id);
   if(isChampionsMode&&champLS){
     const u=champUseableFor(p);
     if(u)return u;
@@ -3900,12 +4181,13 @@ async function getMissedMoves(pokemonId){
   // For stone/item evos, evoLevel=0 means "can evolve anytime", so all pre-evo level-up moves are potentially missed
   const isItemEvo=!lvMatch;
 
-  if(!dc[preEvo.id]){
+  // A hack's learnsets are its own, keyed by number, so the pre-evolution's PokeAPI record is not needed.
+  if(!dc[preEvo.id]&&!isRomHack){
     try{const r=await fetch('https://pokeapi.co/api/v2/pokemon/'+preEvo.id);dc[preEvo.id]=await r.json()}catch{return null}
   }
 
-  const preEvoMoves=getMovesForGen(dc[preEvo.id]);
-  const currentMoves=getMovesForGen(dc[pokemonId]);
+  const preEvoMoves=getMovesForGen(dc[preEvo.id]||{id:preEvo.id,moves:[]});
+  const currentMoves=getMovesForGen(dc[pokemonId]||{id:pokemonId,moves:[]});
   const currentMoveNames=new Set([...currentMoves.levelup,...currentMoves.tm,...currentMoves.egg,...currentMoves.tutor].map(m=>m.name));
 
   let missed;
@@ -3927,7 +4209,7 @@ function renderMovesSection(moves,missed){
     {key:'useable',label:'Useable Moves',data:moves.useable}
   ]:[
     {key:'levelup',label:'Level Up',data:moves.levelup},
-    {key:'tm',label:'TM/HM',data:moves.tm},
+    {key:'tm',label:isRomHack&&hackData()&&!hackData().machines?'TM / Tutor':'TM/HM',data:moves.tm},
     {key:'egg',label:'Egg',data:moves.egg},
     {key:'tutor',label:'Tutor',data:moves.tutor}
   ].filter(c=>c.data.length>0);
@@ -3971,15 +4253,15 @@ function renderMovesSection(moves,missed){
       const pow=getMovePowerForGen(md)||'\u2014';
       const acc=getMoveAccForGen(md)?getMoveAccForGen(md)+'%':'\u2014';
       const cat=getMoveCatForGen(md);
-      const desc=champMoveDesc(md)||md?.desc||'';
+      const desc=hackMoveNote(m.name)||champMoveDesc(md)||md?.desc||'';
       const shortDesc=desc.length>60?desc.slice(0,57)+'...':desc;
-      const pri=md?.priority||0;
+      const pri=movePriority(md||m.name);
       const priTag=pri!==0?'<span style="font-size:9px;font-weight:700;color:'+(pri>0?'#78C850':'#F85888')+';flex-shrink:0;border:1px solid '+(pri>0?'rgba(120,200,80,0.3)':'rgba(248,88,136,0.3)')+';border-radius:3px;padding:0 3px">'+(pri>0?'+':'')+pri+'</span>':'';
       /* The data-* attributes are what sortMovesTable() reads. Without them cellOf() returned ''
          for every key, so every row tied and the sort shipped in 3.2 was a stable no-op for eight
          versions - only the header arrow ever moved. data-mtype on the row is what the type
          filter matches, so filtering never has to parse a rendered badge. */
-      tables+='<tr data-mtype="'+type+'">'+(showLevel?'<td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#6a6a7a;font-size:13px">'+(m.level||'\u2014')+'</td>':'')+'<td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span>'+priTag+renderSpreadTag(m.name,true)+'<span style="font-size:12px;color:#6a6a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+shortDesc+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
+      tables+='<tr data-mtype="'+type+'">'+(showLevel?'<td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#6a6a7a;font-size:13px">'+(m.level||'\u2014')+'</td>':'')+'<td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="flex-shrink:0;cursor:pointer">'+hackMoveLabel(m.name)+'</span>'+priTag+hackMoveTag(m.name)+renderSpreadTag(m.name,true)+'<span style="font-size:12px;color:#6a6a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+shortDesc+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
     });
     // Add missed moves at the end of levelup tab
     if(c.key==='levelup'&&showMissed&&missed&&missed.moves.length>0){
@@ -4689,13 +4971,14 @@ async function renderDetail(p){
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="section-label" style="margin-bottom:0">Base Stats</span><span style="font-size:14px;font-weight:700;color:'+c+';font-family:\'JetBrains Mono\',monospace">BST '+bst+'</span></div>'+bars+
       '</div>'+
     '</div>'+
+    (isRomHack?hackChangesHtml(p.id):'')+
     '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">'+
       '<div style="flex:1;min-width:180px"><div class="section-label" style="margin-bottom:6px">Defensive Matchups</div>'+iH+r4H+rH+wH+w4H+'</div>'+
-      (isRomHack?'':'<div class="dx-evo-col"><div class="section-label" style="margin-bottom:6px">Evolution</div><div id="evo-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>')+
+      ('<div class="dx-evo-col"><div class="section-label" style="margin-bottom:6px">Evolution</div><div id="evo-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>')+
     '</div>'+
     (isRomHack?hackDetailNote():'')+
-    (isRomHack?'':'<div><div class="section-label" style="margin-bottom:8px">Moves</div><div id="moves-container"><div style="text-align:center;padding:12px;color:#6a6a7a"><div class="spinner" style="width:24px;height:24px;border-width:2px"></div>Loading moves...</div></div></div>'+
-    '<div style="margin-top:14px"><div class="section-label" style="margin-bottom:8px">Wild Encounters</div><div id="encounter-locs-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
+    '<div><div class="section-label" style="margin-bottom:8px">Moves</div><div id="moves-container"><div style="text-align:center;padding:12px;color:#6a6a7a"><div class="spinner" style="width:24px;height:24px;border-width:2px"></div>Loading moves...</div></div></div>'+
+    (isRomHack?'':'<div style="margin-top:14px"><div class="section-label" style="margin-bottom:8px">Wild Encounters</div><div id="encounter-locs-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>'+
     '<div style="margin-top:14px"><div class="section-label" style="margin-bottom:8px">'+(isChampionsMode?'VGC Sets <span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--text5)">— closest published reference; Champions uses SP, not EVs</span>':'Smogon Sets')+'</div><div id="smogon-sets-container"><div style="text-align:center;padding:8px;color:#6a6a7a"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div></div></div></div>')+
   '</div>';
 
@@ -5200,7 +5483,8 @@ function switchTab(tab){
     if(btn)btn.className='tab-btn'+(t===tab?' active':'');
   });
   // Hide search bar for reference tabs that don't need it
-  const noSearchTabs=['types','natures','evs','other','team','calc'];
+  // A hack's Moves and Abilities views have their own search box; the universal one drives the base-game views.
+  const noSearchTabs=['types','natures','evs','other','team','calc'].concat(isRomHack?['tms','abilities']:[]);
   const sb=document.getElementById('universal-search-bar');
   sb.style.display=noSearchTabs.includes(tab)?'none':'';
   // Show/hide pokedex-only filters and update universal search placeholder
@@ -5213,7 +5497,8 @@ function switchTab(tab){
   else if(tab==='items')searchInput.placeholder='Search items, Pok\u00e9mon, moves...';
   else searchInput.placeholder='Search Pok\u00e9mon, moves, abilities...';
   if(tab==='types')renderTC();
-  if(tab==='tms')renderHMBar();
+  renderHackTab(tab);
+  if(tab==='tms'&&!isRomHack)renderHMBar();
   applyModeVisibility();
   if(tab==='locations')initLocations();
   if(tab==='other'){renderPriorityTab();renderSplit()}
@@ -5221,7 +5506,7 @@ function switchTab(tab){
   if(tab==='natures')renderNatures();
   if(tab==='team')renderTeamBuilder();
   if(tab==='calc')renderCalcTab();
-  if(tab==='abilities'){if(!currentAbilityPage)renderAbilitiesTab();else{renderAbilityPins();showAbilityPage(currentAbilityPage)}}
+  if(tab==='abilities'&&!isRomHack){if(!currentAbilityPage)renderAbilitiesTab();else{renderAbilityPins();showAbilityPage(currentAbilityPage)}}
   if(tab==='items')renderItemsTab();
   if(tab==='pokedex')applyFilters();
   if(!_restoring)saveHash();
@@ -7102,6 +7387,7 @@ async function goToMove(slug){
   slug=normalizeMoveName(slug);
   tabScrollPositions[currentTab]=window.scrollY;
   switchTab('tms');
+  if(isRomHack&&hackData()){hackMovesUI.q='';hackMovesUI.type='';hackMovesUI.show='';renderHackMovesTable();hackMovesOpen(slug);return}
   await new Promise(r=>setTimeout(r,50));
   await selectTMSuggestion(slug);
 }

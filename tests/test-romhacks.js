@@ -115,16 +115,19 @@ check(/if\(typeof isRomHack!=='undefined'&&isRomHack&&genNum===getDataGenNum\(\)
   'a hack with the Fairy type uses the Generation VI type chart');
 check(/if\(isRomHack&&HACK\)f=f\.filter\(p=>!!HACK\.species\[p\.id\]\);/.test(src), 'the Pokédex lists the hack\'s species and no others');
 const rel = src.slice(src.indexOf('const TAB_RELEVANCE='), src.indexOf('function isTabRelevant('));
-['tms', 'items', 'locations', 'team', 'other', 'abilities'].forEach(t =>
+['locations', 'team', 'other'].forEach(t =>
   check(new RegExp(t + ':\\{[^}]*hack:false').test(rel), 'the ' + t + ' tab is held back in hack mode until its data is loaded'));
+/* 5.56: Moves, Abilities and Items have each hack's own data (tests/test-romhack-data.js). */
+['tms', 'items', 'abilities'].forEach(t =>
+  check(!new RegExp(t + ':\\{[^}]*hack:false').test(rel), 'the ' + t + ' tab is shown in hack mode, with the hack\'s own data'));
 /* The table saying hack:false is not enough; the rule has to be applied. Mutation M177 removed the line
    that applies it and the table checks above stayed green - so the real function is run here. */
 const tabFn = (0, eval)('var isChampionsMode=false,selectedGenNum=4,isRomHack=false;' + rel +
   src.slice(src.indexOf('function isTabRelevant('), src.indexOf('function applyTabVisibility(')) +
   ';({set(h){isRomHack=h},isTabRelevant})');
 tabFn.set(true);
-check(!tabFn.isTabRelevant('tms') && !tabFn.isTabRelevant('locations') && tabFn.isTabRelevant('pokedex') && tabFn.isTabRelevant('types'),
-  'in hack mode Moves and Locations are hidden; the Pokédex and Type Chart are not');
+check(tabFn.isTabRelevant('tms') && !tabFn.isTabRelevant('locations') && tabFn.isTabRelevant('pokedex') && tabFn.isTabRelevant('types'),
+  'in hack mode Locations is hidden; the Pokédex, Moves and Type Chart are not');
 tabFn.set(false);
 check(tabFn.isTabRelevant('tms') && tabFn.isTabRelevant('locations'), 'and outside hack mode they come back');
 check(/if\(isRomHack\)\{document\.getElementById\('calc-tab'\)\.innerHTML=hackCalcPanel\(\);return\}/.test(src), 'the Dmg Calc tab links to the hack\'s calculator');

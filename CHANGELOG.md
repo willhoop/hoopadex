@@ -12,6 +12,75 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.56] - 2026-10-13
+
+### Added
+- **Each ROM hack's own moves, learnsets and evolutions.** Asked for from the live site: *"other rom
+  hacks might have different stats/abilities/moves etc than base game"*, *"we need learn sets and
+  evolution"*, *"we need the other tabs like items, moves, abilities, even if lots of them are the same
+  as base there will be some changes"*, and *"some moves get really changed or invented, like
+  accelerock as rock type quick attack in platinum kaizo"*. In hack mode:
+  - A Pokémon's page shows **its learnset in the hack** (level-up, and TM or TM/Tutor), **its evolution
+    chart with the hack's methods**, and a line saying **what the hack changed** against the base game
+    (Platinum Kaizo Magcargo: "HP 50 → 70, Attack 50 → 80, Sp. Atk 80 → 109, Sp. Def 80 → 100 (total
+    410 → 509) · Abilities Magma Armor / Flame Body → Drought / Solid Rock").
+  - **Moves** lists every move in the hack with the hack's type, category, power, accuracy, PP and
+    priority, marks each one **changed** (with what it was) or **new**, filters to the changed ones,
+    and says who learns each move. Platinum Kaizo's Rollout reads *Rock, 40, 100%, 5 PP, +1 — was 30
+    power · 90% accuracy · 20 PP · 0 priority*. Moves invented for a hack appear under their own names
+    (Platinum Kaizo's "HP Dark", Emerald Kaizo's two extra "Weather Ball"s).
+  - **Abilities** lists who has each ability in the hack, and which Pokémon were given it.
+  - **Items** lists the TMs that teach a different move, and what the author documents: changed and
+    replaced items, and where to find every item and TM (Renegade Platinum, Sacred Gold). The base
+    game's item list follows, since most items are unchanged.
+
+  | Hack | Moves (changed · new) | Learnsets from | Evolutions from |
+  |---|---|---|---|
+  | Renegade Platinum | 467 (113 · 11) | Drayano's Pokémon Changes, every species | Platinum + his Evolution Changes |
+  | Sacred Gold / Storm Silver | 467 (43 · 0) | HG/SS + Drayano's changes (Classic: HG/SS) | HG/SS + his Evolution Changes |
+  | Platinum Kaizo | 467 (318 · 17) | the Mastersheet's learnset tabs | the Mastersheet's Evolutions tab |
+  | Run & Bun | 795 (201 · 0) | dekzeh's learnset files | dekzeh's evolution.h |
+  | Emerald Kaizo | 354 (219 · 15) | emerald-kaizo-db | Emerald's (none documented) |
+  | FireRed Omega | 354 (32 · 0) | Dynamic Calc data | FireRed's (none documented) |
+
+### Fixed
+- **A move is a slot, not a name.** Platinum Kaizo and Emerald Kaizo overwrite moves in place. Platinum
+  Kaizo has two different moves called Solar Beam (one replaced Skull Bash) and teaches "HP Dark" from
+  the TM its sheet still labels Taunt. Emerald Kaizo has three moves the game calls "Weather Ball" (one
+  real, one Water and one Fire, both 100 power). Read by name, these merged into one move each. Each
+  is now read by its slot in the hack's move table. Eight Emerald Kaizo learnset entries say only
+  "Weather Ball", which the database cannot resolve; they are shown as the real Weather Ball and named
+  in the hack's file.
+- **Priority by generation.** The base values a hack is compared with now take the priority that move
+  had in that generation (from the app's Showdown-derived priority table), not today's. Platinum
+  Kaizo's sheet gives Protect Platinum's +3; compared with today's +4, it read as a change.
+
+### Record
+- **Measured.** ROM hacks: moves changed from the base game, per hack, as in the table above;
+  learnsets 493 / 493 / 493 / 903 / 386 / 386; evolving species 229 / 229 / 227 / 403 / 172 / 172.
+  Cross-checks: hack move tables against the hack's calculator data, unexplained disagreements in
+  type, power or category — Renegade Platinum 2 of 467 (Hidden Power, Feint), Sacred Gold 2 of 456,
+  Run & Bun 4 of 757, Emerald Kaizo 4 of 336. Renegade Platinum's TM rule ("compatibility matches
+  Ultra Sun and Ultra Moon plus extras"): of the 211 extras Drayano lists, the rule already gave 8.
+  Sacred Gold's calculator learnsets are **not** counted as a check: 10 of its move names are other
+  moves from another hack's table (Rollout as "Accelerock"). Source: `app/hacks/*.data.json`
+  (`checks`), written by `build/generate-romhack-data.js`.
+- **Basis.** unchanged — these are new figures; no existing figure moves.
+- **Supersedes.** ~~"Not yet: learnsets, evolution methods ... The tabs that would show them (Moves,
+  Abilities, Items ...) are held back in hack mode"~~ (5.55) superseded: they are shown. Wild
+  encounters, trainers, Team Builder, Other and alternate forms are still held back.
+- **Owed to the next major.** Nothing: the white paper (5.12), deck (11j) and technical docs (4.12,
+  4.14) are updated in this pass.
+
+### Tests
+- New `tests/test-romhack-data.js` (55): every expected value read from the hack author's document.
+  `test-romhacks.js` now expects Moves, Abilities and Items in hack mode; `test-champion-moves.js`
+  allows the hack's effect text before Champions'. It caught a real miss before release: Poliwag's
+  heading in Drayano's document has no colon, and its learnset was being dropped.
+- Mutations M183–M191. **180 killed, 0 survived, 0 skipped.** 46 suites, 1,855 assertions, all passing.
+
+---
+
 ## [5.55] - 2026-10-13
 
 ### Added

@@ -107,7 +107,8 @@ check(A.champMoveDesc('make-it-rain') === null, 'outside Champions the Scarlet/V
 
 /* Every place a move's description is shown asks for the Champions one first. */
 check(/champMoveDesc\(m\)\|\|genFlavorText\(m\.flavorEntries/.test(src), 'the hover tooltip');
-check(/const desc=champMoveDesc\(md\)\|\|md\?\.desc/.test(src) && /const missedDesc=champMoveDesc\(md\)\|\|md\?\.desc/.test(src), 'a Pokemon\'s move list');
+/* 5.56: in hack mode the ROM hack's own effect text comes first; Champions' still comes before the base text. */
+check(/const desc=(hackMoveNote\(m\.name\)\|\|)?champMoveDesc\(md\)\|\|md\?\.desc/.test(src) && /const missedDesc=champMoveDesc\(md\)\|\|md\?\.desc/.test(src), 'a Pokemon\'s move list');
 check(/\(champMoveDesc\(md\)\|\|md\.desc\)/.test(src), 'the Moves tab');
 check(/const ch=champMoveDesc\(slugName\);/.test(src) && /Changed in Champions<span class="mt-gen">/.test(src), 'and the move page, beside the Scarlet/Violet rule it replaces');
 check(/const shown=function\(v\)\{return c\.field==='pp'\?champInGamePP\(c\.move,v\):v\};/.test(src),

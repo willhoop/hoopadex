@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.55**
+**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.56**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -728,6 +728,7 @@ true.
 | `build/generate-ability-index.js` | `app/abilities-index.json`. `--check` compares it with live PokeAPI. |
 | `build/generate-move-index.js` | `app/moves-index.json`. It refuses to write unless every move builds identically through `makeMoveRecord` from the full record and from the snapshot row. |
 | `build/generate-romhacks.js` | `app/hacks/*.json`: each ROM hack's species data, with its cross-check. See 4.12. |
+| `build/generate-romhack-data.js` | `app/hacks/*.data.json`: each ROM hack's moves, learnsets, evolutions and items, with its cross-checks. See 4.14. |
 | `build/generate-type-changing-moves.js` | The `TYPE_CHANGING_MOVES` block in `app/index.html`: moves whose type is decided when used. See 4.9h. |
 | `build/generate-move-values.js` | The `MOVE_GEN_FIX`, `MOVE_GAME_FIX` and `CHAMP_PP` block in `app/index.html`: PP and power corrections per generation and per game, and Champions' PP rule. See 4.9g. |
 | `build/generate-priority.js` | The `PRIORITY_MOVES` block in `app/index.html`, from Showdown's per-generation move data. See 4.9f. |
@@ -1312,7 +1313,8 @@ three existing functions, so every view that uses them follows:
 - The detail page's ability list uses `hackAbilities`.
 
 `getChartForGen` uses the Generation VI chart for a hack with the Fairy type. `applyFilters` limits
-the roster to the hack's species. `TAB_RELEVANCE` holds back the tabs whose data is not loaded yet,
+the roster to the hack's species. `TAB_RELEVANCE` holds back the tabs whose data is not loaded yet
+(Locations, Team Builder, Other). From 5.56 Moves, Abilities and Items show the hack's own data (4.14),
 and the detail page shows a note in place of moves, evolution and encounters.
 
 **Generation.** `build/generate-romhacks.js` builds every file. Three sources list only changes
@@ -1335,6 +1337,45 @@ documented changes are applied. Rules worth knowing:
 Every record is validated before it is written: one or two real types, six stats from 1 to 255, and
 known abilities. Every disagreement with the second source is listed. One the primary source
 explains is listed under `explained` with the reason; any other fails `tests/test-romhacks.js`.
+
+## 4.14 ROM hack moves, learnsets and evolutions (5.56)
+
+**Data.** `loadRomHack()` fetches `app/hacks/<file>.data.json` with the species file and sets
+`HACK.data`. The file holds:
+
+- `moves` — `{slug: [type, category, power, accuracy, pp, priority, [changed fields], note, base]}`.
+  `base` is the base game's six values, or `null` when nothing changed or the move is new.
+- `customMoves` — `{slug: name}` for moves made for the hack (`pk-…`, `ek-…`).
+- `machines` — `[[label, slug]]`, or `null` (Run & Bun has one TM/Tutor list).
+- `learn` — `{id: [[level, slug, level, slug, …], [TM slugs]]}`.
+- `evo` — `{fromId: [[toId, [method, …]]]}`, in the wording `parseChain` uses.
+- `base` — `{id: [types, stats, abilities]}` as the base game had them, for changed species only.
+- `items` — `{sections, tmChanges}`; `checks` and `notes` — the cross-checks and source errata.
+
+**Reading it.** Every move getter (`getMovePowerForGen`, `…Acc…`, `…PP…`, `…Type…`, `…Cat…`) asks
+`hackMove()` first. `getMovesForGen` returns `hackMovesFor(id)`, and `getEvoChain` returns
+`hackEvoTree(id)`, in hack mode. `ensureMoveData` builds a record for a custom move from the hack.
+`renderHackTab` draws the Moves, Abilities and Items panels (`#hack-<tab>-panel`); the class
+`hack-mode-tab` hides the base-game Moves and Abilities views.
+
+**Generation.** `build/generate-romhack-data.js` requires `generate-romhacks.js` for its parsers.
+Rules worth knowing:
+
+- A move is its **slot** in the hack's move table. Platinum Kaizo is read by sheet row, Emerald Kaizo
+  by array index. A slot whose name is the PokéAPI move at that number keeps PokéAPI's slug; others
+  become custom moves.
+- Base values come from the app's own move functions, sliced from `index.html`, for the hack's base
+  generation. Base priority comes from `PRIORITY_MOVES`.
+- Power 1 in a ROM is written 0 ("set in battle").
+- Renegade Platinum's TMs follow Ultra Sun and Ultra Moon's TM list where the move is a TM there,
+  Platinum's otherwise, plus Drayano's listed extras. `checks.tmRule` counts extras the rule gave.
+- Sacred Gold applies "() new, {} replaces the move at that level, [] moves an existing move".
+- Set `RH_CACHE=<dir>` to keep downloads between runs while you change a parser. Do not set it for
+  `--check`.
+
+Every file is validated before it is written: every learnable move is in the move table, levels are
+0 to 100, and no evolution method is empty. `tests/test-romhack-data.js` checks values read by hand
+from the authors' documents. For results and figures, see white paper §5.12.
 
 ## 4.13 The PokéAPI fallback archive (5.55)
 

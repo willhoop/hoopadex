@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.1 · Last updated 2026-10-13 · HoopaDex v5.55**
+**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.56**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -369,9 +369,24 @@ every week and never deletes anything.
 
 ---
 
+## Slide 11j — A hack's own moves
+
+A ROM hack changes more than stats. Platinum Kaizo turns Rollout into a Rock-type move that goes
+first — Accelerock in all but name. Run & Bun makes many moves never miss. Some hacks invent moves
+outright.
+
+Pick a hack now and every move, learnset and evolution is the hack's own. Each changed move says
+what it was before, a Pokémon's page says what the hack changed about it, and the Items tab says
+where to find things in the hack.
+
+Where only one source exists, HoopaDex says so. One calculator's data turned out to use another
+hack's move names, so it is not counted as a check.
+
+---
+
 ## Slide 12 — What we don't claim
 
-Forty-five test suites and 1,800 assertions now cover the data, the damage formula, the derived
+Forty-six test suites and 1,855 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test
