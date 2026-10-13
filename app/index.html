@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.58 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.59 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -847,6 +847,14 @@ body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
 .tr-tag{font-size:10px;font-weight:800;border:1px solid var(--border2);border-radius:4px;padding:0 4px;margin-left:4px;color:var(--text4)}
 .tr-btn{font-size:11px;font-weight:700;background:none;border:1px solid var(--border2);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--text3);white-space:nowrap}
 @media (max-width:640px){.tr-hide-sm{display:none}}
+/* AI (5.59) */
+.ai-sec{margin:16px 0}
+.ai-sec p{font-size:13px;color:var(--text3);line-height:1.6;margin:6px 0}
+.ai-rules{margin:8px 0 0 0;padding-left:22px;font-size:13px;line-height:1.6;color:var(--text3)}
+.ai-rules li{margin-bottom:6px}
+.ai-rules b{color:var(--text)}
+.ai-box{border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.6;color:var(--text3);white-space:pre-line}
+.tr-ai{display:block;font-size:10px;font-weight:700;color:var(--text5);letter-spacing:.3px;margin-top:2px;white-space:normal}
 .hack-calc p{font-size:13px;color:var(--text3);margin:6px 0 12px;line-height:1.5}
 .hack-calc-link{display:inline-block;padding:8px 14px;border:1px solid var(--border2);border-radius:8px;font-weight:700;font-size:13px;color:var(--text);text-decoration:none}
 .hack-calc-link:hover{border-color:var(--text4)}
@@ -1191,6 +1199,7 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn" onclick="switchTab('abilities')" id="tab-abilities">Abilities</button>
 <button class="tab-btn" onclick="switchTab('items')" id="tab-items">Items</button>
 <button class="tab-btn" onclick="switchTab('trainers')" id="tab-trainers">Trainers</button>
+<button class="tab-btn" onclick="switchTab('ai')" id="tab-ai">AI</button>
 <button class="tab-btn" onclick="switchTab('locations')" id="tab-locations">Locations</button>
 <button class="tab-btn" onclick="switchTab('types')" id="tab-types">Type Chart</button>
 <button class="tab-btn" onclick="switchTab('natures')" id="tab-natures">Natures</button>
@@ -1240,6 +1249,7 @@ button,select,input{touch-action:manipulation}
 <div id="items-container"><div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading items...</div></div>
 </div>
 <div id="trainers-tab" style="display:none"><div id="trainers-container"></div></div>
+<div id="ai-tab" style="display:none"><div id="ai-container"></div></div>
 <div id="tms-tab" style="display:none">
 <div class="hack-panel" id="hack-tms-panel" style="display:none"></div>
 <p style="font-size:14px;color:#8a8a9a;margin-bottom:12px"><span id="moves-intro-text">Find Pok&#233;mon that can learn specific moves. Search any move &#x2013; TMs, HMs, level-up, egg, or tutor moves.</span></p>
@@ -2186,7 +2196,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.58';
+const APP_VERSION='5.59';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -2364,6 +2374,7 @@ const TAB_RELEVANCE={
   natures:{minGen:3},
   abilities:{minGen:3},
   trainers:{hackOnly:true},
+  ai:{champions:false,aiEngine:true},
   team:{hack:false},
   other:{hack:false},
 };
@@ -2373,6 +2384,7 @@ function isTabRelevant(tab){
   if(rule.champions===false&&isChampionsMode)return false;
   if(rule.hack===false&&typeof isRomHack!=='undefined'&&isRomHack)return false;
   if(rule.hackOnly&&!(typeof isRomHack!=='undefined'&&isRomHack))return false;
+  if(rule.aiEngine&&!(typeof isRomHack!=='undefined'&&isRomHack)&&selectedGenNum!==3&&selectedGenNum!==4)return false;   // decompiled AI exists for Gen III and IV only
   if(rule.minGen&&!isChampionsMode&&selectedGenNum<rule.minGen)return false;
   return true;
 }
@@ -2946,6 +2958,55 @@ async function renderHackWhere(id){
     :'<div class="hack-note">Not found in the wild in '+romHack().label+'. It may be a gift, a trade, an evolution or a static encounter.</div>';
 }
 
+/* ── AI (5.59) ─────────────────────────────────────────────────────────────────────────────────────────
+   "build a very important tab, switch logic for the ai, and relevant ai flags, etc. this is for each
+   game and rom hack if possible" and "what if some games have custom trainer ai". app/ai-docs.json
+   (build/generate-ai-docs.js) is read from the decompiled games: the flag list and the order of the
+   switch checks come from the code, and the build fails if the code stops saying what the text says. */
+let aiDocs=null;
+async function loadAIDocs(){
+  if(aiDocs)return aiDocs;
+  try{const r=await fetch('ai-docs.json');aiDocs=r.ok?await r.json():null}catch(e){aiDocs=null}
+  return aiDocs;
+}
+/* Which engine the selection runs on, and the page heading for it. */
+function aiSelection(d){
+  if(isRomHack){const h=romHack(),x=d.hacks[h.key]||{};return {title:h.label,hack:x,engine:x.engine?d.engines[x.engine]:null}}
+  const key=selectedGenNum===3?'gen3':selectedGenNum===4?'gen4':null;
+  return {title:getGenLabel(),hack:null,engine:key?d.engines[key]:null};
+}
+function aiFlagNames(bits,engine){
+  if(bits===undefined||!engine)return '';
+  return engine.flags.filter(function(f){return bits&(1<<f.bit)}).map(function(f){return f.name}).join(', ')||'none';
+}
+async function renderAITab(){
+  const el=document.getElementById('ai-container');
+  el.innerHTML='<div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading...</div>';
+  const d=await loadAIDocs();
+  if(!d){el.innerHTML='<div class="hack-note">The AI notes could not be loaded.</div>';return}
+  const sel=aiSelection(d),e=sel.engine,hk=sel.hack;
+  let html='<div class="hack-panel-head"><span class="section-label" style="margin:0">'+hackEsc(sel.title)+' trainer AI</span>'+(e?'<span class="hack-meta">'+hackEsc(e.label)+' \u00b7 read from the decompiled game ('+hackEsc(e.source)+')</span>':'')+'</div>';
+  if(hk){
+    html+='<div class="ai-sec"><div class="section-label">What this hack changes</div>'+(hk.changes?'<div class="ai-box">'+hackEsc(hk.changes)+'</div>':'')+'<p>'+hackEsc(hk.changesNote)+'</p></div>';
+  }
+  if(!e){el.innerHTML=html;return}
+  html+='<div class="ai-sec"><div class="section-label">How it picks a move</div><p>'+hackEsc(e.howItChooses)+'</p></div>';
+  const counts=hk&&hk.flagCounts;
+  html+='<div class="ai-sec"><div class="section-label">AI flags</div><p>Each trainer has a set of flags; each flag adds one routine to the scoring above.'+
+    (counts?' In '+hackEsc(sel.title)+', '+counts.trainers+' trainers\u2019 flags are known; the Trainers tab shows each one\u2019s.':'')+'</p>'+
+    '<table class="hack-tbl"><thead><tr><th>Flag</th><th>What it does</th>'+(counts?'<th class="num">Trainers</th>':'')+'</tr></thead><tbody>'+
+    e.flags.map(function(f){
+      let n=0;if(counts)Object.keys(counts.byFlags).forEach(function(b){if(+b&(1<<f.bit))n+=counts.byFlags[b]});
+      return '<tr><td style="white-space:nowrap"><b>'+hackEsc(f.name)+'</b><div class="hack-was">'+hackEsc(f.code)+'</div></td><td class="hack-was" style="font-size:12px">'+hackEsc(f.text)+'</td>'+(counts?'<td class="num">'+n+'</td>':'')+'</tr>'}).join('')+
+    '</tbody></table></div>';
+  html+='<div class="ai-sec"><div class="section-label">When it switches out</div><p>It checks these in order, at the start of each turn, and stops at the first that decides.</p>'+
+    '<ol class="ai-rules">'+e.switchRules.map(function(r){return '<li><b>'+hackEsc(r.name)+'.</b> '+hackEsc(r.text)+'</li>'}).join('')+'</ol><p>'+hackEsc(e.neverSwitch)+'</p></div>';
+  html+='<div class="ai-sec"><div class="section-label">What it sends in after a faint</div>'+e.replacement.map(function(x){return '<p>'+hackEsc(x)+'</p>'}).join('')+
+    '<p>The same choice is made when Perish Song or Natural Cure makes it switch.</p></div>';
+  if(e.bugs&&e.bugs.length)html+='<div class="ai-sec"><div class="section-label">Known bugs in this AI</div>'+e.bugs.map(function(x){return '<p>'+hackEsc(x)+'</p>'}).join('')+'</div>';
+  el.innerHTML=html;
+}
+
 /* ── Trainers (5.57) ─────────────────────────────────────────────────────────────────────────────────
    "we need the trainer docs, with the ability to add notes on each trainer as i play through", "like a
    spreadsheet, google docs with tabs for each section of the game", and "the ability to upload the
@@ -3013,6 +3074,7 @@ async function renderTrainersTab(){
   const d=trainerData[h.key];
   if(!d){el.innerHTML='<div class="hack-note">'+h.label+'\u2019s trainers could not be loaded.</div>';return}
   if(trainerUI.section[h.key]===undefined)trainerUI.section[h.key]=0;
+  await loadAIDocs();   // for each trainer's AI flags
   el.innerHTML='<div class="hack-panel-head"><span class="section-label" style="margin:0">'+h.label+' trainers</span><span class="hack-meta">'+d.trainerCount+' trainers \u00b7 '+hackEsc(d.note)+'</span></div>'+
     '<div class="hack-ctl"><input class="filter-select" type="search" placeholder="Find a trainer or Pok\u00e9mon in every section" value="'+hackEsc(trainerUI.q)+'" oninput="trainerUI.q=this.value;renderTrainerSection()">'+
     '<label class="hack-toggle"><input type="checkbox" '+(trainerUI.hideBeaten?'checked':'')+' onchange="trainerUI.hideBeaten=this.checked;renderTrainerSection()"> Hide beaten</label>'+
@@ -3045,7 +3107,7 @@ function renderTrainerSection(){
         const nt=notes[t[0]]||{},k=hackEsc(t[0]),open=trainerUI.open===t[0];
         const full=t[4].some(function(m){return m[6].length||m[3]||m[4]});
         html+='<tr class="tr-row'+(nt.b?' beaten':'')+'"><td><input type="checkbox" data-k="'+k+'" '+(nt.b?'checked':'')+' onchange="onTrainerBeaten(this)" title="Beaten"></td>'+
-          '<td style="white-space:nowrap"><b>'+hackEsc(t[1])+'</b>'+(t[2]?'<span class="tr-tag">'+hackEsc(t[2])+'</span>':'')+(t[3]?'<span class="tr-tag">rematch</span>':'')+'</td>'+
+          '<td style="white-space:nowrap"><b>'+hackEsc(t[1])+'</b>'+(t[2]?'<span class="tr-tag">'+hackEsc(t[2])+'</span>':'')+(t[3]?'<span class="tr-tag">rematch</span>':'')+(t[5]!==undefined&&aiDocs?'<span class="tr-ai" title="AI flags">AI: '+hackEsc(aiFlagNames(t[5],aiDocs.engines.gen4))+'</span>':'')+'</td>'+
           '<td><div class="tr-team">'+t[4].map(function(m){
             const img=m[0]&&typeof spriteFor==='function'?spriteFor(m[0],getDataGenNum()):'';
             return '<button class="tr-mon" onclick="trainerUI.open=trainerUI.open===\''+k+'\'?\'\':\''+k+'\';renderTrainerSection()" title="'+(full?'Show the full team':'')+'">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'')+hackEsc(m[1])+' <small>'+m[2]+'</small></button>'}).join('')+'</div></td>'+
@@ -5676,7 +5738,7 @@ function switchTab(tab){
      forEach leaves every tab AFTER it in the wrong state, which is why several tabs stopped working
      at once instead of just one. A panel without a button is a normal thing to have; crashing over
      it is not. */
-  ['pokedex','types','abilities','items','tms','trainers','locations','evs','natures','other','team','calc'].forEach(t=>{
+  ['pokedex','types','abilities','items','tms','trainers','ai','locations','evs','natures','other','team','calc'].forEach(t=>{
     const panel=document.getElementById(t+'-tab');
     if(panel)panel.style.display=t===tab?'':'none';
     const btn=document.getElementById('tab-'+t);
@@ -5684,7 +5746,7 @@ function switchTab(tab){
   });
   // Hide search bar for reference tabs that don't need it
   // A hack's Moves and Abilities views have their own search box; the universal one drives the base-game views.
-  const noSearchTabs=['types','natures','evs','other','team','calc','trainers'].concat(isRomHack?['tms','abilities','locations']:[]);
+  const noSearchTabs=['types','natures','evs','other','team','calc','trainers','ai'].concat(isRomHack?['tms','abilities','locations']:[]);
   const sb=document.getElementById('universal-search-bar');
   sb.style.display=noSearchTabs.includes(tab)?'none':'';
   // Show/hide pokedex-only filters and update universal search placeholder
@@ -5709,6 +5771,7 @@ function switchTab(tab){
   if(tab==='abilities'&&!isRomHack){if(!currentAbilityPage)renderAbilitiesTab();else{renderAbilityPins();showAbilityPage(currentAbilityPage)}}
   if(tab==='items')renderItemsTab();
   if(tab==='trainers')renderTrainersTab();
+  if(tab==='ai')renderAITab();
   if(tab==='pokedex')applyFilters();
   if(!_restoring)saveHash();
   updateTitle();
@@ -6343,7 +6406,7 @@ function saveHash(){
   updateTitle();
 }
 function updateTitle(){
-  const tabNames={pokedex:'Pok\u00e9dex',trainers:'Trainers',tms:'Moves',abilities:'Abilities',items:'Items',locations:'Locations',types:'Type Chart',natures:'Natures',team:'Team Builder',evs:'EV Training',other:'Other',calc:'Damage Calc'};
+  const tabNames={pokedex:'Pok\u00e9dex',trainers:'Trainers',ai:'AI',tms:'Moves',abilities:'Abilities',items:'Items',locations:'Locations',types:'Type Chart',natures:'Natures',team:'Team Builder',evs:'EV Training',other:'Other',calc:'Damage Calc'};
   let t='HoopaDex';
   const tabLabel=tabNames[currentTab]||'';
   if(currentTab==='pokedex'&&vm==='detail'&&adId&&dc[adId]){
@@ -6423,7 +6486,7 @@ async function restoreHash(){
   let resolvedTab=tab;
   if(tab==='priority'){resolvedTab='other';currentOtherSub='priority'}
   if(tab==='split'){resolvedTab='other';currentOtherSub='split'}
-  if(['pokedex','types','tms','locations','evs','natures','other','abilities','items','trainers','team','calc'].includes(resolvedTab)){
+  if(['pokedex','types','tms','locations','evs','natures','other','abilities','items','trainers','ai','team','calc'].includes(resolvedTab)){
     switchTab(resolvedTab);
     if(resolvedTab==='other')switchOtherSub(currentOtherSub);
     if(tab==='pokedex'&&parts.find(p=>p.startsWith('p'))){
@@ -9637,7 +9700,7 @@ async function showAbilityPage(abilityName){
     currentTab='abilities';
     // Second copy of the tab loop, guarded for the same reason as the one in switchTab(): the
     // 'evs' panel has no nav button any more, and an unguarded assignment throws mid-forEach.
-    ['pokedex','types','abilities','items','tms','trainers','locations','evs','natures','other','team','calc'].forEach(t=>{
+    ['pokedex','types','abilities','items','tms','trainers','ai','locations','evs','natures','other','team','calc'].forEach(t=>{
       const panel=document.getElementById(t+'-tab');
       if(panel)panel.style.display=t==='abilities'?'':'none';
       const btn=document.getElementById('tab-'+t);

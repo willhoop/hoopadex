@@ -441,7 +441,7 @@ const MUTATIONS = [
   ['M193', "Copy team leaves out each Pokémon's level, so the calculator imports them at 100",
     "+'Level: '+m[2]+'\\n'+", "+", 1, 'test-romhack-trainers.js'],
   ['M194', "A link to the Trainers tab opens the Pokédex instead",
-    "'abilities','items','trainers','team','calc'].includes(resolvedTab)", "'abilities','items','team','calc'].includes(resolvedTab)", 1, 'test-romhack-trainers.js'],
+    "'abilities','items','trainers','ai','team','calc'].includes(resolvedTab)", "'abilities','items','ai','team','calc'].includes(resolvedTab)", 1, 'test-romhack-trainers.js'],
   ['M195', "A player's note is never saved",
     "  try{localStorage.setItem(TRAINER_NOTES_KEY,JSON.stringify(a))}catch(e){}\n", "", 1, 'test-romhack-trainers.js'],
   /* Wild encounters (5.58). */
@@ -451,6 +451,13 @@ const MUTATIONS = [
     "  if(isRomHack)renderHackWhere(p.id);else loadDetailEncounters(p.id);", "  loadDetailEncounters(p.id);", 1, 'test-romhack-encounters.js'],
   ['M198', "An encounter loses its rate",
     "' <small>'+(r[2]!==null?r[2]+'%':'')+", "' <small>'+", 1, 'test-romhack-encounters.js'],
+  /* AI (5.59). */
+  ['M199', "The AI tab is offered in generations with no decompiled AI",
+    "&&selectedGenNum!==3&&selectedGenNum!==4)return false;", ")return false;", 1, 'test-ai-docs.js'],
+  ['M200', "A trainer's AI flags are read from the wrong bits",
+    "return bits&(1<<f.bit)}", "return bits&f.bit}", 1, 'test-ai-docs.js'],
+  ['M201', "A link to the AI tab opens the Pokédex instead",
+    "'trainers','ai','team','calc'].includes(resolvedTab)", "'trainers','team','calc'].includes(resolvedTab)", 1, 'test-ai-docs.js'],
   ['M170', "FireRed/LeafGreen is pointed at the wrong sprite set",
     "'firered-leafgreen':'generation-iii/firered-leafgreen',", "'firered-leafgreen':'generation-iii/emerald',", 1, 'test-generation-tables.js'],
 

@@ -40,6 +40,7 @@ const PK_SPLITS = [['Roark', 904958359], ['Gardenia', 2138894915], ['Fantina', 8
 const SRC = {
   rpTrainers: 'https://pastebin.com/raw/zAQNcyLN',
   rpCalc: RH.URL.rpCalc,
+  sgCalc: RH.URL.sgCalc,
   sgTrainers: 'https://raw.githubusercontent.com/zhenga8533-archive/sgss-wiki/main/data/documentation/Trainer%20Pokemon.txt',
   rbCalc: RH.URL.rbCalc,
   ekTrainers: 'https://raw.githubusercontent.com/Isotarge/emerald-kaizo-db/main/src/trainers.json',
@@ -163,6 +164,25 @@ function calcSetIndex(fsets) {
   }));
   return idx;
 }
+/* A trainer's AI flags (Generation IV bit field: 1 Basic, 2 Evaluate attack, 4 Expert ...), from the
+   calculator data's "ai" on that trainer's sets. The calculator spells classes its own way
+   ("Leader_M Falkner"); the match is on the name with underscores and a lone M/F dropped, and needs
+   the same species at the same level, so a rematch team is not given the first team's flags. */
+const trainerKey = n => flat(String(n).replace(/_/g, ' ').replace(/\b[MF]\b/g, '').replace(/\d+$/, ''));
+function addAIFlags(areas, fsets) {
+  const idx = {};
+  Object.keys(fsets).forEach(sp => Object.keys(fsets[sp]).forEach(k => {
+    const s = fsets[sp][k];
+    if (s.ai === undefined) return;
+    idx[trainerKey(k.replace(/^Lvl \d+\s+/, '')) + '|' + flat(sp) + '|' + s.level] = s.ai;
+  }));
+  let n = 0;
+  areas.forEach(a => a.trainers.forEach(t => {
+    const hit = t[4].map(m => idx[trainerKey(t[1]) + '|' + flat(m[1]) + '|' + m[2]]).find(x => x !== undefined);
+    if (hit !== undefined) { t[5] = hit; n++; }
+  }));
+  return n;
+}
 function fillFromCalc(areas, idx) {
   let filled = 0, missing = 0;
   areas.forEach(a => a.trainers.forEach(t => t[4].forEach((m, j) => {
@@ -278,16 +298,21 @@ async function main() {
   // Renegade Platinum
   {
     const areas = parseDrayanoTrainers(T.rpTrainers, true);
-    const fill = fillFromCalc(areas, calcSetIndex(calcObj(T.rpCalc).formatted_sets));
+    const fsets = calcObj(T.rpCalc).formatted_sets;
+    const fill = fillFromCalc(areas, calcSetIndex(fsets));
+    const ai = addAIFlags(areas, fsets);
     out.push(['renegade-platinum', { fetched, order: 'game', sources: [SRC.rpTrainers, SRC.rpCalc],
-      note: 'Order and areas from Drayano\'s Trainer Pokémon document. Full sets: his document for important trainers, the hack\'s calculator data for ' + fill.filled + ' more Pokémon; ' + fill.missing + ' have species and level only.',
+      note: 'Order and areas from Drayano\'s Trainer Pokémon document. Full sets: his document for important trainers, the hack\'s calculator data for ' + fill.filled + ' more Pokémon; ' + fill.missing + ' have species and level only. AI flags for ' + ai + ' trainers, from the calculator data.',
       sections: sectionsByLeader(areas) }]);
   }
   // Sacred Gold / Storm Silver
   {
     const areas = parseDrayanoTrainers(T.sgTrainers, false);
-    out.push(['sacred-gold', { fetched, order: 'game', sources: [SRC.sgTrainers],
-      note: 'Order, areas and important trainers\' full sets from the Trainer Pokemon list shipped with the hack\'s documents (compiled by JD48096761). Other trainers have species and level only.',
+    /* The calculator's movesets are not used (another hack's move names), but its AI flags are numbers
+       read from the game, which a move-name table cannot garble. */
+    const ai = addAIFlags(areas, JSON.parse(T.sgCalc).formatted_sets);
+    out.push(['sacred-gold', { fetched, order: 'game', sources: [SRC.sgTrainers, SRC.sgCalc],
+      note: 'Order, areas and important trainers\' full sets from the Trainer Pokemon list shipped with the hack\'s documents (compiled by JD48096761). Other trainers have species and level only. AI flags for ' + ai + ' trainers, from the calculator data.',
       sections: sectionsByLeader(areas) }]);
   }
   // Platinum Kaizo

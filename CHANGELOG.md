@@ -12,6 +12,43 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.59] - 2026-10-13
+
+### Added
+- **An AI tab: how trainers pick moves, when they switch, and what they send in.** Asked for from the
+  live site: *"build a very important tab, switch logic for the ai, and relevant ai flags, etc. this is
+  for each game and rom hack if possible"*, and *"what if some games have custom trainer ai"*. Shown for
+  every ROM hack and for the Generation III and IV games, the only ones whose AI has been decompiled.
+  Read from pret's decompilations (pokeemerald, pokefirered, pokeplatinum):
+  - **How it picks a move**: every move starts at 100 points, each AI flag adds or takes points, the
+    highest wins and ties are random.
+  - **Every AI flag**, in plain English, with exact chances from the code (for example, "Go for the
+    knockout" gives a 4× move +2 about 69% of the time).
+  - **When it switches**, as the ordered list of checks the code runs, with their chances; Generation IV
+    adds a check Generation III lacks (every damaging move does nothing).
+  - **What it sends in after a faint**: Generation III ranks its party by how hard YOUR types hit them;
+    Generation IV by how hard theirs hit yours, with a documented one-byte scoring overflow.
+  - **Per hack**: Platinum Kaizo's own "AI Changes" list; for Renegade Platinum and Sacred Gold, each
+    trainer's AI flags (from the calculator data), also shown on the Trainers tab. Where a hack's AI is
+    not documented (Emerald Kaizo, FireRed Omega, Run & Bun's expansion-engine flags), the page says
+    so rather than guessing.
+
+### Record
+- **Measured.** AI flags known for 411 Renegade Platinum and 411 Sacred Gold trainers. Statements in the
+  page checked against the code at every build: 11. Source: `app/ai-docs.json`, written by
+  `build/generate-ai-docs.js`; `app/hacks/*.trainers.json` (the sixth field of a trainer).
+- **Basis.** unchanged — new figures; no existing figure moves.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing: the white paper (5.15), deck (11m) and technical docs (4.17) are
+  updated in this pass.
+
+### Tests
+- New `tests/test-ai-docs.js` (17): the flag bits and the switch-check order read by hand from the
+  decompiled headers and functions named beside each check.
+- Mutations M199–M201. **190 killed, 0 survived, 0 skipped.** 49 suites, 1,924 assertions, all passing.
+
+---
+
 ## [5.58] - 2026-10-13
 
 ### Added

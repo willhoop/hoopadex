@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.4 · Last updated 2026-10-13 · HoopaDex v5.58**
+**Version 2.5 · Last updated 2026-10-13 · HoopaDex v5.59**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -409,9 +409,23 @@ rather than showing FireRed's list as if it were the hack's.
 
 ---
 
+## Slide 11m — How the trainers think
+
+The AI tab explains, from the games' own code, how a trainer picks its move, when it switches out, and
+which Pokémon it sends in after one faints. It covers the Generation III and IV games and every hack
+built on them.
+
+Some of it is surprising. After a faint, the Generation III AI tends to send in the Pokémon YOUR moves
+hit hardest. The Generation IV AI has a counting bug that can make it pick the wrong one.
+
+Where a hack changes the AI, its own notes are shown. Where nobody has written down what a hack does,
+the page says so.
+
+---
+
 ## Slide 12 — What we don't claim
 
-Forty-eight test suites and 1,907 assertions now cover the data, the damage formula, the derived
+Forty-nine test suites and 1,924 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

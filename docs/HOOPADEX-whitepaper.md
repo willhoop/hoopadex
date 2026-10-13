@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.4 · Last updated 2026-10-13 · HoopaDex v5.58**
+**Version 2.5 · Last updated 2026-10-13 · HoopaDex v5.59**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.58 the set is **187 mutations, all killed**, against 48 suites and 1,907 assertions. Two of
+As of v5.59 the set is **190 mutations, all killed**, against 49 suites and 1,924 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -910,6 +910,41 @@ space. The trainer files were rebuilt.
 Locations" for Sacred Gold v1.05 (archived at github.com/zhenga8533-archive/sgss-wiki); the Platinum
 Kaizo Mastersheet, Encounters tab; dekzeh, runandbundex `locations/wild_encounters.json`; Isotarge,
 emerald-kaizo-db `encounters.json` (MIT).*
+
+### 5.15 Trainer AI, read from the games' code
+
+The AI page is written from pret's decompilations, not from guides: pokeemerald and pokefirered for
+Generation III, pokeplatinum for Generation IV. Generations V and later have no decompiled AI and get
+no page.
+
+Two things are read from the code at every build: the list of AI flags with their bit numbers, and the
+order in which the switch checks run. Generation III runs seven checks (Perish Song, Wonder Guard,
+absorbing ability, Natural Cure, then "has a super-effective move" and "boosted" keep it in, then
+"partner immune or resisting"). Generation IV runs eight: it adds "every damaging move does nothing"
+third. FireRed's order is checked to equal Emerald's.
+
+The plain-English line for each flag and check is written by hand from the code, and eleven of its
+claims are checked against the code at every build (for example that every move starts at 100 points,
+that boosts of four stages keep it in, and that the Generation IV replacement score is one byte). If
+the code stops saying what the page says, the build fails.
+
+Two findings worth stating. The Generation III replacement ranks the party by how hard the player's
+types hit each member, and sends in the first one hit hardest that has a super-effective move;
+pokeemerald's own comment calls this the opposite of a sensible choice. The Generation IV replacement
+ranks by the member's own offensive matchup, but stores the score in one byte, so a 4× matchup scores
+65 rather than 320 (pokeplatinum, "Post-KO Switch-In AI Scoring Overflow").
+
+HeartGold/SoulSilver's AI is still assembly in pokeheartgold, so Sacred Gold's page shows Platinum's
+engine and says so. Each Renegade Platinum and Sacred Gold trainer's flags come from the hack's
+calculator data: 411 trainers each. Platinum Kaizo publishes its AI changes, which are shown in its
+authors' words. Emerald Kaizo, FireRed Omega and Run & Bun publish nothing about their AI or their
+trainers' flags; their pages say so.
+
+*Sources: pret/pokeemerald `include/constants/battle_ai.h`, `src/battle_ai_switch_items.c`,
+`src/battle_ai_script_commands.c`, `data/battle_ai_scripts.s`; pret/pokefirered
+`src/battle_ai_switch_items.c`; pret/pokeplatinum `generated/ai_flags.txt`,
+`src/battle/trainer_ai/trainer_ai.c`, `src/battle/trainer_ai/script.s`, `src/battle/battle_lib.c`,
+`docs/bugs_and_glitches.md`; the Platinum Kaizo Mastersheet, AI Changes tab.*
 
 ---
 

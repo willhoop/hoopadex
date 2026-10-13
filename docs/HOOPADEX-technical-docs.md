@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.58**
+**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.59**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -731,6 +731,7 @@ true.
 | `build/generate-romhack-data.js` | `app/hacks/*.data.json`: each ROM hack's moves, learnsets, evolutions and items, with its cross-checks. See 4.14. |
 | `build/generate-romhack-trainers.js` | `app/hacks/*.trainers.json`: each ROM hack's trainers, by section and area. See 4.15. |
 | `build/generate-romhack-encounters.js` | `app/hacks/*.encounters.json`: each ROM hack's wild encounters. See 4.16. |
+| `build/generate-ai-docs.js` | `app/ai-docs.json`: the trainer AI, from pret's decompilations. See 4.17. |
 | `build/generate-type-changing-moves.js` | The `TYPE_CHANGING_MOVES` block in `app/index.html`: moves whose type is decided when used. See 4.9h. |
 | `build/generate-move-values.js` | The `MOVE_GEN_FIX`, `MOVE_GAME_FIX` and `CHAMP_PP` block in `app/index.html`: PP and power corrections per generation and per game, and Champions' PP rule. See 4.9g. |
 | `build/generate-priority.js` | The `PRIORITY_MOVES` block in `app/index.html`, from Showdown's per-generation move data. See 4.9f. |
@@ -1438,6 +1439,31 @@ place of `loadDetailEncounters`.
 - A ♂ or ♀ after a space is a gender; attached to the name it is the species (Nidoran).
 - `validate` drops a method with no Pokémon, and fails a file with fewer than 20 areas or a method
   whose rates add to more than 105%.
+
+## 4.17 Trainer AI (5.59)
+
+**Data.** `app/ai-docs.json`:
+
+- `engines.gen3`, `engines.gen4` — `flags` (`bit`, `code`, `name`, `text`), `switchRules` (`fn`, `name`,
+  `text`), `neverSwitch`, `replacement`, `howItChooses`; Generation IV also `bugs`.
+- `hacks.<key>` — `engine` (`gen3`, `gen4` or null), `changes` (the hack's own text or null),
+  `changesNote`, `flagCounts`.
+- `facts` — the statements the build checked against the code.
+
+**Tab.** `TAB_RELEVANCE.ai` is `{champions: false, aiEngine: true}`: shown in any ROM hack and in
+Generations III and IV. `renderAITab` picks the engine with `aiSelection`. On the Trainers tab,
+`aiFlagNames(bits, engine)` turns a trainer's sixth field into flag names.
+
+**Generation.** `generate-ai-docs.js` reads the flag list from `battle_ai.h` (Gen III) and
+`ai_flags.txt` (Gen IV), and the order of the switch checks from the body of `ShouldSwitch` and
+`TrainerAI_ShouldSwitch`. The plain-English lines are in `FLAG_TEXT` and `SWITCH_TEXT`. The build fails:
+
+- if the code has a flag or a switch check with no line;
+- if FireRed's switch order differs from Emerald's;
+- if any statement in `facts` is no longer true of the code.
+
+A trainer's flags (`generate-romhack-trainers.js`, `addAIFlags`) come from the calculator data's
+`ai` field, matched by trainer name, species and level.
 
 ## 4.13 The PokéAPI fallback archive (5.55)
 
