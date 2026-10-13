@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.3 · Last updated 2026-10-13 · HoopaDex v5.57**
+**Version 2.4 · Last updated 2026-10-13 · HoopaDex v5.58**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -397,9 +397,21 @@ says so, rather than pretending to know.
 
 ---
 
+## Slide 11l — Where to catch everything
+
+In a hack, the Locations tab now lists every area's wild Pokémon: how you meet them, how often, and
+at what level. Tick an area once you've used its encounter and write down what you caught.
+
+Each Pokémon's page says where to find it in that hack, not in the original game.
+
+One hack, FireRed Omega, has no published encounter list. HoopaDex leaves it empty and says so,
+rather than showing FireRed's list as if it were the hack's.
+
+---
+
 ## Slide 12 — What we don't claim
 
-Forty-seven test suites and 1,889 assertions now cover the data, the damage formula, the derived
+Forty-eight test suites and 1,907 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

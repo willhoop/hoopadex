@@ -444,6 +444,13 @@ const MUTATIONS = [
     "'abilities','items','trainers','team','calc'].includes(resolvedTab)", "'abilities','items','team','calc'].includes(resolvedTab)", 1, 'test-romhack-trainers.js'],
   ['M195', "A player's note is never saved",
     "  try{localStorage.setItem(TRAINER_NOTES_KEY,JSON.stringify(a))}catch(e){}\n", "", 1, 'test-romhack-trainers.js'],
+  /* Wild encounters (5.58). */
+  ['M196', "The Locations tab is hidden again in hack mode",
+    "  locations:{champions:false},\n", "  locations:{champions:false,hack:false},\n", 1, 'test-romhack-encounters.js'],
+  ['M197', "A Pokémon's page in hack mode lists the base game's encounters",
+    "  if(isRomHack)renderHackWhere(p.id);else loadDetailEncounters(p.id);", "  loadDetailEncounters(p.id);", 1, 'test-romhack-encounters.js'],
+  ['M198', "An encounter loses its rate",
+    "' <small>'+(r[2]!==null?r[2]+'%':'')+", "' <small>'+", 1, 'test-romhack-encounters.js'],
   ['M170', "FireRed/LeafGreen is pointed at the wrong sprite set",
     "'firered-leafgreen':'generation-iii/firered-leafgreen',", "'firered-leafgreen':'generation-iii/emerald',", 1, 'test-generation-tables.js'],
 

@@ -63,8 +63,10 @@ const unresolved = new Set();
 /* "Nidoran♀", "Rotom-W", "Mr. Mime", "Deoxys (A)" - the species, as the app numbers it. */
 /* Misspellings in the trainer sources, each the only species it can mean. */
 const SPECIES_ERRATA = { nakuhita: 'Makuhita', hippowdown: 'Hippowdon' };
+/* "Nidoran♀" IS the species; a symbol after a space ("Zigzagoon ♂", "Swablu ♀/") is that Pokémon's gender. */
+const stripGender = name => String(name).replace(/\s+[♂♀]\s*\/?\s*$/, '').trim();
 function sid(name) {
-  let n = String(name).replace(/\s*[♂♀]\s*\/?\s*$/, '').replace(/\s*\(.*\)\s*$/, '').trim();
+  let n = stripGender(name).replace(/\s*\(.*\)\s*$/, '').trim();
   n = SPECIES_ERRATA[flat(n)] || n;
   if (/^\?+$/.test(n)) return 0;
   const id = speciesId(n) || speciesId(n.split('-')[0]) || speciesId(n.replace(/-.*$/, ''));
@@ -73,7 +75,7 @@ function sid(name) {
 }
 /* A source's empty slot ("??????????" at level 0) is not a Pokémon. */
 const realMon = m => m[2] >= 1 && !/^\?+$/.test(m[1]);
-const monName = name => { const n = String(name).replace(/\s*[♂♀]\s*\/?\s*$/, '').trim(); return SPECIES_ERRATA[flat(n)] || n; };
+const monName = name => { const n = stripGender(name); return SPECIES_ERRATA[flat(n)] || n; };
 const mon = (name, lv, item, ability, nature, moves) => [sid(name), monName(name), +lv || 0,
   item && !/^(none|-|\(none\))$/i.test(item) ? item : '', ability || '', nature && nature !== '?' ? nature : '', (moves || []).filter(m => m && m !== '-')];
 /* A Gym Leader closes a section; so does the last trainer of a source with no leaders left. */

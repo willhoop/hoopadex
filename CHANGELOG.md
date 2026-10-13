@@ -12,6 +12,48 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.58] - 2026-10-13
+
+### Added
+- **Wild encounters for the ROM hacks.** Asked for from the live site: *"we need trainer docs and
+  encounter docs as well"*. In hack mode the **Locations** tab lists every area in the source's order,
+  with each method (grass by time of day, surf, each rod, rock smash, swarms), each Pokémon's rate and
+  levels. Search finds an area or a Pokémon. Each area has a tick for "encounter used" and a box for
+  what you caught, saved with your trainer notes. A Pokémon's page shows **where to find it in the
+  hack**, in place of the base game's encounters.
+
+  | Hack | Areas | Rows | Source |
+  |---|---|---|---|
+  | Renegade Platinum | 79 | 1,977 | Drayano's Wild Pokémon document |
+  | Sacred Gold / Storm Silver | 122 | 2,224 | Drayano's Pokemon Locations document |
+  | Platinum Kaizo | 130 | 2,567 | the Mastersheet's Encounters tab |
+  | Run & Bun | 123 | 1,496 | the game's own encounter table (dekzeh) |
+  | Emerald Kaizo | 66 | 1,708 | emerald-kaizo-db |
+  | FireRed Omega | — | — | none published; the tab says so |
+
+### Fixed
+- **Nidoran♂ read as Nidoran♀ in the trainer data.** The trainer generator stripped a ♂ or ♀ from the
+  end of every name, to drop a Pokémon's gender ("Zigzagoon ♂"), and so read "Nidoran♂" as Nidoran.
+  A symbol after a space is a gender; one attached to the name is the species. Rebuilt.
+- **Errors in the encounter sources, recorded rather than smoothed over.** Sacred Gold's document
+  repeats a heading (Route 47) and leaves stray words before two headings ("Super", "Meridian");
+  Platinum Kaizo's sheet has broken "#REF!" cells. Each is handled by a named rule in the generator.
+
+### Record
+- **Measured.** Areas and rows per hack, as in the table above. Source: `app/hacks/*.encounters.json`,
+  written by `build/generate-romhack-encounters.js`.
+- **Basis.** unchanged — new figures; no existing figure moves.
+- **Supersedes.** ~~"Wild encounters for <hack> are not in HoopaDex yet"~~ (5.57) superseded.
+- **Owed to the next major.** Nothing: the white paper (5.14), deck (11l) and technical docs (4.16) are
+  updated in this pass.
+
+### Tests
+- New `tests/test-romhack-encounters.js` (18): each expected value read from the source named beside
+  it. `test-romhacks.js` now expects Locations in hack mode.
+- Mutations M196–M198. **187 killed, 0 survived, 0 skipped.** 48 suites, 1,907 assertions, all passing.
+
+---
+
 ## [5.57] - 2026-10-13
 
 ### Added

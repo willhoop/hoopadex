@@ -124,7 +124,7 @@ check(lv(ek, 190).includes('4 brick-break'), 'Emerald Kaizo Aipom learns Brick B
 
 // --- the app ------------------------------------------------------------------------------------------------
 /* The phase 2 block, run with a hack loaded. */
-const block = src.slice(src.indexOf('/* ── ROM hacks, phase 2 (5.56)'), src.indexOf('function hackDetailNote('));
+const block = src.slice(src.indexOf('/* ── ROM hacks, phase 2 (5.56)'), src.indexOf('function hackMonChip('));
 const capName = (0, eval)('(' + src.match(/function capName\(s\)\{[^\n]*\}/)[0] + ')');
 const pkSpecies = JSON.parse(fs.readFileSync(path.join(HD, 'platinum-kaizo.json'), 'utf8')).species;
 const app = (0, eval)('var isRomHack=true,HACK={species:' + JSON.stringify(pkSpecies) + ',data:' + JSON.stringify(pk) + '};' +

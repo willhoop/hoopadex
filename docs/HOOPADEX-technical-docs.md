@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.57**
+**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.58**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -730,6 +730,7 @@ true.
 | `build/generate-romhacks.js` | `app/hacks/*.json`: each ROM hack's species data, with its cross-check. See 4.12. |
 | `build/generate-romhack-data.js` | `app/hacks/*.data.json`: each ROM hack's moves, learnsets, evolutions and items, with its cross-checks. See 4.14. |
 | `build/generate-romhack-trainers.js` | `app/hacks/*.trainers.json`: each ROM hack's trainers, by section and area. See 4.15. |
+| `build/generate-romhack-encounters.js` | `app/hacks/*.encounters.json`: each ROM hack's wild encounters. See 4.16. |
 | `build/generate-type-changing-moves.js` | The `TYPE_CHANGING_MOVES` block in `app/index.html`: moves whose type is decided when used. See 4.9h. |
 | `build/generate-move-values.js` | The `MOVE_GEN_FIX`, `MOVE_GAME_FIX` and `CHAMP_PP` block in `app/index.html`: PP and power corrections per generation and per game, and Champions' PP rule. See 4.9g. |
 | `build/generate-priority.js` | The `PRIORITY_MOVES` block in `app/index.html`, from Showdown's per-generation move data. See 4.9f. |
@@ -1411,6 +1412,32 @@ does not give.
   section ("Tate & Liza").
 - `validate` refuses a trainer with no Pokémon, a level outside 1 to 100, a duplicate key, or a file
   with fewer than 50 trainers.
+
+## 4.16 ROM hack wild encounters (5.58)
+
+**Data.** `app/hacks/<hack>.encounters.json`, one file per hack. FireRed Omega has none.
+
+- `areas` — `[{name, levels, methods: [{m, rows}]}]`, in the source's order.
+- A row is `[species id or 0, name, rate % or null, levels]`.
+
+**Tab.** `TAB_RELEVANCE.locations` applies in hack mode. `renderHackTab('locations')` calls
+`renderHackLocations`; the base game's view (`initLocations`) does not run. An area's note and tick use
+the trainer notes store, keyed `area|<name>`.
+
+**Pokémon page.** In hack mode `renderHackWhere(id)` lists every area and method for the species, in
+place of `loadDetailEncounters`.
+
+**Generation.** Rules worth knowing:
+
+- Renegade Platinum: an area is a line followed by `Levels:`. Rod levels come from the document's
+  general notes.
+- Sacred Gold: an area is a line followed by `Wild Levels:`. A list can wrap onto the next line. A
+  tag after a name (`[SG]`, `(Fish)`) stays on the row and is left out of the species lookup.
+- Platinum Kaizo: the Encounters tab is a grid, two columns per area.
+- Run & Bun: a species' slots are added into one row. Fishing slots follow the file's `groups`.
+- A ♂ or ♀ after a space is a gender; attached to the name it is the species (Nidoran).
+- `validate` drops a method with no Pokémon, and fails a file with fewer than 20 areas or a method
+  whose rates add to more than 105%.
 
 ## 4.13 The PokéAPI fallback archive (5.55)
 

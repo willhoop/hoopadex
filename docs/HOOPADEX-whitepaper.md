@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.3 · Last updated 2026-10-13 · HoopaDex v5.57**
+**Version 2.4 · Last updated 2026-10-13 · HoopaDex v5.58**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.57 the set is **184 mutations, all killed**, against 47 suites and 1,889 assertions. Two of
+As of v5.58 the set is **187 mutations, all killed**, against 48 suites and 1,907 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -882,6 +882,34 @@ area.
 github.com/zhenga8533-archive/sgss-wiki); the Platinum Kaizo Mastersheet, its ten split tabs;
 hzla, Dynamic Calc data for Renegade Platinum, Run & Bun and FireRed Omega; Isotarge,
 emerald-kaizo-db `trainers.json` (MIT).*
+
+### 5.14 Wild encounters
+
+| Hack | Areas | Rows | Source |
+|---|---|---|---|
+| Renegade Platinum | 79 | 1,977 | the author's document |
+| Sacred Gold / Storm Silver | 122 | 2,224 | the author's document |
+| Platinum Kaizo | 130 | 2,567 | the authors' sheet |
+| Run & Bun | 123 | 1,496 | the game's own encounter table |
+| Emerald Kaizo | 66 | 1,708 | emerald-kaizo-db |
+| FireRed Omega | — | — | none published |
+
+A row is one species in one method of one area. Where the game gives a species several slots (Run &
+Bun's tables), the slots' rates are added: Route 102's Starly fills a 20% and a 10% slot, so it is 30%.
+FireRed Omega has no published encounter data, so it has none here; showing FireRed's would present
+the base game as the hack.
+
+A Pokémon's page in hack mode now lists every place the hack puts it, from these files, instead of the
+base game's encounters from PokéAPI.
+
+The same pass found a defect in §5.13's data: the trainer generator read "Nidoran♂" as Nidoran♀,
+because it removed a trailing ♂ or ♀ to drop a Pokémon's gender. It now removes one only after a
+space. The trainer files were rebuilt.
+
+*Sources: Drayano, "Wild Pokémon" for Renegade Platinum v1.3.0 (pastebin.com/BATgGpHa) and "Pokemon
+Locations" for Sacred Gold v1.05 (archived at github.com/zhenga8533-archive/sgss-wiki); the Platinum
+Kaizo Mastersheet, Encounters tab; dekzeh, runandbundex `locations/wild_encounters.json`; Isotarge,
+emerald-kaizo-db `encounters.json` (MIT).*
 
 ---
 
