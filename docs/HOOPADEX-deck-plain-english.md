@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.56**
+**Version 2.3 · Last updated 2026-10-13 · HoopaDex v5.57**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -384,9 +384,22 @@ hack's move names, so it is not counted as a check.
 
 ---
 
+## Slide 11k — Every trainer, with your notes
+
+Pick a hack and open Trainers. Every trainer is there in the order you meet them, split into tabs that
+each end at a Gym Leader. Tick them off as you beat them, and write notes against each one. The notes
+stay in your browser, and you can save them to a file.
+
+One button copies a trainer's team in the format damage calculators read, ready to paste.
+
+Two hacks don't publish the order you meet their trainers in. For those, HoopaDex sorts by level and
+says so, rather than pretending to know.
+
+---
+
 ## Slide 12 — What we don't claim
 
-Forty-six test suites and 1,855 assertions now cover the data, the damage formula, the derived
+Forty-seven test suites and 1,889 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

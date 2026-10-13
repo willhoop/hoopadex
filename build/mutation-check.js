@@ -435,6 +435,15 @@ const MUTATIONS = [
     "    (isRomHack?hackChangesHtml(p.id):'')+\n", "", 1, 'test-romhack-data.js'],
   ['M191', "The Moves tab is hidden again in hack mode",
     "  abilities:{minGen:3},\n", "  abilities:{minGen:3},\n  tms:{hack:false},\n", 1, 'test-romhacks.js'],
+  /* Trainers (5.57). */
+  ['M192', "The Trainers tab is offered outside a ROM hack, where it has nothing to show",
+    "  if(rule.hackOnly&&!(typeof isRomHack!=='undefined'&&isRomHack))return false;\n", "", 1, 'test-romhack-trainers.js'],
+  ['M193', "Copy team leaves out each Pokémon's level, so the calculator imports them at 100",
+    "+'Level: '+m[2]+'\\n'+", "+", 1, 'test-romhack-trainers.js'],
+  ['M194', "A link to the Trainers tab opens the Pokédex instead",
+    "'abilities','items','trainers','team','calc'].includes(resolvedTab)", "'abilities','items','team','calc'].includes(resolvedTab)", 1, 'test-romhack-trainers.js'],
+  ['M195', "A player's note is never saved",
+    "  try{localStorage.setItem(TRAINER_NOTES_KEY,JSON.stringify(a))}catch(e){}\n", "", 1, 'test-romhack-trainers.js'],
   ['M170', "FireRed/LeafGreen is pointed at the wrong sprite set",
     "'firered-leafgreen':'generation-iii/firered-leafgreen',", "'firered-leafgreen':'generation-iii/emerald',", 1, 'test-generation-tables.js'],
 

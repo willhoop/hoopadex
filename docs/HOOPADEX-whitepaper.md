@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.56**
+**Version 2.3 · Last updated 2026-10-13 · HoopaDex v5.57**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.56 the set is **180 mutations, all killed**, against 46 suites and 1,855 assertions. Two of
+As of v5.57 the set is **184 mutations, all killed**, against 47 suites and 1,889 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -848,6 +848,40 @@ Mastersheet, tabs Moves, Move Changes, Level-Up Learnsets, TM Learnsets and Evol
 runandbundex `battle_moves.h`, `level_up_learnsets.h`, `teachable_learnsets.h`, `evolution.h`;
 Isotarge, emerald-kaizo-db `moves.json`, `pkmn.json`, `state.js` (MIT); PokeAPI, `data/v2/csv`
 (`pokemon_moves`, `machines`, `pokemon_evolution`).*
+
+### 5.13 Trainers, and what each source can say about order
+
+Every hack now has its trainers, split into sections that each end at a Gym Leader. The sources differ
+in the one thing a playthrough needs most: the order trainers are met in.
+
+| Hack | Trainers | With full sets | Order |
+|---|---|---|---|
+| Renegade Platinum | 777 | 369 | the author's document, by area |
+| Sacred Gold / Storm Silver | 647 | 30 | the hack's trainer list, by area |
+| Platinum Kaizo | 472 | 472 | the author's sheet, by split and area |
+| Run & Bun | 483 | 407 | the calculator data's chain of sets |
+| Emerald Kaizo | 854 | 525 | not in the source; sorted by level |
+| FireRed Omega | 639 | 639 | not in the source; sorted by level |
+
+Two sources give no order. For those, trainers are sorted by their highest level and grouped up to the
+first battle with each Gym Leader, and the page says so: a level sort is close to game order, not the
+same thing, and presenting it as game order would be a claim the data cannot carry.
+
+Renegade Platinum's document gives full sets only for important trainers; the hack's calculator data
+supplies 369 trainers' sets in total, matched by trainer name, species and level. Sacred Gold's
+calculator data is not used for this, for the reason in §5.12: it names moves through another hack's
+table.
+
+The player's notes are stored in their own browser, keyed by hack and trainer, and can be exported to a
+file. A trainer's key is its area, its name and how many times that name has appeared in the area, so a
+rebuild of the data does not move a note onto another trainer unless the source itself reorders that
+area.
+
+*Sources: Drayano, "Trainer Pokémon" for Renegade Platinum v1.3.0 (pastebin.com/zAQNcyLN); the
+"Trainer Pokemon" list for Sacred Gold v1.05 (compiled by JD48096761; archived at
+github.com/zhenga8533-archive/sgss-wiki); the Platinum Kaizo Mastersheet, its ten split tabs;
+hzla, Dynamic Calc data for Renegade Platinum, Run & Bun and FireRed Omega; Isotarge,
+emerald-kaizo-db `trainers.json` (MIT).*
 
 ---
 

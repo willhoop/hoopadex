@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.56**
+**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.57**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -729,6 +729,7 @@ true.
 | `build/generate-move-index.js` | `app/moves-index.json`. It refuses to write unless every move builds identically through `makeMoveRecord` from the full record and from the snapshot row. |
 | `build/generate-romhacks.js` | `app/hacks/*.json`: each ROM hack's species data, with its cross-check. See 4.12. |
 | `build/generate-romhack-data.js` | `app/hacks/*.data.json`: each ROM hack's moves, learnsets, evolutions and items, with its cross-checks. See 4.14. |
+| `build/generate-romhack-trainers.js` | `app/hacks/*.trainers.json`: each ROM hack's trainers, by section and area. See 4.15. |
 | `build/generate-type-changing-moves.js` | The `TYPE_CHANGING_MOVES` block in `app/index.html`: moves whose type is decided when used. See 4.9h. |
 | `build/generate-move-values.js` | The `MOVE_GEN_FIX`, `MOVE_GAME_FIX` and `CHAMP_PP` block in `app/index.html`: PP and power corrections per generation and per game, and Champions' PP rule. See 4.9g. |
 | `build/generate-priority.js` | The `PRIORITY_MOVES` block in `app/index.html`, from Showdown's per-generation move data. See 4.9f. |
@@ -1376,6 +1377,40 @@ Rules worth knowing:
 Every file is validated before it is written: every learnable move is in the move table, levels are
 0 to 100, and no evolution method is empty. `tests/test-romhack-data.js` checks values read by hand
 from the authors' documents. For results and figures, see white paper §5.12.
+
+## 4.15 ROM hack trainers (5.57)
+
+**Data.** `app/hacks/<hack>.trainers.json`, one file per hack (variants share it):
+
+- `sections` — `[{n, title, areas: [{name, trainers}]}]`. A section ends at the first battle with a
+  Gym Leader.
+- A trainer is `[key, name, tag, rematch, team]`. A team member is
+  `[species id or 0, name, level, item, ability, nature, [moves]]`, with `""` where the source says
+  nothing.
+- `order` — `game` or `level`. `note` — what the source gives, in a sentence the page shows.
+
+**Tab.** `TAB_RELEVANCE.trainers` is `{hackOnly: true}`. `renderTrainersTab` loads the file once
+per hack; `renderTrainerSection` draws the section tabs and the table.
+
+**Notes.** `localStorage['hoopadex.trainerNotes.v1']` holds `{hack: {trainer key: {n: note, b: 1}}}`.
+`saveTrainerNote` writes it and removes a trainer's entry when both fields are clear. Export writes
+the whole object to a file; import adds a file's entries and replaces the same trainer's entry.
+
+**Copy team.** `trainerShowdown` writes Showdown's text format and leaves out any field the source
+does not give.
+
+**Generation.** Rules worth knowing:
+
+- Renegade Platinum and Sacred Gold share one parser (`parseDrayanoTrainers`). An area is a line
+  followed by `=` or `---`. A trainer's name alone starts its full sets.
+- Renegade Platinum's other sets come from the calculator data, matched by trainer name, species and
+  level.
+- Platinum Kaizo's split tabs are a grid: a row with text only in column E is an area or a trainer.
+- Run & Bun's order is each trainer's first appearance along the calculator data's next/prev chains.
+- A later team of the same Leader ("Leader Brawly (2)") does not open a section. A double Gym is one
+  section ("Tate & Liza").
+- `validate` refuses a trainer with no Pokémon, a level outside 1 to 100, a duplicate key, or a file
+  with fewer than 50 trainers.
 
 ## 4.13 The PokéAPI fallback archive (5.55)
 

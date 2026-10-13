@@ -12,6 +12,62 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.57] - 2026-10-13
+
+### Added
+- **Trainers, for every ROM hack.** Asked for from the live site: *"we need the trainer docs, with the
+  ability to add notes on each trainer as i play through"*, *"have the trainer docs be like a
+  spreadsheet, google docs with tabs for each section of the game"*, and *"the ability to upload the
+  enemy teams to the relevant calculators we have for each game"*. A **Trainers** tab, shown only in
+  hack mode:
+  - **Tabs for each section of the game.** A section is the stretch up to and including a Gym Leader,
+    the way nuzlocke runs are split; Platinum Kaizo keeps its own sheet's ten split tabs. Each tab shows
+    how many of its trainers you have ticked.
+  - **A row per trainer**, by area in the order you meet them: the team with sprites and levels, a
+    **beaten** tick, and a **notes** box. Select a team for every Pokémon's item, ability, nature and
+    moves.
+  - **Notes and ticks are saved in your browser**, per hack. **Export notes** saves them to a file;
+    **Import notes** adds a file's notes back, on this device or another.
+  - **Copy team** puts the team on the clipboard in Showdown's format, which every Pokémon damage
+    calculator imports; **Open calculator** opens the hack's own, which already has these teams under
+    each trainer's name.
+  - A search box finds a trainer or Pokémon across every section; **Hide beaten** clears the done ones.
+
+  | Hack | Trainers | With full sets | Order from |
+  |---|---|---|---|
+  | Renegade Platinum | 777 | 369 | Drayano's Trainer Pokémon document; sets from it and the calculator data |
+  | Sacred Gold / Storm Silver | 647 | 30 | the Trainer Pokemon list in the hack's documents |
+  | Platinum Kaizo | 472 | 472 | the Mastersheet's split tabs |
+  | Run & Bun | 483 | 407 | the calculator data's own chain of sets |
+  | Emerald Kaizo | 854 | 525 | none in the source: sorted by level, and the page says so |
+  | FireRed Omega | 639 | 639 | none in the source: sorted by level, and the page says so |
+
+### Fixed
+- **Errors in the trainer sources, recorded rather than smoothed over.** Renegade Platinum's document
+  spells Byron "Bryon" once; two species are misspelt in the sources ("Nakuhita", "Hippowdown").
+  FireRed's ROM keeps unused placeholder trainers, the Hoenn Gym Leaders among them, each a lone level 5
+  Ekans; they are left out and counted. Sacred Gold's calculator sets are not used, because the
+  calculator names moves through another hack's move table (5.56).
+
+### Record
+- **Measured.** Trainers per hack, and those with full sets, as in the table above. Source:
+  `app/hacks/*.trainers.json` (`trainerCount`, `withMoves`, `note`), written by
+  `build/generate-romhack-trainers.js`.
+- **Basis.** unchanged — new figures; no existing figure moves.
+- **Supersedes.** ~~"Wild encounters and trainers for <hack> are not in HoopaDex yet"~~ (5.56) superseded
+  for trainers: they are. Wild encounters are still not in.
+- **Owed to the next major.** Nothing: the white paper (5.13), deck (11k) and technical docs (4.15) are
+  updated in this pass.
+
+### Tests
+- New `tests/test-romhack-trainers.js`: each expected value read from the source named beside it.
+- Mutations M192–M195. **M195 survived on the first run.** It deleted the line that saves a note, and
+  the test, which searched the page for `localStorage.setItem`, stayed green because the import code
+  has one too. The test now saves and reads back a note against a stand-in for the browser's storage,
+  and M195 is killed. **184 killed, 0 survived, 0 skipped.** 47 suites, 1,889 assertions, all passing.
+
+---
+
 ## [5.56] - 2026-10-13
 
 ### Added

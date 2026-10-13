@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.56 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.57 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -829,6 +829,24 @@ body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
 .hack-section{margin:14px 0}
 .hack-scroll{max-height:520px;overflow:auto;border:1px solid var(--border);border-radius:8px}
 @media (max-width:640px){.hack-tbl .hide-sm{display:none}}
+/* Trainers (5.57) */
+.tr-tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--border2);margin-bottom:10px;padding-bottom:0}
+.tr-tabs button{background:none;border:1px solid transparent;border-bottom:0;border-radius:8px 8px 0 0;color:var(--text4);padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.tr-tabs button.on{border-color:var(--border2);background:var(--pill-neut);color:var(--text)}
+.tr-tabs small{color:var(--text5);font-weight:600;margin-left:4px}
+.tr-area td{background:var(--pill-neut);font-weight:800;font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--text3)}
+.tr-row.beaten td{opacity:.55}
+.tr-team{display:flex;flex-wrap:wrap;gap:4px}
+.tr-mon{display:inline-flex;align-items:center;gap:2px;font-size:12px;text-transform:capitalize;cursor:pointer;border:1px solid var(--border);border-radius:6px;padding:0 6px 0 0;background:none;color:var(--text)}
+.tr-mon img{width:30px;height:30px;image-rendering:pixelated}
+.tr-mon small{color:var(--text5)}
+.tr-note{width:100%;min-width:140px;min-height:34px;resize:vertical;font:inherit;font-size:12px;background:transparent;color:var(--text);border:1px solid var(--border2);border-radius:6px;padding:4px 6px}
+.tr-sets{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;padding:6px 0}
+.tr-set{border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;line-height:1.5}
+.tr-set b{text-transform:capitalize}
+.tr-tag{font-size:10px;font-weight:800;border:1px solid var(--border2);border-radius:4px;padding:0 4px;margin-left:4px;color:var(--text4)}
+.tr-btn{font-size:11px;font-weight:700;background:none;border:1px solid var(--border2);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--text3);white-space:nowrap}
+@media (max-width:640px){.tr-hide-sm{display:none}}
 .hack-calc p{font-size:13px;color:var(--text3);margin:6px 0 12px;line-height:1.5}
 .hack-calc-link{display:inline-block;padding:8px 14px;border:1px solid var(--border2);border-radius:8px;font-weight:700;font-size:13px;color:var(--text);text-decoration:none}
 .hack-calc-link:hover{border-color:var(--text4)}
@@ -1172,6 +1190,7 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn" onclick="switchTab('tms')" id="tab-tms">Moves</button>
 <button class="tab-btn" onclick="switchTab('abilities')" id="tab-abilities">Abilities</button>
 <button class="tab-btn" onclick="switchTab('items')" id="tab-items">Items</button>
+<button class="tab-btn" onclick="switchTab('trainers')" id="tab-trainers">Trainers</button>
 <button class="tab-btn" onclick="switchTab('locations')" id="tab-locations">Locations</button>
 <button class="tab-btn" onclick="switchTab('types')" id="tab-types">Type Chart</button>
 <button class="tab-btn" onclick="switchTab('natures')" id="tab-natures">Natures</button>
@@ -1220,6 +1239,7 @@ button,select,input{touch-action:manipulation}
 <div id="item-detail-panel" style="display:none"></div>
 <div id="items-container"><div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading items...</div></div>
 </div>
+<div id="trainers-tab" style="display:none"><div id="trainers-container"></div></div>
 <div id="tms-tab" style="display:none">
 <div class="hack-panel" id="hack-tms-panel" style="display:none"></div>
 <p style="font-size:14px;color:#8a8a9a;margin-bottom:12px"><span id="moves-intro-text">Find Pok&#233;mon that can learn specific moves. Search any move &#x2013; TMs, HMs, level-up, egg, or tutor moves.</span></p>
@@ -2165,7 +2185,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.56';
+const APP_VERSION='5.57';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -2342,6 +2362,7 @@ const TAB_RELEVANCE={
   evs:{champions:false,hack:false},
   natures:{minGen:3},
   abilities:{minGen:3},
+  trainers:{hackOnly:true},
   team:{hack:false},
   other:{hack:false},
 };
@@ -2350,6 +2371,7 @@ function isTabRelevant(tab){
   if(!rule)return true;
   if(rule.champions===false&&isChampionsMode)return false;
   if(rule.hack===false&&typeof isRomHack!=='undefined'&&isRomHack)return false;
+  if(rule.hackOnly&&!(typeof isRomHack!=='undefined'&&isRomHack))return false;
   if(rule.minGen&&!isChampionsMode&&selectedGenNum<rule.minGen)return false;
   return true;
 }
@@ -2714,7 +2736,7 @@ function hackChangesHtml(id){
   return '<div class="hack-changes"><span class="section-label" style="margin-right:6px">Changed from '+base+'</span>'+parts.join(' \u00b7 ')+'</div>';
 }
 function hackDetailNote(){
-  return '<div class="hack-note">Wild encounters and trainers for '+romHack().label+' are not in HoopaDex yet.</div>';
+  return '<div class="hack-note">Wild encounters for '+romHack().label+' are not in HoopaDex yet. Its trainers are in the Trainers tab.</div>';
 }
 function hackMonChip(id,extra){
   const r=dexRec(id);
@@ -2861,6 +2883,123 @@ function renderHackItemsBody(){
   });
   if(!html)html='<div class="hack-note">'+romHack().label+'\u2019s sources document no item changes.</div>';
   el.innerHTML=html+'<div class="section-label" style="margin-top:18px">'+hackBaseLabel()+' items</div>';
+}
+
+/* ── Trainers (5.57) ─────────────────────────────────────────────────────────────────────────────────
+   "we need the trainer docs, with the ability to add notes on each trainer as i play through", "like a
+   spreadsheet, google docs with tabs for each section of the game", and "the ability to upload the
+   enemy teams to the relevant calculators we have for each game".
+   hacks/<hack>.trainers.json (build/generate-romhack-trainers.js): sections, each up to a Gym Leader;
+   areas in game order; a trainer is [key, name, tag, rematch, team] and a team member
+   [species id, name, level, item, ability, nature, [moves]].
+   Notes and "beaten" ticks are the player's, so they live in this browser (localStorage), keyed by
+   hack and trainer key, and can be exported to a file and imported on another device. */
+const TRAINER_NOTES_KEY='hoopadex.trainerNotes.v1';
+let trainerData={},trainerUI={section:{},q:'',hideBeaten:false,open:''};
+function trainerNotesAll(){try{return JSON.parse(localStorage.getItem(TRAINER_NOTES_KEY)||'{}')||{}}catch(e){return {}}}
+function trainerNotes(){const a=trainerNotesAll();return a[romHack().key]||{}}
+function saveTrainerNote(k,field,v){
+  const a=trainerNotesAll(),h=romHack().key;
+  const m=a[h]||(a[h]={}),r=m[k]||(m[k]={});
+  if(v===''||v===false)delete r[field];else r[field]=v;
+  if(!Object.keys(r).length)delete m[k];
+  try{localStorage.setItem(TRAINER_NOTES_KEY,JSON.stringify(a))}catch(e){}
+}
+let _trainerNoteTimer=null;
+function onTrainerNote(el){const k=el.dataset.k;clearTimeout(_trainerNoteTimer);_trainerNoteTimer=setTimeout(function(){saveTrainerNote(k,'n',el.value)},300)}
+function onTrainerBeaten(el){saveTrainerNote(el.dataset.k,'b',el.checked?1:false);renderTrainerSection()}
+function exportTrainerNotes(){
+  const blob=new Blob([JSON.stringify({about:'HoopaDex trainer notes',exported:new Date().toISOString(),notes:trainerNotesAll()},null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='hoopadex-trainer-notes.json';document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},0);
+}
+/* Import adds to what is here: a note in the file replaces the same trainer's note; nothing else is removed. */
+function importTrainerNotes(input){
+  const f=input.files&&input.files[0];if(!f)return;
+  f.text().then(function(t){
+    const j=JSON.parse(t),src=j.notes||j,a=trainerNotesAll();let n=0;
+    Object.keys(src).forEach(function(h){a[h]=a[h]||{};Object.keys(src[h]).forEach(function(k){a[h][k]=src[h][k];n++})});
+    localStorage.setItem(TRAINER_NOTES_KEY,JSON.stringify(a));
+    renderTrainerSection();
+    const st=document.getElementById('tr-status');if(st)st.textContent='Imported '+n+' notes.';
+  }).catch(function(){const st=document.getElementById('tr-status');if(st)st.textContent='That file is not a HoopaDex notes file.'});
+  input.value='';
+}
+/* Showdown's text format - the import format every Pokémon damage calculator reads. */
+function trainerShowdown(t){
+  return t[4].map(function(m){
+    return (m[1]+(m[3]?' @ '+m[3]:''))+'\n'+(m[4]?'Ability: '+m[4]+'\n':'')+'Level: '+m[2]+'\n'+(m[5]?m[5]+' Nature\n':'')+m[6].map(function(x){return '- '+x}).join('\n');
+  }).join('\n\n')+'\n';
+}
+function findTrainer(k){
+  const d=trainerData[romHack().key];let hit=null;
+  if(d)d.sections.forEach(function(s){s.areas.forEach(function(a){a.trainers.forEach(function(t){if(t[0]===k)hit=t})})});
+  return hit;
+}
+function copyTrainerTeam(k,btn){
+  const t=findTrainer(k);if(!t)return;
+  const done=function(ok){btn.textContent=ok?'Copied':'Copy failed';setTimeout(function(){btn.textContent='Copy team'},1500)};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(trainerShowdown(t)).then(function(){done(true)},function(){done(false)});else done(false);
+}
+async function renderTrainersTab(){
+  const el=document.getElementById('trainers-container');
+  if(!isRomHack){el.innerHTML='';return}
+  const h=romHack();
+  if(!trainerData[h.key]){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading trainers...</div>';
+    try{const r=await fetch('hacks/'+h.key+'.trainers.json');trainerData[h.key]=r.ok?await r.json():null}catch(e){trainerData[h.key]=null}
+  }
+  const d=trainerData[h.key];
+  if(!d){el.innerHTML='<div class="hack-note">'+h.label+'\u2019s trainers could not be loaded.</div>';return}
+  if(trainerUI.section[h.key]===undefined)trainerUI.section[h.key]=0;
+  el.innerHTML='<div class="hack-panel-head"><span class="section-label" style="margin:0">'+h.label+' trainers</span><span class="hack-meta">'+d.trainerCount+' trainers \u00b7 '+hackEsc(d.note)+'</span></div>'+
+    '<div class="hack-ctl"><input class="filter-select" type="search" placeholder="Find a trainer or Pok\u00e9mon in every section" value="'+hackEsc(trainerUI.q)+'" oninput="trainerUI.q=this.value;renderTrainerSection()">'+
+    '<label class="hack-toggle"><input type="checkbox" '+(trainerUI.hideBeaten?'checked':'')+' onchange="trainerUI.hideBeaten=this.checked;renderTrainerSection()"> Hide beaten</label>'+
+    '<button class="tr-btn" onclick="exportTrainerNotes()">Export notes</button>'+
+    '<label class="tr-btn" style="display:inline-flex;align-items:center">Import notes<input type="file" accept="application/json,.json" style="display:none" onchange="importTrainerNotes(this)"></label>'+
+    '<a class="tr-btn" href="'+romHackCalcUrl()+'" target="_blank" rel="noopener" style="text-decoration:none">Open calculator</a></div>'+
+    '<div class="hack-meta" style="margin:-4px 0 8px">Notes and ticks are saved in this browser. Export them to keep a copy or move them to another device. <span id="tr-status"></span></div>'+
+    '<div class="tr-tabs" id="tr-tabs"></div><div id="tr-body"></div>'+
+    '<div class="hack-meta" style="margin-top:8px">Copy team puts the team on your clipboard in Showdown\u2019s format; paste it into the calculator\u2019s import box. The '+h.label+' calculator already has these teams loaded under each trainer\u2019s name.</div>';
+  renderTrainerSection();
+}
+function renderTrainerSection(){
+  const h=romHack(),d=trainerData[h.key],body=document.getElementById('tr-body'),tabs=document.getElementById('tr-tabs');
+  if(!d||!body)return;
+  const notes=trainerNotes(),q=trainerUI.q.trim().toLowerCase();
+  const beatenIn=function(sec){let b=0,n=0;sec.areas.forEach(function(a){a.trainers.forEach(function(t){n++;if(notes[t[0]]&&notes[t[0]].b)b++})});return b+'/'+n};
+  tabs.innerHTML=d.sections.map(function(sec,i){return '<button class="'+(i===trainerUI.section[h.key]&&!q?'on':'')+'" onclick="trainerUI.section[\''+h.key+'\']='+i+';trainerUI.q=\'\';renderTrainersTab()">'+sec.n+'. '+hackEsc(sec.title)+'<small>'+beatenIn(sec)+'</small></button>'}).join('');
+  const match=function(t){return !q||t[1].toLowerCase().indexOf(q)>=0||t[4].some(function(m){return m[1].toLowerCase().indexOf(q)>=0})};
+  const secs=q?d.sections:[d.sections[trainerUI.section[h.key]]||d.sections[0]];
+  let html='<div class="hack-scroll" style="max-height:none"><table class="hack-tbl"><thead><tr><th style="width:28px" title="Beaten">\u2713</th><th>Trainer</th><th>Team</th><th class="tr-hide-sm" style="width:30%">Notes</th><th></th></tr></thead><tbody>';
+  let shown=0;
+  secs.forEach(function(sec){
+    sec.areas.forEach(function(a){
+      const rows=a.trainers.filter(function(t){return match(t)&&!(trainerUI.hideBeaten&&notes[t[0]]&&notes[t[0]].b)});
+      if(!rows.length)return;
+      const head=(q?sec.n+'. '+sec.title+(a.name?' \u00b7 ':''):'')+(a.name||'');
+      if(head)html+='<tr class="tr-area"><td colspan="5">'+hackEsc(head)+'</td></tr>';
+      rows.forEach(function(t){
+        shown++;
+        const nt=notes[t[0]]||{},k=hackEsc(t[0]),open=trainerUI.open===t[0];
+        const full=t[4].some(function(m){return m[6].length||m[3]||m[4]});
+        html+='<tr class="tr-row'+(nt.b?' beaten':'')+'"><td><input type="checkbox" data-k="'+k+'" '+(nt.b?'checked':'')+' onchange="onTrainerBeaten(this)" title="Beaten"></td>'+
+          '<td style="white-space:nowrap"><b>'+hackEsc(t[1])+'</b>'+(t[2]?'<span class="tr-tag">'+hackEsc(t[2])+'</span>':'')+(t[3]?'<span class="tr-tag">rematch</span>':'')+'</td>'+
+          '<td><div class="tr-team">'+t[4].map(function(m){
+            const img=m[0]&&typeof spriteFor==='function'?spriteFor(m[0],getDataGenNum()):'';
+            return '<button class="tr-mon" onclick="trainerUI.open=trainerUI.open===\''+k+'\'?\'\':\''+k+'\';renderTrainerSection()" title="'+(full?'Show the full team':'')+'">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'')+hackEsc(m[1])+' <small>'+m[2]+'</small></button>'}).join('')+'</div></td>'+
+          '<td class="tr-hide-sm"><textarea class="tr-note" data-k="'+k+'" oninput="onTrainerNote(this)" placeholder="Your notes">'+hackEsc(nt.n||'')+'</textarea></td>'+
+          '<td>'+(full?'<button class="tr-btn" onclick="copyTrainerTeam(\''+k+'\',this)">Copy team</button>':'')+'</td></tr>';
+        if(open)html+='<tr><td></td><td colspan="4"><div class="tr-sets">'+t[4].map(function(m){
+          return '<div class="tr-set"><b>'+hackEsc(m[1])+'</b> Lv '+m[2]+(m[3]?' @ '+hackEsc(m[3]):'')+(m[4]||m[5]?'<br>'+[m[4],m[5]&&m[5]+' nature'].filter(Boolean).map(hackEsc).join(' \u00b7 '):'')+
+            (m[6].length?'<br>'+m[6].map(function(x){const sl=x.toLowerCase().replace(/[^a-z0-9]+/g,'-');return '<span class="move-name" style="cursor:pointer" onmouseenter="showMoveTip(event,\''+sl+'\')" onmouseleave="hideTooltip()">'+hackEsc(x)+'</span>'}).join(', '):'<br><span class="hack-was">Moves not documented</span>')+'</div>'}).join('')+
+          '</div><textarea class="tr-note" style="display:block;margin:4px 0 8px" data-k="'+k+'" oninput="onTrainerNote(this)" placeholder="Your notes">'+hackEsc(nt.n||'')+'</textarea></td></tr>';
+      });
+    });
+  });
+  html+='</tbody></table></div>';
+  if(!shown)html='<div class="hack-note">'+(q?'No trainer or Pok\u00e9mon matches \u201c'+hackEsc(trainerUI.q)+'\u201d.':'Every trainer in this section is ticked as beaten.')+'</div>';
+  body.innerHTML=html;
 }
 function hackCalcPanel(){
   const h=romHack();
@@ -5476,7 +5615,7 @@ function switchTab(tab){
      forEach leaves every tab AFTER it in the wrong state, which is why several tabs stopped working
      at once instead of just one. A panel without a button is a normal thing to have; crashing over
      it is not. */
-  ['pokedex','types','abilities','items','tms','locations','evs','natures','other','team','calc'].forEach(t=>{
+  ['pokedex','types','abilities','items','tms','trainers','locations','evs','natures','other','team','calc'].forEach(t=>{
     const panel=document.getElementById(t+'-tab');
     if(panel)panel.style.display=t===tab?'':'none';
     const btn=document.getElementById('tab-'+t);
@@ -5484,7 +5623,7 @@ function switchTab(tab){
   });
   // Hide search bar for reference tabs that don't need it
   // A hack's Moves and Abilities views have their own search box; the universal one drives the base-game views.
-  const noSearchTabs=['types','natures','evs','other','team','calc'].concat(isRomHack?['tms','abilities']:[]);
+  const noSearchTabs=['types','natures','evs','other','team','calc','trainers'].concat(isRomHack?['tms','abilities']:[]);
   const sb=document.getElementById('universal-search-bar');
   sb.style.display=noSearchTabs.includes(tab)?'none':'';
   // Show/hide pokedex-only filters and update universal search placeholder
@@ -5508,6 +5647,7 @@ function switchTab(tab){
   if(tab==='calc')renderCalcTab();
   if(tab==='abilities'&&!isRomHack){if(!currentAbilityPage)renderAbilitiesTab();else{renderAbilityPins();showAbilityPage(currentAbilityPage)}}
   if(tab==='items')renderItemsTab();
+  if(tab==='trainers')renderTrainersTab();
   if(tab==='pokedex')applyFilters();
   if(!_restoring)saveHash();
   updateTitle();
@@ -6142,7 +6282,7 @@ function saveHash(){
   updateTitle();
 }
 function updateTitle(){
-  const tabNames={pokedex:'Pok\u00e9dex',tms:'Moves',abilities:'Abilities',items:'Items',locations:'Locations',types:'Type Chart',natures:'Natures',team:'Team Builder',evs:'EV Training',other:'Other',calc:'Damage Calc'};
+  const tabNames={pokedex:'Pok\u00e9dex',trainers:'Trainers',tms:'Moves',abilities:'Abilities',items:'Items',locations:'Locations',types:'Type Chart',natures:'Natures',team:'Team Builder',evs:'EV Training',other:'Other',calc:'Damage Calc'};
   let t='HoopaDex';
   const tabLabel=tabNames[currentTab]||'';
   if(currentTab==='pokedex'&&vm==='detail'&&adId&&dc[adId]){
@@ -6222,7 +6362,7 @@ async function restoreHash(){
   let resolvedTab=tab;
   if(tab==='priority'){resolvedTab='other';currentOtherSub='priority'}
   if(tab==='split'){resolvedTab='other';currentOtherSub='split'}
-  if(['pokedex','types','tms','locations','evs','natures','other','abilities','items','team','calc'].includes(resolvedTab)){
+  if(['pokedex','types','tms','locations','evs','natures','other','abilities','items','trainers','team','calc'].includes(resolvedTab)){
     switchTab(resolvedTab);
     if(resolvedTab==='other')switchOtherSub(currentOtherSub);
     if(tab==='pokedex'&&parts.find(p=>p.startsWith('p'))){
@@ -9436,7 +9576,7 @@ async function showAbilityPage(abilityName){
     currentTab='abilities';
     // Second copy of the tab loop, guarded for the same reason as the one in switchTab(): the
     // 'evs' panel has no nav button any more, and an unguarded assignment throws mid-forEach.
-    ['pokedex','types','abilities','items','tms','locations','evs','natures','other','team','calc'].forEach(t=>{
+    ['pokedex','types','abilities','items','tms','trainers','locations','evs','natures','other','team','calc'].forEach(t=>{
       const panel=document.getElementById(t+'-tab');
       if(panel)panel.style.display=t==='abilities'?'':'none';
       const btn=document.getElementById('tab-'+t);
