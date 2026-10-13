@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.5 · Last updated 2026-10-13 · HoopaDex v5.59**
+**Version 2.6 · Last updated 2026-10-13 · HoopaDex v5.60**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -423,9 +423,21 @@ the page says so.
 
 ---
 
+## Slide 11n — Radical Red
+
+Radical Red is now the seventh hack, on Normal and Hardcore. Its Pokémon, moves, learnsets,
+evolutions, trainers and wild encounters are all there, including the abilities and moves the hack
+invented, with the game's own descriptions.
+
+Trainers are split by Radical Red's level caps, so each tab is one stretch of the game.
+
+The data comes from one community source, and the pages say so.
+
+---
+
 ## Slide 12 — What we don't claim
 
-Forty-nine test suites and 1,924 assertions now cover the data, the damage formula, the derived
+Fifty test suites and 1,949 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.59 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.60 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1610,6 +1610,8 @@ document.addEventListener('mouseover',e=>{
 
 // Fetch and show ability tooltip
 async function showAbilityTip(e,name,isHidden){
+  const own=hackCustomAbility(name);
+  if(own){showTooltip(e,'<div class="tooltip-title">'+hackEsc(own[0].trim())+'</div><div class="tooltip-desc">'+hackEsc(own[1]||'')+'</div><div class="tooltip-desc" style="color:#F08030">'+romHack().label+'’s own ability</div>');return}
   const key=name;
   if(!abilityCache[key]){
     const hiddenBadge=isHidden?'<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:transparent;border:1px solid var(--border2);color:#c070c0;margin-left:6px">Hidden Ability</span>':'';
@@ -2196,7 +2198,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.59';
+const APP_VERSION='5.60';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -2616,6 +2618,12 @@ const ROM_HACKS=[
   {key:'run-and-bun',label:'Run & Bun',author:'dekzeh',version:'1.07',year:2023,rules:8,baseLabel:'Generation VIII',
    base:{vg:'emerald',ver:'emerald'},sprites:null,fairy:'always',
    calc:{url:'https://hzla.github.io/Dynamic-Calc/?data=8c3ca30ba346734d5e4f&gen=8&types=6&dmgGen=8'}},
+  /* Radical Red 4.1: Gen IX Pokémon and moves on FireRed's engine. Normal and Hardcore share their
+     Pokémon; the trainers differ (hacks/radical-red[-hardcore].trainers.json). */
+  {key:'radical-red',label:'Radical Red',author:'soupercell',version:'4.1',rules:8,baseLabel:'Generation IX',
+   base:{vg:'firered-leafgreen',ver:'firered'},sprites:null,fairy:'always',
+   variants:[{key:'',label:'Normal'},{key:'hardcore',label:'Hardcore'}],
+   calc:{url:'https://calc.radicalred.net/'}},
 ];
 let isRomHack=false,romHackKey='',romHackVariant='',romHackFairy=false,HACK=null;
 function romHack(){return ROM_HACKS.find(function(h){return h.key===romHackKey})||ROM_HACKS[0]}
@@ -2636,6 +2644,10 @@ async function loadRomHack(){
 }
 /* [types, [hp, atk, def, spa, spd, spe], [ability 1, ability 2, hidden]] for a species in this hack. */
 function hackRec(id){return isRomHack&&HACK&&HACK.species?HACK.species[id]||null:null}
+/* A hack's own ability (Radical Red's "rr-feline-prowess") has no PokeAPI record: its name and the
+   game's description come from the hack's file. */
+function hackCustomAbility(slug){return isRomHack&&HACK&&HACK.customAbilities?HACK.customAbilities[slug]||null:null}
+function hackAbilityLabel(slug){const c=hackCustomAbility(slug);return c?c[0].trim():String(slug).replace(/-/g,' ')}
 function hackAbilities(id){
   const r=hackRec(id);
   if(!r)return null;
@@ -2650,7 +2662,7 @@ function renderHackBar(){
   if(!el)return;
   if(!isRomHack){el.style.display='none';return}
   const h=romHack();
-  let html='<span class="hack-name">'+h.label+'</span><span class="hack-meta">'+h.author+(h.version?' · v'+h.version:'')+' · '+h.year+'</span>';
+  let html='<span class="hack-name">'+h.label+'</span><span class="hack-meta">'+h.author+(h.version?' · v'+h.version:'')+(h.year?' · '+h.year:'')+'</span>';
   if(h.variants)html+='<span class="hack-seg">'+h.variants.map(function(v){
     return '<button class="'+(v.key===romHackVariant?'on':'')+'" onclick="setRomHackVariant(\''+v.key+'\')">'+v.label+'</button>'}).join('')+'</span>';
   if(h.fairy==='patch')html+='<label class="hack-toggle"><input type="checkbox" '+(romHackFairy?'checked':'')+' onchange="toggleRomHackFairy()"> '+h.fairyPatch.label+'</label>';
@@ -2744,7 +2756,7 @@ function hackChangesHtml(id){
   const st=[];
   r[1].forEach(function(v,i){if(v!==b[1][i])st.push(HACK_STAT_LABEL[i]+' '+b[1][i]+' \u2192 '+v)});
   if(st.length)parts.push('<b>Stats</b> '+st.join(', ')+' (total '+b[1].reduce(function(a,x){return a+x},0)+' \u2192 '+r[1].reduce(function(a,x){return a+x},0)+')');
-  const ab=function(a){return a.filter(Boolean).map(capName).join(' / ')||'\u2014'};
+  const ab=function(a){return a.filter(Boolean).map(function(x){return hackCustomAbility(x)?hackAbilityLabel(x):capName(x)}).join(' / ')||'\u2014'};
   if(b[2].join('|')!==r[2].join('|'))parts.push('<b>Abilities</b> '+ab(b[2])+' \u2192 '+ab(r[2]));
   return '<div class="hack-changes"><span class="section-label" style="margin-right:6px">Changed from '+base+'</span>'+parts.join(' \u00b7 ')+'</div>';
 }
@@ -2862,7 +2874,7 @@ function renderHackAbilitiesList(){
   if(q)names=names.filter(function(a){return a.replace(/-/g,' ').indexOf(q)>=0||by[a].some(function(x){const r=dexRec(x[0]);return r&&r.name.indexOf(q.replace(/ /g,'-'))>=0})});
   el.innerHTML='<div class="hack-scroll"><table class="hack-tbl"><thead><tr><th>Ability</th><th class="hide-sm">Effect</th><th>Pok\u00e9mon</th></tr></thead><tbody>'+names.map(function(a){
     const hs=by[a],nNew=hs.filter(function(x){return x[2]}).length,open=hackAbilUI.open===a;
-    return '<tr class="hack-row" onclick="hackAbilUI.open=hackAbilUI.open===\''+a+'\'?\'\':\''+a+'\';renderHackAbilitiesList()"><td><b>'+capName(a)+'</b></td><td class="hide-sm hack-was">'+hackEsc((window._hackAbilityText||{})[a]||'')+'</td><td class="num">'+hs.length+(nNew?' <span class="hack-chg new" title="Pok\u00e9mon that did not have it in '+hackBaseLabel()+'">+'+nNew+' new</span>':'')+'</td></tr>'+
+    return '<tr class="hack-row" onclick="hackAbilUI.open=hackAbilUI.open===\''+a+'\'?\'\':\''+a+'\';renderHackAbilitiesList()"><td><b>'+(hackCustomAbility(a)?hackEsc(hackAbilityLabel(a))+' <span class="hack-chg new">new</span>':capName(a))+'</b></td><td class="hide-sm hack-was">'+hackEsc((hackCustomAbility(a)||[])[1]||(window._hackAbilityText||{})[a]||'')+'</td><td class="num">'+hs.length+(nNew?' <span class="hack-chg new" title="Pok\u00e9mon that did not have it in '+hackBaseLabel()+'">+'+nNew+' new</span>':'')+'</td></tr>'+
       (open?'<tr><td colspan="3"><div class="hack-learners">'+hs.map(function(x){return hackMonChip(x[0],[x[1],x[2]?'new':''].filter(Boolean).join(', '))}).join('')+'</div></td></tr>':'');
   }).join('')+'</tbody></table></div><div class="hack-meta" style="margin-top:6px">'+names.length+' abilities. Select one to see who has it.</div>';
 }
@@ -3050,11 +3062,12 @@ function importTrainerNotes(input){
 /* Showdown's text format - the import format every Pokémon damage calculator reads. */
 function trainerShowdown(t){
   return t[4].map(function(m){
-    return (m[1]+(m[3]?' @ '+m[3]:''))+'\n'+(m[4]?'Ability: '+m[4]+'\n':'')+'Level: '+m[2]+'\n'+(m[5]?m[5]+' Nature\n':'')+m[6].map(function(x){return '- '+x}).join('\n');
+    // Showdown writes a form as "Geodude-Alola"; the page shows "Geodude (Alola)".
+    return (m[1].replace(/ \(([^)]+)\)$/,function(x,f){return '-'+f.replace(/ /g,'-')})+(m[3]?' @ '+m[3]:''))+'\n'+(m[4]?'Ability: '+m[4]+'\n':'')+'Level: '+m[2]+'\n'+(m[5]?m[5]+' Nature\n':'')+m[6].map(function(x){return '- '+x}).join('\n');
   }).join('\n\n')+'\n';
 }
 function findTrainer(k){
-  const d=trainerData[romHack().key];let hit=null;
+  const d=trainerData[romHackFile()];let hit=null;
   if(d)d.sections.forEach(function(s){s.areas.forEach(function(a){a.trainers.forEach(function(t){if(t[0]===k)hit=t})})});
   return hit;
 }
@@ -3067,11 +3080,14 @@ async function renderTrainersTab(){
   const el=document.getElementById('trainers-container');
   if(!isRomHack){el.innerHTML='';return}
   const h=romHack();
-  if(!trainerData[h.key]){
+  const tf=romHackFile();
+  if(!trainerData[tf]){
     el.innerHTML='<div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading trainers...</div>';
-    try{const r=await fetch('hacks/'+h.key+'.trainers.json');trainerData[h.key]=r.ok?await r.json():null}catch(e){trainerData[h.key]=null}
+    /* A variant with its own trainers (Radical Red Hardcore) has its own file; the others share the hack's. */
+    const get=function(f){return fetch('hacks/'+f+'.trainers.json').then(function(r){return r.ok?r.json():null}).catch(function(){return null})};
+    trainerData[tf]=(tf!==h.key?await get(tf):null)||await get(h.key);
   }
-  const d=trainerData[h.key];
+  const d=trainerData[tf];
   if(!d){el.innerHTML='<div class="hack-note">'+h.label+'\u2019s trainers could not be loaded.</div>';return}
   if(trainerUI.section[h.key]===undefined)trainerUI.section[h.key]=0;
   await loadAIDocs();   // for each trainer's AI flags
@@ -3087,7 +3103,7 @@ async function renderTrainersTab(){
   renderTrainerSection();
 }
 function renderTrainerSection(){
-  const h=romHack(),d=trainerData[h.key],body=document.getElementById('tr-body'),tabs=document.getElementById('tr-tabs');
+  const h=romHack(),d=trainerData[romHackFile()],body=document.getElementById('tr-body'),tabs=document.getElementById('tr-tabs');
   if(!d||!body)return;
   const notes=trainerNotes(),q=trainerUI.q.trim().toLowerCase();
   const beatenIn=function(sec){let b=0,n=0;sec.areas.forEach(function(a){a.trainers.forEach(function(t){n++;if(notes[t[0]]&&notes[t[0]].b)b++})});return b+'/'+n};
@@ -5114,7 +5130,7 @@ async function renderDetail(p){
          was to stop picking one. The caption below is the same pattern used a few lines later for
          SUPER RESIST / RESISTS / WEAK TO, so this reuses the page's own vocabulary instead of
          inventing more of it. "(H)" goes too: the heading says it in words. */
-      const abPill=a=>'<span class="ability-tag'+(a.is_hidden?' hidden':'')+'" '+(isRomHack?'':'style="cursor:pointer" onclick="showAbilityPage(\''+a.ability.name+'\')" ')+'onmouseenter="showAbilityTip(event,\''+a.ability.name+'\','+a.is_hidden+')" onmouseleave="hideTooltip()">'+a.ability.name.replace(/-/g,' ')+'</span>';
+      const abPill=a=>'<span class="ability-tag'+(a.is_hidden?' hidden':'')+'" '+(isRomHack?'':'style="cursor:pointer" onclick="showAbilityPage(\''+a.ability.name+'\')" ')+'onmouseenter="showAbilityTip(event,\''+a.ability.name+'\','+a.is_hidden+')" onmouseleave="hideTooltip()">'+hackAbilityLabel(a.ability.name)+'</span>';
       const abNormal=abilityList.filter(a=>!a.is_hidden), abHidden=abilityList.filter(a=>a.is_hidden);
       abs='';
       if(abNormal.length)abs+='<div class="matchup-label" style="color:var(--text4)">'

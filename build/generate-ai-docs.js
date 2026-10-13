@@ -186,6 +186,7 @@ async function main() {
     'emerald-kaizo': { engine: 'gen3', base: 'Emerald', changes: null, changesNote: 'No published source documents Emerald Kaizo\'s AI or which flags its trainers have. The engine below is Emerald\'s; any change the hack makes to it is not documented.', flagSource: null },
     'firered-omega': { engine: 'gen3', base: 'FireRed', changes: null, changesNote: 'No published source documents FireRed Omega\'s AI. The engine below is FireRed\'s.', flagSource: null },
     'run-and-bun': { engine: null, base: 'pokeemerald-expansion', changes: null, changesNote: 'Run & Bun runs on pokeemerald-expansion, whose AI was rewritten in C with its own, much larger set of flags (smart switching, knowing your party, predicting switches, and more). Which version of it Run & Bun uses, and which flags its trainers have, are not in dekzeh\'s public data, so this page does not guess. hzla\'s Run & Bun calculator models its switch-ins.', flagSource: null },
+    'radical-red': { engine: null, base: 'FireRed', changes: null, changesNote: 'Radical Red replaces FireRed\'s battle engine, and its trainer AI with it. No public source HoopaDex can read documents that AI or which flags its trainers have, so this page does not describe FireRed\'s as if it were Radical Red\'s.', flagSource: null },
   };
   Object.keys(hacks).forEach(k => { hacks[k].flagCounts = hackFlagCounts(k); });
 

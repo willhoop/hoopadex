@@ -30,8 +30,8 @@ const sp = (k, id) => load(k).species[id];
 
 // --- the registry and its files -----------------------------------------------------------------------
 const HACKS = (0, eval)('(' + src.match(/const ROM_HACKS=(\[[\s\S]*?\n\]);/)[1] + ')');
-check(HACKS.map(h => h.key).sort().join() === 'emerald-kaizo,firered-omega,platinum-kaizo,renegade-platinum,run-and-bun,sacred-gold',
-  'the six requested hacks are in the ROM Hacks section', HACKS.map(h => h.key));
+check(HACKS.map(h => h.key).sort().join() === 'emerald-kaizo,firered-omega,platinum-kaizo,radical-red,renegade-platinum,run-and-bun,sacred-gold',
+  'the seven requested hacks are in the ROM Hacks section (Radical Red added in 5.60)', HACKS.map(h => h.key));
 const files = [];
 HACKS.forEach(h => (h.variants || [{ key: '' }]).forEach(v => [false, true].forEach(f => {
   if (f && h.fairy !== 'patch') return;

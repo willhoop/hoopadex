@@ -2,9 +2,9 @@
 
 A generation-aware Pokédex that runs from a folder of static files. It shows types, stats,
 abilities, moves and evolutions **as they were in the game you pick** — every generation, every main
-game, Pokémon Champions, and six ROM hacks.
+game, Pokémon Champions, and seven ROM hacks.
 
-**Version 5.59 · 2026-10-13** · Live: [willhoop.github.io/hoopadex/app](https://willhoop.github.io/hoopadex/app/)
+**Version 5.60 · 2026-10-13** · Live: [willhoop.github.io/hoopadex/app](https://willhoop.github.io/hoopadex/app/)
 
 ## What it covers
 
@@ -13,8 +13,8 @@ game, Pokémon Champions, and six ROM hacks.
 - **Pokémon Champions**, regulation by regulation, with Champions' own PP rule, move changes and
   sprites, and a damage calculator built on `@smogon/calc`.
 - **ROM hacks** in their own section: Renegade Platinum (Complete / Classic), Sacred Gold / Storm
-  Silver (Complete / Classic, optional Fairy patch), Platinum Kaizo, Emerald Kaizo, FireRed Omega and
-  Run & Bun. Each hack's own types, base stats, abilities, moves, learnsets and evolutions, from its
+  Silver (Complete / Classic, optional Fairy patch), Platinum Kaizo, Emerald Kaizo, FireRed Omega,
+  Run & Bun and Radical Red (Normal / Hardcore). Each hack's own types, base stats, abilities, moves, learnsets and evolutions, from its
   author's documentation where one exists, checked against a second source; the Dmg Calc tab links to
   the hack's own calculator. A **Trainers** tab lists every trainer by section of the game, with your
   own notes and a "beaten" tick saved in the browser, and copies a team for a calculator. The
@@ -35,8 +35,8 @@ game, Pokémon Champions, and six ROM hacks.
 | Champions learnsets | `app/champions-learnsets.json` | Move legality per regulation. Read by CHOMP. |
 | ROM hack data | `app/hacks/*.json`, `*.data.json`, `*.trainers.json`, `*.encounters.json` | Species; moves, learnsets, evolutions, items; trainers; wild encounters. |
 | Generators | `build/generate-*.js` | Every derived table and snapshot. Each has `--check` for drift. |
-| Tests | `tests/test-*.js` | 49 suites, 1,924 assertions. |
-| Mutation check | `build/mutation-check.js` | 190 deliberate defects; each must turn a suite red. |
+| Tests | `tests/test-*.js` | 50 suites, 1,949 assertions. |
+| Mutation check | `build/mutation-check.js` | 193 deliberate defects; each must turn a suite red. |
 | API archive | [willhoop/pokeapi-data](https://github.com/willhoop/pokeapi-data) | Fork of PokeAPI/api-data. Weekly add-and-update sync. |
 
 ## Documentation

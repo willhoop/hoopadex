@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.5 · Last updated 2026-10-13 · HoopaDex v5.59**
+**Version 2.6 · Last updated 2026-10-13 · HoopaDex v5.60**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.59 the set is **190 mutations, all killed**, against 49 suites and 1,924 assertions. Two of
+As of v5.60 the set is **193 mutations, all killed**, against 50 suites and 1,949 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -945,6 +945,38 @@ trainers' flags; their pages say so.
 `src/battle_ai_switch_items.c`; pret/pokeplatinum `generated/ai_flags.txt`,
 `src/battle/trainer_ai/trainer_ai.c`, `src/battle/trainer_ai/script.s`, `src/battle/battle_lib.c`,
 `docs/bugs_and_glitches.md`; the Platinum Kaizo Mastersheet, AI Changes tab.*
+
+### 5.16 Radical Red, from one source
+
+Radical Red 4.1 comes from a single source: the data file behind the Radical Red Dex
+(github.com/JwowSquared/Radical-Red-Pokedex). It is community data, and no second source was found;
+the one candidate, a calculator file called "rrss", turned out to be a different hack (Rising Ruby /
+Sinking Sapphire), with different move powers. Every Radical Red file says it has one source.
+
+| | Figure |
+|---|---|
+| Species | 1,025, with 13 of Radical Red's own abilities |
+| Moves | 827: 180 changed from Generation IX, 9 its own |
+| Trainers | 463 per mode (Normal, Hardcore), 18 level-cap sections |
+| Wild areas | 108 |
+
+Three things in the source are not what they look like, and each is handled by a stated rule:
+
+- **Shortened names.** The game cuts long names: "Neutralize Gas", "Electromrphosis", "Drain Kiss",
+  "Prism Laser". Eight such names are mapped to the official ability or move, each confirmed by the
+  game's own description. Everything else unknown is kept as Radical Red's own.
+- **Levels that are not levels.** 175 trainers have levels 101-104; the source's `scaledLevels` makes
+  these offsets from the level cap (103 is the cap). Each cap holds two numbers; that they are
+  [Normal, Hardcore] was confirmed from trainers with fixed levels (Brock's Normal team tops out at 14
+  under a cap of 15, his Hardcore team at 16).
+- **Forms under their species' name.** Brock's "Geodude" is species 1031, keyed "Geodude-Alola". Forms
+  are named from the key.
+
+Wild encounters are stored as slots; each slot's chance is FireRed's (pret/pokefirered), which Radical
+Red's encounter engine keeps. That is an inference from the engine, stated on the page.
+
+*Sources: JwowSquared/Radical-Red-Pokedex `data.js` (the Radical Red Dex, dex.radicalred.net);
+pret/pokefirered `src/data/wild_encounters.json` for slot chances.*
 
 ---
 

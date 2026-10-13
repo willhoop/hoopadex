@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.59**
+**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.60**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -732,6 +732,7 @@ true.
 | `build/generate-romhack-trainers.js` | `app/hacks/*.trainers.json`: each ROM hack's trainers, by section and area. See 4.15. |
 | `build/generate-romhack-encounters.js` | `app/hacks/*.encounters.json`: each ROM hack's wild encounters. See 4.16. |
 | `build/generate-ai-docs.js` | `app/ai-docs.json`: the trainer AI, from pret's decompilations. See 4.17. |
+| `build/rr-source.js` | Reads Radical Red's one source for the four ROM hack generators. See 4.18. |
 | `build/generate-type-changing-moves.js` | The `TYPE_CHANGING_MOVES` block in `app/index.html`: moves whose type is decided when used. See 4.9h. |
 | `build/generate-move-values.js` | The `MOVE_GEN_FIX`, `MOVE_GAME_FIX` and `CHAMP_PP` block in `app/index.html`: PP and power corrections per generation and per game, and Champions' PP rule. See 4.9g. |
 | `build/generate-priority.js` | The `PRIORITY_MOVES` block in `app/index.html`, from Showdown's per-generation move data. See 4.9f. |
@@ -1464,6 +1465,29 @@ Generations III and IV. `renderAITab` picks the engine with `aiSelection`. On th
 
 A trainer's flags (`generate-romhack-trainers.js`, `addAIFlags`) come from the calculator data's
 `ai` field, matched by trainer name, species and level.
+
+## 4.18 Radical Red (5.60)
+
+**Source.** `build/rr-source.js` reads the Radical Red Dex's `data.js` once for every generator. It:
+
+- reorders stats from HP/Atk/Def/Spe/SpA/SpD to HoopaDex's order;
+- turns type, ability, move and item numbers into names through the file's own tables;
+- turns TM and tutor indices into moves (0 is an empty slot);
+- takes each national dex number's default form, and names forms from their key
+  ("Geodude (Alola)").
+
+**Files.** `radical-red.json` and `radical-red-hardcore.json` (species, the same), the matching
+`.data.json` files, `radical-red.trainers.json` (Normal) and `radical-red-hardcore.trainers.json`,
+and `radical-red.encounters.json`.
+
+**Rules worth knowing.**
+
+- `RR_CUT_NAMES` (abilities) and `RR_CUT_MOVES` (moves) map the game's shortened names. Any other
+  unknown name is the hack's own: `rr-…`, kept with the game's description.
+- Moves from the first "Z-Move" slot on, and "Placeholder" slots, are left out.
+- A trainer level of 101-104 is `cap + scaledLevels[level]`, with the cap for the mode.
+- Trainer sections are the source's `caps`, in order.
+- The app loads a variant's own trainer file first (`romHackFile()`), then the hack's.
 
 ## 4.13 The PokéAPI fallback archive (5.55)
 

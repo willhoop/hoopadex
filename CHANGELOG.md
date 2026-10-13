@@ -12,6 +12,52 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.60] - 2026-10-13
+
+### Added
+- **Radical Red.** Asked for from the live site: *"put radical red and the storm/sacred pair in"*
+  (Sacred Gold / Storm Silver has been in since 5.55). Radical Red 4.1 is the seventh hack, with
+  **Normal** and **Hardcore**, and everything the others have:
+  - all 1,025 species with Radical Red's types, stats and abilities, including its **13 own
+    abilities** (Feline Prowess, Bone Zone, Phoenix Down ...) with the game's own descriptions;
+  - **827 moves**, 180 changed from Generation IX and 9 of its own (Soupercell Slam, Draco Barrage
+    ...), learnsets, TMs and tutors, and evolutions;
+  - **463 trainers** on each mode, in tabs by the game's own **level caps** (Brock, Archer 1, Misty ...
+    Post Game), with full sets; Hardcore's teams are its own;
+  - **108 areas** of wild encounters, gifts, trades, static, roaming and raid Pokémon, each marked
+    with the level cap from which it applies;
+  - the Dmg Calc tab links to the Radical Red calculator.
+
+### Fixed
+- **Shortened names read as the real thing.** The game's name fields are short, so it writes
+  "Neutralize Gas", "Electromrphosis", "Drain Kiss", "Prism Laser" and four more. Each is matched to
+  the official ability or move on the game's own description, rather than counted as new.
+- **Scaled levels.** 175 trainers have levels of 101-104, which are not levels: the source's
+  `scaledLevels` makes them offsets from the level cap. They are shown as real levels, using the
+  mode's cap; the caps were confirmed as [Normal, Hardcore] from Brock's and Misty's fixed levels.
+- **Forms.** A form keeps its species' name in the source ("Geodude" for Brock's Alolan Geodude). Its
+  key names the form, and trainer and encounter rows now say "Geodude (Alola)". Copy team writes it
+  the way Showdown reads it, "Geodude-Alola".
+
+### Record
+- **Measured.** Radical Red: 1,025 species, 13 own abilities, 827 moves (180 changed, 9 own), 463
+  trainers per mode, 108 areas. Source: `app/hacks/radical-red*.json`, written by the four ROM hack
+  generators through `build/rr-source.js`.
+- **Basis.** unchanged — a new hack; no existing figure moves. Single source: the Radical Red Dex data;
+  no second source exists (the calculator file "rrss" is Rising Ruby / Sinking Sapphire).
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing: the white paper (5.16), deck (11n) and technical docs (4.18) are
+  updated in this pass.
+
+### Tests
+- New `tests/test-radical-red.js` (21): each expected value read from the source's data.js.
+  `test-romhacks.js` expects seven hacks. `test-romhack-data.js` crashed when the changes line began
+  calling the new ability helper; while it crashed, the mutations it guards counted as killed for the
+  wrong reason. It was fixed and the mutation check re-run.
+- Mutations M202–M204. **193 killed, 0 survived, 0 skipped.** 50 suites, 1,949 assertions, all passing.
+
+---
+
 ## [5.59] - 2026-10-13
 
 ### Added

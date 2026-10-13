@@ -86,6 +86,7 @@ const SRC = {
   ekState: 'https://raw.githubusercontent.com/Isotarge/emerald-kaizo-db/main/src/state.js',
   ekCalc: RH.URL.ekCalc,
   froCalc: RH.URL.froCalc,
+  rrData: RH.URL.rrData,
   paPokemonMoves: PA + 'pokemon_moves.csv',
   paMachines: PA + 'machines.csv',
   paMoves: PA + 'moves.csv',
@@ -977,6 +978,110 @@ function baseDiffs(key, gen, maxId) {
   return out;
 }
 
+// ==== Radical Red ==========================================================================================================
+/* One community source (build/rr-source.js). A move is its ID in the file's own table: a name PokeAPI
+   knows, at its first appearance, takes PokeAPI's slug; any other is Radical Red's own ("rr-..."). */
+/* The game's move-name field is short, so it cuts official names; each of these was matched on its
+   description in the file, which is the official move's. */
+const RR_CUT_MOVES = { drainkiss: 'draining-kiss', disarmcry: 'disarming-voice', flowerguard: 'flower-shield',
+  craftyguard: 'crafty-shield', infernoparade: 'infernal-parade', prismlaser: 'prismatic-laser' };
+function rrMoveTable(RR) {
+  const used = new Set(), customNames = {}, slugOf = {};
+  const all = RR.V(RR.o.moves).sort((a, b) => a.ID - b.ID);
+  /* From "Z-Move 1" on, the table holds Z-Move and Max Move slots ("Strike", "Wildfire"), which no
+     Pokémon learns; "Placeholder" slots are empty. Neither is a move a player can meet. */
+  const firstZ = (all.find(m => /^Z-Move \d+$/.test(m.name)) || { ID: Infinity }).ID;
+  all.forEach(m => {
+    if (!m.ID || !m.name || /^-+$/.test(m.name) || /^Placeholder$/i.test(m.name.trim())) return;
+    if (isZMove(m.name)) return;
+    const f = flat(m.name);
+    const canon = RR_CUT_MOVES[f] || moveByFlat[f] || MOVE_ALIASES[f];
+    if (!canon && m.ID >= firstZ) return;
+    let slug;
+    if (canon && !used.has(canon)) slug = canon;
+    else { slug = 'rr-' + m.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); if (used.has(slug)) slug += '-' + m.ID; customNames[slug] = m.name.trim(); }
+    used.add(slug);
+    slugOf[m.ID] = slug;
+  });
+  return { slugOf, customNames };
+}
+const RR_SPLIT = ['physical', 'special', 'status'];
+function buildRRMoves(RR, MT) {
+  const moves = {};
+  Object.keys(MT.slugOf).forEach(id => {
+    const m = RR.move[id], slug = MT.slugOf[id];
+    const v = [moveType(RR.typeName[m.type] || 'normal'), RR_SPLIT[m.split] || 'status', setInBattle(m.power || 0), m.accuracy || 0, m.pp || 0, m.priority > 127 ? m.priority - 256 : (m.priority || 0)];
+    const base = MROW[slug] && introGen(slug) <= 9 ? baseMove(slug, 9) : null;
+    moves[slug] = moveRec(v, base, MT.customNames[slug] ? (m.description || null) : null);
+  });
+  return { moves };
+}
+function rrLearn(RR, MT) {
+  const learn = {};
+  Object.keys(RR.byDex).forEach(id => {
+    const s = RR.byDex[id];
+    const lv = (s.levelupMoves || []).map(x => [x[1], MT.slugOf[x[0]]]).filter(x => x[1]);
+    const tm = RR.tm(s.tmMoves).concat(RR.tutor(s.tutorMoves)).map(m => MT.slugOf[m]).filter(Boolean);
+    learn[id] = [lvFlat(lv), [...new Set(tm)].sort()];
+  });
+  return learn;
+}
+function rrMachines(RR, MT) {
+  return Object.keys(RR.o.tmMoves).map(Number).sort((a, b) => a - b).map(i => {
+    const slug = MT.slugOf[RR.o.tmMoves[i]];
+    return slug ? [i < 120 ? 'TM' + String(i + 1).padStart(2, '0') : 'HM' + String(i - 119).padStart(2, '0'), slug] : null;
+  }).filter(Boolean);
+}
+/* The source's own method codes, in the app's wording. A target that is a form (a Mega, a regional
+   form) is left for the forms phase. */
+function rrEvo(RR) {
+  const evo = {}, notes = [];
+  const T = id => RR.typeName[id] ? titleWords(RR.typeName[id]) : '?';
+  const sp = id => RR.species[id];
+  const text = (e, item) => {
+    const [code, p, , x] = e;
+    switch (code) {
+      case 1: return 'Happiness';
+      case 2: return 'Happiness\n(Day)';
+      case 3: return 'Happiness\n(Night)';
+      case 4: case 13: return 'Lv ' + p;
+      case 7: return item(p) + (p === 101 ? (x === 254 ? '\n(♀)' : '\n(♂)') : '');
+      case 8: return 'Lv ' + p + '\n(Atk > Def)';
+      case 9: return 'Lv ' + p + '\n(Atk = Def)';
+      case 10: return 'Lv ' + p + '\n(Atk < Def)';
+      case 11: case 12: return 'Lv ' + p + '\n(random)';
+      case 14: return 'Shedinja';
+      case 16: return 'Lv ' + p + '\n(Rain)';
+      case 17: return T(p) + ' Move\n+ Friendship';
+      case 18: return 'Lv ' + p + '\nwith a ' + T(x) + '-type in party';
+      case 20: return 'Lv ' + p + '\n(♂)';
+      case 21: return 'Lv ' + p + '\n(♀)';
+      case 22: return 'Lv ' + p + '\n(Night)';
+      case 23: return 'Lv ' + p + '\n(Day)';
+      case 26: return 'Know ' + (RR.move[p] ? RR.move[p].name : '?');
+      case 27: return 'With ' + (sp(p) ? sp(p).name : '?') + ' in party';
+      case 28: return 'Lv ' + p + (x === 1041 ? '\n(Day)' : x === 5144 ? '\n(Night)' : '\n(Dusk)');
+      case 30: return 'Lv ' + p + '\n(Amped nature)';
+      case 31: return 'Lv ' + p + '\n(Low Key nature)';
+      case 254: return x === 2 ? 'Know ' + (RR.move[p] ? RR.move[p].name : '?') : item(p);
+      default: return null;
+    }
+  };
+  const item = id => (RR.item[id] || 'item ' + id).trim();
+  Object.keys(RR.byDex).forEach(from => {
+    (RR.byDex[from].evolutions || []).forEach(e => {
+      const target = sp(e[2]);
+      if (!target) return;
+      const to = target.dexID;
+      if (!(to >= 1 && to <= 1025) || RR.byDex[to] !== target) { notes.push(from + ' -> ' + target.name + ': a form, not shown in this phase'); return; }
+      const t = text(e, item);
+      if (!t) throw new Error('Radical Red evolution code not mapped: ' + e[0] + ' (' + RR.byDex[from].name + ')');
+      setEvo(evo, +from, to, [t], true);
+    });
+  });
+  return { evo, notes };
+}
+
 // ---- learnset cross-check against calculator data -----------------------------------------------------------------
 /* Calculator learnsets are compared as sets of (level, move).
    Sacred Gold's calculator data names some moves through ANOTHER hack's move table: Ember appears as
@@ -1150,6 +1255,19 @@ async function main() {
         evolutions: 'FireRed/LeafGreen\'s: no FireRed Omega source documents evolution changes' },
       notes: [], moves: M.moves, machines: machinesFor(T, VG['firered-leafgreen']), learn: L.learn, evo: baseEvos(VG['firered-leafgreen'], 3, 386),
       items: { sections: [], tmChanges: [] }, base: baseDiffs('firered-omega', 3, 386) }]);
+  }
+  // Radical Red - Normal and Hardcore share Pokémon, moves and learnsets.
+  {
+    const RR = require('./rr-source.js').parse(T.rrData);
+    const MT = rrMoveTable(RR);
+    const M = buildRRMoves(RR, MT);
+    const E = rrEvo(RR);
+    const doc = { fetched, sources: [SRC.rrData],
+      checks: { moves: 'single source (the Radical Red Dex data, a full table)', learnsets: 'single source (the Radical Red Dex data)',
+        evolutions: 'single source (the Radical Red Dex data)', comparedWith: 'Generation IX, the newest official data Radical Red 4.1 follows' },
+      notes: E.notes, customMoves: MT.customNames, moves: M.moves, machines: rrMachines(RR, MT), learn: rrLearn(RR, MT), evo: E.evo,
+      items: { sections: [], tmChanges: [] } };
+    for (const k of ['radical-red', 'radical-red-hardcore']) out.push([k, Object.assign({}, doc, { base: baseDiffs(k, 9, 1025) })]);
   }
 
   const bad = Object.keys(unresolvedMoves).filter(k => !/check only/.test(k));

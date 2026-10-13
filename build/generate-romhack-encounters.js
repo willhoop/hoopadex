@@ -30,6 +30,7 @@ const SRC = {
   pkEnc: 'https://docs.google.com/spreadsheets/d/1y95UYKY9HNgZjUlbeZbQ3BWf5IqcFqAkmstC-OSa6vc/export?format=csv&gid=2081860737',
   rbWild: 'https://raw.githubusercontent.com/dekzeh/runandbundex/master/locations/wild_encounters.json',
   ekEnc: 'https://raw.githubusercontent.com/Isotarge/emerald-kaizo-db/main/src/encounters.json',
+  rrData: RH.URL.rrData,
 };
 async function get(url) {
   const dir = process.env.RH_CACHE;
@@ -224,6 +225,42 @@ function parseEK(json) {
   }).filter(a => a.methods.length);
 }
 
+// ==== Radical Red ==============================================================================================================
+/* Each list is keyed by the level cap from which it applies ("0" = from the start). Wild lists are
+   slots: [species, min level, max level], one per slot, in FireRed's slot order. */
+function parseRR(text) {
+  const RRS = require('./rr-source.js');
+  const RR = RRS.parse(text);
+  const capName = {}; Object.keys(RR.o.caps).forEach(n => { capName[RR.o.caps[n].ID] = n.replace(/-(\d+)$/, ' $1').replace(/-/g, ' '); });
+  const nm = id => { const s = RR.species[id]; return s ? RR.displayName(s) : null; };
+  const row = (id, rate, lv) => { const n = nm(id); if (!n) return null; const s = RR.species[id]; return [s.dexID >= 1 && s.dexID <= 1025 ? s.dexID : 0, n, rate, lv]; };
+  const SLOTS = { 'wild-day': ['Grass (day)', 'land'], 'wild-night': ['Grass (night)', 'land'], 'wild-surf': ['Surf', 'water'], 'wild-smash': ['Rock Smash', 'smash'],
+    'wild-oldRod': ['Old Rod', 'oldRod'], 'wild-goodRod': ['Good Rod', 'goodRod'], 'wild-superRod': ['Super Rod', 'superRod'] };
+  const FIXED = { 'fixed-gift': 'Gift', 'fixed-trade': 'Trade', 'fixed-overworld': 'Static', 'fixed-roaming': 'Roaming',
+    raid1: 'Raid 1★', raid2: 'Raid 2★', raid3: 'Raid 3★', raid4: 'Raid 4★', raid5: 'Raid 5★', raid6: 'Raid 6★' };
+  const after = c => (+c ? ' (after ' + capName[+c] + ')' : '');
+  return RR.V(RR.o.areas).map(a => {
+    const area = { name: a.name.trim(), levels: '', methods: [] };
+    Object.keys(SLOTS).forEach(k => {
+      if (!a[k]) return;
+      const [label, kind] = SLOTS[k], rates = RRS.SLOT_RATES[kind];
+      Object.keys(a[k]).forEach(c => {
+        const rows = a[k][c].map((s, i) => row(s[0], rates[i] === undefined ? null : rates[i], s[1] === s[2] ? String(s[1]) : s[1] + '-' + s[2])).filter(Boolean);
+        if (rows.length) area.methods.push({ m: label + after(c), rows: mergeRows(rows) });
+      });
+    });
+    Object.keys(FIXED).forEach(k => {
+      if (!a[k]) return;
+      Object.keys(a[k]).forEach(c => {
+        const ids = a[k][c].map(x => (Array.isArray(x) ? x[0] : x));
+        const rows = [...new Set(ids)].map(id => row(id, null, '')).filter(Boolean);
+        if (rows.length) area.methods.push({ m: FIXED[k] + after(c), rows });
+      });
+    });
+    return area;
+  }).filter(a => a.methods.length);
+}
+
 // ---- write ------------------------------------------------------------------------------------------------------------------
 function validate(key, doc) {
   if (doc.areas.length < 20) throw new Error(key + ': only ' + doc.areas.length + ' areas read - the source format has probably changed');
@@ -262,6 +299,8 @@ async function main() {
     ['platinum-kaizo', { fetched, sources: [SRC.pkEnc], note: 'From the Platinum Kaizo Mastersheet\'s Encounters tab. Gifts, trades and static encounters are on the sheet\'s Non-Wild Encounters tab, not here yet.', areas: parsePK(T.pkEnc) }],
     ['run-and-bun', { fetched, sources: [SRC.rbWild], note: 'From the game\'s own encounter table (dekzeh\'s data), in the game\'s map order, which is not always the order you reach areas in.', areas: parseRB(T.rbWild) }],
     ['emerald-kaizo', { fetched, sources: [SRC.ekEnc], note: 'From emerald-kaizo-db, read from the game by its author.', areas: parseEK(T.ekEnc) }],
+    ['radical-red', { fetched, sources: [SRC.rrData, 'https://raw.githubusercontent.com/pret/pokefirered/master/src/data/wild_encounters.json'],
+      note: 'From the Radical Red Dex data (single source), in its map order. The data lists slots; each slot\'s chance is FireRed\'s, which Radical Red\'s engine keeps. Gifts, trades, static, roaming and raid Pokémon are listed without chances.', areas: parseRR(T.rrData) }],
   ];
   if (unresolved.size) console.log('species names not resolved (shown without a picture): ' + [...unresolved].join(', '));
   let stale = 0;

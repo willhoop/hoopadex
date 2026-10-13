@@ -45,6 +45,7 @@ const SRC = {
   rbCalc: RH.URL.rbCalc,
   ekTrainers: 'https://raw.githubusercontent.com/Isotarge/emerald-kaizo-db/main/src/trainers.json',
   froCalc: RH.URL.froCalc,
+  rrData: RH.URL.rrData,
 };
 PK_SPLITS.forEach(([n, g]) => { SRC['pk' + n] = PK + g; });
 
@@ -355,6 +356,48 @@ async function main() {
     out.push(['firered-omega', { fetched, order: 'level', sources: [SRC.froCalc],
       note: 'From the hack\'s calculator data. It does not give the order trainers are met in, so they are sorted by their highest level and grouped up to each Gym Leader. ' + dropped.length + ' unused placeholder trainers (a lone level 5 Ekans) are left out.',
       sections: levelSections(list, 'By level') }]);
+  }
+  // Radical Red - one file per mode. Sections are the game's own level caps (Brock, Archer 1, ...);
+  // areas are in the source's order, which is the order of the map; a trainer sits in the cap the
+  // source files it under.
+  {
+    const RR = require('./rr-source.js').parse(T.rrData);
+    const caps = RR.V(RR.o.caps).sort((a, b) => a.ID - b.ID);
+    const capName = {}; Object.keys(RR.o.caps).forEach(n => { capName[RR.o.caps[n].ID] = n.replace(/-(\d+)$/, ' $1').replace(/-/g, ' '); });
+    const order = [];
+    RR.V(RR.o.areas).forEach(a => Object.keys(a.trainers || {}).forEach(c => a.trainers[c].forEach(id => { if (!order.some(x => x.id === id)) order.push({ id, area: a.name }); })));
+    /* A trainer no area lists still names its own area; it goes in after the listed ones. */
+    RR.V(RR.o.trainers).sort((a, b) => a.ID - b.ID).forEach(t => { if (!order.some(x => x.id === t.ID)) order.push({ id: t.ID, area: t.areaName || 'Other' }); });
+    const abilityOf = (s, i) => { const a = s && s.abilities && s.abilities[i] && s.abilities[i][0]; return a ? (RR.ability[a] || '').trim() : ''; };
+    for (const mode of ['normal', 'hardcore']) {
+      const key = keyer();
+      const secs = caps.map(c => ({ n: c.ID + 1, title: capName[c.ID], areas: [] }));
+      order.forEach(({ id, area }) => {
+        const tr = RR.o.trainers[id];
+        const team = tr && tr[mode];
+        if (!team || !team.length) return;
+        /* Levels 101-104 are not levels: the source's scaledLevels maps them to an offset from the
+           level cap (103 = the cap, 101 = cap - 2). A cap is [Normal, Hardcore]: Brock's non-scaled
+           teams top out at 14 (cap 15) on Normal and 16 (cap 16) on Hardcore, Misty's at 27 and 28. */
+        const capRow = caps.find(c => c.ID === (tr.cap || 0));
+        const level = l => (l > 100 && RR.o.scaledLevels[l] !== undefined && capRow ? capRow.cap[mode === 'normal' ? 0 : 1] + RR.o.scaledLevels[l] : l);
+        const mons = team.map(m => {
+          const s = RR.species[m.species];
+          if (!s) return null;
+          const name = RR.displayName(s);
+          return [s.dexID >= 1 && s.dexID <= 1025 ? s.dexID : 0, name, level(m.level), m.item ? (RR.item[m.item] || '').trim() : '', abilityOf(s, m.ability), RR.o.natures[m.nature] || '',
+            (m.moves || []).map(x => RR.move[x] && RR.move[x].name.trim()).filter(Boolean)];
+        }).filter(Boolean).filter(m => m[2] >= 1 && m[2] <= 100);
+        if (!mons.length) return;
+        const sec = secs.find(x => x.n === (tr.cap || 0) + 1) || secs[secs.length - 1];
+        let ar = sec.areas.find(x => x.name === (tr.areaName || area));
+        if (!ar) { ar = { name: tr.areaName || area, trainers: [] }; sec.areas.push(ar); }
+        ar.trainers.push([key(ar.name, tr.name), tr.name.trim(), '', 0, mons]);
+      });
+      out.push([mode === 'normal' ? 'radical-red' : 'radical-red-hardcore', { fetched, order: 'game', sources: [SRC.rrData],
+        note: 'From the Radical Red Dex data (single source), ' + (mode === 'normal' ? 'Normal' : 'Hardcore') + ' mode. Sections are the game\'s level caps; every trainer has a full set.',
+        sections: secs.filter(s => s.areas.length) }]);
+    }
   }
 
   if (unresolved.size) console.log('species names not resolved (shown without a picture): ' + [...unresolved].join(', '));

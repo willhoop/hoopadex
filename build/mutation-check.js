@@ -458,6 +458,13 @@ const MUTATIONS = [
     "return bits&(1<<f.bit)}", "return bits&f.bit}", 1, 'test-ai-docs.js'],
   ['M201', "A link to the AI tab opens the Pokédex instead",
     "'trainers','ai','team','calc'].includes(resolvedTab)", "'trainers','team','calc'].includes(resolvedTab)", 1, 'test-ai-docs.js'],
+  /* Radical Red (5.60). */
+  ['M202', "Hardcore shows Normal's trainers",
+    "trainerData[tf]=(tf!==h.key?await get(tf):null)||await get(h.key);", "trainerData[tf]=await get(h.key);", 1, 'test-radical-red.js'],
+  ['M203', "Copy team writes a form as \"Geodude (Alola)\", which Showdown cannot read",
+    "m[1].replace(/ \\(([^)]+)\\)$/,function(x,f){return '-'+f.replace(/ /g,'-')})", "m[1]", 1, 'test-radical-red.js'],
+  ['M204', "A hack's own ability is shown by its internal id",
+    "return c?c[0].trim():String(slug).replace(/-/g,' ')}", "return String(slug).replace(/-/g,' ')}", 1, 'test-radical-red.js'],
   ['M170', "FireRed/LeafGreen is pointed at the wrong sprite set",
     "'firered-leafgreen':'generation-iii/firered-leafgreen',", "'firered-leafgreen':'generation-iii/emerald',", 1, 'test-generation-tables.js'],
 
