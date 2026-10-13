@@ -119,7 +119,7 @@ comment on line 2 of `app/index.html`.
 
 ### Tests
 - New `tests/test-type-changing-moves.js` (18); 43 suites, 1,715 assertions, all passing. Mutations M161–M165 added. **154 killed, 0 survived,
-  0 skipped.** 43 suites, 1,738 assertions, all passing.
+  0 skipped.**
 
 ---
 
