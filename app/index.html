@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.60 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.61 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -2198,7 +2198,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.60';
+const APP_VERSION='5.61';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -12103,6 +12103,12 @@ function renderTeamAnalysis(){
   loadOffensiveCoverage(filled,allTypes,genNum);
 }
 
+/* Attacks whose damage a weakness does not change: fixed damage (Seismic Toss, Night Shade, Super
+   Fang, Nature's Madness, Ruination, Sonic Boom, Dragon Rage, Psywave), damage returned (Counter,
+   Mirror Coat, Metal Burst, Bide, Comeuppance), Endeavor, Final Gambit, and one-hit KO moves. They
+   are damaging moves, but none of them hits harder because the target is weak, so they cover nothing. */
+const NO_TYPE_DAMAGE_MOVES=new Set(['seismic-toss','night-shade','super-fang','natures-madness','ruination','sonic-boom','dragon-rage','psywave',
+  'counter','mirror-coat','metal-burst','bide','comeuppance','endeavor','final-gambit','fissure','guillotine','horn-drill','sheer-cold']);
 async function loadOffensiveCoverage(filled,allTypes,genNum){
   const coverageEl=document.getElementById('team-coverage');
   if(!coverageEl)return;
@@ -12112,7 +12118,7 @@ async function loadOffensiveCoverage(filled,allTypes,genNum){
   filled.forEach(p=>{
     if(p.smogonSet&&p.smogonSet.moves){
       p.smogonSet.moves.forEach(m=>{
-        teamMoves.push({move:m,pokemon:p.name,types:p.types});
+        teamMoves.push({move:m,pokemon:p.name,idx:filled.indexOf(p),types:p.types});
       });
     }
   });
@@ -12122,56 +12128,37 @@ async function loadOffensiveCoverage(filled,allTypes,genNum){
     return;
   }
   
-  // Fetch move types (use moveCache first, then _moveTypeCache, then fetch)
-  if(!window._moveTypeCache)window._moveTypeCache={};
-  const uncachedMoves=teamMoves.filter(m=>{
-    const slug=normalizeMoveName(m.move.toLowerCase().replace(/\s+/g,'-'));
-    // Check both caches
-    if(moveCache[slug]){window._moveTypeCache[slug]={type:moveCache[slug].type,category:moveCache[slug].damage_class,power:moveCache[slug].power||0};return false}
-    if(moveCache[m.move]){window._moveTypeCache[slug]={type:moveCache[m.move].type,category:moveCache[m.move].damage_class,power:moveCache[m.move].power||0};return false}
-    return !window._moveTypeCache[slug];
-  });
-  const uniqueUncached=[...new Set(uncachedMoves.map(m=>normalizeMoveName(m.move.toLowerCase().replace(/\s+/g,'-'))))];
-  
-  // Batch fetch move types (max 10 at a time to avoid overwhelming API)
-  for(let i=0;i<Math.min(uniqueUncached.length,12);i++){
-    const moveName=uniqueUncached[i];
-    if(window._moveTypeCache[moveName])continue;
-    try{
-      const d=await moveRaw(moveName);
-      window._moveTypeCache[moveName]={type:d.type?.name||'normal',category:d.damage_class?.name||'status',power:d.power||0};
-      // Also populate moveCache
-      if(!moveCache[moveName]){
-        const desc=d.flavor_text_entries?.filter(f=>f.language.name==='en').pop()?.flavor_text||'';
-        moveCache[moveName]=makeMoveRecord(d);
-      }
-    }catch{
-      window._moveTypeCache[moveName]={type:'normal',category:'status',power:0};
-    }
-  }
-  
-  // Build coverage map: which types can we hit super-effectively?
-  const seHits={};// type -> [{pokemon,move}]
+  /* 5.61. Every move is read from the app's own move database (moves-index.json, through
+     ensureMoveData), with the selected game's type and category. Until now the lookup stopped after
+     the first 12 moves it had not seen, so on a team of 24 moves the last members' attacks were never
+     read and their columns came out empty (Close Combat never covered Normal; Thunderclap never
+     covered Water). A move that cannot be read is now named under the table, not dropped. */
+  const slugOf=function(m){return normalizeMoveName(String(m).toLowerCase().replace(/['\u2019]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))};
+  await loadMoveIndex();
+  await Promise.all([...new Set(teamMoves.map(function(m){return slugOf(m.move)}))].map(function(sl){return ensureMoveData(sl)}));
+
+  // Build coverage map: which types can we hit super-effectively? Damaging moves only.
+  const seHits={};// type -> [{pokemon,idx,move}]
   const coveredTypes=new Set();
+  const unread=[];
   allTypes.forEach(defType=>{seHits[defType]=[]});
-  
-  teamMoves.forEach(({move,pokemon,types})=>{
-    const moveKey=normalizeMoveName(move.toLowerCase().replace(/\s+/g,'-'));
-    const mData=window._moveTypeCache[moveKey];
-    if(!mData||mData.category==='status')return;
-    // Use HP subtype if present, otherwise use cached type
-    const hpType=getHPType(move);
-    const effectiveType=hpType||mData.type;
-    
+
+  teamMoves.forEach(({move,pokemon,idx})=>{
+    const md=moveCache[slugOf(move)];
+    if(!md||md.desc==='Could not load.'){unread.push(move);return}
+    if(getMoveCatForGen(md)==='status')return;                 // status moves cover nothing
+    if(NO_TYPE_DAMAGE_MOVES.has(md.name))return;                 // nor do attacks a weakness does not change
+    const effectiveType=getHPType(move)||getMoveTypeForGen(md);  // "Hidden Power Fire" names its type
+
     allTypes.forEach(defType=>{
       const eff=getTypeEffect(effectiveType,defType,genNum);
       if(eff>=2){
-        seHits[defType].push({pokemon,move,moveType:effectiveType});
+        seHits[defType].push({pokemon,idx,move,moveType:effectiveType});
         coveredTypes.add(defType);
       }
     });
   });
-  
+
   // Same axes as the defensive matrix, so the two read together: a type with no tick in any
   // column is a hole, and you can see instantly which member would have to cover it.
   let ch='<div style="grid-column:1/-1;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">';
@@ -12180,7 +12167,7 @@ async function loadOffensiveCoverage(filled,allTypes,genNum){
   filled.forEach(p=>{ch+='<th class="tm-mon" title="'+pokeName(p.name)+'"><img src="'+spriteFor(p.id)+'" alt=""><span>'+pokeName(p.name)+'</span></th>'});
   ch+='<th class="tm-sum">Cover</th></tr></thead><tbody>';
   const offRows=allTypes.map(t=>{
-    const per=filled.map(p=>seHits[t].filter(h2=>h2.pokemon===p.name).map(h2=>capName(h2.move.replace(/-/g,' '))));
+    const per=filled.map((p,i)=>seHits[t].filter(h2=>h2.idx===i).map(h2=>capName(h2.move.replace(/-/g,' '))));
     return {t,per,n:per.filter(x=>x.length).length};
   }).sort((x,y)=>(x.n-y.n)||allTypes.indexOf(x.t)-allTypes.indexOf(y.t));
   offRows.forEach(r=>{
@@ -12195,7 +12182,8 @@ async function loadOffensiveCoverage(filled,allTypes,genNum){
   });
   ch+='</tbody></table>';
   const holes=offRows.filter(r=>r.n===0).length;
-  ch+='<div class="tm-note">'+(holes?holes+' type'+(holes===1?'':'s')+' cannot be hit super-effectively by anything on this team — the rows marked <b>none</b>.':'Every type can be hit super-effectively by at least one member.')+'</div>';
+  ch+='<div class="tm-note">'+(holes?holes+' type'+(holes===1?'':'s')+' cannot be hit super-effectively by anything on this team — the rows marked <b>none</b>.':'Every type can be hit super-effectively by at least one member.')+' Damaging moves only; status moves and fixed-damage moves (Seismic Toss, Super Fang, Counter, one-hit KO moves) are not counted.'+
+    (unread.length?' <b>Could not read:</b> '+[...new Set(unread)].map(function(x){return hackEsc(x)}).join(', ')+'.':'')+'</div>';
   ch+='</div>';
   coverageEl.innerHTML=ch;
 }

@@ -12,6 +12,39 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.61] - 2026-10-22
+
+### Fixed
+- **The Team Builder's offensive coverage left out the last members of a team.** Reported from the
+  live site with a six-member team pasted from PokéRogue: Close Combat on Kommo-o did not cover Normal,
+  Thunderclap did not cover Water, and *"coverage table isn't doing the last 3 mons"*. The lookup read
+  only the first 12 moves it had not seen; a team of six has up to 24, so the later members' moves were
+  never read and their columns were empty. Every move is now read, from the app's own move database
+  (`moves-index.json`), with the selected game's type and category. Asked for: *"make sure we are
+  counting offensive moves only, no status ... use the existing database of moves to determine"*.
+- **Only attacks that a weakness affects count.** Status moves were already left out, but a move that
+  had not been read was dropped without a word. Fixed-damage attacks (Seismic Toss, Night Shade, Super
+  Fang, Counter, one-hit KO moves and the like) are now left out too: they are damaging moves, but a
+  weakness does not change what they do. A move the database does not have is named under the table.
+- Columns are matched by team slot, not by name, so two members of the same species no longer share
+  one column.
+
+### Record
+- **Measured.** No published figure moves; the coverage table is computed per team, on the page.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing: the technical docs (Team Builder) are updated in this pass.
+
+### Tests
+- New `tests/test-team-coverage.js` (9): runs the real coverage function on a 24-move team whose last
+  member carries the move that must count. `test-fast-load.js` now counts four places that build a
+  move record (the coverage table reads through the shared one). **M206 survived on first run**: in the
+  test team the only status move that could hit a listed type was Roost, and Brave Bird covered the
+  same type, so counting status moves changed nothing. A member with only Roost now kills it.
+- Mutations M205–M207. **196 killed, 0 survived, 0 skipped.** 51 suites, 1,958 assertions, all passing.
+
+---
+
 ## [5.60] - 2026-10-13
 
 ### Added

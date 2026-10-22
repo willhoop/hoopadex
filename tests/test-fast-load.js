@@ -186,7 +186,9 @@ check(recOf('surf').flavorEntries.length > 5 && recOf('surf').flavorEntries.ever
 const raw = fnSrc('async function moveRaw(', '\n}\n');
 check(/if\(idx&&idx\[name\]\)return expandMoveRow\(idx\[name\]\);/.test(raw), 'a move is read from the snapshot when it is there');
 check(/_moveLive\[name\]/.test(raw), 'otherwise one live request, shared by everyone who asks for the same move at once');
-check((src.match(/const d=await moveRaw\(/g) || []).length === 5, 'the five places that build a move record all go through it',
+/* Four since 5.61: the Team Builder's coverage table stopped building its own records and reads
+   through ensureMoveData, which is one of the four. */
+check((src.match(/const d=await moveRaw\(/g) || []).length === 4, 'the four places that build a move record all go through it',
   (src.match(/const d=await moveRaw\(/g) || []).length);
 check(/async function fetchTMMoveDetail[\s\S]{0,300}fetch\('https:\/\/pokeapi\.co\/api\/v2\/move\/'\+moveName\)/.test(src),
   'the TM lookup stays live, because it reads machines and learners the snapshot does not hold');

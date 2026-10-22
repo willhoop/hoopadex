@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.2 · Last updated 2026-10-13 · HoopaDex v5.60**
+**Version 2.3 · Last updated 2026-10-22 · HoopaDex v5.61**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -1488,6 +1488,14 @@ and `radical-red.encounters.json`.
 - A trainer level of 101-104 is `cap + scaledLevels[level]`, with the cap for the mode.
 - Trainer sections are the source's `caps`, in order.
 - The app loads a variant's own trainer file first (`romHackFile()`), then the hack's.
+
+## 4.19 Team Builder offensive coverage (5.61)
+
+`loadOffensiveCoverage` reads every move of every member through `ensureMoveData`, which reads
+`moves-index.json` first. A move counts when `getMoveCatForGen` is not `status` and it is not in
+`NO_TYPE_DAMAGE_MOVES` (fixed-damage, returned-damage and one-hit KO moves). Its type is
+`getHPType` (Hidden Power named with a type) or `getMoveTypeForGen`. Columns are matched by team slot.
+A move that cannot be read is listed under the table. `tests/test-team-coverage.js` runs the function.
 
 ## 4.13 The PokéAPI fallback archive (5.55)
 

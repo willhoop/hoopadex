@@ -465,6 +465,14 @@ const MUTATIONS = [
     "m[1].replace(/ \\(([^)]+)\\)$/,function(x,f){return '-'+f.replace(/ /g,'-')})", "m[1]", 1, 'test-radical-red.js'],
   ['M204', "A hack's own ability is shown by its internal id",
     "return c?c[0].trim():String(slug).replace(/-/g,' ')}", "return String(slug).replace(/-/g,' ')}", 1, 'test-radical-red.js'],
+  /* Team Builder offensive coverage (5.61). */
+  ['M205', "Only the first 12 moves are read, so the last members' attacks are dropped (the reported bug)",
+    "  await Promise.all([...new Set(teamMoves.map(function(m){return slugOf(m.move)}))].map(function(sl){return ensureMoveData(sl)}));",
+    "  await Promise.all([...new Set(teamMoves.map(function(m){return slugOf(m.move)}))].slice(0,12).map(function(sl){return ensureMoveData(sl)}));", 1, 'test-team-coverage.js'],
+  ['M206', "Status moves count as coverage",
+    "    if(getMoveCatForGen(md)==='status')return;", "    if(false)return;", 1, 'test-team-coverage.js'],
+  ['M207', "Fixed-damage moves count as coverage",
+    "    if(NO_TYPE_DAMAGE_MOVES.has(md.name))return;", "    if(false)return;", 1, 'test-team-coverage.js'],
   ['M170', "FireRed/LeafGreen is pointed at the wrong sprite set",
     "'firered-leafgreen':'generation-iii/firered-leafgreen',", "'firered-leafgreen':'generation-iii/emerald',", 1, 'test-generation-tables.js'],
 
