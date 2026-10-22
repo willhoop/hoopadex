@@ -473,6 +473,11 @@ const MUTATIONS = [
     "    if(getMoveCatForGen(md)==='status')return;", "    if(false)return;", 1, 'test-team-coverage.js'],
   ['M207', "Fixed-damage moves count as coverage",
     "    if(NO_TYPE_DAMAGE_MOVES.has(md.name))return;", "    if(false)return;", 1, 'test-team-coverage.js'],
+  /* Species with a female form (5.62). */
+  ['M208', "Basculegion is listed and searched as \"Basculegion Male\" (the reported bug)",
+    "'-single-strike','-amped','-male'];", "'-single-strike','-amped'];", 1, 'test-form-names.js'],
+  ['M209', "Basculegion's default tab reads \"Standard\" next to \"Female\"",
+    "if(v.is_default)label=/-male$/.test(v.pokemon.name)?'Male':'Standard';", "if(v.is_default)label='Standard';", 1, 'test-form-names.js'],
   ['M170', "FireRed/LeafGreen is pointed at the wrong sprite set",
     "'firered-leafgreen':'generation-iii/firered-leafgreen',", "'firered-leafgreen':'generation-iii/emerald',", 1, 'test-generation-tables.js'],
 

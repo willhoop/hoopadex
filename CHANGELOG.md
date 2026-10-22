@@ -12,6 +12,37 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.62] - 2026-10-22
+
+### Fixed
+- **A species with a female form is listed and searched by its species name.** Reported from the live
+  site: searching "basculegion" gave "Basculegion Male", with tabs "Standard" and "Female". Asked for:
+  *"have the base mon be the search results with the two forms inside"*. PokéAPI names the default of
+  these species "basculegion-male", and the app showed that name. The list, search, title and team
+  now say **Basculegion**, and its page has **Male** and **Female** tabs. The same fix applies to
+  Meowstic, Indeedee and Oinkologne, and to Frillish, Jellicent and Pyroar, whose names also ended in
+  "Male". Nidoran M and Nidoran F are two species and keep their letters.
+
+### Changed
+- The form-name code kept two copies of the default-suffix list. It now has one.
+
+### Notes
+- Kaizo Dex is retired and merged into HoopaDex: `willhoop/kaizodex` v2.0.0 forwards its live page to
+  Emerald Kaizo here. Nothing in HoopaDex changed for it.
+
+### Record
+- **Measured.** No published figure moves; this changes names on screen.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing: the technical docs are updated in this pass.
+
+### Tests
+- `tests/test-form-names.js` +6: the four gendered species are named for the species, the female form
+  keeps its name, Nidoran M keeps its letter, and the default tab reads "Male" (rule read from the page).
+- Mutations M208–M209. **198 killed, 0 survived, 0 skipped.** 51 suites, 1,964 assertions, all passing.
+
+---
+
 ## [5.61] - 2026-10-22
 
 ### Fixed

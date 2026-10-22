@@ -116,6 +116,23 @@ check(label('absol-mega-z') !== label('charizard-mega-x'), 'Z-A is not confused 
 check(label('charizard-mega-y') === 'Charizard (Mega Y)', 'Mega Y keeps its letter', label('charizard-mega-y'));
 check(label('raichu') === 'Raichu', 'a base species is unchanged', label('raichu'));
 
+/* Species with a female form (5.62). PokéAPI names the default "basculegion-male", so the list and
+   search showed "Basculegion Male". Reported: "have the base mon be the search results with the two
+   forms inside". The species is Basculegion; Male and Female are the tabs on its page. */
+check(label('basculegion-male') === 'Basculegion', 'the default of a gendered species is named for the species', label('basculegion-male'));
+check(label('meowstic-male') === 'Meowstic' && label('indeedee-male') === 'Indeedee' && label('oinkologne-male') === 'Oinkologne',
+  'Meowstic, Indeedee and Oinkologne too', [label('meowstic-male'), label('indeedee-male'), label('oinkologne-male')]);
+check(label('basculegion-female') === 'Basculegion Female', 'the female form keeps its name', label('basculegion-female'));
+check(label('nidoran-m') === 'Nidoran M', 'Nidoran M is a separate species and keeps its letter', label('nidoran-m'));
+/* The form tab: the default variety of a gendered species is "Male", any other default "Standard".
+   The rule is read from the page, not copied. */
+{
+  const tabLine = lines.find(l => /if\(v\.is_default\)label=/.test(l));
+  const tab = name => { const v = { is_default: true, pokemon: { name } }; let label; eval(tabLine.trim()); return label; };
+  check(tab('basculegion-male') === 'Male', 'the default tab of Basculegion reads "Male"', tab('basculegion-male'));
+  check(tab('rotom') === 'Standard', 'any other default tab still reads "Standard"', tab('rotom'));
+}
+
 // --- form era gating: a form can be far newer than its species -------------------------
 // Alolan Rattata is a Gen VII form of a Gen I Pokemon. Gating on the species alone would show it
 // in Gen I, which is the generation-accuracy bug this app exists to avoid.

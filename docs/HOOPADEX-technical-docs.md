@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.3 · Last updated 2026-10-22 · HoopaDex v5.61**
+**Version 2.4 · Last updated 2026-10-22 · HoopaDex v5.62**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -1488,6 +1488,14 @@ and `radical-red.encounters.json`.
 - A trainer level of 101-104 is `cap + scaledLevels[level]`, with the cap for the mode.
 - Trainer sections are the source's `caps`, in order.
 - The app loads a variant's own trainer file first (`romHackFile()`), then the hack's.
+
+## 4.20 Species with a female form (5.62)
+
+PokéAPI names the default form of Basculegion, Meowstic, Indeedee and Oinkologne with a "-male"
+suffix. `DEFAULT_SUFFIXES` contains `-male`, so `pokeName` and `formDisplayName` show the species
+name. The detail page names the default variety "Male" when its name ends in "-male", and "Standard"
+in all other cases. `DEFAULT_FORM_SUFFIXES` is the same list. Do not make a second copy.
+`tests/test-form-names.js` tests this.
 
 ## 4.19 Team Builder offensive coverage (5.61)
 
