@@ -12,6 +12,23 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.63] - 2026-10-22
+
+### Fixed
+- **The technical docs gave a path to the publish gate that no longer exists.** `publish-gate.js` moved
+  from `Projects\publish-gate.js` to `Projects\portfolio\build\publish-gate.js` (portfolio commit
+  bc84ec8, with tests in `portfolio/tests/test-publish-gate.js`). The docs now give the new path and
+  the command `node build/publish-gate.js <repo-dir>`, run from `portfolio/`. Reported by the Projects
+  clean-up session. The 2026-08-03 architecture review keeps the old path: it records what was true then.
+
+### Record
+- **Measured.** No published figure moves.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing: the technical docs are the change.
+
+---
+
 ## [5.62] - 2026-10-22
 
 ### Fixed

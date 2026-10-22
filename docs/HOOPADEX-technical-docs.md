@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.4 · Last updated 2026-10-22 · HoopaDex v5.62**
+**Version 2.5 · Last updated 2026-10-22 · HoopaDex v5.63**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -687,8 +687,9 @@ with every suite of the day still green, and it committed and pushed an architec
 half-finished work while that review was being written. It existed because Claude Cowork would not
 push to GitHub itself; that is no longer a constraint, and the script is retired.
 
-`Projects\publish-gate.js` survives from an intermediate version of that fix and is useful on its
-own: `node publish-gate.js <repo-dir>` reports whether any repository is safe to publish.
+`Projects\portfolio\build\publish-gate.js` survives from an intermediate version of that fix and is
+useful on its own. From `portfolio/`, `node build/publish-gate.js <repo-dir>` reports whether any
+repository is safe to publish. Its tests are in `portfolio/tests/test-publish-gate.js`.
 
 ### How the tests are verified
 `node build/mutation-check.js`, and it runs in continuous integration.

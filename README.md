@@ -4,7 +4,7 @@ A generation-aware Pokédex that runs from a folder of static files. It shows ty
 abilities, moves and evolutions **as they were in the game you pick** — every generation, every main
 game, Pokémon Champions, and seven ROM hacks.
 
-**Version 5.62 · 2026-10-22** · Live: [willhoop.github.io/hoopadex/app](https://willhoop.github.io/hoopadex/app/)
+**Version 5.63 · 2026-10-22** · Live: [willhoop.github.io/hoopadex/app](https://willhoop.github.io/hoopadex/app/)
 
 ## What it covers
 
