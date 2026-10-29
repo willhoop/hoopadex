@@ -128,7 +128,8 @@ const block = src.slice(src.indexOf('/* ── ROM hacks, phase 2 (5.56)'), src.
 const capName = (0, eval)('(' + src.match(/function capName\(s\)\{[^\n]*\}/)[0] + ')');
 const pkSpecies = JSON.parse(fs.readFileSync(path.join(HD, 'platinum-kaizo.json'), 'utf8')).species;
 const app = (0, eval)('var isRomHack=true,HACK={species:' + JSON.stringify(pkSpecies) + ',data:' + JSON.stringify(pk) + '};' +
-  'function romHack(){return {label:"Platinum Kaizo",baseLabel:"Platinum"}}function dexRec(i){return {name:"mon"+i}}function hackRec(id){return HACK.species[id]}function hackCustomAbility(){return null}function hackAbilityLabel(x){return String(x).replace(/-/g," ")}var capName=' + capName.toString() + ';' +
+  'function romHack(){return {label:"Platinum Kaizo",baseLabel:"Platinum"}}function dexRec(i){return {name:"mon"+i}}function hackRec(id){return HACK.species[id]}function hackCustomAbility(){return null}function hackAbilityLabel(x){return String(x).replace(/-/g," ")}' +
+  'var hackEsc=function(x){return String(x).replace(/&/g,"&amp;").replace(/</g,"&lt;")};var capName=' + capName.toString() + ';' +
   block + ';({hackMoveWas,hackMoveLabel,hackMovesFor,hackEvoTree,hackChangesHtml,movePriority})');
 check(app.hackMoveWas('rollout') === 'was 30 power · 90% accuracy · 20 PP · 0 priority', 'a changed move says what it was', app.hackMoveWas('rollout'));
 check(app.movePriority({ name: 'rollout' }) === 1, 'and a move\'s priority is the hack\'s');
@@ -138,7 +139,8 @@ check(kad.levelup.length === pk.learn[64][0].length / 2 && kad.tm.length === pk.
 const tree = app.hackEvoTree(65);
 check(tree && tree.id === 63 && tree.children[0].id === 64 && tree.children[0].children[0].id === 65 && /TwistedSpoon/.test(tree.children[0].children[0].method),
   'the evolution chart is the hack\'s: Abra, Kadabra, then Alakazam holding TwistedSpoon');
-check(/Ditto|Stats/.test(app.hackChangesHtml(132)) && /48 → 100/.test(app.hackChangesHtml(132)), 'Ditto\'s page says its stats went from 48 to 100', app.hackChangesHtml(132));
+/* Since 5.65 each change is a table row: old value, arrow, new value. */
+check(/hk-old">48<\/td>.*?hk-new">100</.test(app.hackChangesHtml(132)), 'Ditto\'s page says its stats went from 48 to 100', app.hackChangesHtml(132));
 check(/const hk=typeof hackMove==="function"\?hackMove\(md\):null;if\(hk&&\(genNum===undefined\|\|genNum===getDataGenNum\(\)\)\)return hk\[2\]\|\|null;/.test(src),
   'move power is read from the hack first');
 check(/function getMovesForGen\(p\)\{\s*if\(isRomHack\)return hackMovesFor\(p&&p\.id\);/.test(src), 'learnsets are read from the hack first');

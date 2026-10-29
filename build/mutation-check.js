@@ -489,6 +489,17 @@ const MUTATIONS = [
     "const hit=a&&runAreaRows(a).find(", "const hit=null&&runAreaRows(a).find(", 1, 'test-platinum-kaizo.js'],
   ['M214', "The Guide tab is offered outside a ROM hack",
     "  guide:{hackOnly:true},\n", "  guide:{},\n", 1, 'test-platinum-kaizo.js'],
+  /* Changes made obvious, and the PChal calculator's facts (5.65). */
+  ['M215', "A stat the hack lowered shows as a rise",
+    "(n>0?'+':'\\u2212')+Math.abs(n)", "'+'+Math.abs(n)", 1, 'test-platinum-kaizo.js'],
+  ['M216', "The stat bars stop marking the base game's values",
+    "return r&&b&&b[1].some(function(v,i){return v!==r[1][i]})?b[1]:null;", "return null;", 1, 'test-platinum-kaizo.js'],
+  ['M217', "Gender is read as the byte over 256, so 1 in 8 shows as 12.1%",
+    "const f=Math.round((g+1)/256*1000)/10;", "const f=Math.round(g/256*1000)/10;", 1, 'test-platinum-kaizo.js'],
+  ['M218', "A Mega is offered on a Gen IV hack's Lucario again",
+    "if(isRomHack){const r=getFormGenRange(f.name);if(r&&!r.available(genNum))return false}", "", 1, 'test-platinum-kaizo.js'],
+  ['M219', "The evolution line says \"(Lv 36)\" instead of \"at level 36\"",
+    "return x?'at level '+x[1]:'('+m+')'", "return '('+m+')'", 1, 'test-platinum-kaizo.js'],
   ['M170', "FireRed/LeafGreen is pointed at the wrong sprite set",
     "'firered-leafgreen':'generation-iii/firered-leafgreen',", "'firered-leafgreen':'generation-iii/emerald',", 1, 'test-generation-tables.js'],
 

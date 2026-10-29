@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.9 · Last updated 2026-10-29 · HoopaDex v5.64**
+**Version 2.9 · Last updated 2026-10-29 · HoopaDex v5.65**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.64 the set is **203 mutations, all killed**, against 52 suites and 2,026 assertions. Two of
+As of v5.65 the set is **208 mutations, all killed**, against 52 suites and 2,043 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -1028,6 +1028,12 @@ first.
 **The tracker** applies the duplicate clause by evolution family, from the hack's own evolution data,
 which is how the rules define it (Mothim and Wormadam are one family). It treats an area name used for
 several floors as one encounter, matching the rules' "header location".
+
+**The Pokémon page (v5.65).** The Personal tab also holds each species' catch rate, EXP yield,
+gender ratio, growth rate, wild held items and egg groups. The page shows them, as the community
+calculator does, so they are the hack's values and not Platinum's (Lucario's catch rate is 59 in the
+hack and 45 in Platinum). The gender ratio is the game's byte: 31 means one in eight female, which the
+page writes as 12.5%.
 
 **What this does not prove.** The nine non-wild areas and the sixteen item changes were read by eye.
 The names are checked against their tabs at every build, but levels, notes and the item wording are

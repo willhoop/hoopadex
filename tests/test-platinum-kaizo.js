@@ -227,6 +227,56 @@ function throws(fn) { try { fn(); return false; } catch (e) { return true; } }
   check(/Left Side/.test(ai.hacks['platinum-kaizo'].changesNote) && /icons/.test(ai.hacks['platinum-kaizo'].flagSource), 'Platinum Kaizo: the pinned Left Side AI note, and where the flags come from');
 }
 
+// ---- the changes, made obvious (5.65) -------------------------------------------------------------------------
+/* "make the changes more obvious and clear", from Magcargo's page. Platinum Kaizo, Mastersheet Personal
+   tab: Magcargo 70/80/120/109/100/30, Drought / Solid Rock; Platinum: 50/50/120/80/80/30, Magma Armor /
+   Flame Body. Expected values worked out by hand from those two lines. */
+{
+  const fnSrc = n => { const i = src.indexOf('function ' + n + '('); return src.slice(i, src.indexOf('\n}\n', i) + 3); };
+  const line = re => src.match(re)[0] + '\n';
+  const H = (0, eval)('var isRomHack=true;var HD={base:{219:[["fire","rock"],[50,50,120,80,80,30],["magma-armor","flame-body",""]]}};' +
+    'var REC={219:[["fire","rock"],[70,80,120,109,100,30],["drought","solid-rock",""]],1:[["grass","poison"],[45,49,49,65,65,45],["overgrow",""]]};' +
+    'function hackData(){return HD}function hackRec(i){return REC[i]||null}function hackBaseLabel(){return "Platinum"}function romHack(){return {label:"Platinum Kaizo"}}' +
+    'function capName(s){return s.replace(/-/g," ").replace(/\\b\\w/g,function(c){return c.toUpperCase()})}function hackCustomAbility(){return null}function hackAbilityLabel(x){return x}' +
+    'var hackEsc=function(x){return String(x).replace(/&/g,"&amp;").replace(/</g,"&lt;")};' +
+    line(/const HACK_STAT_LABEL=[^\n]*/) + line(/const HACK_STAT_KEYS=[^\n]*/) +
+    ['hackStatBase', 'hackDelta', 'hackAbilityNames', 'hackAbilitiesWas', 'hackChangesHtml'].map(fnSrc).join('') +
+    ';({hackStatBase,hackDelta,hackAbilitiesWas,hackChangesHtml})');
+  check(JSON.stringify(H.hackStatBase(219)) === '[50,50,120,80,80,30]', 'the stat bars get Platinum\'s values to mark');
+  check(H.hackStatBase(1) === null, 'a species the hack did not change gets no marks');
+  check(/class="hk-delta up">\+20</.test(H.hackDelta(20)) && /class="hk-delta down">−18</.test(H.hackDelta(-18)) && H.hackDelta(0) === '', 'a rise is green and +, a fall red and −, no change shows nothing');
+  check(/Was Magma Armor \/ Flame Body in Platinum/.test(H.hackAbilitiesWas(219)), 'the old abilities are named under the new ones', H.hackAbilitiesWas(219));
+  const box = H.hackChangesHtml(219);
+  /* Total: 50+50+120+80+80+30 = 410 before, 70+80+120+109+100+30 = 509 after, +99. */
+  check(/>HP<\/td><td class="hk-old">50<\/td>.*?<td class="hk-new">70<\/td><td><span class="hk-delta up">\+20</.test(box), 'the box has a row per change: HP 50 → 70, +20');
+  check(/>Total<\/td><td class="hk-old">410<\/td>.*?>509<\/td><td><span class="hk-delta up">\+99</.test(box), 'and the total: 410 → 509, +99');
+  check(!/>Defense</.test(box) && !/>Speed</.test(box), 'an unchanged stat is not listed');
+}
+
+// ---- the PChal calculator's Pokédex, as a model (5.65) -----------------------------------------------------------
+/* "take inspiration from this page that pchal references constantly": anastarawneh's Platinum Kaizo
+   calculator, Pokédex tab, on stream. Lucario: "Gender: 87.5% Male, 12.5% Female", "Experience Group:
+   Medium Slow", "Catch Rate: 59", "Evolves from Riolu at level 36", ExtremeSpeed 8 PP. Magcargo:
+   "Gender: 50% Male, 50% Female", "Medium Fast", "Catch Rate: 46". */
+{
+  const fnSrc = n => { const i = src.indexOf('function ' + n + '('); return src.slice(i, src.indexOf('\n}\n', i) + 3); };
+  const sp = json('platinum-kaizo.json');
+  check(sp.facts && sp.facts[448][0] === 59 && sp.facts[448][2] === 31 && sp.facts[448][3] === 'Medium Slow', 'Lucario: catch rate 59, gender byte 31, Medium Slow', sp.facts && JSON.stringify(sp.facts[448]));
+  check(sp.facts[219][0] === 46 && sp.facts[219][2] === 127 && sp.facts[219][3] === 'Medium Fast', 'Magcargo: catch rate 46, half and half, Medium Fast', JSON.stringify(sp.facts[219]));
+  const F = (0, eval)('var isRomHack=true;var HACK={species:{447:1,448:1},facts:{448:[59,204,31,"Medium Slow",["",""],["Field","Human-Like"]],113:[30,255,254,"Fast",["Lucky Egg","Lucky Egg"],["Fairy"]]}};' +
+    'var HD={evo:{447:[[448,["Lv 36"]]]}};function hackData(){return HD}function dexRec(i){return {name:{447:"riolu",448:"lucario"}[i]}}function pokeName(s){return s}' +
+    'var hackEsc=function(x){return String(x)};' + ['hackGenderText', 'hackFactsHtml', 'hackEvoText'].map(fnSrc).join('') + ';({hackGenderText,hackFactsHtml,hackEvoText})');
+  /* The game stores 31 for 1 female in 8: (31 + 1) / 256 = 12.5%. */
+  check(F.hackGenderText(31) === '87.5% male, 12.5% female' && F.hackGenderText(127) === '50% male, 50% female', 'gender reads as the calculator writes it');
+  check(F.hackGenderText(255) === 'Genderless' && F.hackGenderText(254) === 'Always female' && F.hackGenderText(0) === 'Always male', 'and the three fixed cases');
+  check(/Catch rate<\/span>59/.test(F.hackFactsHtml(448)) && /Field, Human-Like/.test(F.hackFactsHtml(448)) && !/Wild item/.test(F.hackFactsHtml(448)), 'the facts block, with no wild item when it has none');
+  check(/Wild item<\/span>Lucky Egg \(always\)/.test(F.hackFactsHtml(113)), 'the same item in both slots is always held');
+  check(F.hackEvoText(448) === '<div class="hk-evo">Evolves from Riolu at level 36</div>', 'evolution in words: from Riolu at level 36', F.hackEvoText(448));
+  check(/Evolves into Lucario at level 36/.test(F.hackEvoText(447)), 'and the other way round');
+  check(/if\(isRomHack\)\{const r=getFormGenRange\(f\.name\);if\(r&&!r\.available\(genNum\)\)return false\}/.test(src), 'a forme the hack\'s game does not have (a Mega in a Gen IV hack) is left out');
+  check(/data-k="pp"[^>]*>PP<\/th>/.test(src) && /data-pp="'\+\(getMovePPForGen\(md\)\|\|''\)\+'"/.test(src), 'the move list has a PP column');
+}
+
 // ---- the tabs -------------------------------------------------------------------------------------------------
 {
   const all = JSON.parse(src.match(/const ALL_TABS=(\[[^\]]*\]);/)[1].replace(/'/g, '"'));

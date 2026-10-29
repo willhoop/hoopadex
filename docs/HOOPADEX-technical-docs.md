@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.6 · Last updated 2026-10-29 · HoopaDex v5.64**
+**Version 2.7 · Last updated 2026-10-29 · HoopaDex v5.65**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -1524,6 +1524,12 @@ gets no flags. An HTML trainer that matches no CSV trainer stops the build.
 
 **Non-wild Pokémon.** `PK_NON_WILD` in `generate-romhack-encounters.js` is typed from the sheet.
 `pkNonWildCheck` stops the build if a name is not on its tab. Do not add a row without its source tab.
+
+**Pokémon page (5.65).** `hackStatBase(id)` gives the base game's stats when the hack changed them.
+The stat bars mark those values and `hackDelta` prints the change. `hackChangesHtml` draws the change
+table. `hackFactsHtml` reads `facts` in `hacks/<hack>.json` (Platinum Kaizo only; `buildPK` writes it from
+the Personal tab). `hackEvoText` writes the evolution in words. In hack mode the forms bar leaves out a
+form that `getFormGenRange` says the game does not have.
 
 **Items.** `PK_ITEM_CHANGES` is typed from the Item Changes tab, which exports nothing.
 `pkItemLocations` and `pkShardTutors` read the community Item Sheet.

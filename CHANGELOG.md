@@ -12,6 +12,41 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.65] - 2026-10-29
+
+### Changed
+- **A ROM hack's changes to a Pokémon are now hard to miss.** Asked for, from Magcargo's page: *"make the
+  changes more obvious and clear"*. Each changed stat shows its rise or fall beside its bar (+20 in green,
+  −18 in red) and a mark on the bar where the base game's value was; the BST reads "was 410 +99"; the old
+  abilities are named under the new ones; and the summary is a highlighted table, one change to a row,
+  old value struck through. Until now it was one grey line under the stats.
+
+### Added
+- **Facts from the hack's own sheet, as on the PChal calculator's Pokédex.** Asked for: *"take
+  inspiration from this page that pchal references constantly"* (anastarawneh's Platinum Kaizo
+  calculator). Under the abilities: gender, growth rate, catch rate, EXP yield, egg groups and the wild
+  held item, from the Mastersheet's Personal tab, so they are Platinum Kaizo's (Lucario's catch rate is
+  59 there). And the evolution in words: "Evolves from Riolu at level 36".
+- **A PP column in every move list**, in every mode.
+
+### Fixed
+- **A Gen IV hack offered Megas.** Lucario's page in Platinum Kaizo showed a Mega tab marked "Gen VI-VII".
+  A hack is one game, as Champions is, so a forme its base game does not have is now left out.
+
+### Record
+- **Measured.** No published figure moves.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing: the technical docs (4.21) and the white paper (§5.17) are
+  updated in this pass.
+
+### Tests
+- `tests/test-platinum-kaizo.js` +17 (79), expected values from the calculator as shown on stream and
+  from the sheet; `test-romhack-data.js` reads the new table.
+- Mutations M215–M219. **208 killed, 0 survived, 0 skipped.** 52 suites, 2,043 assertions, all passing.
+
+---
+
 ## [5.64] - 2026-10-29
 
 ### Added

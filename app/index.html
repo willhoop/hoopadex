@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.64 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.65 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -824,11 +824,30 @@ body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
 .hack-mon img{width:32px;height:32px;image-rendering:pixelated}
 .hack-mon{text-transform:capitalize}
 .hack-mon small{color:var(--text5)}
-.hack-changes{font-size:12px;color:var(--text3);margin:0 0 12px;line-height:1.6}
-.hack-changes b{color:var(--text)}
+.hack-changes{font-size:13px;color:var(--text3);margin:4px 0 14px;padding:10px 14px;border:1px solid rgba(240,128,48,0.45);background:rgba(240,128,48,0.08);border-radius:10px;line-height:1.6}
+.hack-changes.same{border-color:var(--border,rgba(255,255,255,0.08));background:none;font-size:12px;padding:6px 12px}
+.hk-title{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#F08030;margin-bottom:4px}
+.hk-tbl{border-collapse:collapse;width:auto}
+.hk-tbl th{font-size:11px;font-weight:700;color:var(--text4);text-align:left;padding:2px 10px 2px 0}
+.hk-tbl td{padding:2px 10px 2px 0;vertical-align:top}
+.hk-what{font-weight:700;color:var(--text2);white-space:nowrap}
+.hk-old{color:var(--text4);text-decoration:line-through}
+.hk-arrow{color:var(--text4)}
+.hk-new{font-weight:700;color:var(--text)}
+.hk-total td{border-top:1px solid rgba(240,128,48,0.3);padding-top:4px}
+.hk-delta{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px}
+.hk-delta.up{color:#4caf50}
+.hk-delta.down{color:#e05555}
+.hk-delta-col{width:40px;text-align:right;flex-shrink:0}
+.hk-was{font-size:11px;font-weight:600;color:var(--text4)}
+.hk-was-mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text,#e0e0e8);opacity:.7}
+.hk-facts{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin-top:10px;font-size:12px;color:var(--text2)}
+.hk-facts>div{display:contents}
+.hk-facts span{color:var(--text4);font-weight:700}
+.hk-evo{margin-top:8px;font-size:12px;color:var(--text2)}
 .hack-section{margin:14px 0}
 .hack-scroll{max-height:520px;overflow:auto;border:1px solid var(--border);border-radius:8px}
-@media (max-width:640px){.hack-tbl .hide-sm{display:none}}
+@media (max-width:640px){.hack-tbl .hide-sm,.moves-table .hide-sm{display:none}}
 /* Trainers (5.57) */
 .tr-tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--border2);margin-bottom:10px;padding-bottom:0}
 .tr-tabs button{background:none;border:1px solid transparent;border-bottom:0;border-radius:8px 8px 0 0;color:var(--text4);padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
@@ -2205,7 +2224,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.64';
+const APP_VERSION='5.65';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -2755,22 +2774,66 @@ function hackEvoTree(id){
   return build(root,'');
 }
 const HACK_STAT_LABEL=['HP','Attack','Defense','Sp. Atk','Sp. Def','Speed'];
-/* What the hack changed on this species, against its base game. */
+const HACK_STAT_KEYS=['hp','attack','defense','special-attack','special-defense','speed'];
+/* The base game's stats when the hack changed them, else null: what the stat bars mark (5.65). */
+function hackStatBase(id){
+  const d=hackData(),r=d&&hackRec(id),b=d&&d.base?d.base[id]:null;
+  return r&&b&&b[1].some(function(v,i){return v!==r[1][i]})?b[1]:null;
+}
+function hackDelta(n){return n?'<span class="hk-delta '+(n>0?'up':'down')+'">'+(n>0?'+':'\u2212')+Math.abs(n)+'</span>':''}
+function hackAbilityNames(a){return a.filter(Boolean).map(function(x){return hackCustomAbility(x)?hackAbilityLabel(x):capName(x)}).join(' / ')||'\u2014'}
+/* Under the abilities: what they were in the base game, when the hack changed them. */
+function hackAbilitiesWas(id){
+  const d=isRomHack&&hackData(),r=d&&hackRec(id),b=d&&d.base?d.base[id]:null;
+  if(!r||!b||b[2].join('|')===r[2].join('|'))return '';
+  return '<div class="hk-was" style="margin-top:6px">Was '+hackAbilityNames(b[2])+' in '+hackBaseLabel()+'</div>';
+}
+/* The rest of the hack's own Personal row, laid out like the PChal calculator's Pokédex (5.65): "take
+   inspiration from this page that pchal references constantly". hacks/<hack>.json `facts`:
+   [catch rate, EXP yield, gender byte, growth rate, [common item, rare item], [egg groups]]. */
+function hackGenderText(g){
+  if(g===255)return 'Genderless';
+  if(g===254)return 'Always female';
+  if(g===0)return 'Always male';
+  const f=Math.round((g+1)/256*1000)/10;   // the game's 31, 63, 127 and 191 are the familiar 12.5, 25, 50 and 75%
+  return (Math.round((100-f)*10)/10)+'% male, '+f+'% female';
+}
+function hackFactsHtml(id){
+  const f=isRomHack&&HACK&&HACK.facts&&HACK.facts[id];
+  if(!f)return '';
+  const it=f[4],items=it[0]&&it[0]===it[1]?it[0]+' (always)':[it[0]?it[0]+' (50%)':'',it[1]?it[1]+' (5%)':''].filter(Boolean).join(', ');
+  const rows=[['Gender',hackGenderText(f[2])],['Growth',f[3]],['Catch rate',f[0]],['EXP yield',f[1]],['Egg groups',f[5].join(', ')||'—']];
+  if(items)rows.push(['Wild item',items]);
+  return '<div class="hk-facts">'+rows.map(function(r){return '<div><span>'+r[0]+'</span>'+hackEsc(r[1])+'</div>'}).join('')+'</div>';
+}
+/* "Evolves from Slugma at level 24", in words, from the hack's evolution table. */
+function hackEvoText(id){
+  const d=isRomHack&&hackData();
+  if(!d||!d.evo)return '';
+  const nm=function(i){const r=dexRec(i);return r&&r.name?pokeName(r.name).replace(/\b\w/g,function(c){return c.toUpperCase()}):'#'+i};
+  const how=function(m){const x=String(m).match(/^Lv\.? ?(\d+)$/i);return x?'at level '+x[1]:'('+m+')'};
+  const out=[];
+  Object.keys(d.evo).forEach(function(f){d.evo[f].forEach(function(e){if(e[0]===+id)out.push('Evolves from '+nm(+f)+' '+e[1].map(how).join(' or '))})});
+  (d.evo[id]||[]).forEach(function(e){if(HACK.species[e[0]])out.push('Evolves into '+nm(e[0])+' '+e[1].map(how).join(' or '))});
+  return out.length?'<div class="hk-evo">'+out.map(hackEsc).join('<br>')+'</div>':'';
+}
+/* What the hack changed on this species, against its base game: one change to a line, in a box that
+   stands out (5.65; until then one grey line under the stats). */
 function hackChangesHtml(id){
   const d=hackData(),r=hackRec(id);
   if(!r)return '';
   const b=d&&d.base?d.base[id]:null;
-  const base=hackBaseLabel();
+  const base=hackBaseLabel(),hack=romHack().label;
   if(!d)return '';
-  if(!b)return '<div class="hack-changes">Same types, base stats and abilities as in '+base+'.</div>';
-  const parts=[];
-  if(b[0].join('/')!==r[0].join('/'))parts.push('<b>Type</b> '+b[0].map(capName).join(' / ')+' \u2192 '+r[0].map(capName).join(' / '));
-  const st=[];
-  r[1].forEach(function(v,i){if(v!==b[1][i])st.push(HACK_STAT_LABEL[i]+' '+b[1][i]+' \u2192 '+v)});
-  if(st.length)parts.push('<b>Stats</b> '+st.join(', ')+' (total '+b[1].reduce(function(a,x){return a+x},0)+' \u2192 '+r[1].reduce(function(a,x){return a+x},0)+')');
-  const ab=function(a){return a.filter(Boolean).map(function(x){return hackCustomAbility(x)?hackAbilityLabel(x):capName(x)}).join(' / ')||'\u2014'};
-  if(b[2].join('|')!==r[2].join('|'))parts.push('<b>Abilities</b> '+ab(b[2])+' \u2192 '+ab(r[2]));
-  return '<div class="hack-changes"><span class="section-label" style="margin-right:6px">Changed from '+base+'</span>'+parts.join(' \u00b7 ')+'</div>';
+  if(!b)return '<div class="hack-changes same">Same types, base stats and abilities as in '+base+'.</div>';
+  const rows=[];
+  if(b[0].join('/')!==r[0].join('/'))rows.push(['Type',b[0].map(capName).join(' / '),r[0].map(capName).join(' / '),'']);
+  r[1].forEach(function(v,i){if(v!==b[1][i])rows.push([HACK_STAT_LABEL[i],b[1][i],v,hackDelta(v-b[1][i])])});
+  const tb=b[1].reduce(function(a,x){return a+x},0),tr=r[1].reduce(function(a,x){return a+x},0);
+  if(tb!==tr)rows.push(['Total',tb,tr,hackDelta(tr-tb)]);
+  if(b[2].join('|')!==r[2].join('|'))rows.push(['Abilities',hackAbilityNames(b[2]),hackAbilityNames(r[2]),'']);
+  return '<div class="hack-changes"><div class="hk-title">Changed in '+hackEsc(hack)+'</div><table class="hk-tbl"><thead><tr><th></th><th>'+hackEsc(base)+'</th><th></th><th>'+hackEsc(hack)+'</th><th></th></tr></thead><tbody>'+
+    rows.map(function(x){return '<tr'+(x[0]==='Total'?' class="hk-total"':'')+'><td class="hk-what">'+x[0]+'</td><td class="hk-old">'+hackEsc(x[1])+'</td><td class="hk-arrow">\u2192</td><td class="hk-new">'+hackEsc(x[2])+'</td><td>'+x[3]+'</td></tr>'}).join('')+'</tbody></table></div>';
 }
 function hackMonChip(id,extra){
   const r=dexRec(id);
@@ -4728,7 +4791,7 @@ function renderMovesSection(moves,missed){
   cats.forEach(c=>{
     const showLevel=c.key==='levelup';
     tables+='<div class="moves-list" data-cat="'+c.key+'" style="'+(c.key!==first?'display:none':'')+'">';
-    tables+='<table class="moves-table" data-cat="'+c.key+'"><thead><tr>'+(showLevel?'<th class="ms" data-k="lv" style="width:42px">Lv</th>':'')+'<th class="ms" data-k="name">Move</th>'+'<th class="ms" data-k="cat" style="width:36px;text-align:center">Cat</th>'+'<th class="ms" data-k="type" style="width:80px">Type</th>'+'<th class="ms" data-k="pow" style="width:44px;text-align:right">Pow</th><th class="ms" data-k="acc" style="width:48px;text-align:right">Acc</th></tr></thead><tbody>';
+    tables+='<table class="moves-table" data-cat="'+c.key+'"><thead><tr>'+(showLevel?'<th class="ms" data-k="lv" style="width:42px">Lv</th>':'')+'<th class="ms" data-k="name">Move</th>'+'<th class="ms" data-k="cat" style="width:36px;text-align:center">Cat</th>'+'<th class="ms" data-k="type" style="width:80px">Type</th>'+'<th class="ms" data-k="pow" style="width:44px;text-align:right">Pow</th><th class="ms" data-k="acc" style="width:48px;text-align:right">Acc</th><th class="ms hide-sm" data-k="pp" style="width:36px;text-align:right">PP</th></tr></thead><tbody>';
     c.data.forEach(m=>{
       const md=moveCache[m.name];
       const type=getMoveTypeForGen(md);
@@ -4743,11 +4806,11 @@ function renderMovesSection(moves,missed){
          for every key, so every row tied and the sort shipped in 3.2 was a stable no-op for eight
          versions - only the header arrow ever moved. data-mtype on the row is what the type
          filter matches, so filtering never has to parse a rendered badge. */
-      tables+='<tr data-mtype="'+type+'">'+(showLevel?'<td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#6a6a7a;font-size:13px">'+(m.level||'\u2014')+'</td>':'')+'<td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="flex-shrink:0;cursor:pointer">'+hackMoveLabel(m.name)+'</span>'+priTag+hackMoveTag(m.name)+renderSpreadTag(m.name,true)+'<span style="font-size:12px;color:#6a6a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+shortDesc+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
+      tables+='<tr data-mtype="'+type+'">'+(showLevel?'<td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#6a6a7a;font-size:13px">'+(m.level||'\u2014')+'</td>':'')+'<td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="flex-shrink:0;cursor:pointer">'+hackMoveLabel(m.name)+'</span>'+priTag+hackMoveTag(m.name)+renderSpreadTag(m.name,true)+'<span style="font-size:12px;color:#6a6a7a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+shortDesc+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td><td class="hide-sm" data-pp="'+(getMovePPForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right;color:#8a8a9a">'+(getMovePPForGen(md)||'\u2014')+'</td></tr>';
     });
     // Add missed moves at the end of levelup tab
     if(c.key==='levelup'&&showMissed&&missed&&missed.moves.length>0){
-      tables+='<tr><td colspan="6" style="padding:8px;font-size:11px;font-weight:700;color:#F85888;letter-spacing:1px;text-transform:uppercase;background:transparent">Missed from '+missed.preEvoName.replace(/-/g,' ')+(missed.isItemEvo?' (evolves via '+missed.evoLabel+')':' (evolves at Lv '+missed.evoLevel+')')+'</td></tr>';
+      tables+='<tr><td colspan="7" style="padding:8px;font-size:11px;font-weight:700;color:#F85888;letter-spacing:1px;text-transform:uppercase;background:transparent">Missed from '+missed.preEvoName.replace(/-/g,' ')+(missed.isItemEvo?' (evolves via '+missed.evoLabel+')':' (evolves at Lv '+missed.evoLevel+')')+'</td></tr>';
       missed.moves.forEach(m=>{
         const md=moveCache[m.name];
         const type=getMoveTypeForGen(md);
@@ -4756,7 +4819,7 @@ function renderMovesSection(moves,missed){
         const cat=getMoveCatForGen(md);
         const missedDesc=champMoveDesc(md)||md?.desc||'';
         const missedShort=missedDesc.length>60?missedDesc.slice(0,57)+'...':missedDesc;
-        tables+='<tr class="missed-move-row" data-mtype="'+type+'"><td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#8a6a6a;font-size:13px">'+(m.level||'\u2014')+'</td><td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="color:#e8a8a8;flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span>'+renderSpreadTag(m.name,true)+'<span class="missed-badge">MISSED</span><span style="font-size:12px;color:#5a5a6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+missedShort+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td></tr>';
+        tables+='<tr class="missed-move-row" data-mtype="'+type+'"><td data-lv="'+(m.level||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#8a6a6a;font-size:13px">'+(m.level||'\u2014')+'</td><td data-name="'+m.name.replace(/-/g,' ')+'"><div style="display:flex;align-items:baseline;gap:8px"><span class="move-name" onclick="goToMove(\''+m.name+'\')" onmouseenter="showMoveTip(event,\''+m.name+'\')" onmouseleave="hideTooltip()" style="color:#e8a8a8;flex-shrink:0;cursor:pointer">'+m.name.replace(/-/g,' ')+'</span>'+renderSpreadTag(m.name,true)+'<span class="missed-badge">MISSED</span><span style="font-size:12px;color:#5a5a6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+missedShort+'</span></div></td><td data-cat="'+cat+'" style="text-align:center">'+catIcon(cat)+'</td><td data-type="'+type+'">'+typeBadge(type,true)+'</td><td data-pow="'+(getMovePowerForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+pow+'</td><td data-acc="'+(getMoveAccForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right">'+acc+'</td><td class="hide-sm" data-pp="'+(getMovePPForGen(md)||'')+'" style="font-family:\'JetBrains Mono\',monospace;font-size:13px;text-align:right;color:#8a8a9a">'+(getMovePPForGen(md)||'\u2014')+'</td></tr>';
       });
     }
     tables+='</tbody></table></div>';
@@ -4802,7 +4865,7 @@ function sortMovesTable(th){
   rows.sort((a,b)=>{
     let x,y;
     if(k==='cat'){ x=MOVE_CAT_ORDER[cellOf(a,'cat')]??9; y=MOVE_CAT_ORDER[cellOf(b,'cat')]??9; }
-    else if(k==='pow'||k==='acc'||k==='lv'){ x=num(cellOf(a,k)); y=num(cellOf(b,k)); }
+    else if(k==='pow'||k==='acc'||k==='pp'||k==='lv'){ x=num(cellOf(a,k)); y=num(cellOf(b,k)); }
     else { x=cellOf(a,k).toLowerCase(); y=cellOf(b,k).toLowerCase(); }
     if(x<y)return -1*moveSortDir;
     if(x>y)return 1*moveSortDir;
@@ -5354,7 +5417,14 @@ async function renderDetail(p){
   /* In Generation I the stat line has five rows, not six: one Special. getStatsForGen sets both
      halves to the same value so every consumer works unchanged, so the LIST is where the pair is
      collapsed - showing "SPA 85 / SPD 85" would be inventing a distinction the game did not have. */
-  const bars=gen1StatRows(stats).map(s=>{const l=SL[s.stat.name]||s.stat.name,v=s.base_stat,pct=Math.min(v/255*100,100),b=statBand(v);return '<div class="stat-row"><span class="stat-label">'+l+'</span><span class="stat-value">'+v+'</span><div class="stat-bar-bg" title="'+v+' &#8212; '+b.label+'"><div class="stat-bar-fill" style="width:'+pct+'%;background:'+b.color+'"></div></div></div>'}).join('');
+  /* A ROM hack that changed this species' stats shows each change on its bar (5.65): "make the changes
+     more obvious and clear". The base game's value is a mark on the bar and a +/- beside it. */
+  const hb=hackStatBase(p.id);
+  const bars=gen1StatRows(stats).map(s=>{const l=SL[s.stat.name]||s.stat.name,v=s.base_stat,pct=Math.min(v/255*100,100),b=statBand(v);
+    const was=hb?hb[HACK_STAT_KEYS.indexOf(s.stat.name)]:undefined,ch=was!==undefined&&was!==v;
+    return '<div class="stat-row"><span class="stat-label">'+l+'</span><span class="stat-value">'+v+'</span><div class="stat-bar-bg" style="position:relative" title="'+v+' &#8212; '+b.label+(ch?' (was '+was+' in '+hackBaseLabel()+')':'')+'"><div class="stat-bar-fill" style="width:'+pct+'%;background:'+b.color+'"></div>'+
+      (ch?'<div class="hk-was-mark" style="left:'+Math.min(was/255*100,100)+'%"></div>':'')+'</div>'+
+      (hb?'<span class="hk-delta-col">'+(ch?hackDelta(v-was):'')+'</span>':'')+'</div>'}).join('');
 
   // Defensive matchups using the gen-appropriate chart
   const chartData=getChartForGen(genNum);
@@ -5447,10 +5517,11 @@ async function renderDetail(p){
         '<div style="display:flex;gap:6px;margin-top:6px">'+tbs+'</div>'+
         '<div class="modal-dims">'+(p.height/10).toFixed(1)+'m · '+(p.weight/10).toFixed(1)+'kg</div>'+
       '</div></div>'+
-      '<div style="margin-top:6px"><div class="section-label">Abilities</div><div>'+abs+'</div></div>'+
+      '<div style="margin-top:6px"><div class="section-label">Abilities</div><div>'+abs+'</div>'+hackAbilitiesWas(p.id)+hackFactsHtml(p.id)+hackEvoText(p.id)+'</div>'+
       '</div>'+
       '<div>'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="section-label" style="margin-bottom:0">Base Stats</span><span style="font-size:14px;font-weight:700;color:'+c+';font-family:\'JetBrains Mono\',monospace">BST '+bst+'</span></div>'+bars+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="section-label" style="margin-bottom:0">Base Stats</span><span style="font-size:14px;font-weight:700;color:'+c+';font-family:\'JetBrains Mono\',monospace">BST '+bst+
+          (hb&&hb.reduce(function(a,x){return a+x},0)!==bst?' <span class="hk-was">was '+hb.reduce(function(a,x){return a+x},0)+'</span> '+hackDelta(bst-hb.reduce(function(a,x){return a+x},0)):'')+'</span></div>'+bars+
       '</div>'+
     '</div>'+
     (isRomHack?hackChangesHtml(p.id):'')+
@@ -5535,6 +5606,9 @@ async function renderDetail(p){
       if(f.isDefault)return true;
       const n=f.name.toLowerCase();
       if(n.includes('-totem'))return genNum===7; // Totem forms are only cosmetic, still hide
+      /* A ROM hack is one game (5.65), as Champions is: a forme its base game does not have (a Mega
+         on Platinum Kaizo's Lucario) is not offered with a note, it is left out. */
+      if(isRomHack){const r=getFormGenRange(f.name);if(r&&!r.available(genNum))return false}
       return true; // Show all other forms
     });
     if(genForms.length<=1){bar.innerHTML='';return}
