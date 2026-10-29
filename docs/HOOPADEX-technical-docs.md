@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.8 · Last updated 2026-10-29 · HoopaDex v5.66**
+**Version 2.9 · Last updated 2026-10-29 · HoopaDex v5.67**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -1535,6 +1535,14 @@ The stat bars mark those values and `hackDelta` prints the change. `hackChangesH
 table. `hackFactsHtml` reads `facts` in `hacks/<hack>.json` (Platinum Kaizo only; `buildPK` writes it from
 the Personal tab). `hackEvoText` writes the evolution in words. In hack mode the forms bar leaves out a
 form that `getFormGenRange` says the game does not have.
+
+**Shared look (5.67).** Use these helpers on a new hack tab:
+
+- `monTint(id)` colours a Pokémon chip by its first type.
+- `hackSrc(text)` folds a source note under "About this data".
+- `itemSprite(name)` draws PokéAPI's item picture. It hides itself when PokéAPI has none.
+- `encMethodColor(method)` gives an encounter method its colour.
+- An item table whose first column is "Area" draws each area once, as a header row.
 
 **Items.** `PK_ITEM_CHANGES` is typed from the Item Changes tab, which exports nothing.
 `pkItemLocations` and `pkShardTutors` read the community Item Sheet.

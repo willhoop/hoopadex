@@ -4,7 +4,7 @@ A generation-aware Pokédex that runs from a folder of static files. It shows ty
 abilities, moves and evolutions **as they were in the game you pick** — every generation, every main
 game, Pokémon Champions, and seven ROM hacks.
 
-**Version 5.66 · 2026-10-29** · Live: [willhoop.github.io/hoopadex/app](https://willhoop.github.io/hoopadex/app/)
+**Version 5.67 · 2026-10-29** · Live: [willhoop.github.io/hoopadex/app](https://willhoop.github.io/hoopadex/app/)
 
 ## What it covers
 
@@ -36,8 +36,8 @@ game, Pokémon Champions, and seven ROM hacks.
 | Champions learnsets | `app/champions-learnsets.json` | Move legality per regulation. Read by CHOMP. |
 | ROM hack data | `app/hacks/*.json`, `*.data.json`, `*.trainers.json`, `*.encounters.json`, `*.guide.json` | Species; moves, learnsets, evolutions, items; trainers; encounters; the Guide tab. |
 | Generators | `build/generate-*.js` | Every derived table and snapshot. Each has `--check` for drift. |
-| Tests | `tests/test-*.js` | 52 suites, 2,050 assertions. |
-| Mutation check | `build/mutation-check.js` | 211 deliberate defects; each must turn a suite red. |
+| Tests | `tests/test-*.js` | 52 suites, 2,056 assertions. |
+| Mutation check | `build/mutation-check.js` | 214 deliberate defects; each must turn a suite red. |
 | API archive | [willhoop/pokeapi-data](https://github.com/willhoop/pokeapi-data) | Fork of PokeAPI/api-data. Weekly add-and-update sync. |
 
 ## Documentation

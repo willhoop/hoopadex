@@ -12,6 +12,37 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.67] - 2026-10-29
+
+### Changed
+- **Every ROM-hack tab is easier to read, with more colour and pictures.** Asked for: *"make everything
+  easier to read, more color, sprites, etc"*, *"less lines text"* and *"yes do all the tabs"*.
+  - **Locations:** each method is a coloured label (grass green, water blue, rods teal, day gold, night
+    purple); each Pokémon chip is tinted by its type, with its rate as a green badge.
+  - **Items:** a picture beside each item; the item list puts each area once, as a header row.
+  - **Abilities:** up to eight sprites of the Pokémon that have each ability, beside the count.
+  - **Moves:** each row has a type-coloured edge.
+  - **Guide:** the level caps are a row of large chips, the explanation folded under "How the caps work".
+  - **Guide and AI:** each section is a card with a coloured edge; the AI flags table carries the same
+    short chips as the Trainers tab.
+  - **Run:** a status shows in colour (caught green, dead red), and chips are tinted by type.
+  - **Trainers and Locations:** the long note on where the data comes from is folded under "About this
+    data".
+
+### Record
+- **Measured.** No published figure moves.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing: the technical docs (4.21) are updated in this pass.
+
+### Tests
+- `tests/test-platinum-kaizo.js` +6 (92); `test-romhack-encounters.js` reads the new rate badge. The
+  search tests find their code by the text `let h='';`, and the new item table used that name first; it
+  is renamed. Mutations M223–M225; M198 re-anchored. **214 killed, 0 survived, 0 skipped.** 52 suites,
+  2,056 assertions, all passing.
+
+---
+
 ## [5.66] - 2026-10-29
 
 ### Changed

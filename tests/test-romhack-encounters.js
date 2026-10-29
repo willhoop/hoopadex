@@ -74,9 +74,10 @@ check(tabFn.isTabRelevant('locations'), 'the Locations tab is shown in hack mode
 check(/if\(isRomHack\)renderHackWhere\(p\.id\);else loadDetailEncounters\(p\.id\);/.test(src), 'a Pokémon\'s page lists where to find it in the hack, not in the base game');
 check(/if\(tab==='locations'&&!isRomHack\)initLocations\(\);/.test(src), 'the base game\'s location view is not drawn in hack mode');
 const fnSrc = n => { const i = src.indexOf('function ' + n + '('); return src.slice(i, src.indexOf('\n}\n', i) + 3); };
-const encRow = (0, eval)('var hackEsc=function(x){return String(x)};function spriteFor(){return ""}function getDataGenNum(){return 4};(' + fnSrc('encRowHtml') + ')');
+const encRow = (0, eval)('var hackEsc=function(x){return String(x)};function spriteFor(){return ""}function getDataGenNum(){return 4};function monTint(){return ""};(' + fnSrc('encRowHtml') + ')');
 const html = encRow([396, 'Starly', 30, '4 - 5']);
-check(/Starly <small>30% · Lv 4 - 5<\/small>/.test(html), 'an encounter shows its rate and levels', html);
+/* Since 5.67 the rate is its own coloured badge. */
+check(/Starly<span class="enc-rate">30%<\/span> <small>Lv 4 - 5<\/small>/.test(html), 'an encounter shows its rate and levels', html);
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

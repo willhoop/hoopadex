@@ -450,7 +450,7 @@ const MUTATIONS = [
   ['M197', "A Pokémon's page in hack mode lists the base game's encounters",
     "  if(isRomHack)renderHackWhere(p.id);else loadDetailEncounters(p.id);", "  loadDetailEncounters(p.id);", 1, 'test-romhack-encounters.js'],
   ['M198', "An encounter loses its rate",
-    "' <small>'+(r[2]!==null?r[2]+'%':'')+", "' <small>'+", 1, 'test-romhack-encounters.js'],
+    "(r[2]!==null?'<span class=\"enc-rate\">'+r[2]+'%</span>':'')+", "", 1, 'test-romhack-encounters.js'],
   /* AI (5.59). */
   ['M199', "The AI tab is offered in generations with no decompiled AI",
     "&&selectedGenNum!==3&&selectedGenNum!==4)return false;", ")return false;", 1, 'test-ai-docs.js'],
@@ -458,6 +458,13 @@ const MUTATIONS = [
     "return engine.flags.filter(function(f){return bits&(1<<f.bit)})", "return engine.flags.filter(function(f){return bits&f.bit})", 1, 'test-ai-docs.js'],
   ['M222', "The AI chips read a trainer's flags from the wrong bits",
     "const fl=aiDocs.engines.gen4.flags.filter(function(f){return bits&(1<<f.bit)});", "const fl=aiDocs.engines.gen4.flags.filter(function(f){return bits&f.bit});", 1, 'test-platinum-kaizo.js'],
+  /* Every tab's look (5.67). */
+  ['M223', "An item's count becomes part of its picture's name, so Rare Candy x20 has none",
+    ".replace(/\\s*x\\d+$/i,'')", "", 1, 'test-platinum-kaizo.js'],
+  ['M224', "Night encounters are coloured as day",
+    "if(/night/.test(x))return '#705898';", "", 1, 'test-platinum-kaizo.js'],
+  ['M225', "Chips lose their type tint",
+    "return t&&TC[t]?'border-color:'+TC[t]+'99;background:'+TC[t]+'14':'';", "return '';", 1, 'test-platinum-kaizo.js'],
   ['M201', "A link to the AI tab opens the Pokédex instead",
     "'tms','guide','trainers','ai','locations','run'", "'tms','guide','trainers','locations','run'", 1, 'test-ai-docs.js'],
   /* Radical Red (5.60). */

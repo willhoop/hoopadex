@@ -300,6 +300,22 @@ function throws(fn) { try { fn(); return false; } catch (e) { return true; } }
   check(!/<textarea class="tr-note" style="display:block;margin:4px 0 8px"/.test(src) && /class="tr-note tr-show-sm"/.test(src), 'the opened trainer no longer repeats the notes box (except on a phone)');
 }
 
+// ---- every tab's look (5.67) ----------------------------------------------------------------------------------
+/* "yes do all the tabs": item pictures, coloured encounter methods, chips tinted by type. */
+{
+  const fnSrc = n => { const i = src.indexOf('function ' + n + '('); return src.slice(i, src.indexOf('\n}\n', i) + 3); };
+  const L = (0, eval)('var TC={grass:"#8BC34A",normal:"#A8A878"};function hackRec(i){return i===1?[["grass","poison"],[],[]]:null}function dexRec(i){return i===16?{types:[{type:{name:"normal"}}]}:null}' +
+    ['monTint', 'itemSprite', 'encMethodColor'].map(fnSrc).join('') + ';({monTint,itemSprite,encMethodColor})');
+  const slug = h => (h.match(/items\/([^".]+)\.png/) || [])[1];
+  /* PokéAPI's item pictures are named in lower case with hyphens: rare-candy, poke-ball, ragecandybar. */
+  check(slug(L.itemSprite('Rare Candy x20')) === 'rare-candy', 'an item\'s count is not part of its picture name');
+  check(slug(L.itemSprite('Poké Ball x20')) === 'poke-ball' && slug(L.itemSprite('Shoal Shell → RageCandyBar')) === 'ragecandybar', 'accents go, and a renamed item shows its new self');
+  check(L.itemSprite('TM10 - Hidden Power') === '' && L.itemSprite('$100,000') === '', 'TMs and money get no picture');
+  check(L.encMethodColor('Surf') === '#6890F0' && L.encMethodColor('Night') === '#705898' && L.encMethodColor('Super Rod') === '#3FA7B8' && L.encMethodColor('Grass') === '#78C850', 'each method has its colour');
+  check(/#8BC34A/.test(L.monTint(1)) && /#A8A878/.test(L.monTint(16)) && L.monTint(0) === '', 'a chip is tinted by the hack\'s first type, else the game\'s');
+  check(/const byArea=sec\.cols\[0\]==='Area';/.test(src), 'an item table by area draws each area once, as a header');
+}
+
 // ---- the tabs -------------------------------------------------------------------------------------------------
 {
   const all = JSON.parse(src.match(/const ALL_TABS=(\[[^\]]*\]);/)[1].replace(/'/g, '"'));
