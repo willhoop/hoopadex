@@ -2,7 +2,7 @@
 
 ### Why a dex that ignores time gives wrong answers, and how HoopaDex fixes it
 
-**Version 2.8 · Last updated 2026-10-22 · HoopaDex v5.63**
+**Version 2.9 · Last updated 2026-10-29 · HoopaDex v5.64**
 **Will Hooper · HoopaDex v2.9.3**
 
 > This is a living document. It is updated in the same pass as any change to the code.
@@ -459,7 +459,7 @@ is committed as `build/mutation-check.js` and runs in continuous integration, be
 check performed once by hand decays into a claim about the past — which is precisely what the
 previous version of this section had become.
 
-As of v5.62 the set is **198 mutations, all killed**, against 51 suites and 1,964 assertions. Two of
+As of v5.64 the set is **203 mutations, all killed**, against 52 suites and 2,026 assertions. Two of
 the mutations have earned their place by surviving on first run, and both findings were
 real rather than cosmetic:
 
@@ -858,7 +858,7 @@ in the one thing a playthrough needs most: the order trainers are met in.
 |---|---|---|---|
 | Renegade Platinum | 777 | 369 | the author's document, by area |
 | Sacred Gold / Storm Silver | 647 | 30 | the hack's trainer list, by area |
-| Platinum Kaizo | 472 | 472 | the author's sheet, by split and area |
+| Platinum Kaizo | 482 | 482 | the author's sheet, by split and area |
 | Run & Bun | 483 | 407 | the calculator data's chain of sets |
 | Emerald Kaizo | 854 | 525 | not in the source; sorted by level |
 | FireRed Omega | 639 | 639 | not in the source; sorted by level |
@@ -889,7 +889,7 @@ emerald-kaizo-db `trainers.json` (MIT).*
 |---|---|---|---|
 | Renegade Platinum | 79 | 1,977 | the author's document |
 | Sacred Gold / Storm Silver | 122 | 2,224 | the author's document |
-| Platinum Kaizo | 130 | 2,567 | the authors' sheet |
+| Platinum Kaizo | 139 | 2,715 | the authors' sheets |
 | Run & Bun | 123 | 1,496 | the game's own encounter table |
 | Emerald Kaizo | 66 | 1,708 | emerald-kaizo-db |
 | FireRed Omega | — | — | none published |
@@ -923,7 +923,7 @@ absorbing ability, Natural Cure, then "has a super-effective move" and "boosted"
 "partner immune or resisting"). Generation IV runs eight: it adds "every damaging move does nothing"
 third. FireRed's order is checked to equal Emerald's.
 
-The plain-English line for each flag and check is written by hand from the code, and eleven of its
+The plain-English line for each flag and check is written by hand from the code, and twenty of its
 claims are checked against the code at every build (for example that every move starts at 100 points,
 that boosts of four stages keep it in, and that the Generation IV replacement score is one byte). If
 the code stops saying what the page says, the build fails.
@@ -937,7 +937,7 @@ ranks by the member's own offensive matchup, but stores the score in one byte, s
 HeartGold/SoulSilver's AI is still assembly in pokeheartgold, so Sacred Gold's page shows Platinum's
 engine and says so. Each Renegade Platinum and Sacred Gold trainer's flags come from the hack's
 calculator data: 411 trainers each. Platinum Kaizo publishes its AI changes, which are shown in its
-authors' words. Emerald Kaizo, FireRed Omega and Run & Bun publish nothing about their AI or their
+authors' words, and marks each trainer's flags on its sheet (§5.17). Emerald Kaizo, FireRed Omega and Run & Bun publish nothing about their AI or their
 trainers' flags; their pages say so.
 
 *Sources: pret/pokeemerald `include/constants/battle_ai.h`, `src/battle_ai_switch_items.c`,
@@ -945,6 +945,17 @@ trainers' flags; their pages say so.
 `src/battle_ai_switch_items.c`; pret/pokeplatinum `generated/ai_flags.txt`,
 `src/battle/trainer_ai/trainer_ai.c`, `src/battle/trainer_ai/script.s`, `src/battle/battle_lib.c`,
 `docs/bugs_and_glitches.md`; the Platinum Kaizo Mastersheet, AI Changes tab.*
+
+### 5.15a A correction to §5.15 (v5.64)
+
+Re-reading pokeplatinum for the Platinum Kaizo guide found three Generation IV lines that said less than
+the code. When every attack it has does nothing to your Pokémon, the AI makes a second pass and switches
+to a party member with a neutral damaging move, 1 in 2 for each such move; the page described only the
+first, super-effective pass. A sleeping Pokémon with Natural Cure switches to an immune or resisting
+partner with a super-effective move every time (the code passes 1 as the odds), not half the time. And
+the Perish Song and random Natural Cure switches choose their replacement with the after-a-knockout
+routine. The page now says so, and these and six more statements (the item AI among them) are checked
+at every build.
 
 ### 5.16 Radical Red, from one source
 
@@ -979,6 +990,55 @@ Red's encounter engine keeps. That is an inference from the engine, stated on th
 pret/pokefirered `src/data/wild_encounters.json` for slot chances.*
 
 ---
+
+
+### 5.17 Platinum Kaizo, for playing it
+
+v5.64 adds what a player needs on top of the data: a guide, a Nuzlocke tracker, every trainer's AI
+flags, and the Pokémon and items the sheet keeps outside its main tables.
+
+| What | Count | Source | How it was read |
+|---|---|---|---|
+| Trainers | 482 (was 472) | Mastersheet split tabs | parsed |
+| Trainers with AI flags | 481 | split tabs, HTML view | icons matched to the tab's key |
+| Non-wild areas | 9 | Non-Wild, Universal, Great Marsh tabs | typed; names checked against the tab |
+| Changed items | 16 | Item Changes tab | typed from the sheet itself |
+| Item locations | 575 | community Item Sheet | parsed |
+| Shard-tutor moves | 41 | community Item Sheet | parsed |
+| Level caps | 11 | FAQ and Hall of Fame rules | parsed; both must agree |
+
+**Ten trainers were missing and 35 misfiled.** The split-tab reader had five faults: it skipped any
+row containing "split" (three trainers have it in their names), accepted "Lv" but not "LV" (six teams),
+required a team to start in column E (Cyrus's last team is one Giratina in column I), re-read move
+rows, so a move written alone in column E became an area with the following trainers under it, and let
+a move list run into the next area's name, giving one Pokémon "Floaroma Meadow" as a fifth move. All
+five are fixed and each has a test built from the sheet's own layout.
+
+**AI flags.** The sheet marks a trainer's flags with icons, and its CSV export carries no images. The
+HTML view does, and an icon's address is the same wherever that picture is used, so each trainer's
+icons are matched to the "AI Flag Key" row at the top of its tab. The key's labels follow the game's
+flag order, which fixes each icon's bit. The HTML view leaves out hidden rows; one trainer is hidden
+and has no flags. Two trainers genuinely have no icons.
+
+**The guide** reads the FAQ and the Hall of Fame rules at build time. The two list the level caps
+separately; the build fails if they disagree. The rules include one about tools: no "generative AI or
+third-party websites/applications, to automate the process of planning a battle". The guide shows it
+first.
+
+**The tracker** applies the duplicate clause by evolution family, from the hack's own evolution data,
+which is how the rules define it (Mothim and Wormadam are one family). It treats an area name used for
+several floors as one encounter, matching the rules' "header location".
+
+**What this does not prove.** The nine non-wild areas and the sixteen item changes were read by eye.
+The names are checked against their tabs at every build, but levels, notes and the item wording are
+not. The Great Marsh rates come from a picture that groups Pokémon under "7/32", "3/32", "2/32" and
+"1/32"; which Pokémon sits under which label was judged from its position, and the rates add to 32/32.
+The tracker's duplicate check is only as good as the hack's evolution data.
+
+*Sources: the Platinum Kaizo Mastersheet (split tabs, Non-Wild Encounters, Universal Encounters,
+Great Marsh Encounters, Item Changes, Items); the Platinum Kaizo FAQ; the Platinum Kaizo Hall of Fame
+sheet, Rules tab; the Platinum Kaizo Item Sheet; the authors' pinned note in the PChal Discord
+(2026-03-15); pret/pokeplatinum `src/battle/trainer_ai/trainer_ai.c`.*
 
 ## 6. Known limitations
 

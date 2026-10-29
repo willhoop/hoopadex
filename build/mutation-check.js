@@ -441,7 +441,7 @@ const MUTATIONS = [
   ['M193', "Copy team leaves out each Pokémon's level, so the calculator imports them at 100",
     "+'Level: '+m[2]+'\\n'+", "+", 1, 'test-romhack-trainers.js'],
   ['M194', "A link to the Trainers tab opens the Pokédex instead",
-    "'abilities','items','trainers','ai','team','calc'].includes(resolvedTab)", "'abilities','items','ai','team','calc'].includes(resolvedTab)", 1, 'test-romhack-trainers.js'],
+    "'tms','guide','trainers','ai','locations','run'", "'tms','guide','ai','locations','run'", 1, 'test-romhack-trainers.js'],
   ['M195', "A player's note is never saved",
     "  try{localStorage.setItem(TRAINER_NOTES_KEY,JSON.stringify(a))}catch(e){}\n", "", 1, 'test-romhack-trainers.js'],
   /* Wild encounters (5.58). */
@@ -457,7 +457,7 @@ const MUTATIONS = [
   ['M200', "A trainer's AI flags are read from the wrong bits",
     "return bits&(1<<f.bit)}", "return bits&f.bit}", 1, 'test-ai-docs.js'],
   ['M201', "A link to the AI tab opens the Pokédex instead",
-    "'trainers','ai','team','calc'].includes(resolvedTab)", "'trainers','team','calc'].includes(resolvedTab)", 1, 'test-ai-docs.js'],
+    "'tms','guide','trainers','ai','locations','run'", "'tms','guide','trainers','locations','run'", 1, 'test-ai-docs.js'],
   /* Radical Red (5.60). */
   ['M202', "Hardcore shows Normal's trainers",
     "trainerData[tf]=(tf!==h.key?await get(tf):null)||await get(h.key);", "trainerData[tf]=await get(h.key);", 1, 'test-radical-red.js'],
@@ -478,6 +478,17 @@ const MUTATIONS = [
     "'-single-strike','-amped','-male'];", "'-single-strike','-amped'];", 1, 'test-form-names.js'],
   ['M209', "Basculegion's default tab reads \"Standard\" next to \"Female\"",
     "if(v.is_default)label=/-male$/.test(v.pokemon.name)?'Male':'Standard';", "if(v.is_default)label='Standard';", 1, 'test-form-names.js'],
+  /* The Run tracker and the Guide (5.64). */
+  ['M210', "The duplicate check stops walking up the evolution line, so a Staraptor is not Starly's family",
+    "while(d._parent[x]&&n++<5)x=d._parent[x];", "while(false)x=d._parent[x];", 1, 'test-platinum-kaizo.js'],
+  ['M211', "A dead Pokémon stops counting for the duplicate clause",
+    "const RUN_OWNED={caught:1,gift:1,traded:1,dead:1};", "const RUN_OWNED={caught:1,gift:1,traded:1};", 1, 'test-platinum-kaizo.js'],
+  ['M212', "An area is flagged as a duplicate of itself",
+    "return k!==area&&RUN_OWNED[e.s]&&e.id", "return RUN_OWNED[e.s]&&e.id", 1, 'test-platinum-kaizo.js'],
+  ['M213', "A typed species is looked up in the whole dex only, not the area's list first",
+    "const hit=a&&runAreaRows(a).find(", "const hit=null&&runAreaRows(a).find(", 1, 'test-platinum-kaizo.js'],
+  ['M214', "The Guide tab is offered outside a ROM hack",
+    "  guide:{hackOnly:true},\n", "  guide:{},\n", 1, 'test-platinum-kaizo.js'],
   ['M170', "FireRed/LeafGreen is pointed at the wrong sprite set",
     "'firered-leafgreen':'generation-iii/firered-leafgreen',", "'firered-leafgreen':'generation-iii/emerald',", 1, 'test-generation-tables.js'],
 

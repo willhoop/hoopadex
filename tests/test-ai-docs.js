@@ -59,7 +59,7 @@ check(at({ g: 3 }) && at({ g: 4 }), 'the AI tab is offered in Generations III an
 check(!at({ g: 5 }) && !at({ g: 9 }) && !at({ g: 2 }), 'and not in generations with no decompiled AI');
 check(!at({ g: 9, c: true }), 'nor in Champions');
 check(at({ g: 8, h: true }), 'and in every ROM hack, Run & Bun included');
-check(/'abilities','items','trainers','ai','team','calc'\]\.includes\(resolvedTab\)/.test(src), 'a link to the AI tab opens it');
+check(/const ALL_TABS=\[[^\]]*'ai'[^\]]*\];/.test(src) && /if\(ALL_TABS\.includes\(resolvedTab\)\)/.test(src), 'a link to the AI tab opens it');
 const fnSrc = n => { const i = src.indexOf('function ' + n + '('); return src.slice(i, src.indexOf('\n}\n', i) + 3); };
 const names = (0, eval)('(' + fnSrc('aiFlagNames') + ')');
 check(names(7, d.engines.gen4) === 'Avoid bad moves, Go for the knockout, Expert', 'flags 7 read as Basic, Evaluate attack and Expert', names(7, d.engines.gen4));

@@ -48,6 +48,9 @@ const SRC = {
   rrData: RH.URL.rrData,
 };
 PK_SPLITS.forEach(([n, g]) => { SRC['pk' + n] = PK + g; });
+/* The same tabs as HTML: the only form that keeps the AI-flag icons (see parsePKFlags). */
+const PK_HTML = 'https://docs.google.com/spreadsheets/d/1y95UYKY9HNgZjUlbeZbQ3BWf5IqcFqAkmstC-OSa6vc/htmlview/sheet?headers=false&gid=';
+PK_SPLITS.forEach(([n, g]) => { SRC['pkHtml' + n] = PK_HTML + g; });
 
 async function get(url) {
   const dir = process.env.RH_CACHE;
@@ -208,23 +211,114 @@ function parsePKSplit(csv, splitName, key) {
   const nextNonBlank = i => { for (let j = i + 1; j < rows.length; j++) if (text(rows[j]).some(Boolean)) return j; return -1; };
   for (let i = 0; i < rows.length; i++) {
     const r = text(rows[i]);
-    if (!r[4] || r.slice(5).some(Boolean) || /SPLIT|AI Flag Key/i.test(r[4])) continue;
+    /* The tab's title row ("PLATINUM KAIZO - ROARK SPLIT") is skipped. Until 5.64 any row with the word
+       "split" was, which dropped four trainers whose names say "(Cut Split)". */
+    if (!r[4] || r.slice(5).some(Boolean) || /^PLATINUM KAIZO\s*-|AI Flag Key/i.test(r[4])) continue;
     const j = nextNonBlank(i);
     const nr = j >= 0 ? text(rows[j]) : [];
-    if (!/^Lv \d+ /.test(nr[4] || '')) { area = { name: r[4], trainers: [] }; areas.push(area); continue; }
+    /* "Lv" or "LV": the sheet writes both. Until 5.64 only "Lv" was read, so a trainer whose team starts
+       "LV 65 Hippowdon" (Commander Mars at Lake Valor, and three more) became an area name and the next
+       trainer was filed under it. */
+    /* A team can also start further right: Cyrus's last team is one Giratina, centred in column I. */
+    if (!nr.some((c, k) => k >= 4 && /^Lv \d+ /i.test(c))) { area = { name: r[4], trainers: [] }; areas.push(area); continue; }
     const team = [];
     const nat = text(rows[j + 1]), itm = text(rows[j + 2]);
+    let last = j + 2;
     for (let c = 4; c < nr.length; c += 2) {
-      const m = (nr[c] || '').match(/^Lv (\d+) (.+?)\s*[♂♀]?$/);
+      const m = (nr[c] || '').match(/^Lv (\d+) (.+?)\s*[♂♀]?$/i);
       if (!m) continue;
       const moves = [];
-      for (let k = j + 3; k < rows.length; k++) { const mv = text(rows[k])[c]; if (!mv) break; moves.push(mv); }
+      /* Four moves at most: Aroma Lady Taylor's list runs straight into the next area's name
+         ("Floaroma Meadow"), with no blank row between. */
+      for (let k = j + 3; k < rows.length && k < j + 7; k++) { const mv = text(rows[k])[c]; if (!mv) break; moves.push(mv); last = Math.max(last, k); }
       team.push(mon(m[2], m[1], itm[c] === '(None)' ? '' : itm[c], nat[c + 1], nat[c], moves));
     }
     if (!areas.length) areas.push(area);
     area.trainers.push([key(splitName + '/' + area.name, r[4]), r[4], '', 0, team]);
+    /* Carry on after the team. Until 5.64 the loop went back over the move rows, and a move row with
+       text in column E only (the first Pokémon's last move, when the others have fewer) became an area
+       named after the move: 23 trainers were filed under "Thunder Wave", "Earthquake" and the like. */
+    i = last;
   }
   return areas.filter(a => a.trainers.length);
+}
+
+/* Each trainer's AI flags. The split tabs mark them with icons in the cells under "AI Flags:", and the
+   "AI Flag Key" row at the top of every tab says which icon is which flag. The CSV export drops images,
+   so they are read from the tab's HTML view, where an icon is an <img> whose address is the same
+   wherever that picture is used. The key's labels are the game's flags in bit order (pokeplatinum's
+   AI_FLAG_*): the sheet's "Status" is bit 3 (set up on the first turn) and "Damage Prio" is bit 5.
+   "Left Side AI" is not a flag bit; it is kept as the sheet's own words, as a tag on the trainer. */
+const PK_FLAG_BITS = { 'basic': 0, 'eval att': 1, 'expert': 2, 'status': 3, 'risky': 4, 'damage prio': 5,
+  'baton pass': 6, 'tag ai': 7, 'check hp': 8, 'weather': 9, 'harrassment': 10, 'harassment': 10 };
+function htmlGrid(html) {
+  const bg = {};
+  (html.match(/\.s\d+\{[^}]*\}/g) || []).forEach(r => { const m = r.match(/\.(s\d+)\{([^}]*)\}/); bg[m[1]] = ((m[2].match(/background-color:([^;]+)/) || [])[1] || '').toLowerCase(); });
+  return [...html.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].map(r => {
+    const cells = []; let col = 0;
+    [...r[1].matchAll(/<td([^>]*)>([\s\S]*?)<\/td>/g)].forEach(m => {
+      const span = +((m[1].match(/colspan="(\d+)"/) || [])[1] || 1);
+      const img = (m[2].match(/<img src="([^"]+)"/) || [])[1];
+      const t = m[2].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
+      cells.push({ col, t, img: img ? img.replace(/&amp;/g, '&').replace(/=(s\d+-)?w\d+-h\d+$/, '') : '', bg: bg[(m[1].match(/class="(s\d+)"/) || [])[1]] || '' });
+      col += span;
+    });
+    return cells;
+  });
+}
+function parsePKFlags(html, tab) {
+  const rows = htmlGrid(html);
+  const ki = rows.findIndex(r => r.some(c => /AI Flag Key/i.test(c.t)));
+  if (ki < 0) throw new Error(tab + ': no "AI Flag Key" row - the sheet has changed');
+  const icons = rows[ki].filter(c => c.img), labels = rows[ki + 1].filter(c => c.t).map(c => c.t.toLowerCase().replace(/\s+/g, ' ').replace('baton p ass', 'baton pass'));
+  if (icons.length !== labels.length) throw new Error(tab + ': ' + icons.length + ' key icons but ' + labels.length + ' labels');
+  const bitOf = {}; let leftIcon = '';
+  icons.forEach((c, i) => {
+    if (/left side/.test(labels[i])) { leftIcon = c.img; return; }
+    if (PK_FLAG_BITS[labels[i]] === undefined) throw new Error(tab + ': unknown AI flag "' + labels[i] + '"');
+    bitOf[c.img] = PK_FLAG_BITS[labels[i]];
+  });
+  /* A trainer's name row is the one with the trainer's picture in column B and the name in column E.
+     (Colour does not tell it apart: each Leader's row has a colour of its own.) */
+  const isHeader = r => r.some(c => c.col === 4 && c.t) && r.some(c => c.col === 1 && c.img) && !r.some(c => c.col > 4 && c.t);
+  const out = [];
+  for (let i = ki + 2; i < rows.length; i++) {
+    if (!rows[i].some(c => /^AI Flags:$/.test(c.t))) continue;
+    let n = i - 1; while (n > ki && !isHeader(rows[n])) n--;
+    const name = rows[n].find(c => c.col === 4).t;
+    let bits = 0, left = false;
+    /* The icons sit in columns B-D under "AI Flags:", three to a row, usually starting on the next row
+       (School Kid Harrison's starts a row lower). They are read up to a blank row or the next trainer,
+       whichever comes first; the next trainer is a name with its team's "Lv" row just below. (A blank
+       row is not always blank: Sis and Bro Dora & Diego's ends in a cell holding "_".) */
+    const lvSoon = j => [1, 2].some(d => rows[j + d] && rows[j + d].some(c => /^Lv \d+ /i.test(c.t)));
+    for (let j = i + 1; j < rows.length && rows[j].some(c => c.t || c.img) && !(rows[j].some(c => c.col === 4 && c.t) && lvSoon(j)); j++) {
+      rows[j].filter(c => c.col < 4 && c.img).forEach(c => {
+        if (c.img === leftIcon) { left = true; return; }
+        if (bitOf[c.img] === undefined) throw new Error(tab + ': ' + name + ' has an AI-flag icon that is not in the key');
+        bits |= 1 << bitOf[c.img];
+      });
+    }
+    out.push({ name, bits, left });
+  }
+  return out;
+}
+/* The HTML and the CSV are the same tab, so their trainers come in the same order. The HTML view leaves
+   out rows the authors have hidden (Gardenia's tab hides Maid Yoki); the CSV keeps them. So a CSV
+   trainer may be missing from the HTML - it then gets no flags - but every HTML trainer must be
+   matched, in order. One that is not means a name was read wrong, and that is an error, not a guess. */
+function addPKFlags(areas, flags, tab, hidden) {
+  let f = 0, n = 0;
+  const same = (a, b) => a.replace(/[\s ]+/g, ' ').trim() === b.replace(/[\s ]+/g, ' ').trim();
+  areas.forEach(a => a.trainers.forEach(t => {
+    if (f < flags.length && same(t[1], flags[f].name)) {
+      t[5] = flags[f].bits;
+      if (flags[f].left) t[2] = 'Left Side AI';
+      f++; n++;
+    } else hidden.push(tab + ': ' + t[1]);
+  }));
+  if (f !== flags.length) throw new Error(tab + ': "' + flags[f].name + '" in the HTML did not line up with the CSV');
+  return n;
 }
 
 // ==== the calculator-only hacks ===============================================================================
@@ -319,9 +413,16 @@ async function main() {
   // Platinum Kaizo
   {
     const key = keyer();
-    const sections = PK_SPLITS.map(([n], i) => ({ n: i + 1, title: n, areas: parsePKSplit(T['pk' + n], n + ' split', key) }));
-    out.push(['platinum-kaizo', { fetched, order: 'game', sources: PK_SPLITS.map(([n]) => SRC['pk' + n]),
-      note: 'From the Platinum Kaizo Mastersheet\'s split tabs: every trainer, with full sets.', sections }]);
+    let ai = 0;
+    const hidden = [];
+    const sections = PK_SPLITS.map(([n], i) => {
+      const areas = parsePKSplit(T['pk' + n], n + ' split', key);
+      ai += addPKFlags(areas, parsePKFlags(T['pkHtml' + n], n + ' split'), n + ' split', hidden);
+      return { n: i + 1, title: n, areas };
+    });
+    out.push(['platinum-kaizo', { fetched, order: 'game', sources: PK_SPLITS.map(([n]) => SRC['pk' + n]).concat(PK_SPLITS.map(([n]) => SRC['pkHtml' + n])),
+      note: 'From the Platinum Kaizo Mastersheet\'s split tabs: every trainer, with full sets. AI flags for ' + ai + ' trainers, from the icons the sheet puts under each trainer' +
+        (hidden.length ? '; none for ' + hidden.length + ' on rows the sheet hides (' + hidden.join(', ') + ')' : '') + '.', sections }]);
   }
   // Run & Bun
   {
@@ -409,5 +510,5 @@ async function main() {
   });
   if (check) { console.log(stale ? 'STALE: ' + stale + ' trainer files differ' : 'check: every trainer file matches its sources'); process.exit(stale ? 1 : 0); }
 }
-module.exports = { parseDrayanoTrainers, parsePKSplit, sectionsByLeader, chainOrder };
+module.exports = { parseDrayanoTrainers, parsePKSplit, parsePKFlags, addPKFlags, sectionsByLeader, chainOrder };
 if (require.main === module) main().catch(e => { console.error(e.stack || e); process.exit(1); });

@@ -2,7 +2,7 @@
 
 ### A Pokédex that knows what year it is
 
-**Version 2.8 · Last updated 2026-10-22 · HoopaDex v5.63**
+**Version 2.9 · Last updated 2026-10-29 · HoopaDex v5.64**
 **Will Hooper**
 
 > Plain words only. The math and the citations live in the
@@ -435,9 +435,26 @@ The data comes from one community source, and the pages say so.
 
 ---
 
+## Slide 11o — Ready to play Platinum Kaizo
+
+Platinum Kaizo now has a Guide tab: how to set the game up, the level caps, the official Nuzlocke
+rules, and links to the community's documents. The caps and rules are read from the authors' own
+documents every time the site is built, so they stay current.
+
+A Run tab tracks a Nuzlocke: what you caught on each route, your team, your box, and who died where. It
+warns you when a catch is in the same family as one you already have.
+
+Every trainer now shows how its AI is set up, and the AI tab has a short "playing against it" list:
+when it will switch, what it sends in, and when it heals.
+
+Building this found 10 trainers the site had been missing and 35 it had filed in the wrong place. They
+are fixed.
+
+---
+
 ## Slide 12 — What we don't claim
 
-Fifty-one test suites and 1,964 assertions now cover the data, the damage formula, the derived
+Fifty-two test suites and 2,026 assertions now cover the data, the damage formula, the derived
 mechanics, and the files we did not write ourselves.
 
 **That number used to be the wrong thing to be proud of.** This slide previously said every test

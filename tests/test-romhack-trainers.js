@@ -90,7 +90,9 @@ const tabFn = (0, eval)('var isChampionsMode=false,selectedGenNum=4,isRomHack=fa
 check(!tabFn.isTabRelevant('trainers'), 'the Trainers tab is not offered outside a ROM hack');
 tabFn.set(true);
 check(tabFn.isTabRelevant('trainers'), 'and is offered inside one');
-check(/\['pokedex','types','tms','locations','evs','natures','other','abilities','items','trainers',('ai',)?'team','calc'\]\.includes\(resolvedTab\)/.test(src),
+/* Since 5.64 every tab is listed once, in ALL_TABS, and a deep link opens any tab on that list. */
+const allTabs = JSON.parse(src.match(/const ALL_TABS=(\[[^\]]*\]);/)[1].replace(/'/g, '"'));
+check(allTabs.includes('trainers') && /if\(ALL_TABS\.includes\(resolvedTab\)\)/.test(src),
   'a link to the Trainers tab opens it');
 const fnSrc = n => { const i = src.indexOf('function ' + n + '('); return src.slice(i, src.indexOf('\n}\n', i) + 3); };
 const showdown = (0, eval)('(' + fnSrc('trainerShowdown') + ')');

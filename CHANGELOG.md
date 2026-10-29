@@ -12,6 +12,83 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.64] - 2026-10-29
+
+### Added
+- **A Guide tab for each ROM hack, starting with Platinum Kaizo.** Asked for: *"i want to start playing
+  platinum kaizo so please update hoopadex to include all the docs and a guide on the game, especially a
+  switch ai guide"*. It covers setting the game up (the ROM, the patch, the emulator, RunAsDate for the
+  time of day), the level caps, the official Hall of Fame rules, HMs and starter perks, what the hack
+  changes for you, the Pokémon you cannot get, and the PChal Discord's links. The caps, rules and lists
+  are read from the authors' FAQ and the Hall of Fame sheet at build time
+  (`build/generate-romhack-guides.js`), not typed; the build stops if the two sources' caps disagree.
+- **A Run tab: a Nuzlocke tracker.** Asked for: *"a nuzlocke tracker as well"*, like nuzlocke-redux.
+  Each encounter area in order, with the species, a nickname and a status (caught, received, traded,
+  missed, dead, and who killed it); a team of six, a box and a graveyard; the level caps, ticked off as
+  you win; and a duplicate warning by evolution family, so Mothim and Wormadam count as one, as the Hall
+  of Fame rules say. An area with one name over several floors is one encounter. Saved in the browser,
+  with export and import.
+- **Every Platinum Kaizo trainer's AI flags** (481 of 482). The Mastersheet marks them with icons, which
+  its CSV export drops; they are read from the sheet's HTML view and matched to the sheet's own key. One
+  trainer (Maid Yoki) is on rows the sheet hides and has none. A trainer the sheet marks "Left Side AI"
+  is tagged so.
+- **Platinum Kaizo's gifts, trades, eggs, static encounters, honey trees, Game Corner and Contest prizes,
+  the Dept. Store and the Great Marsh's daily Pokémon** on the Locations tab: nine areas. The two tabs
+  they come from are laid out by hand, so they were read off the sheet and typed; the build stops if a
+  name typed is no longer on its tab. The Great Marsh tab is a picture; its rates (7/32 and so on) were
+  read from it.
+- **Platinum Kaizo's Items tab**: the 16 changed items (the Item Changes tab exports nothing, so these
+  were read off the sheet), where to find 575 items, and the 41 shard-tutor moves with their prices,
+  from the community Item Sheet.
+- **The AI tab**: "Playing against it" (the switch rules turned into what to do), and when the AI uses an
+  item, both read from pokeplatinum.
+
+### Fixed
+- **Ten Platinum Kaizo trainers were missing and 35 were filed under the wrong area.** The split-tab
+  reader skipped any row with the word "split" (three trainers have it in their names, such as
+  "GalacticF Cordelia (Cut Split)"); read "Lv" but not "LV" (six teams, among them Commander Mars at
+  Lake Valor and Barry's three tag-partner teams, became area names); missed a team that starts in a
+  later column (Cyrus's Giratina); and went back over move rows, so a move alone in column E became an
+  area and the trainers after it were filed under "Thunder Wave", "Earthquake" and the like. A move list
+  could also run into the next area's name: Aroma Lady Taylor's first Pokémon had "Floaroma Meadow"
+  as a fifth move. A note written against one of the 35 before this version may no longer show,
+  because a trainer's key includes its area.
+- **Three Generation IV switch rules said less than the code does.** When none of its attacks can hurt
+  you, the AI also tries a second pass with neutral moves (1 in 2 each); a sleeping Natural Cure
+  Pokémon ALWAYS switches to an immune or resisting partner with a super-effective move, not half the
+  time; and Perish Song and Natural Cure's random switches choose the replacement as after a knockout.
+  Nine more statements are now checked against the code at every build, twenty in all.
+
+### Changed
+- The tab list is written once (`ALL_TABS`); it was copied four times.
+- Platinum Kaizo's AI page carries the authors' pinned Discord note (Left Side AI, ¼-recoil moves) and
+  says the Dry Skin bug is fixed in the hack.
+
+### Notes
+- The Hall of Fame rules forbid using "generative AI or third-party websites/applications, to automate
+  the process of planning a battle". The guide shows that rule above the rest.
+
+### Record
+- **Measured.** Platinum Kaizo trainers 472 → 482 and trainers with AI flags 0 → 481
+  (`app/hacks/platinum-kaizo.trainers.json`); its encounter areas 130 → 139 and rows 2,567 → 2,715
+  (`platinum-kaizo.encounters.json`); Generation IV AI statements checked against the code 11 → 20
+  (`app/ai-docs.json`).
+- **Basis.** unchanged.
+- **Supersedes.** Platinum Kaizo ~~472~~ trainers; ~~130~~ areas and ~~2,567~~ rows; ~~eleven~~
+  checked AI statements.
+- **Owed to the next major.** Nothing: the white paper (§5.13–5.15, new §5.17), the deck (slide 11o)
+  and the technical docs (4.21) are updated in this pass.
+
+### Tests
+- New `tests/test-platinum-kaizo.js` (62): the split-tab layouts, the flag icons, the shipped
+  trainers, gifts, items, the guide, the tracker's duplicate rule, and the AI page. Its fixtures caught
+  three more reader bugs before release (a trainer whose icons start a row lower; a row holding "_";
+  a move list that runs into an area name).
+- Mutations M210–M214; M194 and M201 re-anchored on `ALL_TABS`. **203 killed, 0 survived, 0 skipped.**
+  52 suites, 2,026 assertions, all passing.
+
+---
+
 ## [5.63] - 2026-10-22
 
 ### Fixed

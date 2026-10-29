@@ -28,6 +28,8 @@ const SRC = {
   rpWild: 'https://pastebin.com/raw/BATgGpHa',
   sgWild: 'https://raw.githubusercontent.com/zhenga8533-archive/sgss-wiki/main/data/documentation/Pokemon%20Locations.txt',
   pkEnc: 'https://docs.google.com/spreadsheets/d/1y95UYKY9HNgZjUlbeZbQ3BWf5IqcFqAkmstC-OSa6vc/export?format=csv&gid=2081860737',
+  pkNonWild: 'https://docs.google.com/spreadsheets/d/1y95UYKY9HNgZjUlbeZbQ3BWf5IqcFqAkmstC-OSa6vc/export?format=csv&gid=458094033',
+  pkUniversal: 'https://docs.google.com/spreadsheets/d/1y95UYKY9HNgZjUlbeZbQ3BWf5IqcFqAkmstC-OSa6vc/export?format=csv&gid=1686722358',
   rbWild: 'https://raw.githubusercontent.com/dekzeh/runandbundex/master/locations/wild_encounters.json',
   ekEnc: 'https://raw.githubusercontent.com/Isotarge/emerald-kaizo-db/main/src/encounters.json',
   rrData: RH.URL.rrData,
@@ -184,6 +186,101 @@ function parsePK(csv) {
   return areas.filter(a => a.methods.length);
 }
 
+/* Platinum Kaizo's Pokémon that are not wild: the Mastersheet's "Non-Wild Encounters" and "Universal
+   Encounters" tabs, and the "Great Marsh Encounters" tab, which is a picture. The first two are laid out
+   by hand - boxes of merged cells with several Pokémon in one cell - so a parser would be guessing; they
+   were read off the sheet on 2026-10-29 and are typed here, in the sheet's words. pkNonWildCheck() makes
+   the build fail if a name typed here is no longer on the tab it came from. The Great Marsh picture
+   cannot be checked that way; it says "7/32", "3/32", "2/32" and "1/32" under groups of Pokémon.
+   Each method is [where, rows, note]; a row is [species, level or '', rate % or null]. A cell on the
+   Trades box that is dark text on a dark cell ("# (Justice) For Hippo") is a joke and is left out. */
+const PK_NON_WILD = [
+  { name: 'Trades', from: 'nonWild', methods: [
+    ['Oreburgh City', [['Slugma', '']], 'Chestnut: Quiet, Vital Spirit. For any Pokémon.'],
+    ['Eterna City', [['Numel', '']], 'Nomu: Brave, Simple. For any Pokémon other than a Fire or Poison type.'],
+    ['Snowpoint City', [['Snover', '']], 'HAUNTER: Hasty, Adaptability. For any Pokémon.'],
+    ['Wayward Cave', [['Trapinch', '']], 'Mr.Crunchy: Jolly, Arena Trap. For any Pokémon.'],
+  ] },
+  { name: 'Gifts', from: 'nonWild', methods: [
+    ['Pokétch Co. (Jubilife City)', [['Skitty', '5'], ['Glameow', '5'], ['Meowth', '5']], 'Stray Cat: one of these.'],
+    ['Hearthome City', [['Eevee', '20']], ''],
+    ['Canalave Library', [['Lunatone', '40'], ['Solrock', '40']], 'Celestial Body: one of these.'],
+    ['Oreburgh Museum', [], 'Fossil, Lv 20: Sinnoh, Kanto or Hoenn fossils.'],
+    ['Lake Valor', [['Magikarp', '25']], 'Cool Magikarp: "Cha Cha Sliding Magikarp".'],
+  ] },
+  { name: 'Eggs', from: 'nonWild', methods: [
+    ['Cynthia (Eterna City)', [['Happiny', '']], 'Defeat Galactic Commander Jupiter.'],
+    ['Farm (Solaceon Town)', ['Growlithe', 'Girafarig', 'Mareep', 'Miltank', 'Spoink', 'Ponyta', 'Mankey', 'Torchic'].map(s => [s, '']), 'No requirement.'],
+    ['Sinister (Galactic HQ)', ['Cacnea', 'Gulpin', 'Zigzagoon', 'Drowzee', 'Poochyena'].map(s => [s, '']), 'No requirement.'],
+    ['Restaurant (Valor Lakefront)', ['Krabby', 'Corphish', 'Cherubi', 'Exeggcute', 'Shuckle', 'Feebas'].map(s => [s, '']), 'Enter during the daytime.'],
+    ['Fancy (Backlot Mansion)', ['Smoochum', 'Tyrogue', 'Bagon', 'Larvitar', 'Cleffa'].map(s => [s, '']), 'Defeat Cyrus #1 BEFORE the Backlot Mansion.'],
+    ['Riley (Iron Island)', [['Riolu', '']], 'Defeat Neptune & Triton.'],
+  ] },
+  { name: 'Veilstone Game Corner', from: 'nonWild', methods: [
+    ['After Maylene', ['Persian', 'Porygon', 'Murkrow', 'Mr. Mime'].map(s => [s, '']), ''],
+    ['After Wake', ['Pikachu', 'Voltorb', 'Pinsir', 'Phione'].map(s => [s, '']), ''],
+    ['After Byron', ['Miltank', 'Castform', 'Clefairy', 'Nidoking', 'Nidoqueen'].map(s => [s, '']), ''],
+    ['After Candice', ['Magmar', 'Jynx', 'Electabuzz', 'Scyther', 'Sableye', 'Ditto'].map(s => [s, '']), ''],
+    ['After Volkner', ['Magneton', 'Gallade', 'Misdreavus', 'Venusaur', 'Charizard', 'Blastoise', 'Hitmontop'].map(s => [s, '']), ''],
+    ['After the Elite Four', ['Tauros', 'Dragonite'].map(s => [s, '']), ''],
+  ] },
+  { name: 'Contest Hall rewards', from: 'nonWild', methods: [
+    ['Cool', [['Charizard', '']], 'Cross Chop, Roost, Twister, Sky Attack.'],
+    ['Beauty', [['Milotic', '']], 'Aura Sphere, Moonlight.'],
+    ['Cute', [['Kangaskhan', '']], 'Fake Out, Milk Drink.'],
+    ['Smart', [['Alakazam', '']], 'Earth Power.'],
+    ['Tough', [['Steelix', '']], 'Glare, Head Smash.'],
+    ['Heart Scale', [], 'Win a Master Rank contest: 1 Heart Scale per entry. Defeat Volkner.'],
+  ] },
+  { name: 'Static encounters', from: 'universal', methods: [
+    ['Valley Windworks', [['Drifloon', '15']], 'Defeat Byron.'],
+    ['Route 209', [['Spiritomb', '25']], 'Odd Keystone; talk to the Underground Man.'],
+    ['Old Chateau', [['Rotom', '30']], 'Strength; must be night.'],
+    ['Verity Cavern', [['Mesprit', '50']], 'Defeat Cyrus #4.'],
+    ['Valor Cavern', [['Azelf', '50']], 'Defeat Cyrus #4.'],
+    ['Acuity Cavern', [['Uxie', '50']], 'Defeat Cyrus #4.'],
+    ['Rock Peak Ruins', [['Regirock', '30']], 'Defeat Cyrus #4.'],
+    ['Iceberg Ruins', [['Regice', '30']], 'Defeat Cyrus #4.'],
+    ['Iron Ruins', [['Registeel', '30']], 'Defeat Cyrus #4.'],
+  ] },
+  { name: 'Honey trees', from: 'universal', methods: [
+    ['Every tree', ['Caterpie', 'Kricketot', 'Burmy', 'Wurmple', 'Weedle', 'Combee'].map(s => [s, '']), 'Global.'],
+    ['Every tree, early game', ['Teddiursa', 'Pachirisu', 'Sentret', 'Zigzagoon', 'Cherubi', 'Pidgey', 'Spearow', 'Starly', 'Spinda'].map(s => [s, '']), ''],
+    ['Every tree, mid game', ['Ursaring', 'Beedrill', 'Beautifly', 'Dustox', 'Butterfree', 'Mothim', 'Cherrim', 'Pidgeotto', 'Lickitung', 'Mime Jr.'].map(s => [s, '']), ''],
+    ['Every tree, late game', ['Pineco', 'Slakoth', 'Taillow', 'Scyther', 'Pinsir', 'Zangoose', 'Vespiquen', 'Aipom'].map(s => [s, '']), ''],
+    ['Floaroma Meadow', [['Wormadam', ''], ['Mothim', '']], 'Special tree. Wormadam is the Plant Cloak (Wormadam-P).'],
+    ['Valley Windworks', ['Pikachu', 'Elekid', 'Pichu', 'Pachirisu'].map(s => [s, '']), 'Special tree.'],
+    ['Route 213', [['Stunky', '']], 'Special tree.'],
+    ['Pokémon Mansion', ['Chatot', 'Lickilicky', 'Murkrow'].map(s => [s, '']), 'Special tree.'],
+    ['Fuego Ironworks', [['Magby', ''], ['Scizor', '']], 'Special tree.'],
+    ['Acuity Lakefront', [['Snorunt', ''], ['Froslass', '']], 'Special tree.'],
+    ['Sunyshore City', [['Munchlax', '']], 'Special tree.'],
+    ['Route 221', [['Heracross', '']], 'Special tree.'],
+  ] },
+  { name: 'Veilstone Dept. Store', from: 'universal', methods: [
+    ['On buying BLK COFFEE', [['Ekans', '25', 37], ['Koffing', '25', 25], ['Grimer', '25', 28], ['Porygon', '25', 6], ['Muk', '70', 0.5], ['Voltorb', '60', 0.5]], 'The other 3% is a Dusk Stone.'],
+  ] },
+  { name: 'Great Marsh: daily Pokémon', from: 'picture', methods: [
+    ['Daily (binoculars)', [['Carnivine', '', 21.9], ['Shiftry', '', 9.4], ['Victreebel', '', 9.4], ['Tropius', '', 9.4],
+      ['Arbok', '', 6.3], ['Porygon', '', 6.3], ['Meganium', '', 6.3], ['Muk', '', 6.3], ['Quagsire', '', 6.3], ['Absol', '', 6.3],
+      ['Ursaring', '', 3.1], ['Croagunk', '', 3.1], ['Skorupi', '', 3.1], ['Shuckle', '', 3.1]],
+      'From the tab\'s picture: Carnivine 7/32; Shiftry, Victreebel, Tropius 3/32 each; Arbok, Porygon, Meganium, Muk, Quagsire, Absol 2/32 each; Ursaring, Croagunk, Skorupi, Shuckle 1/32 each.'],
+  ] },
+];
+function pkNonWildCheck(T) {
+  const text = { nonWild: flat(T.pkNonWild), universal: flat(T.pkUniversal) };
+  const missing = [];
+  PK_NON_WILD.forEach(a => { if (text[a.from]) a.methods.forEach(([, rows]) => rows.forEach(([s]) => { if (!text[a.from].includes(flat(s))) missing.push(a.name + ': ' + s); })); });
+  if (missing.length) throw new Error('Platinum Kaizo non-wild Pokémon no longer on their tab: ' + missing.join(', '));
+}
+function pkNonWild() {
+  return PK_NON_WILD.map(a => ({ name: a.name, levels: '', methods: a.methods.map(([m, rows, note]) => {
+    const out = { m, rows: rows.map(([s, lv, rate]) => [sid(s), s, rate === undefined ? null : rate, lv]) };
+    if (note) out.note = note;
+    return out;
+  }) }));
+}
+
 // ==== Run & Bun: the game's wild_encounters.json =========================================================================
 const RB_METHOD = { land_mons: 'Grass', water_mons: 'Surf', rock_smash_mons: 'Rock Smash', fishing_mons: 'Fishing' };
 function parseRB(json) {
@@ -296,7 +393,9 @@ async function main() {
   const out = [
     ['renegade-platinum', { fetched, sources: [SRC.rpWild], note: 'From Drayano\'s Wild Pokémon document, in its order. Fishing levels are the ones he states for the whole game.', areas: parseRP(T.rpWild) }],
     ['sacred-gold', { fetched, sources: [SRC.sgWild], note: 'From Drayano\'s Pokemon Locations document, which lists areas "in order of accessibility". The Meridian and Pastoral Sounds have no rates in it.', areas: parseSG(T.sgWild) }],
-    ['platinum-kaizo', { fetched, sources: [SRC.pkEnc], note: 'From the Platinum Kaizo Mastersheet\'s Encounters tab. Gifts, trades and static encounters are on the sheet\'s Non-Wild Encounters tab, not here yet.', areas: parsePK(T.pkEnc) }],
+    ['platinum-kaizo', (pkNonWildCheck(T), { fetched, sources: [SRC.pkEnc, SRC.pkNonWild, SRC.pkUniversal],
+      note: 'Wild Pokémon from the Platinum Kaizo Mastersheet\'s Encounters tab. Trades, gifts, eggs, Game Corner and Contest prizes, static encounters, honey trees, the Dept. Store and the Great Marsh\'s daily Pokémon (the last eight areas) were read off its Non-Wild, Universal and Great Marsh tabs, which are laid out by hand.',
+      areas: parsePK(T.pkEnc).concat(pkNonWild()) })],
     ['run-and-bun', { fetched, sources: [SRC.rbWild], note: 'From the game\'s own encounter table (dekzeh\'s data), in the game\'s map order, which is not always the order you reach areas in.', areas: parseRB(T.rbWild) }],
     ['emerald-kaizo', { fetched, sources: [SRC.ekEnc], note: 'From emerald-kaizo-db, read from the game by its author.', areas: parseEK(T.ekEnc) }],
     ['radical-red', { fetched, sources: [SRC.rrData, 'https://raw.githubusercontent.com/pret/pokefirered/master/src/data/wild_encounters.json'],
@@ -311,5 +410,5 @@ async function main() {
   });
   if (check) { console.log(stale ? 'STALE: ' + stale + ' encounter files differ' : 'check: every encounter file matches its sources'); process.exit(stale ? 1 : 0); }
 }
-module.exports = { parseRP, parseSG, parsePK, parseRB, parseEK, listRows, mergeRows };
+module.exports = { parseRP, parseSG, parsePK, parseRB, parseEK, listRows, mergeRows, PK_NON_WILD, pkNonWild, pkNonWildCheck };
 if (require.main === module) main().catch(e => { console.error(e.stack || e); process.exit(1); });

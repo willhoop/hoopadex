@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.5 · Last updated 2026-10-22 · HoopaDex v5.63**
+**Version 2.6 · Last updated 2026-10-29 · HoopaDex v5.64**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -1489,6 +1489,44 @@ and `radical-red.encounters.json`.
 - A trainer level of 101-104 is `cap + scaledLevels[level]`, with the cap for the mode.
 - Trainer sections are the source's `caps`, in order.
 - The app loads a variant's own trainer file first (`romHackFile()`), then the hack's.
+
+## 4.21 Guide and Run tabs, Platinum Kaizo extras (5.64)
+
+**Tabs.** `ALL_TABS` lists every tab once. Use it when you add a tab. `TAB_RELEVANCE.guide` and
+`TAB_RELEVANCE.run` are `{hackOnly: true}`.
+
+**Guide.** `app/hacks/<hack>.guide.json` holds `sections`: `{id, title, paras?, list?, table?,
+groups?, links?, go?}`. `renderGuideTab` draws it. A hack without a file shows a note.
+`build/generate-romhack-guides.js` writes it:
+
+- `pkFromFaq` reads the level caps, the quality-of-life list, the Pokémon you cannot get, the starter
+  perks and the rules from the FAQ text export.
+- `pkHofRules` reads the Hall of Fame Rules tab. Column C is a heading; each column to the right is
+  one level of nesting.
+- The build stops if the FAQ and the rules tab give different level caps, or if a question it reads
+  is gone.
+- Edit `PK_LINKS` to change the links.
+
+**Run.** `localStorage['hoopadex.runs.v1']` holds `{hack: {enc: {area: {sp, id, nick, s, team,
+killer}}, caps: {index: true}}}`. `s` is `caught`, `gift`, `traded`, `missed` or `dead`.
+
+- The areas are the encounter file's, with a repeated name shown once.
+- `runFamily` walks up the hack's `evo` data. `runDupeOf` compares families with every caught,
+  received, traded or dead Pokémon in another area.
+- `runSpeciesId` finds a typed name in the area's rows first, then in `master`.
+- The level caps are the guide's `caps` table.
+
+**Platinum Kaizo flags.** `parsePKFlags` reads each split tab's HTML view
+(`htmlview/sheet?gid=`). It maps each icon address (without its size suffix) in the "AI Flag Key" row
+to the label below it, then reads the icons in columns B-D under each "AI Flags:" row. `addPKFlags`
+matches the trainers to the CSV by name, in order. A CSV trainer that is not in the HTML (a hidden row)
+gets no flags. An HTML trainer that matches no CSV trainer stops the build.
+
+**Non-wild Pokémon.** `PK_NON_WILD` in `generate-romhack-encounters.js` is typed from the sheet.
+`pkNonWildCheck` stops the build if a name is not on its tab. Do not add a row without its source tab.
+
+**Items.** `PK_ITEM_CHANGES` is typed from the Item Changes tab, which exports nothing.
+`pkItemLocations` and `pkShardTutors` read the community Item Sheet.
 
 ## 4.20 Species with a female form (5.62)
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.63 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.64 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -1198,9 +1198,11 @@ button,select,input{touch-action:manipulation}
 <button class="tab-btn" onclick="switchTab('tms')" id="tab-tms">Moves</button>
 <button class="tab-btn" onclick="switchTab('abilities')" id="tab-abilities">Abilities</button>
 <button class="tab-btn" onclick="switchTab('items')" id="tab-items">Items</button>
+<button class="tab-btn" onclick="switchTab('guide')" id="tab-guide">Guide</button>
 <button class="tab-btn" onclick="switchTab('trainers')" id="tab-trainers">Trainers</button>
 <button class="tab-btn" onclick="switchTab('ai')" id="tab-ai">AI</button>
 <button class="tab-btn" onclick="switchTab('locations')" id="tab-locations">Locations</button>
+<button class="tab-btn" onclick="switchTab('run')" id="tab-run">Run</button>
 <button class="tab-btn" onclick="switchTab('types')" id="tab-types">Type Chart</button>
 <button class="tab-btn" onclick="switchTab('natures')" id="tab-natures">Natures</button>
 <button class="tab-btn" onclick="switchTab('team')" id="tab-team">Team Builder</button>
@@ -1250,6 +1252,8 @@ button,select,input{touch-action:manipulation}
 </div>
 <div id="trainers-tab" style="display:none"><div id="trainers-container"></div></div>
 <div id="ai-tab" style="display:none"><div id="ai-container"></div></div>
+<div id="guide-tab" style="display:none"><div id="guide-container"></div></div>
+<div id="run-tab" style="display:none"><div id="run-container"></div></div>
 <div id="tms-tab" style="display:none">
 <div class="hack-panel" id="hack-tms-panel" style="display:none"></div>
 <p style="font-size:14px;color:#8a8a9a;margin-bottom:12px"><span id="moves-intro-text">Find Pok&#233;mon that can learn specific moves. Search any move &#x2013; TMs, HMs, level-up, egg, or tutor moves.</span></p>
@@ -2201,7 +2205,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.63';
+const APP_VERSION='5.64';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -2373,12 +2377,17 @@ function onGameChange(){
    confident answer to a question the games of that era cannot be asked. */
 /* hack:false - not yet loaded for ROM hacks, so the tab would show the base game's answer. Moves,
    Abilities and Items have each hack's own data from 5.56 (renderHackTab). */
+/* Every tab, once (5.64). The list was written out four times - switchTab, restoreHash and the ability
+   page each looped over their own copy - so adding a tab meant finding all four. */
+const ALL_TABS=['pokedex','types','abilities','items','tms','guide','trainers','ai','locations','run','evs','natures','other','team','calc'];
 const TAB_RELEVANCE={
   locations:{champions:false},
   evs:{champions:false,hack:false},
   natures:{minGen:3},
   abilities:{minGen:3},
   trainers:{hackOnly:true},
+  guide:{hackOnly:true},
+  run:{hackOnly:true},
   ai:{champions:false,aiEngine:true},
   team:{hack:false},
   other:{hack:false},
@@ -2948,7 +2957,7 @@ function renderHackLocationsBody(){
   const q=encUI.q.trim().toLowerCase(),notes=trainerNotes();
   const areas=d.areas.map(function(a){
     if(!q||a.name.toLowerCase().indexOf(q)>=0)return a;
-    const methods=a.methods.map(function(m){return {m:m.m,rows:m.rows.filter(function(r){return r[1].toLowerCase().indexOf(q)>=0})}}).filter(function(m){return m.rows.length});
+    const methods=a.methods.map(function(m){return {m:m.m,note:m.note,rows:m.rows.filter(function(r){return r[1].toLowerCase().indexOf(q)>=0})}}).filter(function(m){return m.rows.length});
     return methods.length?{name:a.name,levels:a.levels,methods:methods}:null;
   }).filter(Boolean);
   if(!areas.length){el.innerHTML='<div class="hack-note">No area or Pok\u00e9mon matches \u201c'+hackEsc(encUI.q)+'\u201d.</div>';return}
@@ -2956,7 +2965,9 @@ function renderHackLocationsBody(){
     const k='area|'+a.name,nt=notes[k]||{};
     return '<tr class="tr-area'+(nt.b?' beaten':'')+'"><td colspan="2"><label style="display:inline-flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" data-k="'+hackEsc(k)+'" '+(nt.b?'checked':'')+' onchange="onAreaDone(this)">'+hackEsc(a.name)+'</label>'+
       (a.levels?' <span class="hack-meta" style="text-transform:none;letter-spacing:0;font-weight:600">'+hackEsc(a.levels)+'</span>':'')+'</td></tr>'+
-      a.methods.map(function(m){return '<tr><td style="width:130px;white-space:nowrap;color:var(--text4);font-size:12px">'+hackEsc(m.m)+'</td><td><div class="tr-team">'+m.rows.map(encRowHtml).join('')+'</div></td></tr>'}).join('')+
+      a.methods.map(function(m){return '<tr><td style="width:130px;white-space:nowrap;color:var(--text4);font-size:12px">'+hackEsc(m.m)+'</td><td><div class="tr-team">'+m.rows.map(encRowHtml).join('')+'</div>'+
+        /* A gift, trade or prize carries the source's own words: who gives it, what it costs (5.64). */
+        (m.note?'<div class="hack-meta" style="text-transform:none;letter-spacing:0;margin-top:4px">'+hackEsc(m.note)+'</div>':'')+'</td></tr>'}).join('')+
       '<tr><td></td><td><textarea class="tr-note" style="min-height:28px" data-k="'+hackEsc(k)+'" oninput="onAreaNote(this)" placeholder="What you caught here">'+hackEsc(nt.n||'')+'</textarea></td></tr>';
   }).join('')+'</tbody></table></div>';
 }
@@ -3005,6 +3016,9 @@ async function renderAITab(){
     html+='<div class="ai-sec"><div class="section-label">What this hack changes</div>'+(hk.changes?'<div class="ai-box">'+hackEsc(hk.changes)+'</div>':'')+'<p>'+hackEsc(hk.changesNote)+'</p></div>';
   }
   if(!e){el.innerHTML=html;return}
+  /* The switch rules turned round into what to do (5.64): "a switch ai guide". Each line restates a
+     rule further down the page, which the build checks against the decompiled code. */
+  if(e.playbook)html+='<div class="ai-sec"><div class="section-label">Playing against it</div><ul class="ai-rules">'+e.playbook.map(function(x){return '<li>'+hackEsc(x)+'</li>'}).join('')+'</ul></div>';
   html+='<div class="ai-sec"><div class="section-label">How it picks a move</div><p>'+hackEsc(e.howItChooses)+'</p></div>';
   const counts=hk&&hk.flagCounts;
   html+='<div class="ai-sec"><div class="section-label">AI flags</div><p>Each trainer has a set of flags; each flag adds one routine to the scoring above.'+
@@ -3018,8 +3032,195 @@ async function renderAITab(){
     '<ol class="ai-rules">'+e.switchRules.map(function(r){return '<li><b>'+hackEsc(r.name)+'.</b> '+hackEsc(r.text)+'</li>'}).join('')+'</ol><p>'+hackEsc(e.neverSwitch)+'</p></div>';
   html+='<div class="ai-sec"><div class="section-label">What it sends in after a faint</div>'+e.replacement.map(function(x){return '<p>'+hackEsc(x)+'</p>'}).join('')+
     '<p>The same choice is made when Perish Song or Natural Cure makes it switch.</p></div>';
+  if(e.items)html+='<div class="ai-sec"><div class="section-label">When it uses an item</div><ul class="ai-rules">'+e.items.map(function(x){return '<li>'+hackEsc(x)+'</li>'}).join('')+'</ul></div>';
   if(e.bugs&&e.bugs.length)html+='<div class="ai-sec"><div class="section-label">Known bugs in this AI</div>'+e.bugs.map(function(x){return '<p>'+hackEsc(x)+'</p>'}).join('')+'</div>';
   el.innerHTML=html;
+}
+
+/* ── Guide (5.64) ────────────────────────────────────────────────────────────────────────────────────
+   "i want to start playing platinum kaizo so please update hoopadex to include all the docs and a
+   guide on the game". hacks/<hack>.guide.json (build/generate-romhack-guides.js): the setup, level caps,
+   Hall of Fame rules and the rest, read from the authors' FAQ and rules sheet. A hack without one says so. */
+let guideData={};
+async function loadHackGuide(){
+  const k=romHack().key;
+  if(guideData[k]===undefined){
+    try{const r=await fetch('hacks/'+k+'.guide.json');guideData[k]=r.ok?await r.json():null}catch(e){guideData[k]=null}
+  }
+  return guideData[k];
+}
+function guideSectionHtml(s){
+  let h='<div class="ai-sec" id="guide-'+hackEsc(s.id)+'"><div class="section-label">'+hackEsc(s.title)+'</div>';
+  (s.paras||[]).forEach(function(p){h+='<p>'+hackEsc(p)+'</p>'});
+  if(s.list)h+='<ul class="ai-rules">'+s.list.map(function(x){return '<li>'+hackEsc(x)+'</li>'}).join('')+'</ul>';
+  if(s.table)h+='<table class="hack-tbl" style="max-width:420px"><thead><tr>'+s.table.cols.map(function(c,i){return '<th'+(i?' class="num"':'')+'>'+hackEsc(c)+'</th>'}).join('')+'</tr></thead><tbody>'+
+    s.table.rows.map(function(r){return '<tr>'+r.map(function(c,i){return '<td'+(i?' class="num"':'')+'>'+hackEsc(c)+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table>';
+  if(s.groups)h+=s.groups.map(function(g){return '<details class="guide-group"><summary><b>'+hackEsc(g.h)+'</b></summary><ul class="ai-rules">'+
+    g.items.map(function(it){return '<li style="margin-left:'+(it[0]*18)+'px">'+hackEsc(it[1])+'</li>'}).join('')+'</ul></details>'}).join('');
+  if(s.links)h+='<ul class="ai-rules">'+s.links.map(function(l){return '<li><a href="'+hackEsc(l[1])+'" target="_blank" rel="noopener">'+hackEsc(l[0])+'</a>'+(l[2]?' \u2014 '+hackEsc(l[2]):'')+'</li>'}).join('')+'</ul>';
+  if(s.go)h+='<button class="tr-btn" onclick="switchTab(\''+hackEsc(s.go)+'\')">Open the '+(s.go==='ai'?'AI':hackEsc(s.go))+' tab</button>';
+  return h+'</div>';
+}
+async function renderGuideTab(){
+  const el=document.getElementById('guide-container'),h=romHack();
+  el.innerHTML='<div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading...</div>';
+  const g=await loadHackGuide();
+  const head='<div class="hack-panel-head"><span class="section-label" style="margin:0">'+hackEsc(h.label)+' guide</span>';
+  if(!g){el.innerHTML=head+'</div><div class="hack-note">There is no guide for '+hackEsc(h.label)+' yet. Its trainers, encounters, moves and AI are on the other tabs.</div>';return}
+  el.innerHTML=head+'<span class="hack-meta">From the authors\u2019 documents, read '+hackEsc(g.fetched)+'</span></div>'+
+    '<div class="hack-ctl" style="flex-wrap:wrap">'+g.sections.map(function(s){return '<button class="tr-btn" onclick="document.getElementById(\'guide-'+hackEsc(s.id)+'\').scrollIntoView({behavior:\'smooth\',block:\'start\'})">'+hackEsc(s.title)+'</button>'}).join('')+'</div>'+
+    g.sections.map(guideSectionHtml).join('');
+}
+
+/* ── Run: a Nuzlocke tracker (5.64) ─────────────────────────────────────────────────────────────────
+   "a nuzlocke tracker as well", "https://nuzlocke-redux.vercel.app/game something like this". One run
+   per hack, in this browser (localStorage), with export and import like the trainer notes. The areas are
+   the hack's encounter areas, in their order; the level caps are the guide's. The duplicate check works
+   on evolution families from the hack's own evolution data, so Mothim and Wormadam count as one family,
+   as the Platinum Kaizo Hall of Fame rules say. A run is {enc: {area: {sp, id, nick, s, team, killer}},
+   caps: {index: true}}. */
+const RUN_KEY='hoopadex.runs.v1';
+const RUN_STATUS=[['','\u2014'],['caught','Caught'],['gift','Received'],['traded','Traded'],['missed','Missed'],['dead','Dead']];
+const RUN_ALIVE={caught:1,gift:1,traded:1};
+const RUN_OWNED={caught:1,gift:1,traded:1,dead:1};   // what the duplicate clause counts
+let runUI={q:'',hideDone:false},runCtx=null;
+function runAll(){try{return JSON.parse(localStorage.getItem(RUN_KEY)||'{}')||{}}catch(e){return {}}}
+function runGet(){const r=runAll()[romHack().key]||{};r.enc=r.enc||{};r.caps=r.caps||{};return r}
+function runPut(r){const a=runAll();a[romHack().key]=r;try{localStorage.setItem(RUN_KEY,JSON.stringify(a))}catch(e){}}
+/* The first species of a Pokémon's evolution family, from the hack's evolution data. */
+function runFamily(id){
+  const d=hackData();
+  if(!d||!d.evo||!id)return id;
+  if(!d._parent){d._parent={};Object.keys(d.evo).forEach(function(f){d.evo[f].forEach(function(e){d._parent[e[0]]=+f})})}
+  let x=id,n=0;
+  while(d._parent[x]&&n++<5)x=d._parent[x];
+  return x;
+}
+function runAreaRows(a){return a.methods.reduce(function(o,m){return o.concat(m.rows)},[])}
+function runSpeciesId(name,a){
+  const n=String(name||'').trim().toLowerCase();
+  if(!n)return 0;
+  const hit=a&&runAreaRows(a).find(function(r){return r[1].toLowerCase()===n});
+  if(hit)return hit[0];
+  const slug=n.replace(/[.'\u2019]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const m=master.find(function(x){return x.name===slug})||master.find(function(x){return x.name.split('-')[0]===slug});
+  return m?m.id:0;
+}
+/* Which other area already holds a Pokémon of this family, or ''. */
+function runDupeOf(r,area,id){
+  if(!id)return '';
+  const f=runFamily(id);
+  const hit=Object.keys(r.enc).find(function(k){const e=r.enc[k];return k!==area&&RUN_OWNED[e.s]&&e.id&&runFamily(e.id)===f});
+  return hit||'';
+}
+function runMonHtml(area,e,clickable){
+  const img=e.id?spriteFor(e.id,getDataGenNum()):'';
+  return '<button class="tr-mon" data-a="'+hackEsc(area)+'"'+(clickable?' onclick="runToggleTeam(this.dataset.a)"':'')+' title="'+hackEsc(area)+'">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'')+
+    hackEsc(e.nick||e.sp||'?')+(e.nick&&e.sp?' <small>'+hackEsc(e.sp)+'</small>':'')+(e.s==='dead'&&e.killer?' <small>\u00b7 '+hackEsc(e.killer)+'</small>':'')+'</button>';
+}
+async function renderRunTab(){
+  const el=document.getElementById('run-container'),h=romHack();
+  el.innerHTML='<div style="text-align:center;padding:40px;color:#6a6a7a"><div class="spinner"></div> Loading...</div>';
+  const enc=await loadHackEncounters(),guide=await loadHackGuide();
+  const head='<div class="hack-panel-head"><span class="section-label" style="margin:0">'+hackEsc(h.label)+' Nuzlocke run</span>';
+  if(!enc){el.innerHTML=head+'</div><div class="hack-note">The tracker lists a hack\u2019s encounter areas, and '+hackEsc(h.label)+' has none HoopaDex can read.</div>';return}
+  const capSec=guide&&guide.sections.find(function(s){return s.id==='caps'});
+  runCtx={enc:enc,caps:capSec?capSec.table.rows:[]};
+  el.innerHTML=head+'<span class="hack-meta">Saved in this browser. Export to keep a copy.</span></div>'+
+    '<div class="hack-ctl" style="flex-wrap:wrap"><input class="filter-select" type="search" placeholder="Find an area or Pok\u00e9mon" value="'+hackEsc(runUI.q)+'" oninput="runUI.q=this.value;renderRunBody()">'+
+    '<label class="hack-meta" style="display:inline-flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0"><input type="checkbox" style="flex:none;min-width:0;width:auto;margin:0"'+(runUI.hideDone?' checked':'')+' onchange="runUI.hideDone=this.checked;renderRunBody()">Hide areas you have used</label>'+
+    '<button class="tr-btn" onclick="runExport()">Export</button><label class="tr-btn" style="cursor:pointer;display:inline-flex;align-items:center">Import<input type="file" accept=".json,application/json" style="display:none" onchange="runImport(this)"></label>'+
+    '<button class="tr-btn" onclick="runNew()">New run</button></div>'+
+    '<div id="run-summary"></div><div id="run-body"></div>';
+  renderRunSummary();
+  renderRunBody();
+}
+function renderRunSummary(){
+  const el=document.getElementById('run-summary');
+  if(!el||!runCtx)return;
+  const r=runGet(),keys=Object.keys(r.enc);
+  const team=keys.filter(function(k){return RUN_ALIVE[r.enc[k].s]&&r.enc[k].team});
+  const box=keys.filter(function(k){return RUN_ALIVE[r.enc[k].s]&&!r.enc[k].team});
+  const dead=keys.filter(function(k){return r.enc[k].s==='dead'});
+  const missed=keys.filter(function(k){return r.enc[k].s==='missed'}).length;
+  const next=runCtx.caps.findIndex(function(c,i){return !r.caps[i]});
+  let html='';
+  if(runCtx.caps.length)html+='<div class="ai-sec"><div class="section-label">Level caps'+(next>=0?' \u00b7 next: '+hackEsc(runCtx.caps[next][0])+', level '+runCtx.caps[next][1]:' \u00b7 all beaten')+'</div><div class="tr-team">'+
+    runCtx.caps.map(function(c,i){return '<button class="tr-btn'+(r.caps[i]?' beaten':'')+'" style="'+(i===next?'border-color:var(--accent,#f5c542);':'')+(r.caps[i]?'opacity:.55;text-decoration:line-through':'')+'" onclick="runToggleCap('+i+')">'+hackEsc(c[0])+' '+c[1]+'</button>'}).join('')+
+    '</div><div class="hack-meta" style="text-transform:none;letter-spacing:0;margin-top:4px">Tick a fight once you have won it.</div></div>';
+  html+='<div class="ai-sec"><div class="section-label">Team ('+team.length+'/6)</div><div class="tr-team">'+(team.length?team.map(function(k){return runMonHtml(k,r.enc[k],true)}).join(''):'<span class="hack-meta" style="text-transform:none;letter-spacing:0">Click a Pok\u00e9mon in the box to add it.</span>')+'</div></div>';
+  html+='<div class="ai-sec"><div class="section-label">Box ('+box.length+')</div><div class="tr-team">'+box.map(function(k){return runMonHtml(k,r.enc[k],true)}).join('')+'</div></div>';
+  html+='<div class="ai-sec"><div class="section-label">Graveyard ('+dead.length+')'+(missed?' \u00b7 '+missed+' missed':'')+'</div><div class="tr-team">'+dead.map(function(k){return runMonHtml(k,r.enc[k],false)}).join('')+'</div></div>';
+  el.innerHTML=html;
+}
+function renderRunBody(){
+  const el=document.getElementById('run-body');
+  if(!el||!runCtx)return;
+  const r=runGet(),q=runUI.q.trim().toLowerCase();
+  const seen={};
+  const areas=runCtx.enc.areas.filter(function(a){
+    if(seen[a.name])return false;   // an area listed twice (two floors with one name) is one encounter
+    seen[a.name]=1;
+    const e=r.enc[a.name]||{};
+    if(runUI.hideDone&&e.s)return false;
+    if(!q)return true;
+    return a.name.toLowerCase().indexOf(q)>=0||(e.sp||'').toLowerCase().indexOf(q)>=0||(e.nick||'').toLowerCase().indexOf(q)>=0||
+      runAreaRows(a).some(function(x){return x[1].toLowerCase().indexOf(q)>=0});
+  });
+  if(!areas.length){el.innerHTML='<div class="hack-note">No area matches.</div>';return}
+  el.innerHTML='<div class="hack-scroll" style="max-height:none"><table class="hack-tbl"><thead><tr><th>Area</th><th>Pok\u00e9mon</th><th>Nickname</th><th>Status</th><th></th></tr></thead><tbody>'+areas.map(function(a,i){
+    const e=r.enc[a.name]||{};
+    const names=[...new Set(runAreaRows(a).map(function(x){return x[1]}))];
+    const dupe=RUN_OWNED[e.s]||e.s===''||!e.s?runDupeOf(r,a.name,e.id):'';
+    const img=e.id?spriteFor(e.id,getDataGenNum()):'';
+    return '<tr data-a="'+hackEsc(a.name)+'"'+(e.s==='dead'?' class="beaten"':'')+'><td style="font-weight:700;white-space:nowrap">'+hackEsc(a.name)+'</td>'+
+      '<td style="white-space:nowrap">'+(img?'<img src="'+img+'" alt="" style="width:32px;height:32px;vertical-align:middle">':'')+
+      '<input class="filter-select" style="width:130px" list="run-dl-'+i+'" value="'+hackEsc(e.sp||'')+'" placeholder="Species" onchange="runSet(this.closest(\'tr\').dataset.a,\'sp\',this.value)">'+
+      '<datalist id="run-dl-'+i+'">'+names.map(function(n){return '<option value="'+hackEsc(n)+'">'}).join('')+'</datalist></td>'+
+      '<td><input class="filter-select" style="width:110px" value="'+hackEsc(e.nick||'')+'" placeholder="Nickname" oninput="runSet(this.closest(\'tr\').dataset.a,\'nick\',this.value,true)"></td>'+
+      '<td><select class="filter-select" onchange="runSet(this.closest(\'tr\').dataset.a,\'s\',this.value)">'+RUN_STATUS.map(function(s){return '<option value="'+s[0]+'"'+((e.s||'')===s[0]?' selected':'')+'>'+s[1]+'</option>'}).join('')+'</select>'+
+      (e.s==='dead'?' <input class="filter-select" style="width:120px" value="'+hackEsc(e.killer||'')+'" placeholder="Killed by" onchange="runSet(this.closest(\'tr\').dataset.a,\'killer\',this.value)">':'')+'</td>'+
+      '<td>'+(dupe?'<span class="tr-tag" title="Same evolution family">duplicate of '+hackEsc(dupe)+'</span>':'')+'</td></tr>';
+  }).join('')+'</tbody></table></div>';
+}
+function runSet(area,field,val,quiet){
+  const r=runGet(),e=r.enc[area]||(r.enc[area]={});
+  e[field]=val;
+  if(field==='sp'){const a=runCtx.enc.areas.find(function(x){return x.name===area});e.id=runSpeciesId(val,a)}
+  if(field==='s'&&!RUN_ALIVE[val])e.team=false;
+  if(!e.sp&&!e.s&&!e.nick)delete r.enc[area];
+  runPut(r);
+  renderRunSummary();
+  if(!quiet)renderRunBody();
+}
+function runToggleTeam(area){
+  const r=runGet(),e=r.enc[area];
+  if(!e||!RUN_ALIVE[e.s])return;
+  const n=Object.keys(r.enc).filter(function(k){return RUN_ALIVE[r.enc[k].s]&&r.enc[k].team}).length;
+  if(!e.team&&n>=6)return;
+  e.team=!e.team;runPut(r);renderRunSummary();
+}
+function runToggleCap(i){const r=runGet();if(r.caps[i])delete r.caps[i];else r.caps[i]=true;runPut(r);renderRunSummary()}
+function runExport(){
+  const blob=new Blob([JSON.stringify({hoopadexRun:1,hack:romHack().key,run:runGet()},null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='hoopadex-run-'+romHack().key+'.json';a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+}
+function runImport(inp){
+  const f=inp.files&&inp.files[0];
+  if(!f)return;
+  f.text().then(function(t){
+    let j;try{j=JSON.parse(t)}catch(e){alert('That file is not a HoopaDex run.');return}
+    if(!j||!j.hoopadexRun||!j.run||!j.run.enc){alert('That file is not a HoopaDex run.');return}
+    if(j.hack!==romHack().key&&!confirm('This run is for '+j.hack+', not '+romHack().label+'. Load it here anyway?'))return;
+    if(!confirm('Replace the run in this browser with the one in the file?'))return;
+    runPut(j.run);renderRunSummary();renderRunBody();
+  });
+  inp.value='';
+}
+function runNew(){
+  if(!confirm('Start a new run? The current one is cleared from this browser. Export it first to keep it.'))return;
+  runPut({enc:{},caps:{}});renderRunSummary();renderRunBody();
 }
 
 /* ── Trainers (5.57) ─────────────────────────────────────────────────────────────────────────────────
@@ -5757,7 +5958,7 @@ function switchTab(tab){
      forEach leaves every tab AFTER it in the wrong state, which is why several tabs stopped working
      at once instead of just one. A panel without a button is a normal thing to have; crashing over
      it is not. */
-  ['pokedex','types','abilities','items','tms','trainers','ai','locations','evs','natures','other','team','calc'].forEach(t=>{
+  ALL_TABS.forEach(t=>{
     const panel=document.getElementById(t+'-tab');
     if(panel)panel.style.display=t===tab?'':'none';
     const btn=document.getElementById('tab-'+t);
@@ -5765,7 +5966,7 @@ function switchTab(tab){
   });
   // Hide search bar for reference tabs that don't need it
   // A hack's Moves and Abilities views have their own search box; the universal one drives the base-game views.
-  const noSearchTabs=['types','natures','evs','other','team','calc','trainers','ai'].concat(isRomHack?['tms','abilities','locations']:[]);
+  const noSearchTabs=['types','natures','evs','other','team','calc','trainers','ai','guide','run'].concat(isRomHack?['tms','abilities','locations']:[]);
   const sb=document.getElementById('universal-search-bar');
   sb.style.display=noSearchTabs.includes(tab)?'none':'';
   // Show/hide pokedex-only filters and update universal search placeholder
@@ -5791,6 +5992,8 @@ function switchTab(tab){
   if(tab==='items')renderItemsTab();
   if(tab==='trainers')renderTrainersTab();
   if(tab==='ai')renderAITab();
+  if(tab==='guide')renderGuideTab();
+  if(tab==='run')renderRunTab();
   if(tab==='pokedex')applyFilters();
   if(!_restoring)saveHash();
   updateTitle();
@@ -6425,7 +6628,7 @@ function saveHash(){
   updateTitle();
 }
 function updateTitle(){
-  const tabNames={pokedex:'Pok\u00e9dex',trainers:'Trainers',ai:'AI',tms:'Moves',abilities:'Abilities',items:'Items',locations:'Locations',types:'Type Chart',natures:'Natures',team:'Team Builder',evs:'EV Training',other:'Other',calc:'Damage Calc'};
+  const tabNames={pokedex:'Pok\u00e9dex',trainers:'Trainers',ai:'AI',guide:'Guide',run:'Run',tms:'Moves',abilities:'Abilities',items:'Items',locations:'Locations',types:'Type Chart',natures:'Natures',team:'Team Builder',evs:'EV Training',other:'Other',calc:'Damage Calc'};
   let t='HoopaDex';
   const tabLabel=tabNames[currentTab]||'';
   if(currentTab==='pokedex'&&vm==='detail'&&adId&&dc[adId]){
@@ -6505,7 +6708,7 @@ async function restoreHash(){
   let resolvedTab=tab;
   if(tab==='priority'){resolvedTab='other';currentOtherSub='priority'}
   if(tab==='split'){resolvedTab='other';currentOtherSub='split'}
-  if(['pokedex','types','tms','locations','evs','natures','other','abilities','items','trainers','ai','team','calc'].includes(resolvedTab)){
+  if(ALL_TABS.includes(resolvedTab)){
     switchTab(resolvedTab);
     if(resolvedTab==='other')switchOtherSub(currentOtherSub);
     if(tab==='pokedex'&&parts.find(p=>p.startsWith('p'))){
@@ -9719,7 +9922,7 @@ async function showAbilityPage(abilityName){
     currentTab='abilities';
     // Second copy of the tab loop, guarded for the same reason as the one in switchTab(): the
     // 'evs' panel has no nav button any more, and an unguarded assignment throws mid-forEach.
-    ['pokedex','types','abilities','items','tms','trainers','ai','locations','evs','natures','other','team','calc'].forEach(t=>{
+    ALL_TABS.forEach(t=>{
       const panel=document.getElementById(t+'-tab');
       if(panel)panel.style.display=t==='abilities'?'':'none';
       const btn=document.getElementById('tab-'+t);

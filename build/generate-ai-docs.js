@@ -82,16 +82,40 @@ const SWITCH_TEXT = {
   AreStatsRaised: ['Stays: boosted', 'It STAYS IN if its stat boosts add up to 4 stages or more.'],
   FindMonWithFlagsAndSuperEffective: ['Immune or resisting partner', 'Last: it switches to a party member that is immune to the last damaging move that hit it and has a super-effective move against your Pokémon (1 in 2 for each such move), or failing that one that resists it (1 in 3).'],
   // Generation IV (pokeplatinum, TrainerAI_ShouldSwitch)
-  AI_PerishSongKO: ['Perish Song', 'Its Perish Song count has reached 0: it always switches out.'],
-  AI_CannotDamageWonderGuard: ['Wonder Guard', 'Singles only. Your Pokémon has Wonder Guard and none of its moves can hurt it: it switches to a party member that can, 2 times in 3.'],
-  AI_OnlyIneffectiveMoves: ['Nothing works (new in Gen IV)', 'Every damaging move it has does nothing to your Pokémon, and it has at least two: it switches to a party member with a super-effective move, 2 times in 3.'],
+  /* Gen IV text re-read against pokeplatinum on 2026-10-29 (5.64). Until then three of these were
+     short of what the code does: the second, neutral-move pass of AI_OnlyIneffectiveMoves; Natural
+     Cure's partner switches, which are certain (rand 1), not "half the time"; and which switches pick
+     their replacement with the after-a-knockout routine (aiSwitchedPartySlot = 6). */
+  AI_PerishSongKO: ['Perish Song', 'Its Perish Song count has reached 0: it always switches out. The replacement is chosen the way it chooses one after a knockout (below).'],
+  AI_CannotDamageWonderGuard: ['Wonder Guard', 'Singles only. Your Pokémon has Wonder Guard and none of its moves are super-effective on it: it switches to a party member that has one, 2 times in 3 for each such move it finds.'],
+  AI_OnlyIneffectiveMoves: ['Nothing works (new in Gen IV)', 'Every damaging move it has does nothing to your Pokémon, and it has at least two: it walks its party in order and switches to the first one with a super-effective damaging move (2 in 3 for each such move). If none comes in, it walks the party again and takes one with a neutral damaging move (1 in 2 for each).'],
   AI_HasAbsorbAbilityInParty: ['Absorbing ability', 'The last move that hit it was a damaging Fire, Water or Electric move, and it lacks the matching ability: it switches to a party member with Flash Fire, Water Absorb or Volt Absorb, half the time. If it already has a super-effective move, it skips this check 2 times in 3.'],
-  AI_IsAsleepWithNaturalCure: ['Natural Cure', 'It is asleep, has Natural Cure and at least half its HP: it switches out half the time (before it has been hit, or after a status move); otherwise to a party member immune to or resisting the last move that also has a super-effective move; otherwise still half the time.'],
-  AI_HasSuperEffectiveMove: ['Stays: has a super-effective move', 'From here on it STAYS IN if any of its moves is super-effective on your Pokémon (9 in 10 for each such move).'],
+  AI_IsAsleepWithNaturalCure: ['Natural Cure', 'It is asleep, has Natural Cure and at least half its HP. If nothing has hit it yet, it switches half the time; if the last move that hit it was a status move, half the time. Otherwise it ALWAYS switches to a party member that is immune to the last move that hit it and has a super-effective move against that attacker, or failing that one that resists it. Failing both, half the time. The half-the-time switches choose the replacement as after a knockout.'],
+  AI_HasSuperEffectiveMove: ['Stays: has a super-effective move', 'From here on it STAYS IN if any of its moves is super-effective on the Pokémon facing it (9 in 10 for each such move). The code does not skip status moves here.'],
   AI_IsHeavilyStatBoosted: ['Stays: boosted', 'It STAYS IN if its stat boosts add up to 4 stages or more.'],
-  AI_HasPartyMemberWithSuperEffectiveMove: ['Immune or resisting partner', 'Last: it switches to a party member that is immune to the last damaging move that hit it and has a super-effective move against your Pokémon (1 in 2 for each such move), or failing that one that resists it (1 in 3).'],
+  AI_HasPartyMemberWithSuperEffectiveMove: ['Immune or resisting partner', 'Last, and only if the last move that hit it was a damaging move: it switches to a party member that is immune to that move and has a super-effective move against the Pokémon that used it (1 in 2 for each such move), or failing that one that resists it (1 in 3). pokeplatinum\'s comments say 33% and 25%; the code is 1 in 2 and 1 in 3.'],
 };
 const NEVER_SWITCH = 'It never switches while trapped (Wrap, Mean Look, Ingrain), against Shadow Tag or Arena Trap (even when it is Flying-type or has Levitate, which should let it), as a Steel-type against Magnet Pull, or when it has nobody left to switch to.';
+const NEVER_SWITCH_G4 = NEVER_SWITCH + ' In Gen IV the check is naive, by pokeplatinum\'s own comment: an ally\'s Magnet Pull counts too, its own Shadow Tag does not cancel yours, and it ignores Shed Shell.';
+/* What it does with its items, in Gen IV (TrainerAI_ShouldUseItem). It decides in this order each turn:
+   switch first, then an item, then a move (TrainerAI_PickCommand). */
+const ITEMS_G4 = [
+  'Each turn it decides in this order: switch, then use an item, then attack. So a turn it switches is never a turn it heals.',
+  'Its first item can be used at any time. Each later one unlocks only as its team shrinks: with 2 items, the second unlocks when it has 2 Pokémon left; with 3 items, the second at 3 left and the third at 2.',
+  'Full Restore: below 1/4 HP. A potion: below 1/4 HP, or once it has lost more HP than the potion heals.',
+  'Status cures (Full Heal, Awakening and the like): as soon as it has that status.',
+  'X items and Guard Spec.: only on the turn its Pokémon came in (Guard Spec. only without Mist). The code\'s comment says the opposite; the code is what runs.',
+  'Embargo stops it using items.',
+];
+/* The rules above, turned round into what to do. Each line restates a rule above; nothing new. */
+const PLAYBOOK_G4 = [
+  'It will not switch out while it has a super-effective move on what you have in (9 in 10 per move), or after +4 or more in boosts. Bring something it cannot hit super-effectively and it starts to think about switching.',
+  'A Pokémon that is immune to every attack it has (it needs two or more) makes it switch to a counter 2 times in 3, often more. Expect the counter: it is the first party member, in party order, with a super-effective attack on you.',
+  'After you hit it with an attack, it may switch to a party member immune to that attack (1 in 2 per super-effective move) or that resists it (1 in 3). The one that comes in has a super-effective move on the Pokémon that hit it.',
+  'Hitting it with Fire, Water or Electric when it has Flash Fire, Water Absorb or Volt Absorb in the back invites that Pokémon in, half the time.',
+  'After a knockout it sends in the Pokémon whose TYPES hit yours hardest and that has a super-effective move; failing that, the one whose best move does the most damage to you. Because the score is one byte, a 4× matchup can lose to a 2× one.',
+  'It never switches when trapped (Mean Look, Wrap and the like, Shadow Tag, Arena Trap, Magnet Pull on a Steel-type).',
+];
 const REPLACEMENT = {
   gen3: ['It picks one of your Pokémon and looks for a replacement in two stages.',
     'First, it ranks its party by how hard YOUR Pokémon\'s types hit them, most damage first, and sends in the first one that has a super-effective move against you. pokeemerald\'s own comment notes this is the opposite of what a careful player would do.',
@@ -158,6 +182,15 @@ async function main() {
     [/u8 score, maxScore; \/\/ BUG: Post-KO Switch-In AI Scoring Overflow/.test(T.ptLib), 'Gen IV replacement: the documented one-byte score overflow'],
     [/as having a score equivalent to 65 rather than 320/.test(T.ptBugs), 'Gen IV overflow: 65 instead of 320'],
     [/BUG: This line should branch on Dry Skin rather than Levitate/.test(T.ptScript), 'Gen IV: the Dry Skin bug in Basic'],
+    [/effectiveness == 0 && BattleSystem_RandNext\(battleSys\) % 2 == 0/.test(T.ptAI), 'Gen IV nothing-works: a second pass on neutral moves, 1 in 2'],
+    [/AI_HasPartyMemberWithSuperEffectiveMove\(battleSys, battleCtx, battler, MOVE_STATUS_INEFFECTIVE, 1\)/.test(T.ptAI), 'Gen IV Natural Cure: the partner switch is certain (rand 1)'],
+    [/BattleSystem_RandNext\(battleSys\) % rand == 0/.test(T.ptAI), 'Gen IV partner check: 1 in rand'],
+    [/aiSwitchedPartySlot\[battler\] == 6\) \{\s*if \(\(i = BattleAI_PostKOSwitchIn/.test(T.ptAI), 'Gen IV: slot 6 means the after-a-knockout choice'],
+    [/always able to switch\s*\/\/ if it is holding a Shed Shell/.test(T.ptAI), 'Gen IV: Shed Shell is ignored (the code\'s comment)'],
+    [/TrainerAI_ShouldSwitch\(battleSys, battleCtx, battler\)\) \{[\s\S]{0,3000}TrainerAI_ShouldUseItem\(battleSys, battler\)/.test(T.ptAI), 'Gen IV: switch is decided before items'],
+    [/i == 0 \|\| aliveMons <= AI_CONTEXT\.trainerItemCounts\[battler >> 1\] - i \+ 1/.test(T.ptAI), 'Gen IV items: later items unlock as the team shrinks'],
+    [/ITEM_FULL_RESTORE\) \{\s*if \(battleCtx->battleMons\[battler\]\.curHP < \(battleCtx->battleMons\[battler\]\.maxHP \/ 4\)/.test(T.ptAI), 'Gen IV items: Full Restore below 1/4'],
+    [/fakeOutTurnNumber - battleCtx->totalTurns\) >= 0/.test(T.ptAI), 'Gen IV items: X items on the turn it came in'],
   ];
   const broken = facts.filter(f => !f[0]).map(f => f[1]);
   if (broken.length) throw new Error('the code no longer says what the text claims:\n  ' + broken.join('\n  '));
@@ -175,14 +208,20 @@ async function main() {
       flags: flagRows(gen3Flags(T.emFlags), GEN3_FLAGS), neverSwitch: NEVER_SWITCH, switchRules: rules(emOrder), replacement: REPLACEMENT.gen3 },
     gen4: { label: 'Generation IV (Diamond, Pearl, Platinum, HeartGold, SoulSilver)', source: 'pret/pokeplatinum',
       howItChooses: HOW_IT_CHOOSES,
-      flags: flagRows(gen4Flags(T.ptFlags), GEN4_FLAGS), neverSwitch: NEVER_SWITCH, switchRules: rules(ptOrder), replacement: REPLACEMENT.gen4,
+      flags: flagRows(gen4Flags(T.ptFlags), GEN4_FLAGS), neverSwitch: NEVER_SWITCH_G4, switchRules: rules(ptOrder), replacement: REPLACEMENT.gen4,
+      items: ITEMS_G4, playbook: PLAYBOOK_G4,
       bugs: ['Basic checks Levitate where it should check Dry Skin, so it does not know a Dry Skin Pokémon absorbs Water moves (pokeplatinum\'s own comment).'] },
   };
   const pkLines = RH.csvRows(T.pkAI).map(r => (r[0] || '').trim()).filter(Boolean).join('\n').replace(/^PLATINUM KAIZO AI CHANGES:\s*/i, '').trim();
   const hacks = {
     'renegade-platinum': { engine: 'gen4', base: 'Platinum', changes: null, changesNote: 'Drayano\'s documents describe no changes to the AI; it is Platinum\'s.', flagSource: 'The hack\'s calculator data, which records each trainer\'s flags.' },
     'sacred-gold': { engine: 'gen4', base: 'HeartGold / SoulSilver', changes: null, changesNote: 'Drayano\'s documents describe no changes to the AI. HeartGold/SoulSilver\'s AI code is not decompiled yet; this page shows Platinum\'s, the closest decompiled engine.', flagSource: 'The hack\'s calculator data, which records each trainer\'s flags.' },
-    'platinum-kaizo': { engine: 'gen4', base: 'Platinum', changes: pkLines, changesNote: 'From the Mastersheet\'s "AI Changes" tab, in the authors\' words. Their sheet marks each trainer\'s flags with colours, which its export does not carry, so per-trainer flags are not shown here.', flagSource: null },
+    /* The pinned message is the authors' later summary, posted in the pChal Discord's #platinum-kaizo on
+       2026-03-15 (with "PK AI Changes.txt"). It was read from a screenshot Will shared; it adds the
+       "Left Side AI" point, which the Mastersheet tab does not make. */
+    'platinum-kaizo': { engine: 'gen4', base: 'Platinum', changes: pkLines,
+      changesNote: 'From the Mastersheet\'s "AI Changes" tab, in the authors\' words. The authors\' pinned summary in the pChal Discord adds: "Left Side Doubles AI does not exist for most Double Battles (it is used on purpose in some cases, marked in docs)", and that ¼-recoil moves use vanilla Superpower\'s routine. So the Dry Skin bug listed under the engine below is fixed in this hack.',
+      flagSource: 'The Mastersheet\'s split tabs, which mark each trainer\'s flags with icons. A trainer the sheet marks "Left Side AI" is tagged so on the Trainers tab.' },
     'emerald-kaizo': { engine: 'gen3', base: 'Emerald', changes: null, changesNote: 'No published source documents Emerald Kaizo\'s AI or which flags its trainers have. The engine below is Emerald\'s; any change the hack makes to it is not documented.', flagSource: null },
     'firered-omega': { engine: 'gen3', base: 'FireRed', changes: null, changesNote: 'No published source documents FireRed Omega\'s AI. The engine below is FireRed\'s.', flagSource: null },
     'run-and-bun': { engine: null, base: 'pokeemerald-expansion', changes: null, changesNote: 'Run & Bun runs on pokeemerald-expansion, whose AI was rewritten in C with its own, much larger set of flags (smart switching, knowing your party, predicting switches, and more). Which version of it Run & Bun uses, and which flags its trainers have, are not in dekzeh\'s public data, so this page does not guess. hzla\'s Run & Bun calculator models its switch-ins.', flagSource: null },

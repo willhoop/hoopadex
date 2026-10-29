@@ -73,6 +73,10 @@ const SRC = {
   pkLevel: 'https://docs.google.com/spreadsheets/d/1y95UYKY9HNgZjUlbeZbQ3BWf5IqcFqAkmstC-OSa6vc/export?format=csv&gid=694053409',
   pkTM: 'https://docs.google.com/spreadsheets/d/1y95UYKY9HNgZjUlbeZbQ3BWf5IqcFqAkmstC-OSa6vc/export?format=csv&gid=1644203504',
   pkEvo: 'https://docs.google.com/spreadsheets/d/1y95UYKY9HNgZjUlbeZbQ3BWf5IqcFqAkmstC-OSa6vc/export?format=csv&gid=1172055843',
+  /* The community's Item Sheet (from the PChal Discord's resource list): where every item is, and the
+     shard tutors' prices. */
+  pkItemSheet: 'https://docs.google.com/spreadsheets/d/1h9vW08KEWbL6ucdBIPBZG1Phmc9ZaT9KOt8NADdWIuQ/export?format=csv&gid=0',
+  pkShardTutors: 'https://docs.google.com/spreadsheets/d/1h9vW08KEWbL6ucdBIPBZG1Phmc9ZaT9KOt8NADdWIuQ/export?format=csv&gid=1478832553',
   rbMoves: 'https://raw.githubusercontent.com/dekzeh/runandbundex/master/moves/battle_moves.h',
   rbLevel: 'https://raw.githubusercontent.com/dekzeh/runandbundex/master/species/level_up_learnsets.h',
   rbLevelPtr: 'https://raw.githubusercontent.com/dekzeh/runandbundex/master/species/level_up_learnset_pointers.h',
@@ -959,6 +963,58 @@ function sgItems(T) {
   });
   return out;
 }
+/* Platinum Kaizo's changed items, from the Mastersheet's "Item Changes" tab (gid 845877246). That tab
+   exports nothing - its CSV is empty - so the rows were read off the sheet itself on 2026-10-29 and are
+   typed here. The two renamed items are confirmed by the Items tab (gid 33983143), which lists
+   RageCandyBar in Shoal Shell's slot (71). Wording is the authors', shortened only where it repeats. */
+const PK_ITEM_CHANGES = { title: 'Changed items', cols: ['Item', 'Before', 'Now'], rows: [
+  ['Shoal Shell → RageCandyBar', 'No effect', 'Restores 100 HP when the holder is below 50% HP'],
+  ['Shoal Salt → Berserk Gene', 'No effect', 'Raises the holder\'s Attack by 1 stage on entry'],
+  ['Ganlon Berry', 'Raises Defense at 25% HP or less', 'Raises the holder\'s Defense by 1 stage on entry'],
+  ['Apicot Berry', 'Raises Sp. Def at 25% HP or less', 'Raises the holder\'s Sp. Def by 1 stage on entry'],
+  ['BrightPowder', 'Accuracy of moves against the holder ×0.90', 'Accuracy of moves against the holder ×0.89'],
+  ['Lax Incense', 'Accuracy of moves against the holder ×0.90', 'Accuracy of moves against the holder ×0.89'],
+  ['All Plates', 'Moves of the plate\'s type +20% power', 'Moves of the plate\'s type +50% power'],
+  ['Jaboca Berry', 'Hit by a physical move: attacker loses 1/8 of its max HP', 'Attacker loses 1/6 of its max HP'],
+  ['Rowap Berry', 'Hit by a special move: attacker loses 1/8 of its max HP', 'Attacker loses 1/6 of its max HP'],
+  ['Icy Rock', 'Hail set by the holder lasts 3 extra turns', 'Lasts 7 extra turns'],
+  ['Smooth Rock', 'Sand set by the holder lasts 3 extra turns', 'Lasts 7 extra turns'],
+  ['Damp Rock', 'Rain set by the holder lasts 3 extra turns', 'Lasts 7 extra turns'],
+  ['Heat Rock', 'Sun set by the holder lasts 3 extra turns', 'Lasts 7 extra turns'],
+  ['Lava Cookie', 'Cures any status when used from the bag', 'Cures any status on the holder during battle'],
+  ['Old Gateau', 'Cures any status when used from the bag', 'Cures any status on the holder during battle'],
+  ['Town Map', 'No effect', '120 BP Fling; cures freeze when flung, cures any status when plucked'],
+] };
+/* The Item Sheet's "General Item checklist": a row with text only in column A is an area; under it,
+   one item per row: item (B), where (C), what you need first (D). */
+function pkItemLocations(csv) {
+  const rows = [];
+  let area = '';
+  csvRows(csv).slice(1).forEach(r => {
+    const c = r.map(x => (x || '').trim());
+    if (c[0] && !c[1]) { area = c[0]; return; }
+    if (c[1]) rows.push([area, c[1], c[2] || '', c[3] || '']);
+  });
+  if (rows.length < 300) throw new Error('Platinum Kaizo Item Sheet: only ' + rows.length + ' items read - the sheet has changed');
+  return { title: 'Where to find items', cols: ['Area', 'Item', 'Where', 'Needs'], rows };
+}
+/* "Shard Tutors": five price lists side by side (Red, Green, Blue, Yellow, Neutral), seven columns
+   apart; each row is a move and its price in red, green, blue and yellow shards. */
+function pkShardTutors(csv) {
+  const R = csvRows(csv).map(r => r.map(x => (x || '').trim()));
+  const head = R.find(r => r[0] === 'Red');
+  if (!head) throw new Error('Platinum Kaizo shard tutors: no "Red" header row');
+  const groups = [];
+  head.forEach((t, i) => { if (t) groups.push([t, i]); });
+  const rows = [];
+  groups.forEach(([g, i]) => R.forEach(r => {
+    const mv = r[i + 1];
+    if (!mv || !/^\d+$/.test(r[i + 2] || '')) return;
+    rows.push([mv, g, r[i + 2], r[i + 3], r[i + 4], r[i + 5]]);
+  }));
+  if (rows.length < 20) throw new Error('Platinum Kaizo shard tutors: only ' + rows.length + ' moves read');
+  return { title: 'Shard tutors', cols: ['Move', 'List', 'Red', 'Green', 'Blue', 'Yellow'], rows };
+}
 /* The hack's TM list against its base game's: a TM that teaches a different move. */
 function tmChanges(machines, baseMachines) {
   if (!machines) return [];
@@ -1218,11 +1274,11 @@ async function main() {
     const M = buildPKMoves(R);
     const L = buildPKLearn(T, R);
     const E = buildPKEvo(T);
-    out.push(['platinum-kaizo', { fetched, sources: src('pkMoves', 'pkMoveChanges', 'pkLevel', 'pkTM', 'pkEvo'),
+    out.push(['platinum-kaizo', { fetched, sources: src('pkMoves', 'pkMoveChanges', 'pkLevel', 'pkTM', 'pkEvo', 'pkItemSheet', 'pkShardTutors'),
       checks: { moves: 'single source (the Mastersheet\'s Moves tab, a full table)', movesListedAsChanged: M.changedListed, movesReplaced: M.replaced,
         learnsets: 'single source (the Mastersheet\'s learnset tabs, full tables)' },
       notes: L.issues.concat(E.issues), customMoves: M.customNames, moves: M.moves, machines: L.machines, learn: L.learn, evo: E.evo,
-      items: { sections: [], tmChanges: tmChanges(L.machines, machinesFor(T, VG.platinum)) }, base: baseDiffs('platinum-kaizo', 4, 493) }]);
+      items: { sections: [PK_ITEM_CHANGES, pkItemLocations(T.pkItemSheet), pkShardTutors(T.pkShardTutors)], tmChanges: tmChanges(L.machines, machinesFor(T, VG.platinum)) }, base: baseDiffs('platinum-kaizo', 4, 493) }]);
   }
   // Run & Bun
   {
@@ -1283,5 +1339,5 @@ async function main() {
   if (Object.keys(unresolvedMoves).length) console.log('check-only names not resolved: ' + Object.keys(unresolvedMoves).map(k => k + ': ' + [...unresolvedMoves[k]].slice(0, 12).join(', ')).join(' | '));
   if (check) { console.log(stale ? 'STALE: ' + stale + ' hack data files differ' : 'check: every hack data file matches its sources'); process.exit(stale ? 1 : 0); }
 }
-module.exports = { moveSlug, MOVE_ALIASES, resolveConfigPre, applySGLevel, evoText, calcLearnCheck };
+module.exports = { moveSlug, MOVE_ALIASES, resolveConfigPre, applySGLevel, evoText, calcLearnCheck, pkItemLocations, pkShardTutors, PK_ITEM_CHANGES };
 if (require.main === module) main().catch(e => { console.error(e.stack || e); process.exit(1); });

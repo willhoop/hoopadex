@@ -4,7 +4,7 @@ A generation-aware Pokédex that runs from a folder of static files. It shows ty
 abilities, moves and evolutions **as they were in the game you pick** — every generation, every main
 game, Pokémon Champions, and seven ROM hacks.
 
-**Version 5.63 · 2026-10-22** · Live: [willhoop.github.io/hoopadex/app](https://willhoop.github.io/hoopadex/app/)
+**Version 5.64 · 2026-10-29** · Live: [willhoop.github.io/hoopadex/app](https://willhoop.github.io/hoopadex/app/)
 
 ## What it covers
 
@@ -18,7 +18,8 @@ game, Pokémon Champions, and seven ROM hacks.
   author's documentation where one exists, checked against a second source; the Dmg Calc tab links to
   the hack's own calculator. A **Trainers** tab lists every trainer by section of the game, with your
   own notes and a "beaten" tick saved in the browser, and copies a team for a calculator. The
-  **Locations** tab lists each hack's wild encounters, area by area.
+  **Locations** tab lists each hack's wild encounters, area by area. A **Guide** tab sets a hack up
+  and gives its level caps and rules (Platinum Kaizo first), and a **Run** tab tracks a Nuzlocke.
 - **Trainer AI**, read from the decompiled games: how trainers pick moves, when they switch, and what
   they send in, for Generations III and IV and every hack built on them.
 - **A fallback archive.** If pokeapi.co fails, every request is answered from
@@ -33,10 +34,10 @@ game, Pokémon Champions, and seven ROM hacks.
 | Damage engine | `app/calc-engine.js` | Vendored `@smogon/calc`, checksum-pinned (`data/vendor-pins.json`). |
 | List snapshots | `app/dex-index.json`, `app/abilities-index.json`, `app/moves-index.json` | PokéAPI data the list views read in one request each. |
 | Champions learnsets | `app/champions-learnsets.json` | Move legality per regulation. Read by CHOMP. |
-| ROM hack data | `app/hacks/*.json`, `*.data.json`, `*.trainers.json`, `*.encounters.json` | Species; moves, learnsets, evolutions, items; trainers; wild encounters. |
+| ROM hack data | `app/hacks/*.json`, `*.data.json`, `*.trainers.json`, `*.encounters.json`, `*.guide.json` | Species; moves, learnsets, evolutions, items; trainers; encounters; the Guide tab. |
 | Generators | `build/generate-*.js` | Every derived table and snapshot. Each has `--check` for drift. |
-| Tests | `tests/test-*.js` | 51 suites, 1,964 assertions. |
-| Mutation check | `build/mutation-check.js` | 198 deliberate defects; each must turn a suite red. |
+| Tests | `tests/test-*.js` | 52 suites, 2,026 assertions. |
+| Mutation check | `build/mutation-check.js` | 203 deliberate defects; each must turn a suite red. |
 | API archive | [willhoop/pokeapi-data](https://github.com/willhoop/pokeapi-data) | Fork of PokeAPI/api-data. Weekly add-and-update sync. |
 
 ## Documentation
