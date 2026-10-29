@@ -277,6 +277,29 @@ function throws(fn) { try { fn(); return false; } catch (e) { return true; } }
   check(/data-k="pp"[^>]*>PP<\/th>/.test(src) && /data-pp="'\+\(getMovePPForGen\(md\)\|\|''\)\+'"/.test(src), 'the move list has a PP column');
 }
 
+// ---- an opened trainer (5.66) ----------------------------------------------------------------------------------
+/* "i dont like how the trainer looks when you click in", "no @ silk scarf just list the item", "make
+   everything easier to read, more color, sprites", "less lines text". Youngster Tristan's Zigzagoon, from
+   the Roark split: Lv 5, Silk Scarf, Gluttony, Hasty, Quick Attack and Sand Attack. */
+{
+  const fnSrc = n => { const i = src.indexOf('function ' + n + '('); return src.slice(i, src.indexOf('\n}\n', i) + 3); };
+  const T = (0, eval)('var TC={normal:"#A8A878",ground:"#E0C068"};function spriteFor(i){return "s"+i+".png"}function getDataGenNum(){return 4}' +
+    'function hackRec(i){return i===263?[["normal"],[],[]]:null}function hackMove(s){return {"quick-attack":["normal","physical",40],"sand-attack":["ground","status",0]}[s]||null}' +
+    'function typeBadge(t){return "<i>"+t+"</i>"}var hackEsc=function(x){return String(x)};' +
+    src.match(/const AI_CHIP=[\s\S]*?\};\n/)[0] + 'var aiDocs={engines:{gen4:{flags:[{bit:0,key:"basic",name:"Avoid bad moves"},{bit:1,key:"evalAttack",name:"Go for the knockout"},{bit:2,key:"expert",name:"Expert"}]}}};' +
+    fnSrc('aiFlagNames') + fnSrc('trainerAIChips') + fnSrc('trainerSetHtml') + ';({trainerAIChips,trainerSetHtml})');
+  const card = T.trainerSetHtml([263, 'Zigzagoon', 5, 'Silk Scarf', 'Gluttony', 'Hasty', ['Quick Attack', 'Sand Attack']]);
+  check(!/@/.test(card) && /class="tr-pill it" title="Item">Silk Scarf</.test(card), 'the item is its own pill, with no "@"');
+  check(/title="Ability">Gluttony</.test(card) && /title="Nature">Hasty</.test(card), 'ability and nature are pills on the same row');
+  check(/<img src="s263\.png"/.test(card) && /<i>normal<\/i>/.test(card), 'the card has the sprite and the hack\'s types');
+  check(/background:#A8A87822[^>]*>[\s\S]*?Quick Attack<\/span><small>40</.test(card) && /Sand Attack<\/span><small>Status</.test(card), 'each move is coloured by its type and shows its power, or Status');
+  /* Tristan's flags are 7: Basic, KO and Expert. */
+  const chips = T.trainerAIChips(7);
+  check((chips.match(/class="tr-aic"/g) || []).length === 3 && />KO</.test(chips) && /title="Go for the knockout"/.test(chips), 'AI flags are three short chips, the full name on hover');
+  check(/No AI/.test(T.trainerAIChips(0)) && T.trainerAIChips(undefined) === '', 'no flags says so; unknown flags show nothing');
+  check(!/<textarea class="tr-note" style="display:block;margin:4px 0 8px"/.test(src) && /class="tr-note tr-show-sm"/.test(src), 'the opened trainer no longer repeats the notes box (except on a phone)');
+}
+
 // ---- the tabs -------------------------------------------------------------------------------------------------
 {
   const all = JSON.parse(src.match(/const ALL_TABS=(\[[^\]]*\]);/)[1].replace(/'/g, '"'));

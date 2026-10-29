@@ -1,6 +1,6 @@
 # HoopaDex — Technical Documentation
 
-**Version 2.7 · Last updated 2026-10-29 · HoopaDex v5.65**
+**Version 2.8 · Last updated 2026-10-29 · HoopaDex v5.66**
 Documents the published application, `app/index.html`.
 Written in ASD-STE100 Simplified Technical English. Organised with the Diataxis model.
 
@@ -1399,6 +1399,11 @@ per hack; `renderTrainerSection` draws the section tabs and the table.
 **Notes.** `localStorage['hoopadex.trainerNotes.v1']` holds `{hack: {trainer key: {n: note, b: 1}}}`.
 `saveTrainerNote` writes it and removes a trainer's entry when both fields are clear. Export writes
 the whole object to a file; import adds a file's entries and replaces the same trainer's entry.
+
+**Opened trainer (5.66).** `trainerSetHtml(member)` draws one card: sprite, types (`hackRec`), item,
+ability and nature pills, and the moves, tinted by `hackMove`'s type. `trainerAIChips(bits)` draws the
+flags as chips; `AI_CHIP` holds each flag's short name and colour. Add a line to `AI_CHIP` when an engine
+gains a flag.
 
 **Copy team.** `trainerShowdown` writes Showdown's text format and leaves out any field the source
 does not give.

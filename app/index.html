@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- HOOPADEX VERSION: 5.65 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
+<!-- HOOPADEX VERSION: 5.66 — IMPORTANT: Each time this file is edited, increment the version number in this comment AND rename the output file to match. e.g. HoopaDex_1_74.html -> HoopaDex_1_75.html.
      EXCEPTION: this published copy must stay named index.html because GitHub Pages serves it as the site entry point. The version comment above is the authoritative version marker for it. -->
 <html lang="en">
 <head>
@@ -857,15 +857,35 @@ body.light .hidden-pill{background:#6d3488;border-color:#6d3488;color:#fff}
 .tr-row.beaten td{opacity:.55}
 .tr-team{display:flex;flex-wrap:wrap;gap:4px}
 .tr-mon{display:inline-flex;align-items:center;gap:2px;font-size:12px;text-transform:capitalize;cursor:pointer;border:1px solid var(--border);border-radius:6px;padding:0 6px 0 0;background:none;color:var(--text)}
-.tr-mon img{width:30px;height:30px;image-rendering:pixelated}
+.tr-mon img{width:40px;height:40px;image-rendering:pixelated;margin:-4px 0}
 .tr-mon small{color:var(--text5)}
-.tr-note{width:100%;min-width:140px;min-height:34px;resize:vertical;font:inherit;font-size:12px;background:transparent;color:var(--text);border:1px solid var(--border2);border-radius:6px;padding:4px 6px}
+.tr-note{width:100%;min-width:140px;min-height:30px;height:30px;resize:vertical;font:inherit;font-size:12px;background:transparent;color:var(--text);border:1px solid var(--border2);border-radius:6px;padding:4px 6px}
 .tr-sets{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;padding:6px 0}
-.tr-set{border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;line-height:1.5}
-.tr-set b{text-transform:capitalize}
+.tr-set{border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.5;background:rgba(255,255,255,0.02)}
+.tr-set b{text-transform:capitalize;font-size:14px}
+.tr-set-head{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.tr-set-head img{width:56px;height:56px;image-rendering:pixelated;flex-shrink:0}
+.tr-lv{color:var(--text4);font-weight:700;font-size:12px}
+.tr-types{display:flex;gap:4px;margin-top:3px}
+.tr-types .type-badge{font-size:10px;padding:2px 8px;letter-spacing:.3px}
+.tr-set-meta{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.tr-pill{font-size:11px;font-weight:700;border-radius:20px;padding:1px 9px;border:1px solid}
+.tr-pill.it{color:#F8D030;border-color:#F8D03066;background:#F8D03014}
+.tr-pill.ab{color:#6890F0;border-color:#6890F066;background:#6890F014}
+.tr-pill.na{color:var(--text3);border-color:var(--border2)}
+.tr-ais{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.tr-aic{font-size:10px;font-weight:800;letter-spacing:.3px;color:var(--c);border:1px solid var(--c);border-radius:4px;padding:0 5px;opacity:.9}
+.tr-note:focus{height:70px}
+.tr-mvs{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.tr-mv{display:flex;justify-content:space-between;align-items:center;gap:4px;border:1px solid var(--border);border-radius:6px;padding:3px 7px;font-weight:600;cursor:default}
+.tr-mv small{font-family:'JetBrains Mono',monospace;color:var(--text4);font-size:10px}
+.tr-open>td{background:rgba(255,255,255,0.015)}
+.tr-show-sm{display:none}
+.hack-ctl input[type=checkbox]{flex:none;min-width:0;width:auto;margin:0}
+.hack-ctl .hack-toggle{font-size:13px}
 .tr-tag{font-size:10px;font-weight:800;border:1px solid var(--border2);border-radius:4px;padding:0 4px;margin-left:4px;color:var(--text4)}
 .tr-btn{font-size:11px;font-weight:700;background:none;border:1px solid var(--border2);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--text3);white-space:nowrap}
-@media (max-width:640px){.tr-hide-sm{display:none}}
+@media (max-width:640px){.tr-hide-sm{display:none}.tr-show-sm{display:block}}
 /* AI (5.59) */
 .ai-sec{margin:16px 0}
 .ai-sec p{font-size:13px;color:var(--text3);line-height:1.6;margin:6px 0}
@@ -2224,7 +2244,7 @@ document.addEventListener('mousemove',e=>{if(ttEl.classList.contains('visible'))
    300 bytes is enough to read the published version without downloading an 800 KB page. Pages
    answers ranges with a 206, and if anything about that fails the check simply does nothing: a
    version indicator is not worth an error message. */
-const APP_VERSION='5.65';
+const APP_VERSION='5.66';
 async function checkForUpdate(){
   try{
     const r=await fetch(location.pathname+'?_v='+Date.now(),
@@ -3369,6 +3389,40 @@ async function renderTrainersTab(){
     '<div class="hack-meta" style="margin-top:8px">Copy team puts the team on your clipboard in Showdown\u2019s format; paste it into the calculator\u2019s import box. The '+h.label+' calculator already has these teams loaded under each trainer\u2019s name.</div>';
   renderTrainerSection();
 }
+/* A trainer's AI flags as short coloured chips (5.66): "make everything easier to read, more color" and
+   "less lines text". The full name of each flag is on hover; the AI tab explains them. */
+const AI_CHIP={basic:['Basic','#8a8a9a'],evalAttack:['KO','#e05555'],expert:['Expert','#F08030'],setup:['Setup','#78C850'],risky:['Risky','#F85888'],
+  extremes:['Power','#C03028'],batonPass:['Baton','#A890F0'],doubles:['Doubles','#6890F0'],checkHP:['HP','#4caf50'],weather:['Weather','#98D8D8'],
+  harassment:['Harass','#A040A0'],sunnyDay:['Sun','#F8D030']};
+function trainerAIChips(bits){
+  if(bits===undefined||!aiDocs)return '';
+  const fl=aiDocs.engines.gen4.flags.filter(function(f){return bits&(1<<f.bit)});
+  if(!fl.length)return '<div class="tr-ais"><span class="tr-aic" style="--c:#6a6a7a" title="No AI flags">No AI</span></div>';
+  return '<div class="tr-ais" title="'+hackEsc(aiFlagNames(bits,aiDocs.engines.gen4))+'">'+fl.map(function(f){const c=AI_CHIP[f.key]||[f.name,'#8a8a9a'];return '<span class="tr-aic" style="--c:'+c[1]+'" title="'+hackEsc(f.name)+'">'+c[0]+'</span>'}).join('')+'</div>';
+}
+/* One Pokémon of an opened trainer (5.66): "i dont like how the trainer looks when you click in". A card
+   like a team builder's: picture, name, level and the hack's types; item, ability and nature as one row of
+   coloured pills, the label on hover ("no @ silk scarf just list the item", "less lines text"); the moves
+   as a 2x2 grid, each coloured by the hack's type for it, with its power. A move the hack's table does
+   not have is shown plain. */
+function trainerSetHtml(m){
+  const img=m[0]&&typeof spriteFor==='function'?spriteFor(m[0],getDataGenNum()):'';
+  const rec=m[0]?hackRec(m[0]):null;
+  const types=rec?rec[0]:[];
+  const pill=function(cls,k,v){return v?'<span class="tr-pill '+cls+'" title="'+k+'">'+hackEsc(v)+'</span>':''};
+  const moves=m[6].map(function(x){
+    const sl=x.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),mv=hackMove(sl);
+    const cat=mv?(mv[1]==='status'?'Status':(mv[2]||'—')):'';
+    return '<div class="tr-mv" style="'+(mv?'border-color:'+TC[mv[0]]+';background:'+TC[mv[0]]+'22':'')+'" onmouseenter="showMoveTip(event,\''+sl+'\')" onmouseleave="hideTooltip()">'+
+      '<span>'+hackEsc(x)+'</span>'+(cat?'<small>'+cat+'</small>':'')+'</div>';
+  }).join('');
+  return '<div class="tr-set">'+
+    '<div class="tr-set-head">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'')+'<div><div><b>'+hackEsc(m[1])+'</b> <span class="tr-lv">Lv '+m[2]+'</span></div>'+
+      '<div class="tr-types">'+types.map(function(t){return typeBadge(t,true)}).join('')+'</div></div></div>'+
+    '<div class="tr-set-meta">'+pill('it','Item',m[3])+pill('ab','Ability',m[4])+pill('na','Nature',m[5])+'</div>'+
+    (m[6].length?'<div class="tr-mvs">'+moves+'</div>':'<div class="hack-was">Moves not documented</div>')+
+  '</div>';
+}
 function renderTrainerSection(){
   const h=romHack(),d=trainerData[romHackFile()],body=document.getElementById('tr-body'),tabs=document.getElementById('tr-tabs');
   if(!d||!body)return;
@@ -3390,16 +3444,16 @@ function renderTrainerSection(){
         const nt=notes[t[0]]||{},k=hackEsc(t[0]),open=trainerUI.open===t[0];
         const full=t[4].some(function(m){return m[6].length||m[3]||m[4]});
         html+='<tr class="tr-row'+(nt.b?' beaten':'')+'"><td><input type="checkbox" data-k="'+k+'" '+(nt.b?'checked':'')+' onchange="onTrainerBeaten(this)" title="Beaten"></td>'+
-          '<td style="white-space:nowrap"><b>'+hackEsc(t[1])+'</b>'+(t[2]?'<span class="tr-tag">'+hackEsc(t[2])+'</span>':'')+(t[3]?'<span class="tr-tag">rematch</span>':'')+(t[5]!==undefined&&aiDocs?'<span class="tr-ai" title="AI flags">AI: '+hackEsc(aiFlagNames(t[5],aiDocs.engines.gen4))+'</span>':'')+'</td>'+
+          '<td style="white-space:nowrap"><b>'+hackEsc(t[1])+'</b>'+(t[2]?'<span class="tr-tag">'+hackEsc(t[2])+'</span>':'')+(t[3]?'<span class="tr-tag">rematch</span>':'')+trainerAIChips(t[5])+'</td>'+
           '<td><div class="tr-team">'+t[4].map(function(m){
             const img=m[0]&&typeof spriteFor==='function'?spriteFor(m[0],getDataGenNum()):'';
-            return '<button class="tr-mon" onclick="trainerUI.open=trainerUI.open===\''+k+'\'?\'\':\''+k+'\';renderTrainerSection()" title="'+(full?'Show the full team':'')+'">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'')+hackEsc(m[1])+' <small>'+m[2]+'</small></button>'}).join('')+'</div></td>'+
+            const ty=m[0]&&hackRec(m[0])?hackRec(m[0])[0][0]:'';
+            return '<button class="tr-mon" style="'+(ty?'border-color:'+TC[ty]+'99;background:'+TC[ty]+'14':'')+'" onclick="trainerUI.open=trainerUI.open===\''+k+'\'?\'\':\''+k+'\';renderTrainerSection()" title="'+(full?'Show the full team':'')+'">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'')+hackEsc(m[1])+' <small>'+m[2]+'</small></button>'}).join('')+'</div></td>'+
           '<td class="tr-hide-sm"><textarea class="tr-note" data-k="'+k+'" oninput="onTrainerNote(this)" placeholder="Your notes">'+hackEsc(nt.n||'')+'</textarea></td>'+
           '<td>'+(full?'<button class="tr-btn" onclick="copyTrainerTeam(\''+k+'\',this)">Copy team</button>':'')+'</td></tr>';
-        if(open)html+='<tr><td></td><td colspan="4"><div class="tr-sets">'+t[4].map(function(m){
-          return '<div class="tr-set"><b>'+hackEsc(m[1])+'</b> Lv '+m[2]+(m[3]?' @ '+hackEsc(m[3]):'')+(m[4]||m[5]?'<br>'+[m[4],m[5]&&m[5]+' nature'].filter(Boolean).map(hackEsc).join(' \u00b7 '):'')+
-            (m[6].length?'<br>'+m[6].map(function(x){const sl=x.toLowerCase().replace(/[^a-z0-9]+/g,'-');return '<span class="move-name" style="cursor:pointer" onmouseenter="showMoveTip(event,\''+sl+'\')" onmouseleave="hideTooltip()">'+hackEsc(x)+'</span>'}).join(', '):'<br><span class="hack-was">Moves not documented</span>')+'</div>'}).join('')+
-          '</div><textarea class="tr-note" style="display:block;margin:4px 0 8px" data-k="'+k+'" oninput="onTrainerNote(this)" placeholder="Your notes">'+hackEsc(nt.n||'')+'</textarea></td></tr>';
+        /* The notes box repeats here only on a phone, where the Notes column is hidden (5.66). */
+        if(open)html+='<tr class="tr-open"><td></td><td colspan="4"><div class="tr-sets">'+t[4].map(trainerSetHtml).join('')+
+          '</div><textarea class="tr-note tr-show-sm" style="margin:4px 0 8px" data-k="'+k+'" oninput="onTrainerNote(this)" placeholder="Your notes">'+hackEsc(nt.n||'')+'</textarea></td></tr>';
       });
     });
   });

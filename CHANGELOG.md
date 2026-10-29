@@ -12,6 +12,32 @@ comment on line 2 of `app/index.html`.
 
 ---
 
+## [5.66] - 2026-10-29
+
+### Changed
+- **An opened trainer is a row of Pokémon cards.** Asked for: *"i dont like how the trainer looks when you
+  click in"*, *"no @ silk scarf just list the item"*, *"make everything easier to read, more color,
+  sprites"* and *"less lines text"*. Each card has the sprite, name, level and the hack's types; the item,
+  ability and nature as one row of coloured pills (the label on hover); and the four moves as a 2×2 grid,
+  each tinted by its type, with its power or "Status". The second notes box under the cards is gone; it
+  shows only on a phone, where the Notes column is hidden.
+- **A trainer's AI flags are short coloured chips** (Basic, KO, Expert ...) instead of a sentence; the full
+  names are on hover and on the AI tab.
+- **Team sprites are larger**, and each Pokémon's chip is tinted by its first type.
+- The "Hide beaten" checkbox no longer stretches across the bar, and the notes box starts one line high.
+
+### Record
+- **Measured.** No published figure moves.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing: the technical docs (4.15) are updated in this pass.
+
+### Tests
+- `tests/test-platinum-kaizo.js` +7 (86). Mutations M220–M222; M200 re-anchored, since the chips repeat
+  the flag lookup. **211 killed, 0 survived, 0 skipped.** 52 suites, 2,050 assertions, all passing.
+
+---
+
 ## [5.65] - 2026-10-29
 
 ### Changed

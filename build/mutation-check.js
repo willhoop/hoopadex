@@ -455,7 +455,9 @@ const MUTATIONS = [
   ['M199', "The AI tab is offered in generations with no decompiled AI",
     "&&selectedGenNum!==3&&selectedGenNum!==4)return false;", ")return false;", 1, 'test-ai-docs.js'],
   ['M200', "A trainer's AI flags are read from the wrong bits",
-    "return bits&(1<<f.bit)}", "return bits&f.bit}", 1, 'test-ai-docs.js'],
+    "return engine.flags.filter(function(f){return bits&(1<<f.bit)})", "return engine.flags.filter(function(f){return bits&f.bit})", 1, 'test-ai-docs.js'],
+  ['M222', "The AI chips read a trainer's flags from the wrong bits",
+    "const fl=aiDocs.engines.gen4.flags.filter(function(f){return bits&(1<<f.bit)});", "const fl=aiDocs.engines.gen4.flags.filter(function(f){return bits&f.bit});", 1, 'test-platinum-kaizo.js'],
   ['M201', "A link to the AI tab opens the Pokédex instead",
     "'tms','guide','trainers','ai','locations','run'", "'tms','guide','trainers','locations','run'", 1, 'test-ai-docs.js'],
   /* Radical Red (5.60). */
@@ -500,6 +502,11 @@ const MUTATIONS = [
     "if(isRomHack){const r=getFormGenRange(f.name);if(r&&!r.available(genNum))return false}", "", 1, 'test-platinum-kaizo.js'],
   ['M219', "The evolution line says \"(Lv 36)\" instead of \"at level 36\"",
     "return x?'at level '+x[1]:'('+m+')'", "return '('+m+')'", 1, 'test-platinum-kaizo.js'],
+  /* The opened trainer (5.66). */
+  ['M220', "The item goes back to \"@ Silk Scarf\"",
+    "'<div class=\"tr-set-meta\">'+pill('it','Item',m[3])+", "'<div class=\"tr-set-meta\">'+(m[3]?' @ '+m[3]:'')+", 1, 'test-platinum-kaizo.js'],
+  ['M221', "AI flags go back to one long line of names",
+    "return '<span class=\"tr-aic\" style=\"--c:'+c[1]+'\" title=\"'+hackEsc(f.name)+'\">'+c[0]+'</span>'", "return f.name+', '", 1, 'test-platinum-kaizo.js'],
   ['M170', "FireRed/LeafGreen is pointed at the wrong sprite set",
     "'firered-leafgreen':'generation-iii/firered-leafgreen',", "'firered-leafgreen':'generation-iii/emerald',", 1, 'test-generation-tables.js'],
 
